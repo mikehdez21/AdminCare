@@ -1,0 +1,157 @@
+.divMain_AlmacenGeneral{
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    .navbar_AlmacenGeneral{
+        display: flex;
+        align-items: center;
+        z-index: 1000;
+        border-bottom-style: groove;
+        border-color: #1f0166;
+        
+        user-select: none; /* Desactiva la selección de texto */
+        -webkit-user-select: none; /* Soporte para navegadores basados en WebKit */
+        -moz-user-select: none; /* Soporte para Firefox */
+        -ms-user-select: none; /* Soporte para navegadores antiguos de Microsoft */
+        
+        ul{
+            display: inline-flex;
+            margin: 0px;
+            padding-left: 10px;
+            width: 100%;
+            gap: 10px;
+            list-style: none;
+            background: linear-gradient(0deg, #1f016662 0%, #a52bf7be 50%, #af36ffe3 100%);
+
+            .selectedNavbarAlmacen {
+                background-color: #2b7df7a6 !important;
+
+                p{
+                    color: #ffffff;
+                    font-weight: 550;
+
+                }
+
+                .IconSubMenu{
+                    color: #ffffff;
+                }
+
+            }
+
+            li{
+                display: flex;
+                max-height: 25px;
+                flex-direction: column;
+                align-items: center;
+                cursor: pointer;
+                font-family: Tahoma;
+                background-color: #e3c8f5a8;
+                border-top-right-radius: 10px;
+                border-top-left-radius: 10px;
+                border-top-style: groove;
+                border-right-style: groove;
+                
+                p{
+                    margin: 2px 10px;
+
+                }
+
+                .paramsTitle{
+                    display: flex;
+                    align-items: center;
+                    padding: 0px 10px;
+
+                    .IconSubMenu{
+                        font-size: 25px;
+                        transition: transform 0.3s ease;
+                    }
+    
+                    .IconSubMenu.rotate {
+                        transform: rotate(180deg); /* Gira el icono cuando se añade la clase .rotate */
+                    }
+                }
+
+                .subMenu_Params{
+                    display: flex;
+                    width: 100%;
+                    border-right: 3px groove;
+                    border-left: 3px solid transparent;
+                    border-bottom-right-radius: 2px;
+
+                    
+                    ul{
+                        flex-direction: column;
+                        gap: 6px;
+                        padding: 4px 4px;
+                        padding-bottom: 5px;
+                        border-bottom-left-radius: 2px;
+
+                        
+
+                        li{
+                            
+                            background-color: #c984f7;
+                            border-radius: 5px;
+                            border-style: solid;
+                            border-width: .5px;
+                        }
+
+                        li:hover{
+                            background-color: #5c0ab9;
+                            color: #ffffff;
+                        }
+
+                        .selectedNavbarAlmacen_subMenu {
+                            background-color: #2b7df7a6 !important;
+                            color: #ffffff;
+
+                            
+
+
+                        }
+
+                        
+                    }
+                    
+                }
+
+                
+            }
+
+            li:hover{
+                background-color: #c984f7;
+
+                p, .IconSubMenu{
+                    color: #ffffff;
+                    
+                }
+            }
+            
+        }
+        
+    }
+        
+
+    .noLocationSelected{
+        display: flex;
+        text-align: center;
+        align-self: center;
+        font-size: 20px;
+        font-weight: 600;
+
+        p{
+            margin: 30px 20px;
+        }
+    }
+    
+    .div_Content{
+        height: 100%;
+        padding: 5px;
+    }
+
+    
+
+
+
+} 

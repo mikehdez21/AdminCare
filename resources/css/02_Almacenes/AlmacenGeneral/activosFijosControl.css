@@ -1,0 +1,256 @@
+.mainDiv_ActivosControl {
+
+    .searchAdd_ButtonDiv{
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0px;        
+        
+        .text_Div{
+            display: flex;
+            color: #383838d5;
+            flex: 1;
+            justify-content: space-between;
+            
+            h1{
+                font-size: 25px;
+                margin: 5px;
+                align-self: center;
+
+            }
+            
+
+        }
+
+        .buttons_Div{
+            display: flex;
+            gap: 20px;
+            padding: 10px;
+
+            .selectList{
+                text-align: center;
+                border-radius: 8px;
+                border-width: 2px;
+                border-style: groove;
+            }
+
+            input{
+                width: 250px;
+                border-radius: 8px;
+                border-width: 2px;
+                border-style: groove;
+
+                padding: 10px;
+            }
+
+            button{
+                display: flex;
+                gap: 5px;
+                background-color: #da29fd;
+                color: #ffffff;
+                font-weight: 800;
+                font-size: 15px;
+                align-items: center;
+                justify-content: center;
+                width: 250px;
+                border-radius: 8px;
+                padding: 5px;
+                cursor: pointer;
+
+                .iconAdd{
+                    font-size: 20px;
+                }
+            }
+
+            .buttonAdd:hover{
+                background-color: #df67f7 !important;
+                color: #000000;
+
+            }
+        }
+
+        
+    }
+
+    .noEntities{
+        display: flex;
+        background-color: #f7fa52a2;
+        justify-self: center;
+        align-items: center;
+        text-align: center;
+        margin-top: 30px;
+        padding: 0px 30px;
+        border-radius: 10px;
+        font-size: 20px;
+        font-weight: 600;
+        border-style:  dashed;
+        border-color: #00000057;
+
+        p{
+            margin: 30px 20px;
+        }
+
+        
+    }
+
+    .list_entitiesDiv{
+        display: flex;
+        max-height: 70%;
+        background-color: #ffffff;
+        border-radius: 10px;
+        margin: 10px 15px;
+        padding: 10px 0px;
+        overflow-x:auto;
+
+        table{
+            text-align: left;
+            width: 100%;
+
+            /*Heads Table*/
+            tr{
+
+                th{
+                    border-width: 1px;
+                    border-color: #d8d5d5d5;
+                    border-bottom-style: solid;
+                    padding: 0px 35px;
+                }
+
+                td{
+                    font-size: 14px;
+                    border-width: 1px;
+                    border-color: #d8d5d5d5;
+                    border-bottom-style: solid;
+                    padding: 20px 35px;
+                }
+
+                #th_ID,
+                #td_ID {
+                    padding: 0px 5px;
+                    position: sticky;
+                    left: 0;
+                    text-align: center;
+                    z-index: 2;
+                    background: white;
+                }
+
+                #th_CodigoUnico,
+                #td_CodigoUnico {
+                    text-align: center;
+                    padding: 0px 20px;
+                    position: sticky;
+                    background: #ffffff;
+                    left: 25px;
+                    z-index: 2;
+                }
+
+                #th_NombreAF,
+                #td_NombreAF {
+                    text-align: center;
+                    padding: 0px 50px;
+                    position: sticky;
+                    background: #ffffff;
+                    box-shadow: 2px 0 0 #ccc;
+                    left: 150px;
+                    z-index: 2;
+                }
+
+                #th_Descripcion,
+                #td_Descripcion{
+                    text-align: center;
+                }
+
+                #th_IDClasificacion,
+                #td_IDClasificacion{
+                    text-align: center;
+                }
+
+                #th_FechaAdquisicion,
+                #td_FechaAdquisicion{
+                    text-align: center;
+                }
+
+                #th_CostoAdquisicion,
+                #td_CostoAdquisicion{
+                    text-align: center;
+                }
+
+                #th_VidaUtil,
+                #td_VidaUtil{
+                    text-align: center;
+                }
+
+                #th_ValorResidual,
+                #td_ValorResidual{
+                    text-align: center;
+                }
+
+                #th_EstadoAF,
+                #td_EstadoAF{
+                    text-align: center;
+                }  
+                
+                #th_FechaCreacion,
+                #td_FechaCreacion{
+                    text-align: center;
+                }
+
+                #th_FechaModificacion,
+                #td_FechaModificacion{
+                    text-align: center;
+                }
+                
+                #th_Acciones,
+                #td_Acciones{
+                    border-width: 1px;
+                    border-color: #d8d5d5d5;
+                    background-color: #ffffff;
+                    border-left-style: solid;
+                    text-align: center;
+                    position: sticky;
+                    right: 0;
+                    box-shadow: -1px 0 0 #ccc;
+                    
+                    .divActions{
+                        display: flex;
+                        justify-content: center;
+
+                        .button_editEntity{
+                            display: flex;
+                            align-items: center;
+                            background-color: transparent;
+                            border: transparent;
+                            color: #007bff;
+                            cursor: pointer;
+                            font-size: 20px;
+
+
+                        }
+
+                        .button_editEntity:hover{
+                            color: #00ccff;
+                        }
+
+                        .button_deleteEntity{
+                            display: flex;
+                            align-items: center;
+                            background-color: transparent;
+                            border: transparent;
+                            color: #ff000075;
+                            cursor: pointer;
+                            font-size: 20px;
+
+                        }
+
+                        .button_deleteEntity:hover{
+                            color: #ff0000;
+
+                        }
+                    }
+                }
+            }
+            
+        }
+    }
+    
+}
+

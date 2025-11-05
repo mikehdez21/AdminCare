@@ -1,0 +1,214 @@
+.AddFactura{
+    
+    .header_AddFactura{
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        margin-bottom: 5px;
+        align-items: center;
+        font-weight: bold;
+        color: #333;
+        
+        h1{
+            font-size: 26px;
+            margin: 0;
+        }
+
+        p{
+            margin: 0;
+            font-size: 12px;
+            color: #666;
+        }
+    }
+
+    form{
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+
+        section{
+            display: flex;
+            flex-direction: column;
+            background-color: #ece7f1;
+            border: 2px solid #b4adad;
+            border-radius: 10px;
+            
+            .title_Container{
+                display: flex;
+                padding: 10px;
+                
+                h2{
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    margin: 0;
+                    font-size: 20px;
+                    color: #495057;
+
+                    .infoIcon{
+                        font-size: 24px;
+                        color: #458cd8;
+                    }
+
+                    .fechasIcon{
+                        font-size: 24px;
+                        color: #45d85d;
+                    }
+
+                    .infoPago{
+                        font-size: 24px;
+                        color: #d84545;
+                    }
+
+                    .valoresIcon{
+                        font-size: 24px;
+                        color: #d8a245;
+                    }
+
+                    .observacionIcon{
+                        font-size: 24px;
+                        color: #d845d8;
+                    }
+                }
+
+
+                .agregarActivos{
+                    display: flex;
+                    gap: 10px;
+                    margin-left: auto;
+                    padding: 5px 10px;
+                    background-color: #007bff;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    
+
+                    .addActivoIcon{
+                        display: flex;
+                        align-self: center;
+                        font-size: 24px;
+                    }
+
+                    
+                }
+
+                .agregarActivos:hover{
+                    background-color: #0056b3;
+                }
+            }
+
+            .inputs_Container{
+                display: flex;
+                justify-content: space-around;
+                gap: 20px;
+
+                label{
+                    display: flex;
+                    flex-direction: column;
+                    width: 100%;
+                    padding: 0px 10px;
+
+                    select, input{
+                        padding: 8px;
+                        margin: 5px 0;
+                        border: 2px groove #df67f7;
+                        border-radius: 14px;
+                        font-size: 16px;
+                    }
+
+                    
+                }
+
+                table{
+                    width: 95%;
+                    background-color: #ece7f1;
+                    border: 2px solid #b4adad;
+                    border-radius: 10px;
+                    margin-bottom: 10px;
+                    flex-wrap: nowrap;
+
+                    th, td{
+                        padding: 10px;
+                        text-align: left;
+                        border-bottom: 1px solid #c7bebe;
+                    }
+
+                    th{
+                        background-color: #f2f2f2;
+                        span{
+                            font-size: 14px;
+                            color: #666;
+                        }
+                    }
+
+                    
+                }
+
+                textarea{
+                    width: 95%;
+                    padding: 8px;
+                    margin: 0px 0px 20px 0px;
+                    border: 2px groove #df67f7;
+                    border-radius: 14px;
+                    font-size: 16px;
+                    height: 80px;
+                    resize: none;
+                }
+
+                
+            }
+
+            .totalFactura{
+                display: flex;
+                margin-top: 10px;
+                align-items: center;
+                border: 1px solid #b4adad;
+                padding: 10px 20px;
+                background-color: #007bff2a;
+
+                .totalFacturaLabel{
+                    flex: 1;
+                    font-weight: bold;
+                    color: #333;
+
+                    #totalFactura{
+                        margin: 0;
+                        font-size: 24px;
+                    }
+
+                    #totalFacturaDescuento{
+                        margin: 0;
+                        font-size: 16px;
+                        color: #3f7cee;
+
+                    }
+                }
+
+                .totalFacturaCalculado{
+                    flex: 1;
+                    text-align: right;
+                    font-weight: bold;
+                    color: #13a332;
+
+                    #totalFacturaValue{
+                        margin: 0;
+                        font-size: 24px;
+                    }
+
+                    #totalFacturaDescuentoValue{
+                        margin: 0;
+                        font-size: 16px;
+                        color: #3f7cee;
+                    }
+                }
+
+            }
+        }
+
+        
+
+        
+
+    }
+}

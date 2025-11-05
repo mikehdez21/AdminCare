@@ -1,0 +1,24 @@
+.paginacionDiv{
+    display: flex;
+    padding: 5px 25px ;
+    gap: 5px;
+
+    .page-button, button {
+        background-color: #f1f1f1;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        padding: 5px 10px;
+        margin: 0 5px;
+        cursor: pointer;
+        }
+
+        .page-button.active {
+        background-color: #007bff;
+        color: white;
+        }
+
+        button:disabled {
+        background-color: #e0e0e0;
+        cursor: not-allowed;
+    }
+}
