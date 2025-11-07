@@ -13,9 +13,9 @@
     @vite(['resources/js/App.tsx'])
     @else
     <!-- Incluye el archivo CSS compilado -->
-    <link rel="stylesheet" href="{{ asset('build/assets/App-Dz8-H2Ot.css') }}">
+    <link rel="stylesheet" href="{{ asset('build/assets/App-D1liSI8E.css') }}">
     <!-- Incluye el archivo JS compilado -->
-    <script type="module" src="{{ asset('build/assets/App-UshGASSU.js') }}"></script>
+    <script type="module" src="{{ asset('build/assets/App-ChwiVoqt.js') }}"></script>
     @endif
 </head>
 
