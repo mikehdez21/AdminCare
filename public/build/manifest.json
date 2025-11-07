@@ -1,0 +1,11 @@
+{
+  "resources/js/App.tsx": {
+    "file": "assets/App-ChwiVoqt.js",
+    "name": "App",
+    "src": "resources/js/App.tsx",
+    "isEntry": true,
+    "css": [
+      "assets/App-D1liSI8E.css"
+    ]
+  }
+}
