@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Provider, useDispatch } from 'react-redux';
 import store from './store/store';
 import { AppDispatch } from './store/store';
-import { setCurrentUser } from './store/Users/usersReducer';
+import { setCurrentUser } from './store/administrador/Users/usersReducer';
 
 // -- Layouts
 import Layout_Public from './layouts/LayoutPublic';
@@ -16,6 +16,7 @@ import LayoutUsuario from './layouts/LayoutUsuario';
 // -- Public
 import Status from './components/Status';
 import PageLogin from './components/Login/PageLogin';
+import ActivoQRPublic from './pages/ActivoQRPublic';
 
 // -- Private
 import ProtectedRoutes from './pages/auth/ProtectedRoutes'; 
@@ -23,7 +24,8 @@ import ProtectedRoutes from './pages/auth/ProtectedRoutes';
 // Styles
 import '../css/app.css'
 
-const App = () => {
+const App: React.FC = () => {
+  
   const dispatch = useDispatch<AppDispatch>(); 
 
   // Recuperar Usuario Logeado y su Información desde LOCALSTORAGE
@@ -46,6 +48,7 @@ const App = () => {
           <Route index element={<Navigate to="/login" />} />
           <Route path='/status' element={<Status />} />
           <Route path='/login' element={<PageLogin />} />
+          <Route path='/activosfijos/qraf/:codigoQR' element={<ActivoQRPublic />} />
         </Route>
 
 
@@ -64,6 +67,7 @@ const App = () => {
           <Route path="/gestion_empleados/*" element={<LayoutAdmin />} />
           <Route path="/gestion_roles/*" element={<LayoutAdmin />} />
           <Route path="/gestion_departamentos/*" element={<LayoutAdmin />} />
+          <Route path="/gestion_ubicaciones/*" element={<LayoutAdmin />} />
 
 
         </Route>

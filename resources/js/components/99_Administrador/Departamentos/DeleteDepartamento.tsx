@@ -2,12 +2,14 @@ import React from 'react';
 import Modal from 'react-modal';
 import { AppDispatch } from '@/store/store';
 import { useDispatch } from 'react-redux';
-import { deleteDepartamento, getDepartamentos } from '@/store/Departamentos/departamentosActions';
-import { setListDepartamentos } from '@/store/Departamentos/departamentosReducer';
+import { deleteDepartamento, getDepartamentos } from '@/store/administrador/Departamentos/departamentosActions';
+import { setListDepartamentos } from '@/store/administrador/Departamentos/departamentosReducer';
 import { Departamentos } from '@/@types/mainTypes';
 import Swal from 'sweetalert2'; 
+import ModalButtons from '@/components/00_Utils/ModalButtons';
 
-import '@styles/00_Utils/addeditdelete_Entities.css'
+import '@styles/99_Administrador/Departamentos/modalDepartamentos.css'
+
 
 interface DeleteDepartamentoProps {
   isOpen: boolean;
@@ -42,7 +44,7 @@ const DeleteDepartamentos: React.FC<DeleteDepartamentoProps> = ({ isOpen, onClos
 
       Swal.fire({
         icon: 'success',
-        title: 'Departamento Eliminado (INACTIVO)',
+        title: 'Departamento Eliminado',
         text: 'El departamento ha sido eliminada exitosamente.',
         confirmButtonText: 'OK',
       });
@@ -67,37 +69,40 @@ const DeleteDepartamentos: React.FC<DeleteDepartamentoProps> = ({ isOpen, onClos
       isOpen={isOpen}
       onRequestClose={onClose}
       contentLabel="Eliminar Nueva Entity"
-      className="modal_CRUD_Entity"
-      overlayClassName="modal_OverlayCRUD_Entity"
+      className="modalDepartamentos"
     >
-      <div className="modal_Content">
-        <div>
-          <h2>Eliminar Departamento</h2>
+      <div className="mainDiv_modalDepartamentos" >
+        <h2>Eliminar Departamento</h2>
+
+        <div className='mainInputs_Delete_AdminEntity'>
           <p>¿Quiere eliminar al departamento? </p>
-        </div>
 
-        <p>
-          <strong>{departamentoToDelete?.nombre_departamento} <br /> </strong>
-          <small>{departamentoToDelete?.descripcion}</small>
+          <p>
+            <strong>{departamentoToDelete?.nombre_departamento} <br /> </strong>
+            <small>{departamentoToDelete?.descripcion}</small>
 
-        </p>
+          </p>
         
-        <div className="modal_buttons">
-          <button 
-            type="button" 
-            className="button_delete" 
-            onClick={handleDelete}
-          >
-            Confirmar Eliminación
-          </button>
-          <button 
-            type="button" 
-            className="button_close" 
-            onClick={onClose}
-          >
-            Cancelar
-          </button>
         </div>
+
+        <ModalButtons 
+          buttons={[
+            {
+              text: 'Eliminar',
+              type: 'button',
+              className: 'button_delete',
+              onClick: handleDelete
+            },
+            {
+              text: 'Cancelar',
+              type: 'button',
+              className: 'button_close',
+              onClick: onClose
+            }
+          ]}
+        />
+
+       
       </div>
     </Modal>
   );

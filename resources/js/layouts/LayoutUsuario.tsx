@@ -6,7 +6,8 @@ import React from 'react'
 // Componentes
 import PageHome from '../components/Home/PageHome'
 
-const LayoutUsuario = () => {
+const LayoutUsuario: React.FC = () => {
+  
   return (
     <>
       <p>LayoutUsuario</p>

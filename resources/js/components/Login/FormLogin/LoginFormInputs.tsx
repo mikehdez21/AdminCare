@@ -1,7 +1,7 @@
 import React, { useState, FormEvent } from 'react';
 import { login } from '../../../store/authActions'; // Asegúrate de que este archivo esté correctamente configurado
 
-import { setCurrentUser } from '@/store/Users/usersReducer';
+import { setCurrentUser } from '@/store/administrador/Users/usersReducer';
 import { setAuthState } from '@/store/authReducer'
 
 import { AppDispatch } from '../../../store/store'; // Asegúrate de importar AppDispatch
@@ -80,10 +80,16 @@ const LoginFormInputs: React.FC = () => {
     } catch (error: unknown) { // Cambiado a 'unknown' para mejor manejo de tipos
       console.error('Error al iniciar sesión:', error);
 
-      // Asegúrate de que estás obteniendo el mensaje correcto
+      // Manejo mejorado de errores desde Redux Toolkit
       let errorMessage = 'Error de conexión. Por favor, inténtalo de nuevo.';
+      
+      // El error de .unwrap() viene con la estructura del rejectValue
       if (error && typeof error === 'object' && 'message' in error) {
-        errorMessage = (error as { message: string }).message; // Usar el mensaje de error del backend
+        errorMessage = (error as { message: string }).message;
+      }
+      // También verificar si el error tiene la estructura de rejectWithValue
+      else if (error && typeof error === 'string') {
+        errorMessage = error;
       }
 
       setLoginMessage(errorMessage);
@@ -93,7 +99,7 @@ const LoginFormInputs: React.FC = () => {
       setTimeout(() => {
         setShowLoginMessage(false);
         setLoginMessage('');
-      }, 1500);
+      }, 3000); // Aumentado a 3 segundos para errores importantes
     }
   };
 

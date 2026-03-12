@@ -21,6 +21,8 @@ class table_UsersSeeder extends Seeder
             'email_usuario' => 'hssadmin@hospitalsanserafin.com',
             'password' => Hash::make('12341234'),
             'estatus_activo' => true,
+            'fecha_baja' => null,
+            'usuario_compartido' => false,
             'id_departamento' => 1,
         ]);
 
@@ -35,6 +37,8 @@ class table_UsersSeeder extends Seeder
             'email_usuario' => 'jefatura.almacen@hospitalsanserafin.com',
             'password' => Hash::make('12341234'),
             'estatus_activo' => true,
+            'fecha_baja' => null,
+            'usuario_compartido' => false,
             'id_departamento' => 2,
         ]);
 
@@ -49,6 +53,8 @@ class table_UsersSeeder extends Seeder
             'email_usuario' => 'empleado.sistemas@hospitalsanserafin.com',
             'password' => Hash::make('12341234'),
             'estatus_activo' => true,
+            'fecha_baja' => null,
+            'usuario_compartido' => false,
             'id_departamento' => 3,
         ]);
 
@@ -63,6 +69,8 @@ class table_UsersSeeder extends Seeder
             'email_usuario' => 'jefatura.contabilidad@hospitalsanserafin.com',
             'password' => Hash::make('12341234'),
             'estatus_activo' => true,
+            'fecha_baja' => null,
+            'usuario_compartido' => false,
             'id_departamento' => 4,
         ]);
 
@@ -77,6 +85,8 @@ class table_UsersSeeder extends Seeder
             'email_usuario' => 'auditor@hospitalsanserafin.com',
             'password' => Hash::make('12341234'),
             'estatus_activo' => true,
+            'fecha_baja' => null,
+            'usuario_compartido' => false,
             'id_departamento' => 5,
         ]);
 

@@ -35,6 +35,9 @@ return new class extends Migration
             // RFC del proveedor (cadena de texto, obligatorio)
             $table->string('rfc');
 
+            // Estatus Activo
+            $table->boolean('estatus_activo')->default(true);
+
             // Moneda en la que opera el proveedor (cadena de texto, opcional)
             $table->foreignId('id_tipo_moneda')->constrained('almacengeneral.tableRef_TiposMonedas', 'id_tipomoneda')->onDelete('set null');
 

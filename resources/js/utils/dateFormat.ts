@@ -1,4 +1,7 @@
-import dayjs, {Dayjs} from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+
+dayjs.extend(customParseFormat);
 
 export const formatDateHorasToFrontend = (dateString: string | Date | number | null): string | null => {
   if (!dateString) return null;
@@ -10,17 +13,6 @@ export const formatDateHorasToFrontend = (dateString: string | Date | number | n
     return null;
   }
 };
-
-export const formatDateHorasToInputs = (dateString: string | Date | number | null): string | null => {
-  if (!dateString) return null;
-  try {
-    const date = dayjs(dateString);
-    return date.isValid() ? date.format('YYYY-MM-DDTHH:mm') : null; // Ej: "2024-03-15T10:00"
-  } catch (error) {
-    console.error('Fecha inválida:', dateString, error);
-    return null;
-  }
-}
 
 export const formatDateHorasToBackend = (dateString: string | Date | number | null): string | null => {
   if (!dateString) return null;
@@ -34,22 +26,34 @@ export const formatDateHorasToBackend = (dateString: string | Date | number | nu
 };
 
 
+export const formatDateHorasToInputs = (dateString: string | Date | number | null): string | null => {
+  if (!dateString) return null;
+  try {
+    const date = safeParseDate(dateString);
+    return date?.isValid() ? date.format('YYYY-MM-DDTHH:mm') : null; // Ej: "2024-03-15T10:00"
+  } catch (error) {
+    console.error('Fecha inválida:', dateString, error);
+    return null;
+  }
+}
+
+export const formatDateNacimientoToInputs = (dateString: string | Date | number | null): string | null => {
+  if (!dateString) return null;
+  try {
+    const date = safeParseDate(dateString);
+    return date?.isValid() ? date.format('YYYY-MM-DD') : null; // Ej: "2024-03-15"
+  } catch (error) {
+    console.error('Fecha inválida:', dateString, error);
+    return null;
+  }
+}
+
+
 export const formatDateNacimientoToFrontend = (dateString: string | Date | number | null): string | null => {
   if (!dateString) return null;
   try {
     const date = dayjs(dateString);
     return date.isValid() ? date.format('DD/MM/YYYY') : null;
-  } catch (error) {
-    console.error('Fecha inválida:', dateString, error);
-    return null;
-  }
-};
-
-export const formatDateNacimientoToBackend = (dateString: string | Date | number | null): string | null => {
-  if (!dateString) return null;
-  try {
-    const date = dayjs(dateString);
-    return date.isValid() ? date.format('YYYY-MM-DD') : null; // Ej: "2024-03-15"
   } catch (error) {
     console.error('Fecha inválida:', dateString, error);
     return null;
@@ -95,4 +99,11 @@ export const safeParseDate = (
   }
 
   return parsed.isValid() ? parsed : null;
+};
+
+export const getFechaHoraActual = (): string => {
+  const date = new Date();
+  const offset = date.getTimezoneOffset();
+  const localDate = new Date(date.getTime() - offset * 60 * 1000);
+  return localDate.toISOString().slice(0, 16);
 };

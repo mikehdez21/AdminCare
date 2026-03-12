@@ -3,25 +3,29 @@
 namespace App\Models\AlmacenGeneral;
 
 use Illuminate\Database\Eloquent\Model;
-use Endroid\QrCode\Builder\Builder;
-use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\ErrorCorrectionLevel;
-use Endroid\QrCode\Label\LabelAlignment;
+use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
+use Endroid\QrCode\Color\Color;
+use Endroid\QrCode\Label\Label;
+use Endroid\QrCode\Logo\Logo;
 use Endroid\QrCode\RoundBlockSizeMode;
+use Endroid\QrCode\ErrorCorrectionLevel;
+use Endroid\QrCode\Encoding\Encoding;
 use Illuminate\Support\Facades\Storage;
 
 class CodigosQRAF extends Model
 {
     protected $table = 'almacengeneral.tableAF_CodigosQR';
-    protected $primaryKey = 'id_qr';
-    public $timestamps = false;
+    protected $primaryKey = 'id_qraf';
 
     protected $fillable = [
         'id_activo_fijo',
         'codigo_qr',
         'url_destino',
+        'fecha_generacion',
+        'fecha_ultimo_escaneo',
         'activo',
+        'intentos_lectura',
         'observaciones',
     ];
 
@@ -37,14 +41,100 @@ class CodigosQRAF extends Model
         return $this->belongsTo(ActivosFijos::class, 'id_activo_fijo', 'id_activo_fijo');
     }
 
-    // Generar código QR único
+    // Generar código QR único por activo considerando cantidad de mismo activo
     public static function generarCodigo($idActivo)
     {
-        return 'QR-AF-' . str_pad($idActivo, 6, '0', STR_PAD_LEFT) . '-' . date('Y');
+        // Verificar que el activo existe
+        $activo = ActivosFijos::findOrFail($idActivo);
+        return (string) 'QR' . $activo->codigo_etiqueta;
     }
 
     /**
-     * Generar imagen QR usando endroid/qr-code
+     * Generar QR completo para un activo fijo
+     * Incluye: creación en BD, generación de imagen y guardado en storage
+     * 
+     * @param int $idActivo ID del activo fijo
+     * @param bool $forzarNuevo Si es true, crea uno nuevo aunque ya exista uno activo
+     * @return array ['success' => bool, 'message' => string, 'data' => array]
+     */
+    public static function generarParaActivo($idActivo, $forzarNuevo = false)
+    {
+        try {
+            // Verificar que el activo existe
+            $activo = ActivosFijos::findOrFail($idActivo);
+
+            // Verificar si ya existe un QR activo
+            $qrExistente = self::where('id_activo_fijo', $idActivo)
+                ->where('activo', true)
+                ->first();
+
+            if ($qrExistente && !$forzarNuevo) {
+                return [
+                    'success' => true,
+                    'message' => 'El activo ya tiene un código QR activo.',
+                    'data' => [
+                        'qraf' => $qrExistente,
+                        'imagen_base64' => $qrExistente->generarImagenQR(300, $activo->codigo_etiqueta),
+                        'url_imagen' => $qrExistente->url_imagen_qr,
+                        'ya_existia' => true,
+                    ],
+                ];
+            }
+
+            // si se fuerza, desactiva anteriores
+            if ($forzarNuevo) {
+                self::where('id_activo_fijo', $idActivo)->where('activo', true)->update(['activo' => false]);
+            }
+
+            // Generar código único
+            $codigoQR = self::generarCodigo($idActivo);
+            $urlDestino = url("/activosfijos/qraf/{$codigoQR}");
+
+            // Crear registro en la base de datos
+            $qraf = self::create([
+                'id_activo_fijo' => $idActivo,
+                'codigo_qr' => $codigoQR,
+                'url_destino' => $urlDestino,
+                'fecha_generacion' => now(),
+                'activo' => true,
+            ]);
+
+            // Generar imagen QR con etiqueta
+            $label = $activo->codigo_etiqueta;
+            $imagenBase64 = $qraf->generarImagenQR(300, $label);
+
+            // Guardar en storage
+            $rutaGuardada = $qraf->guardarImagenQR('qr_codes/activos');
+
+            return [
+                'success' => true,
+                'message' => 'Código QR generado exitosamente.',
+                'data' => [
+                    'qraf' => $qraf,
+                    'imagen_base64' => $imagenBase64,
+                    'url_imagen' => $qraf->url_imagen_qr,
+                    'ruta_guardada' => $rutaGuardada,
+                    'ya_existia' => false,
+                ],
+            ];
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return [
+                'success' => false,
+                'message' => 'Activo fijo no encontrado.',
+                'data' => null,
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Error al generar el código QR: ' . $e->getMessage(),
+                'data' => null,
+            ];
+        }
+    }
+
+    /**
+     * Generar imagen QR usando endroid/qr-code v6
      * 
      * @param int $size Tamaño de la imagen (default: 300)
      * @param string|null $label Etiqueta opcional debajo del QR
@@ -52,23 +142,27 @@ class CodigosQRAF extends Model
      */
     public function generarImagenQR($size = 300, $label = null)
     {
-        $builder = Builder::create()
-            ->writer(new PngWriter())
-            ->writerOptions([])
-            ->data($this->url_destino)
-            ->encoding(new Encoding('UTF-8'))
-            ->errorCorrectionLevel(ErrorCorrectionLevel::High)
-            ->size($size)
-            ->margin(10)
-            ->roundBlockSizeMode(RoundBlockSizeMode::Margin);
+        $writer = new PngWriter();
+        
+        // Crear el código QR con todos los parámetros en el constructor
+        $qrCode = new QrCode(
+            data: $this->url_destino,
+            encoding: new Encoding('UTF-8'),
+            errorCorrectionLevel: ErrorCorrectionLevel::High,
+            size: $size,
+            margin: 10,
+            roundBlockSizeMode: RoundBlockSizeMode::Margin,
+            foregroundColor: new Color(0, 0, 0),
+            backgroundColor: new Color(255, 255, 255)
+        );
 
         // Agregar etiqueta si se proporciona
+        $labelObj = null;
         if ($label) {
-            $builder->labelText($label)
-                ->labelAlignment(LabelAlignment::Center);
+            $labelObj = new Label($label);
         }
 
-        $result = $builder->build();
+        $result = $writer->write($qrCode, null, $labelObj);
 
         // Retornar como base64
         return base64_encode($result->getString());
@@ -79,28 +173,75 @@ class CodigosQRAF extends Model
      * 
      * @param string $carpeta Carpeta donde guardar (default: qr_codes)
      * @return string Ruta del archivo guardado
+     * @throws \Exception
      */
     public function guardarImagenQR($carpeta = 'qr_codes')
     {
-        $result = Builder::create()
-            ->writer(new PngWriter())
-            ->data($this->url_destino)
-            ->encoding(new Encoding('UTF-8'))
-            ->errorCorrectionLevel(ErrorCorrectionLevel::High)
-            ->size(300)
-            ->margin(10)
-            ->roundBlockSizeMode(RoundBlockSizeMode::Margin)
-            ->labelText($this->codigo_qr)
-            ->labelAlignment(LabelAlignment::Center)
-            ->build();
+        try {
+            $disk = Storage::disk('public');
+            
+            // Crear el directorio si no existe (recursivo)
+            if (!$disk->exists($carpeta)) {
+                $dirCreado = $disk->makeDirectory($carpeta, 0755, true);
+                \Log::info("Directorio QR creado: {$carpeta}, resultado: " . ($dirCreado ? 'true' : 'false'));
+            }
 
-        $nombreArchivo = $this->codigo_qr . '.png';
-        $ruta = "{$carpeta}/{$nombreArchivo}";
+            $writer = new PngWriter();
+            
+            // Crear el código QR con todos los parámetros en el constructor
+            $qrCode = new QrCode(
+                data: $this->url_destino,
+                encoding: new Encoding('UTF-8'),
+                errorCorrectionLevel: ErrorCorrectionLevel::High,
+                size: 300,
+                margin: 10,
+                roundBlockSizeMode: RoundBlockSizeMode::Margin,
+                foregroundColor: new Color(0, 0, 0),
+                backgroundColor: new Color(255, 255, 255)
+            );
 
-        // Guardar en storage/app/public/qr_codes
-        Storage::disk('public')->put($ruta, $result->getString());
+            // Agregar etiqueta con el código QR
+            $label = new Label($this->codigo_qr);
 
-        return $ruta;
+            $result = $writer->write($qrCode, null, $label);
+
+            $nombreArchivo = $this->codigo_qr . '.png';
+            $ruta = "{$carpeta}/{$nombreArchivo}";
+
+            // Guardar en storage/app/public/qr_codes
+            $contenido = $result->getString();
+            $guardado = $disk->put($ruta, $contenido);
+            
+            if (!$guardado) {
+                \Log::error("Fallo al guardar QR", [
+                    'ruta' => $ruta,
+                    'codigo_qr' => $this->codigo_qr,
+                    'tamaño_contenido' => strlen($contenido)
+                ]);
+                throw new \Exception("No se pudo guardar el archivo QR en: {$ruta}");
+            }
+
+            // Verificar que se guardó correctamente
+            if (!$disk->exists($ruta)) {
+                \Log::error("Archivo QR no encontrado después de guardar", ['ruta' => $ruta]);
+                throw new \Exception("El archivo QR no se guardó correctamente en: {$ruta}");
+            }
+
+            \Log::info("QR guardado exitosamente", [
+                'codigo_qr' => $this->codigo_qr,
+                'ruta' => $ruta,
+                'tamaño' => $disk->size($ruta)
+            ]);
+
+            return $ruta;
+
+        } catch (\Exception $e) {
+            \Log::error("Error al guardar imagen QR: " . $e->getMessage(), [
+                'codigo_qr' => $this->codigo_qr,
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
     }
 
     /**
@@ -128,19 +269,27 @@ class CodigosQRAF extends Model
      */
     public function generarImagenQRConLogo($rutaLogo, $size = 300)
     {
-        $result = Builder::create()
-            ->writer(new PngWriter())
-            ->data($this->url_destino)
-            ->encoding(new Encoding('UTF-8'))
-            ->errorCorrectionLevel(ErrorCorrectionLevel::High)
-            ->size($size)
-            ->margin(10)
-            ->roundBlockSizeMode(RoundBlockSizeMode::Margin)
-            ->logoPath($rutaLogo)
-            ->logoResizeToWidth(50)
-            ->labelText($this->codigo_qr)
-            ->labelAlignment(LabelAlignment::Center)
-            ->build();
+        $writer = new PngWriter();
+        
+        // Crear el código QR con todos los parámetros en el constructor
+        $qrCode = new QrCode(
+            data: $this->url_destino,
+            encoding: new Encoding('UTF-8'),
+            errorCorrectionLevel: ErrorCorrectionLevel::High,
+            size: $size,
+            margin: 10,
+            roundBlockSizeMode: RoundBlockSizeMode::Margin,
+            foregroundColor: new Color(0, 0, 0),
+            backgroundColor: new Color(255, 255, 255)
+        );
+
+        // Agregar logo
+        $logo = new Logo($rutaLogo, resizeToWidth: 50);
+
+        // Agregar etiqueta
+        $label = new Label($this->codigo_qr);
+
+        $result = $writer->write($qrCode, $logo, $label);
 
         return base64_encode($result->getString());
     }

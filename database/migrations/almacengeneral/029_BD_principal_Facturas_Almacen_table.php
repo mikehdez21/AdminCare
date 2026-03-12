@@ -25,11 +25,8 @@ return new class extends Migration {
             // Tipo de factura: Puede ser 'Factura' o 'Nota' / etc, no puede ser nulo
             $table->foreignId('id_tipo_factura')->constrained('almacengeneral.tableRef_TiposFacturasAF', 'id_tipofacturaaf')->onDelete('restrict');
 
-            // Fecha en la que se emitió la factura, no puede ser nula
-            $table->date('fecha_fac_emision')->notNull();
-
             // Fecha en la que se recibió la factura en el almacén (puede ser nula)
-            $table->date('fecha_fac_recepcion')->notNull();
+            $table->dateTime('fecha_fac_recepcion')->notNull();
 
             // Relación con la tabla de formas de pago en el esquema 'almacengeneral'
             $table->foreignId('id_forma_pago')->constrained('almacengeneral.tableRef_FormasPago', 'id_formapago')->onDelete('set null');
@@ -60,7 +57,6 @@ return new class extends Migration {
 
             // Índices para mejorar el rendimiento de las consultas
             $table->index('num_factura', 'idx_num_factura');
-            $table->index('fecha_fac_emision', 'idx_fecha_fac_emision'); 
             $table->index('fecha_fac_recepcion', 'idx_fecha_fac_recepcion'); 
 
         });

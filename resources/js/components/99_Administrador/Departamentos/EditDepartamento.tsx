@@ -2,18 +2,16 @@ import React, { useEffect, useState } from 'react';
 import Modal from 'react-modal';
 import { AppDispatch } from '@/store/store';
 import { useDispatch } from 'react-redux';
-
 import { Departamentos } from '@/@types/mainTypes';
-
-
-import { editDepartamento, getDepartamentos } from '@/store/Departamentos/departamentosActions';
-import { setListDepartamentos } from '@/store/Departamentos/departamentosReducer';
-
+import { editDepartamento, getDepartamentos } from '@/store/administrador/Departamentos/departamentosActions';
+import { setListDepartamentos } from '@/store/administrador/Departamentos/departamentosReducer';
 import Swal from 'sweetalert2';
+import ModalButtons from '@/components/00_Utils/ModalButtons';
 
-import '@styles/99_Administrador/addeditdelete_adminEntities.css'
+import '@styles/99_Administrador/Departamentos/modalDepartamentos.css'
 
-interface EditUserProps {
+
+interface EditDepartamentoProps {
   isOpen: boolean;
   onClose: () => void;
   departamentoToEdit: Departamentos | null;
@@ -21,17 +19,21 @@ interface EditUserProps {
 
 Modal.setAppElement('#root');
 
-const EditDepartamento: React.FC<EditUserProps> = ({ isOpen, onClose, departamentoToEdit }) => {
+const EditDepartamento: React.FC<EditDepartamentoProps> = ({ isOpen, onClose, departamentoToEdit }) => {
 
   const dispatch = useDispatch<AppDispatch>();
 
   const [nombreDepartamento, setNombreDepartamento] = useState<string>('');
   const [descripcionDepartamento, setDescripcionDepartamento] = useState<string>('');
-
+  const [atiendePacientes, setAtiendePacientes] = useState<boolean>(false); 
+  const [estatusActivo, setEstatusActivo] = useState<boolean>(true); 
+ 
   useEffect(() => {
     if (departamentoToEdit) {
       setNombreDepartamento(departamentoToEdit.nombre_departamento);
       setDescripcionDepartamento(departamentoToEdit.descripcion);
+      setAtiendePacientes(departamentoToEdit.atiende_pacientes);
+      setEstatusActivo(departamentoToEdit.estatus_activo);
     }
   }, [departamentoToEdit]); // Solo se ejecuta cuando departamentoToEdit cambia
 
@@ -39,15 +41,12 @@ const EditDepartamento: React.FC<EditUserProps> = ({ isOpen, onClose, departamen
     e.preventDefault();
     try {
 
-      if (!departamentoToEdit) {
-        return;
-      }
-
-      
       const departamentoEditado: Departamentos = {
-        id_departamento: departamentoToEdit.id_departamento, // Mantener el ID del departamento
+        id_departamento: departamentoToEdit?.id_departamento, // Mantener el ID del departamento
         nombre_departamento: nombreDepartamento,
         descripcion: descripcionDepartamento,
+        atiende_pacientes: atiendePacientes,
+        estatus_activo: estatusActivo
         
         
       };
@@ -57,10 +56,12 @@ const EditDepartamento: React.FC<EditUserProps> = ({ isOpen, onClose, departamen
       formData.append('id_departamento', departamentoEditado.id_departamento!.toString());
       formData.append('nombre_departamento', departamentoEditado.nombre_departamento);
       formData.append('descripcion', departamentoEditado.descripcion);
+      formData.append('atiende_pacientes', departamentoEditado.atiende_pacientes ? '1' : '0');
+      formData.append('estatus_activo', departamentoEditado.estatus_activo ? '1' : '0');
 
   
       console.log('dataDepartamento_Enviada: ', departamentoToEdit)
-      const resultAction = await dispatch(editDepartamento(departamentoToEdit)).unwrap();
+      const resultAction = await dispatch(editDepartamento(departamentoEditado)).unwrap();
       console.log('Respuesta del servidor:', resultAction);
   
       if (resultAction.success) {
@@ -103,70 +104,100 @@ const EditDepartamento: React.FC<EditUserProps> = ({ isOpen, onClose, departamen
     }
   };
 
-  const customModalStyle_Departamento = {
-    content: {
-      width: '600px',
-    }
-
-  }
+  
 
   return (
     <Modal
       isOpen={isOpen}
       onRequestClose={onClose}
       contentLabel="Editar Nueva Entity"
-      className="modal_CRUD_AdminEntity"
-      overlayClassName="modal_OverlayCRUD_AdminEntity"
+      className="modalDepartamentos"
       shouldCloseOnEsc={false}
       shouldCloseOnOverlayClick={false}
-      style={customModalStyle_Departamento}
     >
-      <div className="modal_Content_Admin">
+      <div className="mainDiv_modalDepartamentos" >
         <h2>Editar Departamento</h2>
-        <div className='mainInputs_addedit_AdminEntity'>
-          <form onSubmit={handleSubmit} className="Form_AdminEntity">
+        <form onSubmit={handleSubmit} className="formDepartamentos">
 
-            <div className='dataInputs'>
+          <div className='dataInputs_Departamentos'>
+                    
+            <section className='leftDiv_Inputs'>
+        
+              <label>
+                      *Departamento:
+                <input 
+                  type="text" 
+                  value={nombreDepartamento} 
+                  id='nombreDepartamento'
+                  name='nombreDepartamento'
+                  onChange={(e) => setNombreDepartamento(e.target.value)} 
+                  placeholder='Nombre del Departamento'
+                  required 
+                />
+              </label>
 
-              <div className='leftDiv_Inputs'>
+              <label>
+                  *Descripción
+                <input 
+                  type="text" 
+                  value={descripcionDepartamento}
+                  id='descripcionDepartamento'
+                  name='descripcionDepartamento'
+                  onChange={(e) => setDescripcionDepartamento(e.target.value)}
+                  placeholder='Descripción del Departamento'
+                  required
+                />
+              </label>
 
-                <label>
-                  *Nombre de Departamento:
-                  <input 
-                    type="text" 
-                    value={nombreDepartamento} 
-                    id='nombreDepartamento'
-                    name='nombreDepartamento'
-                    onChange={(e) => setNombreDepartamento(e.target.value)} 
-                    placeholder='Nombre del departamento'
-                    required 
-                  />
-                </label>
+            </section>
 
-                <label>
-                  *Descripción:
-                  <input 
-                    type="text" 
-                    value={descripcionDepartamento} 
-                    id='descripcionDepartamento'
-                    name='descripcionDepartamento'
-                    onChange={(e) => setDescripcionDepartamento(e.target.value)} 
-                    placeholder='Descripción general del departamento'
-                    required 
-                  />
-                </label>
-                
-                <div className="modal_buttons">
-                  <button type="submit" className="button_addedit">Guardar Cambios</button>
-                  <button type="button" className="button_close" onClick={onClose}>Cancelar</button>
-                </div>
+            <section className='rightDiv_Inputs'>
 
-              </div>
+              <label>
+                  *Atiende Pacientes
+                <input 
+                  type="checkbox" 
+                  checked={atiendePacientes}
+                  id='atiendePacientes'
+                  name='atiendePacientes'
+                  onChange={(e) => setAtiendePacientes(e.target.checked)}
+                  placeholder='Atiende Pacientes'
+                />
+              </label>
 
-            </div>
+              <label>
+                  *Estatus Activo
+                <input 
+                  type="checkbox" 
+                  checked={estatusActivo}
+                  id='estatusActivo'
+                  name='estatusActivo'
+                  onChange={(e) => setEstatusActivo(e.target.checked)}
+                  placeholder='Estatus Activo'
+                />
+              </label>
 
-          </form>
-        </div>
+            </section>
+        
+          </div>
+        
+          <ModalButtons 
+            buttons={[
+              {
+                text: 'Guardar',
+                type: 'submit',
+                className: 'button_addedit'
+              },
+              {
+                text: 'Cancelar',
+                type: 'button',
+                className: 'button_close',
+                onClick: onClose
+              }
+            ]}
+          />
+
+        </form>
 
       </div>
     </Modal>

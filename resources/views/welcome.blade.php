@@ -9,13 +9,34 @@
     <title>PRUEBAS - Hospital San Serafin</title>
 
     @if (app()->environment('local'))
-    @viteReactRefresh
-    @vite(['resources/js/App.tsx'])
+        @viteReactRefresh
+        @vite(['resources/js/App.tsx'])
     @else
-    <!-- Incluye el archivo CSS compilado -->
-    <link rel="stylesheet" href="{{ asset('build/assets/App-D1liSI8E.css') }}">
-    <!-- Incluye el archivo JS compilado -->
-    <script type="module" src="{{ asset('build/assets/App-ChwiVoqt.js') }}"></script>
+        <!-- Archivos compilados para producciÃ³n -->
+        @php
+            $manifestPath = public_path('build/manifest.json');
+            if (file_exists($manifestPath)) {
+                $manifest = json_decode(file_get_contents($manifestPath), true);
+                $appEntry = $manifest['resources/js/App.tsx'] ?? null;
+                $appJs = $appEntry['file'] ?? null;
+                $appCss = isset($appEntry['css']) && is_array($appEntry['css']) ? $appEntry['css'][0] : null;
+            } else {
+                $appJs = null;
+                $appCss = null;
+            }
+        @endphp
+        
+        @if($appCss && file_exists(public_path('build/' . $appCss)))
+            <link rel="stylesheet" href="{{ asset('build/' . $appCss) }}">
+        @endif
+        
+        @if($appJs && file_exists(public_path('build/' . $appJs)))
+            <script type="module" src="{{ asset('build/' . $appJs) }}"></script>
+        @else
+            <p style="color: red; text-align: center; padding: 20px; font-size: 26px;">
+                Error: Los archivos compilados no se encontraron. Por favor ejecuta: <code>pnpm run build</code>
+            </p>
+        @endif
     @endif
 </head>
 

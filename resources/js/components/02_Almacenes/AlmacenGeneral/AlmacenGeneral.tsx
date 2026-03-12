@@ -3,12 +3,12 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 // subComponentes
-import AlmacenGeneral_Facturas from './Options/Facturas/FacturasControl';
-import AlmacenGeneral_Etiquetas from './Options/Etiquetas';
-import AlmacenGeneral_Activos from './Options/ActivosFijos/ActivosFijosControl';
-
-import AlmacenGeneral_ControlProveedor from './Options/Proveedores/ProveedorControl';
-import AlmacenGeneral_ControlClasificacion from './Options/Parametros/Clasificaciones/ClasificacionControl';
+import AlmacenGeneral_Facturas from './Facturas/FacturasControl';
+import AlmacenGeneral_Etiquetas from './Etiquetas/EtiquetasControl';
+import AlmacenGeneral_Activos from './ActivosFijos/ActivosFijosControl';
+import AlmacenGeneral_MovimientosAF from './MovimientosAF/MovimientosAFControl';
+import AlmacenGeneral_ControlProveedor from './Proveedores/ProveedorControl';
+import AlmacenGeneral_ControlClasificacion from './Parametros/Clasificaciones/ClasificacionControl';
 
 // Icons
 import { MdOutlineKeyboardArrowUp } from 'react-icons/md';
@@ -55,6 +55,13 @@ const Main_AlmacenGeneral: React.FC = () => {
             className={location.pathname === '/almacen_general/activos' ? 'selectedNavbarAlmacen' : ''}
           >
             <p>Activos</p>
+          </li>
+
+          <li
+            onClick={() => handleSelectSection('/almacen_general/movimientos_activos')}
+            className={location.pathname === '/almacen_general/movimientos_activos' ? 'selectedNavbarAlmacen' : ''}
+          >
+            <p>Movimientos de Activos</p>
           </li>
 
             
@@ -118,8 +125,9 @@ const Main_AlmacenGeneral: React.FC = () => {
         :
 
         <div className='div_Content'>
-          {location.pathname === '/almacen_general/activos' && <AlmacenGeneral_Activos />}
           {location.pathname === '/almacen_general/facturas' && <AlmacenGeneral_Facturas />}
+          {location.pathname === '/almacen_general/activos' && <AlmacenGeneral_Activos />}
+          {location.pathname === '/almacen_general/movimientos_activos' && <AlmacenGeneral_MovimientosAF />}
           {location.pathname === '/almacen_general/etiquetas' && <AlmacenGeneral_Etiquetas />}
           {location.pathname === '/almacen_general/proveedores' && <AlmacenGeneral_ControlProveedor />}
 

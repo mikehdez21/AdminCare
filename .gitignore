@@ -1,12 +1,13 @@
 /.phpunit.cache
 /node_modules
+/public/build
 /public/hot
 /public/storage
 /storage/*.key
 /vendor
 .env
-.env.backup
 .env.development
+.env.backup
 .env.production
 .phpactor.json
 .phpunit.result.cache
@@ -19,3 +20,10 @@ yarn-error.log
 /.idea
 /.vscode
 /.zed
+/database/*.sql
+/public/img/profile_users/*
+!/public/img/profile_users/.gitkeep
+/storage/app/archivos_digitales/
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
+/1_ModularDocs

@@ -4,9 +4,10 @@ import { RootState, AppDispatch } from '@/store/store';
 import { useSelector, useDispatch } from 'react-redux';
 
 import { User, Roles } from '@/@types/mainTypes';
-import { getRoles } from '@/store/Roles/rolesActions';
+import { getRoles } from '@/store/administrador/Roles/rolesActions';
 
 import '@styles/99_Administrador/showSubModals.css'
+import ModalButtons from '@/components/00_Utils/ModalButtons';
 
 interface showUserRolesProps {
   isOpen: boolean;
@@ -46,38 +47,42 @@ const ShowUserRoles: React.FC<showUserRolesProps> = ({ isOpen, onClose, usuarioT
     <Modal
       isOpen={isOpen}
       onRequestClose={onClose}
-      overlayClassName="modal_Overlay_showRolesUsuario"
-      className="modal_list_listRoles"
+      className="modalShowListRoles"
       contentLabel="Listado de Roles"
     >
-      <h3>Roles Asignados al usuario {usuarioToShow?.nombre_usuario}</h3>
+      <div className="mainDiv_modalShowRoles">
+
+        <h3>Roles Asignados</h3>
+        <h4>{usuarioToShow?.nombre_usuario}</h4>
 
       
 
-      <div className="list">
-        <ul>
-          {rolesUsuario.length > 0 ? (
-            rolesUsuario.map((rol, index) => (
-              <li className='listRolesShowOnly' key={index}>
-                {rol.name}
-              </li>
-            ))
-          ) : (
-            <p>No tiene roles asignados.</p>
-          )}
-        </ul>
+        <div className="list">
+          <ul>
+            {rolesUsuario.length > 0 ? (
+              rolesUsuario.map((rol, index) => (
+                <li className='listRolesShowOnly' key={index}>
+                  {rol.name}
+                </li>
+              ))
+            ) : (
+              <p>No tiene roles asignados.</p>
+            )}
+          </ul>
+        </div>
+
+        <ModalButtons 
+          buttons={[
+            {
+              text: 'Cancelar',
+              type: 'button',
+              className: 'button_close',
+              onClick: onClose
+            }
+          ]}
+        />
+
       </div>
-
-      <div className='buttons'>
-        <button onClick={onClose} className="button_close">
-        Cerrar
-        </button>
-
-      </div>
-
-
-      
-
 
     </Modal>
   );

@@ -1,18 +1,13 @@
 /* Modal - Lista de Roles de un Usuario - UserControl */
-.modal_Overlay_showRolesUsuario{
-    position: fixed;
-    top: 0;
-    left: 0;
+.modalShowListRoles{
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.226);
+    background-color: rgba(0, 0, 0, 0.5);
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 4;
 
-    .modal_list_listRoles{
+    .mainDiv_modalShowRoles{
         display: flex;
         flex-direction: column;
         text-align: center;
@@ -20,12 +15,17 @@
         border-radius: 15px;
         border: 3px groove #7100b3;
         padding: 15px;
-        max-width: 300px;
+        width: 300px;
         height: 70%;
 
         h3{
-            margin: 10px 0px;
+            margin: 10px 0px 5px 0px;
             padding: 0px;
+        }
+
+        h4{
+            color: #7100b3;
+            margin: 0px 0px 20px 0px;
         }
 
         .list{
@@ -102,17 +102,16 @@
             }
 
             .button_close {
-                background-color: #cccccc4d;
-                color: #00000063;
+                background-color: #6c757d;
+                color: #ffffff;
                 border: 1px solid #cecece;
                 border-radius: 10px;
                 cursor: pointer;
     
             }
     
-            .button_close:hover{
-                background-color: #cccccc93;
-                border: 1px solid #cecece;
+            &:hover{
+            background-color: #5a6268;
             }
         }
 
@@ -121,27 +120,22 @@
 }
 
 /* Modal - Lista de Roles de un Usuario - AddRolModal */
-.modal_Overlay_addRolesUsuario{
-    position: fixed;
-    top: 0;
-    left: 0;
+.modalAddListRoles{
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.226);
+    background-color: rgba(0, 0, 0, 0.5);
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 4;
 
-    .modal_list_listRoles{
+    .mainDiv_modalAddRoles{
         display: flex;
         flex-direction: column;
         text-align: center;
         background-color: #ffffff;
         border-radius: 15px;
         border: 3px groove #7100b3;
-        padding: 15px;
+        padding: 30px;
         max-width: 800px;
         width: 100%;
         height: 70%;
@@ -256,17 +250,16 @@
             }
 
             .button_close {
-                background-color: #cccccc4d;
-                color: #00000063;
+                background-color: #6c757d;
+                color: #ffffff;
                 border: 1px solid #cecece;
                 border-radius: 10px;
                 cursor: pointer;
     
             }
     
-            .button_close:hover{
-                background-color: #cccccc93;
-                border: 1px solid #cecece;
+            &:hover{
+                background-color: #5a6268;
             }
         }
 
@@ -275,20 +268,15 @@
 }
 
 /* Modal - FotoEmpleado - EmpleadoControl */
-.modal_Overlay_photoEmpleado{
-    position: fixed;
-    top: 0;
-    left: 0;
+.modalFotoEmpleado{
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.226);
+    background-color: rgba(0, 0, 0, 0.5);
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 2;
 
-    .modal_photoEmpleado{
+    .mainDiv_FotoEmpleado{
         display: flex;
         flex-direction: column;
         text-align: center;
@@ -322,8 +310,8 @@
 
     .buttons{
         .button_close {
-            background-color: #cccccc4d;
-            color: #00000063;
+            background-color: #6c757d;
+            color: #ffffff;
             border: 1px solid #cecece;
             border-radius: 10px;
             width: 50%;
@@ -332,8 +320,7 @@
         }
 
         .button_close:hover{
-            background-color: #cccccc93;
-            border: 1px solid #cecece;
+            background-color: #5a6268;
         }
     }
 

@@ -5,6 +5,13 @@ namespace App\Http\Controllers\AlmacenGeneral;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\AlmacenGeneral\ActivosFijos;
+use Illuminate\Support\Facades\DB;
+
+// MODELS - FILTROS ACTIVOS FIJOS
+use App\Models\Departamento;
+use App\Models\Ubicacion;
+use App\Models\AlmacenGeneral\Clasificaciones;
+
 
 class ActivosFijosController extends Controller
 {
@@ -14,13 +21,14 @@ class ActivosFijosController extends Controller
         $response = ["success" => false, "data" => [], "message" => ""];
 
         try {
-            $activos = ActivosFijos::all();
 
-            if ($activos->isEmpty()) {
+            $activosfijos = ActivosFijos::all();
+
+            if ($activosfijos->isEmpty()) {
                 $response['message'] = 'No se encontraron activos fijos.';
             } else {
                 $response['success'] = true;
-                $response['data'] = $activos;
+                $response['data'] = $activosfijos;
             }
         } catch (\Exception $e) {
             $response['message'] = 'Error al obtener los activos fijos: ' . $e->getMessage();
@@ -36,22 +44,27 @@ class ActivosFijosController extends Controller
 
         try {
             $validatedData = $request->validate([
-                'codigo_unico' => 'required|string|max:255|unique:almacengeneral.tableAF_ActivosFijos,codigo_unico',
-                'id_clasificacion' => 'required|integer',
+                'codigo_unico' => 'nullable|string|max:255',
                 'nombre_af' => 'required|string|max:255',
                 'descripcion_af' => 'nullable|string',
-                'fecha_adquisicion_af' => 'required|date',
-                'costo_adquisicion_af' => 'required|numeric',
-                'vida_util_meses' => 'nullable|integer',
-                'valor_residual' => 'nullable|numeric',
+                'modelo_af' => 'required|string|max:255',
+                'marca_af' => 'required|string|max:255',
+                'numero_serie_af' => 'required|string|max:255',
+                'valor_compra_af' => 'required|integer',
+                'fecha_compra_af' => 'required|date',
+                'af_propio' => 'boolean',
                 'id_estado_af' => 'required|integer',
+                'id_clasificacion' => 'required|integer',
+                'fecha_registro_af' => 'required|date',
+                'observaciones_af' => 'nullable|string',
             ]);
 
-            $activo = ActivosFijos::create($validatedData);
+            // Usar el método estático del modelo que crea el activo y su QR
+            $resultado = ActivosFijos::crearConQR($validatedData);
 
-            $response['success'] = true;
-            $response['message'] = 'Activo fijo creado exitosamente.';
-            $response['data'] = $activo;
+            $response['success'] = $resultado['success'];
+            $response['message'] = $resultado['message'];
+            $response['data'] = $resultado['data'];
         } catch (\Illuminate\Validation\ValidationException $e) {
             $response['message'] = 'Errores de validación.';
             $response['data'] = $e->errors();
@@ -69,26 +82,13 @@ class ActivosFijosController extends Controller
 
         try {
             $activo = ActivosFijos::findOrFail($id);
-
-            $validatedData = $request->validate([
-                'codigo_unico' => 'required|string|max:255|unique:almacengeneral.tableAF_ActivosFijos,codigo_unico,' . $id . ',id_activo_fijo',
-                'id_clasificacion' => 'required|integer',
-                'nombre_af' => 'required|string|max:255',
-                'descripcion_af' => 'nullable|string',
-                'fecha_adquisicion_af' => 'required|date',
-                'costo_adquisicion_af' => 'required|numeric',
-                'vida_util_meses' => 'nullable|integer',
-                'valor_residual' => 'nullable|numeric',
-                'id_estado_af' => 'required|integer',
-            ]);
-
-            $activo->update($validatedData);
+            $activo->update($request->all());
 
             $response['success'] = true;
-            $response['message'] = 'Activo fijo actualizado exitosamente.';
+            $response['message'] = 'Activo Fijo actualizado exitosamente.';
             $response['data'] = $activo;
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            $response['message'] = 'Activo fijo no encontrado.';
+            $response['message'] = 'Activo Fijo no encontrado.';
         } catch (\Illuminate\Validation\ValidationException $e) {
             $response['message'] = 'Errores de validación.';
             $response['data'] = $e->errors();
@@ -127,18 +127,111 @@ class ActivosFijosController extends Controller
         }
     }
 
-    /*
-    // Obtener los archivos de un activo fijo
-    public function obtenerArchivos($idActivo)
+    // Obtener los estatus de los activos fijos (Crear CRUD Completo, Model y Controller)
+    public function getEstatusActivosFijos()
     {
-        $activo = ActivosFijos::findOrFail($idActivo);
-        $archivos = $activo->archivosActivos();
+        try {
+            $API_estatusaf = DB::table('almacengeneral.tableRef_EstatusAF')
+                ->select('id_estatusaf', 'descripcion_estatusaf')
+                ->get();
 
-        return response()->json([
-            'success' => true,
-            'data' => $archivos,
-        ]);
+            return response()->json([
+                'success' => true,
+                'API_Response' => $API_estatusaf,
+                'message' => 'DatosAPI - EstatusActivosFijos'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener estatus de activos fijos: ' . $e->getMessage()
+            ], 500);
+        }
     }
-    */
 
+
+
+    // Activos Fijos FILTRADOS //
+
+    // Por Departamento
+    public function getActivosPorDepartamento($idDepartamento)
+    {
+        try {
+            $departamento = Departamento::find($idDepartamento);
+            $activosPorDepartamento = ActivosFijos::porDepartamento($idDepartamento)->get();
+
+            return response()->json([
+                'success' => true,
+                'departamento' => $departamento?->nombre_departamento,
+                'data' => $activosPorDepartamento,
+                'message' => 'Activos fijos por departamento obtenidos exitosamente.'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener activos fijos por departamento: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    // Por Ubicación
+    public function getActivosPorUbicacion($idUbicacion)
+    {
+        try {
+            $ubicacion = Ubicacion::find($idUbicacion);
+            $activosPorUbicacion = ActivosFijos::porUbicacion($idUbicacion)->get();
+
+            return response()->json([
+                'success' => true,
+                'ubicacion' => $ubicacion?->nombre_ubicacion,
+                'data' => $activosPorUbicacion,
+                'message' => 'Activos fijos por ubicación obtenidos exitosamente.'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener activos fijos por ubicación: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // Por Clasificación
+    public function getActivosPorClasificacion($idClasificacion)
+    {
+        try {
+            $clasificacion = Clasificaciones::find($idClasificacion);
+            $activosPorClasificacion = ActivosFijos::porClasificacion($idClasificacion)->get();
+
+            return response()->json([
+                'success' => true,
+                'clasificacion' => $clasificacion?->nombre_clasificacion,
+                'data' => $activosPorClasificacion,
+                'message' => 'Activos fijos por clasificación obtenidos exitosamente.'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener activos fijos por clasificación: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // Activos Fijos Dados de Baja
+    public function getActivosDadosDeBaja()
+    {
+        try {
+            $activosDadosDeBaja = ActivosFijos::dadosDeBaja()->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $activosDadosDeBaja,
+                'message' => 'Activos fijos dados de baja obtenidos exitosamente.'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener activos fijos dados de baja: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

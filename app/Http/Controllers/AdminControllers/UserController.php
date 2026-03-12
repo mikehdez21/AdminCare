@@ -25,6 +25,8 @@ class UserController extends Controller
                     'email_usuario',
                     'password',
                     'estatus_activo',
+                    'usuario_compartido',
+                    'fecha_baja',
                     'id_empleado',
                     'id_departamento',
                     'created_at',
@@ -52,33 +54,37 @@ class UserController extends Controller
         $response = ["success" => false, "message" => "", "data" => []];
 
         try {
-            $validatedData = $request->validate([
+            $request->validate([
                 'nombre_usuario' => 'required|string|max:255',
                 'email_usuario' => 'required|string|max:255',
                 'password' => 'required|string|max:255',
                 'estatus_activo' => 'required|boolean',
+                'fecha_baja' => 'nullable|date',
+                'usuario_compartido' => 'required|boolean',
 
                 'roles' => 'required|array', // Ahora es un arreglo
                 'roles.*' => 'string|exists:roles,name', // Cada rol en el arreglo debe existir en la tabla roles
 
-                'id_empleado' => 'required',
+                'id_empleado' => 'nullable',
                 'id_departamento' => 'required',
 
             ]);
 
             $user = User::create([
-                'nombre_usuario' => $validatedData['nombre_usuario'],
-                'email_usuario' => $validatedData['email_usuario'],
-                'password' => bcrypt($validatedData['password']),
-                'estatus_activo' => $validatedData['estatus_activo'],
-                'id_empleado' => $validatedData['id_empleado'],
-                'id_departamento' => $validatedData['id_departamento'],
+                'nombre_usuario' => $request->nombre_usuario,
+                'email_usuario' => $request->email_usuario,
+                'password' => bcrypt($request->password),
+                'estatus_activo' => $request->estatus_activo,
+                'fecha_baja' => $request->fecha_baja,
+                'usuario_compartido' => $request->usuario_compartido,
+                'id_empleado' => $request->id_empleado,
+                'id_departamento' => $request->id_departamento,
 
 
             ]);
 
             // Asignar múltiples roles
-            $user->syncRoles($validatedData['roles']);
+            $user->syncRoles($request->roles);
 
             $response['success'] = true;
             $response['message'] = 'Usuario creado exitosamente y rol asignado.';
@@ -94,29 +100,27 @@ class UserController extends Controller
     }
 
     // Actualizar Usuario
-
-    // Función que actuliza los datos del usuario
-    public function update(Request $request, $id)
+    public function update(Request $request, $id_usuario)
     {
         $response = ["success" => false, "message" => "", "data" => []];
 
         try {
-            // Buscar el usuario
-            $user = User::findOrFail($id);
 
             // Validar los datos de entrada
             $validatedData = $request->validate([
                 'nombre_usuario' => 'required|string|max:255',
-                'email_usuario' => 'required|email|max:255|unique:users,email,' . $id, // Permitir el mismo email del usuario actual
+                'email_usuario' => 'required|email|max:255', // Permitir el mismo email del usuario actual
                 'password' => 'nullable|string|min:8', // No obligatorio, solo si se proporciona
                 'estatus_activo' => 'required|boolean',
-
+                'fecha_baja' => 'nullable|date',
+                'usuario_compartido' => 'required|boolean',
                 'roles' => 'required|array', // Validación como arreglo
-                'roles.*' => 'string|exists:roles,name', // Cada rol debe existir en la tabla roles
-
-                'id_empleado'  => 'required|exists:departamentos,id_departamento',
-                'id_departamento' => 'required|exists:departamentos,id_departamento',
+                'id_empleado'  => 'required',
+                'id_departamento' => 'required',
             ]);
+
+            // Buscar el usuario por ID 
+            $user = User::findOrFail($id_usuario);
 
             // Actualizar campos básicos
             $user->update([
@@ -124,6 +128,8 @@ class UserController extends Controller
                 'email_usuario' => $validatedData['email_usuario'],
                 'password' => !empty($validatedData['password']) ? bcrypt($validatedData['password']) : $user->password,
                 'estatus_activo' => $validatedData['estatus_activo'],
+                'fecha_baja' => $validatedData['fecha_baja'] ?? null,
+                'usuario_compartido' => $validatedData['usuario_compartido'],
                 'id_empleado' => $validatedData['id_empleado'],
                 'id_departamento' => $validatedData['id_departamento'],
 
@@ -149,32 +155,43 @@ class UserController extends Controller
     }
 
 
-    // Eliminar un Usuario
-    public function destroy($id)
+    // Baja de un Usuario       
+    public function updateBajaUsuario(Request $request, $id_usuario)
     {
-        $response = ["success" => false, "message" => ""];
+        $response = ["success" => false, "message" => "", "data" => []];
 
         try {
-            User::findOrFail($id)->delete();
+            $validatedData = $request->validate([
+                'estatus_activo' => 'required|boolean',
+                'fecha_baja' => 'nullable|date',
+            ]);
+
+            $usuario = User::findOrFail($id_usuario);
+
+            $usuario->update([
+                'estatus_activo' => $validatedData['estatus_activo'],
+                'fecha_baja' => $validatedData['fecha_baja'] ?? null,
+            ]);
+
             $response['success'] = true;
-            $response['message'] = 'Usuario eliminado exitosamente.';
+            $response['message'] = "Estatus actualizado correctamente.";
+            $response['data'] = $usuario;
         } catch (\Exception $e) {
-            $response['message'] = 'Error al eliminar el Usuario: ' . $e->getMessage();
+            $response['message'] = "Error: " . $e->getMessage();
         }
 
-        return response()->json($response, $response['success'] ? 200 : 500);
+        return response()->json($response);
     }
-
 
 
     // Others Functions
 
     // Obtener un Usuario por ID
-    public function show($id)
+    public function show($id_usuario)
     {
         try {
             $user = User::with('departamento', 'roles')
-                ->findOrFail($id, [
+                ->findOrFail($id_usuario, [
                     'id_usuario',
                     'nombre_usuario',
                     'email_usuario',

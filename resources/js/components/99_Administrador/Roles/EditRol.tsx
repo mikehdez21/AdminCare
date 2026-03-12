@@ -2,15 +2,13 @@ import React, { useEffect, useState } from 'react';
 import Modal from 'react-modal';
 import { AppDispatch } from '@/store/store';
 import { useDispatch } from 'react-redux';
-
 import { Roles } from '@/@types/mainTypes';
-
-import { editRol, getRoles } from '@/store/Roles/rolesActions';
-import { setListRoles } from '@/store/Roles/rolesReducer';
-
+import { editRol, getRoles } from '@/store/administrador/Roles/rolesActions';
+import { setListRoles } from '@/store/administrador/Roles/rolesReducer';
 import Swal from 'sweetalert2';
+import ModalButtons from '@/components/00_Utils/ModalButtons';
 
-import '@styles/99_Administrador/addeditdelete_adminEntities.css'
+import '@styles/99_Administrador/Roles/modalRoles.css'
 
 interface EditUserProps {
   isOpen: boolean;
@@ -97,58 +95,58 @@ const EditRol: React.FC<EditUserProps> = ({ isOpen, onClose, rolesToEdit }) => {
     }
   };
 
-  const customModalStyle_Rol = {
-    content: {
-      width: '600px',
-    }
-
-  }
-
 
   return (
     <Modal
       isOpen={isOpen}
       onRequestClose={onClose}
       contentLabel="Editar Nueva Entity"
-      className="modal_CRUD_AdminEntity"
-      overlayClassName="modal_OverlayCRUD_AdminEntity"
+      className="modalRoles"
       shouldCloseOnEsc={false}
       shouldCloseOnOverlayClick={false}
-      style={customModalStyle_Rol}
     >
-      <div className="modal_Content_Admin">
+      <div className="mainDiv_modalRoles" >
         <h2>Editar Rol</h2>
-        <div className='mainInputs_addedit_AdminEntity'>
-          <form onSubmit={handleSubmit} className="Form_AdminEntity">
 
-            <div className='dataInputs'>
+        <form onSubmit={handleSubmit} className="formRoles">
+          <div className='dataInputs_Roles'>
 
-              <div className='leftDiv_Inputs'>
+            <div className='leftDiv_Inputs'>
 
-                <label>
+              <label>
                   *Nombre del Rol:
-                  <input 
-                    type="text" 
-                    value={nombreRol} 
-                    id='nombreRol'
-                    name='nombreRol'
-                    onChange={(e) => setNombreRol(e.target.value)} 
-                    placeholder='Nombre del rol'
-                    required 
-                  />
-                </label>
+                <input 
+                  type="text" 
+                  value={nombreRol} 
+                  id='nombreRol'
+                  name='nombreRol'
+                  onChange={(e) => setNombreRol(e.target.value)} 
+                  placeholder='Nombre del rol'
+                  required 
+                />
+              </label>
                 
-                <div className="modal_buttons">
-                  <button type="submit" className="button_addedit">Guardar Cambios</button>
-                  <button type="button" className="button_close" onClick={onClose}>Cancelar</button>
-                </div>
-
-              </div>
+              <ModalButtons 
+                buttons={[
+                  {
+                    text: 'Guardar',
+                    type: 'submit',
+                    className: 'button_addedit'
+                  },
+                  {
+                    text: 'Cancelar',
+                    type: 'button',
+                    className: 'button_close',
+                    onClick: onClose
+                  }
+                ]}
+              />
 
             </div>
 
-          </form>
-        </div>
+          </div>
+
+        </form>
 
       </div>
     </Modal>

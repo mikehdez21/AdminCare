@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 return new class extends Migration {
     public function up()
     {
+    
         // Crear la tabla 'activosfijos'
         Schema::create('almacengeneral.tableAF_ActivosFijos', function (Blueprint $table) {
 
@@ -33,40 +34,49 @@ return new class extends Migration {
             $table->string('numero_serie_af')->nullable();
 
             // Valor de Compra del activo fijo
-            $table->decimal('valor_compra_af', 11, 2)->nullable();
+            $table->decimal('valor_compra_af', 12, 2)->nullable();
 
             // Fecha de compra del activo fijo
-            $table->date('fecha_compra_af')->nullable();
+            $table->dateTime('fecha_compra_af')->nullable();
 
+            // Activo Fijo Propio o Comodato
+            $table->boolean('af_propio')->default(true)->notNull();
+
+            // Identificador lógico del lote de alta (ej. FAC-2026-0001-ITEM-02)
+            $table->string('codigo_lote', 100)->nullable()->after('codigo_unico');
+
+            // Posición del activo dentro del lote (1..n)
+            $table->integer('lote_afconsecutivo')->nullable()->after('codigo_lote');
+
+            // Tamaño total del lote al momento de la creación
+            $table->integer('lote_total')->nullable()->after('lote_afconsecutivo');
+
+            $table->string('codigo_etiqueta', 150)->nullable()->after('codigo_unico');
+            
             // Estado del activo ('Activo' o 'Baja' o 'En Mantenimiento' o 'Extraviado' etc.)
             $table->foreignId('id_estado_af')->constrained('almacengeneral.tableRef_EstatusAF', 'id_estatusaf')->default(1)->onDelete('restrict');
 
             // Relación con la tabla 'tableclasificaciones', representando la clasificación del activo
             $table->foreignId('id_clasificacion')->notNull()->constrained('almacengeneral.tableRef_ClasificacionesAF', 'id_clasificacion')->onDelete('restrict');
 
-            // Relación con la tabla 'tableubicaciones', representando la ubicación física del activo
-            $table->foreignId('id_ubicacion')->notNull()->constrained('tableUbicaciones', 'id_ubicacion')->onDelete('restrict');
-
-            // Relación con la tabla 'empleados', representando el responsable del activo
-            $table->foreignId('id_responsable')->notNull()->constrained('tableEmpleados', 'id_empleado')->onDelete('restrict');
-            
-            // Relación con la tabla 'departamentos', representando el departamento al que pertenece el activo
-            $table->foreignId('id_departamento')->notNull()->constrained('tableDepartamentos', 'id_departamento')->onDelete('restrict');
-            
             // Fecha de registro del activo en el sistema
-            $table->date('fecha_registro_af')->notNull();
+            $table->dateTime('fecha_registro_af')->notNull();
 
             // Observaciones adicionales sobre el activo
             $table->text('observaciones_af')->nullable();
             
             // Campos de fecha de creación y actualización con zona horaria
             $table->timestamps();
+            
+            // Índice único para el código de etiqueta, permitiendo nulos (un activo sin código de etiqueta no compite con otro sin código de etiqueta)
+            $table->unique('codigo_etiqueta', 'uk_af_codigo_etiqueta');
 
             // Índices para mejorar el rendimiento de las consultas
             $table->index('nombre_af', 'idx_nombre_af'); // Índice para búsquedas por nombre del activo_fijo
             $table->index('codigo_unico', 'idx_codigo_unico'); // Índice para búsquedas por código único
             $table->index('fecha_compra_af', 'idx_fecha_compra_af'); // Índice para consultas por fecha de compra
             $table->index('marca_af', 'idx_marca_af'); // Índice para consultas por marca
+            $table->index('codigo_lote', 'idx_af_codigo_lote');
 
 
         });

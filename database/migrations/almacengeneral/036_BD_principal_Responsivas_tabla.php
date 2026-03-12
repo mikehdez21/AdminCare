@@ -17,9 +17,9 @@ return new class extends Migration {
             $table->foreignId('id_empleado')->constrained('tableEmpleados', 'id_empleado')->onDelete('restrict');
             
             // Fechas 
-            $table->date('fecha_entrega')->notNull();
-            $table->date('fecha_devolucion_estimada')->nullable();
-            $table->date('fecha_devolucion_real')->nullable();
+            $table->dateTime('fecha_entrega')->notNull();
+            $table->dateTime('fecha_devolucion_estimada')->nullable();
+            $table->dateTime('fecha_devolucion_real')->nullable();
             
             //ipo de responsiva
             $table->foreignId('id_tipo_responsiva')->constrained('almacengeneral.tableRef_TipoResponsiva', 'id_tipo_responsiva')->onDelete('restrict');
@@ -32,7 +32,7 @@ return new class extends Migration {
             $table->text('observaciones')->nullable();
         
             // Fecha de registro
-            $table->date('fecha_registro')->notNull();
+            $table->dateTime('fecha_registro')->notNull();
             
             $table->timestamps();
             

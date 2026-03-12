@@ -41,7 +41,7 @@ return new class extends Migration {
             $table->string('metodo_depreciacionaf', 100)->nullable();
 
             // Fecha del calculo de la depreciación
-            $table->date('fecha_calculo_depreciacion')->notNull();
+            $table->dateTime('fecha_calculo_depreciacion')->notNull();
 
             // Observaciones adicionales sobre la depreciación
             $table->text('observaciones_depreciacionaf')->nullable();

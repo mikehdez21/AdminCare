@@ -5,11 +5,12 @@ import { useSelector, useDispatch } from 'react-redux';
 import Swal from 'sweetalert2';
 
 import { Roles } from '@/@types/mainTypes';
-import { getRoles } from '@/store/Roles/rolesActions';
+import { getRoles } from '@/store/administrador/Roles/rolesActions';
 
 import { MdArrowForward, MdArrowBack } from 'react-icons/md';
 
 import '@styles/99_Administrador/showSubModals.css'
+import ModalButtons from '@/components/00_Utils/ModalButtons';
 
 interface addRolProps {
   isOpen: boolean;
@@ -28,7 +29,7 @@ const addRol: React.FC<addRolProps> = ({ isOpen, onClose, onRolesSelected, initi
   const [availableRoles, setAvailableRoles] = useState<Roles[]>([]);
   const [selectedRoles, setSelectedRoles] = useState<Roles[]>(initialSelectedRoles);
 
-  // Cargar roles y departamentos si no están disponibles
+  // Cargar roles si no están disponibles
   useEffect(() => {
     if (roles.length === 0) {
       dispatch(getRoles());
@@ -49,6 +50,12 @@ const addRol: React.FC<addRolProps> = ({ isOpen, onClose, onRolesSelected, initi
 
   // Guardar y enviar roles seleccionados
   const handleSave = () => {
+    Swal.fire({
+      icon: 'success',
+      title: 'Roles actualizados',
+      text: 'Los roles del usuario han sido actualizados exitosamente.',
+    });
+
     onRolesSelected(selectedRoles);
     onClose();
   };
@@ -78,62 +85,68 @@ const addRol: React.FC<addRolProps> = ({ isOpen, onClose, onRolesSelected, initi
     <Modal
       isOpen={isOpen}
       onRequestClose={onClose}
-      overlayClassName="modal_Overlay_addRolesUsuario"
-      className="modal_list_listRoles"
+      className="modalAddListRoles"
       contentLabel="Listado de Roles"
       shouldCloseOnOverlayClick={false}
       shouldCloseOnEsc={false}
     >
-      
-      <h2>Listado de Roles</h2>
-
-      <div className="roles_table">
-        <div className="roles_column">
-          <h3>Rol Disponible</h3>
-          <ul>
-            {availableRoles.map((role) => (
-              <li
-                key={role.id}
-                onClick={() => handleAddRole(role)}
-                className="listRolesAdd"
-              >
-                {role.name}
-                <MdArrowForward className="arrowIcon" />
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="roles_column">
-          <h3>Rol Seleccionado</h3>
-          <ul>
-            {selectedRoles.map((role) => (
-              <li
-                key={role.id}
-                onClick={() => handleRemoveRole(role)}
-                className="listRolesAdd selected"
-              >
-                {role.name}
-                <MdArrowBack className="arrowIcon" />
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-
-      <div className='buttons'>
-        <button onClick={handleSave} className="button_save">
-          Guardar
-        </button>
-        <button onClick={onClose} className="button_close">
-        Cancelar
-        </button>
-
-      </div>
+      <div className="mainDiv_modalAddRoles">
 
       
+        <h2>Listado de Roles</h2>
 
+        <div className="roles_table">
+          <div className="roles_column">
+            <h3>Rol Disponible</h3>
+            <ul>
+              {availableRoles.map((role) => (
+                <li
+                  key={role.id}
+                  onClick={() => handleAddRole(role)}
+                  className="listRolesAdd"
+                >
+                  {role.name}
+                  <MdArrowForward className="arrowIcon" />
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="roles_column">
+            <h3>Rol Seleccionado</h3>
+            <ul>
+              {selectedRoles.map((role) => (
+                <li
+                  key={role.id}
+                  onClick={() => handleRemoveRole(role)}
+                  className="listRolesAdd selected"
+                >
+                  {role.name}
+                  <MdArrowBack className="arrowIcon" />
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <ModalButtons 
+          buttons={[
+            {
+              text: 'Guardar',
+              type: 'button',
+              className: 'button_addedit',
+              onClick: handleSave
+            },
+            {
+              text: 'Cancelar',
+              type: 'button',
+              className: 'button_close',
+              onClick: onClose
+            }
+          ]}
+        />
+
+      </div>
 
     </Modal>
   );

@@ -28,7 +28,7 @@ return new class extends Migration {
             $table->text('descripcion_condicion_devolucion')->nullable();
             
             // Fecha de devolución individual
-            $table->date('fecha_devolucion')->nullable();
+            $table->dateTime('fecha_devolucion')->nullable();
             
             // Observaciones específicas del activo
             $table->text('observaciones_detalle')->nullable();

@@ -21,7 +21,11 @@ class ClasificacionController extends Controller
 
             $clasificaciones = Clasificaciones::all([
                 'id_clasificacion',
-                'descripcion_clasificacionaf',
+                'nombre_clasificacion',
+                'cuenta_contable',
+                'estatus_activo',
+                'created_at',
+                'updated_at'
 
             ]);
 
@@ -46,7 +50,7 @@ class ClasificacionController extends Controller
         $response = ["success" => false, "message" => "", "data" => []];
 
         $validator = Validator::make($request->all(), [
-            'descripcion_clasificacionaf' => 'required|string|max:255',
+            'nombre_clasificacion' => 'required|string|max:255',
 
         ]);
 

@@ -6,60 +6,48 @@ use App\Http\Controllers\Controller;
 use App\Models\AlmacenGeneral\CodigosQRAF;
 use App\Models\AlmacenGeneral\ActivosFijos;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CodigosQRAFController extends Controller
 {
-    public function generarQR(Request $request, $idActivo)
-    {
-        try {
-            $activo = ActivosFijos::findOrFail($idActivo);
 
-            // Verificar si ya existe un QR para este activo
-            $qrExistente = CodigosQRAF::where('id_activo_fijo', $idActivo)->first();
-            
-            if ($qrExistente && $qrExistente->activo) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'El activo ya tiene un código QR activo.',
-                    'data' => $qrExistente,
-                ], 400);
+    /**
+     * Listar todos los códigos QRAF
+     */
+    public function index()
+    {
+
+        $response = ["success" => false, "data" => [], "message" => ""];
+
+        try {
+            $qraf = CodigosQRAF::all();
+
+            if ($qraf->isEmpty()) {
+                $response['message'] = 'No se encontraron códigos QR.';
+            } else {
+                $response['success'] = true;
+                $response['data'] = $qraf;
             }
 
-            // Generar código único
-            $codigoQR = CodigosQRAF::generarCodigo($idActivo);
-            $urlDestino = url("/activosfijos/qr/scan/{$codigoQR}");
-
-            // Crear registro en la base de datos
-            $qr = CodigosQRAF::create([
-                'id_activo_fijo' => $idActivo,
-                'codigo_qr' => $codigoQR,
-                'url_destino' => $urlDestino,
-            ]);
-
-            // Generar imagen QR con etiqueta
-            $label = $activo->codigo_interno . ' - ' . $activo->nombre_af;
-            $imagenBase64 = $qr->generarImagenQR(300, $label);
-
-            // Opcionalmente guardar en storage
-            $rutaGuardada = $qr->guardarImagenQR('qr_codes/activos');
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Código QR generado exitosamente.',
-                'data' => [
-                    'qr' => $qr,
-                    'imagen_base64' => $imagenBase64,
-                    'url_imagen' => $qr->url_imagen_qr,
-                    'ruta_guardada' => $rutaGuardada,
-                ],
-            ], 201);
-
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al generar el código QR: ' . $e->getMessage(),
-            ], 500);
+            $response['message'] = 'Error al obtener códigos QR: ' . $e->getMessage();
         }
+
+        return response()->json($response, 200);
+    }
+
+    public function generarQR(Request $request, $idActivo)
+    {
+        // Usar el método estático del modelo que encapsula toda la lógica
+        $resultado = CodigosQRAF::generarParaActivo($idActivo);
+
+        // Si ya existía un QR activo, retornar con código 200 (no es error)
+        if ($resultado['success'] && isset($resultado['data']['ya_existia']) && $resultado['data']['ya_existia']) {
+            return response()->json($resultado, 200);
+        }
+
+        // Retornar el resultado con el código HTTP apropiado
+        return response()->json($resultado, $resultado['success'] ? 201 : 500);
     }
 
     /**
@@ -71,8 +59,8 @@ class CodigosQRAFController extends Controller
             $activo = ActivosFijos::findOrFail($idActivo);
             $qr = CodigosQRAF::where('id_activo_fijo', $idActivo)->firstOrFail();
 
-            // Ruta del logo (debe estar en storage/app/public/logos/empresa.png)
-            $rutaLogo = storage_path('app/public/logos/empresa.png');
+            // Ruta del logo (debe estar en storage/app/public/img/logo/logoNegro.png)
+            $rutaLogo = storage_path('app/public/img/logo/logoNegro.png');
 
             if (!file_exists($rutaLogo)) {
                 return response()->json([
@@ -99,28 +87,37 @@ class CodigosQRAFController extends Controller
         }
     }
 
-    /**
-     * Escanear código QR y obtener información del activo
-     */
+    
     public function escanearQR($codigoQR)
     {
         try {
-            $qr = CodigosQRAF::where('codigo_qr', $codigoQR)
+            $qraf = CodigosQRAF::where('codigo_qr', $codigoQR)
                 ->where('activo', true)
                 ->firstOrFail();
 
             // Registrar el escaneo
-            $qr->registrarEscaneo();
+            $qraf->registrarEscaneo();
 
-            // Obtener información del activo
-            $activo = $qr->activoFijo;
+            // Obtener información completa del activo desde la vista
+            $activoVW = DB::table('almacengeneral.vw_movimientosafcompletos')
+                ->where('id_activo_fijo', $qraf->id_activo_fijo)
+                ->first();
+
+            if (!$activoVW) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se encontró información del activo.',
+                ], 404);
+            }
+
+            // Ocultar la relación activoFijo en el objeto qraf para evitar duplicación
+            $qraf->makeHidden('activoFijo');
 
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'activo' => $activo,
-                    'qr' => $qr,
-                    'escaneos_totales' => $qr->intentos_lectura,
+                    'qraf' => $qraf,
+                    'activoVW' => $activoVW,
                 ],
             ]);
 
@@ -143,19 +140,25 @@ class CodigosQRAFController extends Controller
                 ->firstOrFail();
 
             $activo = $qr->activoFijo;
-            $label = $activo->codigo_interno . ' - ' . $activo->nombre_af;
+            $label = $activo->codigo_etiqueta;
 
-            // Generar imagen QR
-            $result = \Endroid\QrCode\Builder\Builder::create()
-                ->writer(new \Endroid\QrCode\Writer\PngWriter())
-                ->data($qr->url_destino)
-                ->encoding(new \Endroid\QrCode\Encoding\Encoding('UTF-8'))
-                ->errorCorrectionLevel(\Endroid\QrCode\ErrorCorrectionLevel::High)
-                ->size(400)
-                ->margin(10)
-                ->labelText($label)
-                ->labelAlignment(\Endroid\QrCode\Label\LabelAlignment::Center)
-                ->build();
+            // Generar imagen QR con la nueva API
+            $writer = new \Endroid\QrCode\Writer\PngWriter();
+            
+            $qrCode = new \Endroid\QrCode\QrCode(
+                data: $qr->url_destino,
+                encoding: new \Endroid\QrCode\Encoding\Encoding('UTF-8'),
+                errorCorrectionLevel: \Endroid\QrCode\ErrorCorrectionLevel::High,
+                size: 400,
+                margin: 10,
+                roundBlockSizeMode: \Endroid\QrCode\RoundBlockSizeMode::Margin,
+                foregroundColor: new \Endroid\QrCode\Color\Color(0, 0, 0),
+                backgroundColor: new \Endroid\QrCode\Color\Color(255, 255, 255)
+            );
+
+            $labelObj = new \Endroid\QrCode\Label\Label($label);
+
+            $result = $writer->write($qrCode, null, $labelObj);
 
             return response($result->getString())
                 ->header('Content-Type', 'image/png')
@@ -165,27 +168,6 @@ class CodigosQRAFController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al descargar QR: ' . $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    /**
-     * Listar todos los códigos QR
-     */
-    public function index()
-    {
-        try {
-            $qrs = CodigosQRAF::with('activoFijo')->activos()->get();
-
-            return response()->json([
-                'success' => true,
-                'data' => $qrs,
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error: ' . $e->getMessage(),
             ], 500);
         }
     }

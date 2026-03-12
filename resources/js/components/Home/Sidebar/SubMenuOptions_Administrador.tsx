@@ -9,7 +9,8 @@ import { setSelectedSection } from '@/store/sectionReducer';
 import { MdOutlineKeyboardArrowUp, MdOutlinePersonPin  } from 'react-icons/md';
 import { RiUserSettingsFill  } from 'react-icons/ri';
 import { FaUsersGear } from 'react-icons/fa6';
-import { MdOutlineAdminPanelSettings, MdOutlineGroups3 } from 'react-icons/md';
+import { MdOutlineAdminPanelSettings, MdOutlineGroups3, MdPlace } from 'react-icons/md';
+
 
 
 // Styles
@@ -51,7 +52,7 @@ const SubMenuOptions_Administrador: React.FC<MenuOptions_ParentProps> = ({ selec
 
         <div
           className={
-            ['GestionUsuarios', 'GestionDepartamentos', 'GestionRoles', 'GestionEmpleados'].includes(selectedSection)
+            ['GestionUsuarios', 'GestionDepartamentos', 'GestionRoles', 'GestionEmpleados', 'GestionUbicaciones'].includes(selectedSection)
               ? 'SubMenu_IconTitle sidebar_SectionSelected'
               : 'SubMenu_IconTitle'
           }
@@ -107,6 +108,14 @@ const SubMenuOptions_Administrador: React.FC<MenuOptions_ParentProps> = ({ selec
                 className={`subMenuOption delayOption4 ${selectedSection === 'GestionDepartamentos' ? 'sidebar_Section_SubMenuSelected' : ''}`}
               >
                 <MdOutlineGroups3 /> <p>Gestión de Departamentos</p>  
+              </li>
+
+              <li
+                onClick={() => handleSelectSection('GestionUbicaciones', '/gestion_ubicaciones')}
+                id='SubMenu_Option'
+                className={`subMenuOption delayOption5 ${selectedSection === 'GestionUbicaciones' ? 'sidebar_Section_SubMenuSelected' : ''}`}
+              >
+                <MdPlace/> <p>Gestión de Ubicaciones</p>  
               </li>
 
 

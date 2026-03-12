@@ -6,14 +6,14 @@ import { useDispatch, useSelector } from 'react-redux';
 
 // Roles
 import { Roles } from '@/@types/mainTypes';
-import { getRoles } from '@/store/Roles/rolesActions';
-import { setListRoles } from '@/store/Roles/rolesReducer';
+import { getRoles } from '@/store/administrador/Roles/rolesActions';
+import { setListRoles } from '@/store/administrador/Roles/rolesReducer';
 
 // Componentes
 import Paginacion from '@/components/00_Utils/Paginacion';
 import AddRolesControl from './AddRol';
-//import EditRol from './EditRol';
 import DeleteRoles from './DeleteRol';
+import EditRol from './EditRol';
 
 
 // Icons
@@ -21,10 +21,8 @@ import { IoAddCircleOutline } from 'react-icons/io5';
 import { MdEdit, MdDeleteForever } from 'react-icons/md';
 import { FiAlertTriangle } from 'react-icons/fi';
 
-
 // Styles
-import '@styles/99_Administrador/rolesControl.css';
-import EditRol from './EditRol';
+import '@styles/99_Administrador/Roles/rolesControl.css';
 
 const Main_RolesControl: React.FC = () => {
 

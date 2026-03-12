@@ -1,46 +1,47 @@
 // store.ts
 import { configureStore } from '@reduxjs/toolkit';
-import authReducer from './authReducer';
+import authReducer from '@/store/authReducer';
 
-import userReducer from './Users/usersReducer'
-import empleadosReducer from './Empleados/empleadosReducer'
-import rolesReducer from './Roles/rolesReducer'
-import departamentosReducer from './Departamentos/departamentosReducer'
+import userReducer from '@/store/administrador/Users/usersReducer'
+import empleadosReducer from '@/store/administrador/Empleados/empleadosReducer'
+import rolesReducer from '@/store/administrador/Roles/rolesReducer'
+import departamentosReducer from '@/store/administrador/Departamentos/departamentosReducer'
+import ubicacionesReducer from '@/store/administrador/Ubicaciones/ubicacionesReducer'
 
-import facturasReducer from './almacenGeneral/Facturas/facturasReducer'
-import activosReducer from './almacenGeneral/Activos/activosReducer'
-import proveedoresReducer from './almacenGeneral/Proveedores/proveedoresReducer'
-import almacenGeneralTipos_Reducer from './almacenGeneral/Tipos/almacenGeneralTipos_Reducer'
-import clasificacionesReducer from './almacenGeneral/Clasificaciones/clasificacionesReducer'
+import facturasReducer from '@/store/almacenGeneral/Facturas/facturasReducer'
+import activosReducer from '@/store/almacenGeneral/Activos/activosReducer'
+import vwMovimientosAFReducer from '@/store/almacenGeneral/Activos/vwMovimientosAFReducer';
+import movimientosAFReducer from '@/store/almacenGeneral/Activos/MovimientosActivos/movimientosAFReducer'
+import proveedoresReducer from '@/store/almacenGeneral/Proveedores/proveedoresReducer'
+import fiscalReducer from '@/store/shared/fiscalReducer'
+import clasificacionesReducer from '@/store/almacenGeneral/Clasificaciones/clasificacionesReducer'
 
-import sectionReducer from './sectionReducer'
+import sectionReducer from '@/store/sectionReducer'
 
 const store = configureStore({
   reducer: {
-    // Auth
-    authUser: authReducer,
-
-    // Users
-    users: userReducer,
-
-    // Empleados
-    empleados: empleadosReducer,
-
-    // Roles
-    roles: rolesReducer,
-
-    // Departamentos
-    departamentos: departamentosReducer,
 
     // Menu
     section: sectionReducer,
 
+    // Auth y Usuarios
+    auth: authReducer,
+    users: userReducer,
+    roles: rolesReducer,
+    departamentos: departamentosReducer,
+    empleados: empleadosReducer,
+    ubicaciones: ubicacionesReducer,
+
+    // Tipos Compartidos (Catalogos)
+    fiscal: fiscalReducer,
+
     // AlmacenGeneral
-    facturasaf: facturasReducer,
     activos: activosReducer,
-    proveedor: proveedoresReducer,
-    tiposAlmacenGeneral: almacenGeneralTipos_Reducer,
+    vwMovimientosAF: vwMovimientosAFReducer,
+    movimientosAF: movimientosAFReducer,
     clasificacion: clasificacionesReducer,
+    facturasaf: facturasReducer,
+    proveedor: proveedoresReducer,
 
     //  otros reducers...
   },

@@ -25,21 +25,26 @@ return new class extends Migration
             $table->bigIncrements('id_clasificacion')->primary();
 
             // Nombre de la clasificación (cadena de texto, obligatorio)
-            $table->string('descripcion_clasificacionaf');
+            $table->string('nombre_clasificacion')->unique();
+
+            // Cuenta Contable
+            $table->string('cuenta_contable')->nullable();
+
+            // Estatus activo o inactivo (booleano, por defecto true)
+            $table->boolean('estatus_activo')->default(true);
 
             // Campos de control: created_at y updated_at (automáticamente gestionados por Laravel)
             $table->timestamps();
-
         });
 
         // Insertar las clasificaciones iniciales
         DB::table('almacengeneral.tableRef_ClasificacionesAF')->insert([
-            ['descripcion_clasificacionaf' => 'AF Equipamento de Oficina', 'created_at' => now(), 'updated_at' => now()],
-            ['descripcion_clasificacionaf' => 'AF Mobiliario y Equipo', 'created_at' => now(), 'updated_at' => now()],
-            ['descripcion_clasificacionaf' => 'AF Vehículos', 'created_at' => now(), 'updated_at' => now()],
-            ['descripcion_clasificacionaf' => 'AF Maquinaria Pesada', 'created_at' => now(), 'updated_at' => now()],
-            ['descripcion_clasificacionaf' => 'AF Equipo Informático', 'created_at' => now(), 'updated_at' => now()],
-            ['descripcion_clasificacionaf' => 'AF Herramientas y Equipos Menores', 'created_at' => now(), 'updated_at' => now()],
+            ['nombre_clasificacion' => 'AF Equipamento de Oficina', 'cuenta_contable' => '1001', 'estatus_activo' => true, 'created_at' => now(), 'updated_at' => now()],
+            ['nombre_clasificacion' => 'AF Mobiliario y Equipo', 'cuenta_contable' => '1002', 'estatus_activo' => true, 'created_at' => now(), 'updated_at' => now()],
+            ['nombre_clasificacion' => 'AF Vehículos', 'cuenta_contable' => '1003', 'estatus_activo' => true, 'created_at' => now(), 'updated_at' => now()],
+            ['nombre_clasificacion' => 'AF Maquinaria Pesada', 'cuenta_contable' => '1004', 'estatus_activo' => true, 'created_at' => now(), 'updated_at' => now()],
+            ['nombre_clasificacion' => 'AF Equipo Informático', 'cuenta_contable' => '1005',  'estatus_activo' => false,  'created_at' => now(),  'updated_at' => now()],
+            ['nombre_clasificacion' => 'AF Herramientas y Equipos Menores', 'cuenta_contable' => '1006', 'estatus_activo' => true, 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
 

@@ -2,12 +2,13 @@ import React from 'react';
 import Modal from 'react-modal';
 import { AppDispatch } from '@/store/store';
 import { useDispatch } from 'react-redux';
-import { deleteRol, getRoles } from '@/store/Roles/rolesActions';
-import { setListRoles } from '@/store/Roles/rolesReducer';
+import { deleteRol, getRoles } from '@/store/administrador/Roles/rolesActions';
+import { setListRoles } from '@/store/administrador/Roles/rolesReducer';
 import { Roles } from '@/@types/mainTypes';
 import Swal from 'sweetalert2'; 
+import ModalButtons from '@/components/00_Utils/ModalButtons';
 
-import '@styles/00_Utils/addeditdelete_Entities.css'
+import '@styles/99_Administrador/Roles/modalRoles.css'
 
 interface DeleteDepartamentoProps {
   isOpen: boolean;
@@ -37,25 +38,25 @@ const DeleteRoles: React.FC<DeleteDepartamentoProps> = ({ isOpen, onClose, roles
         }
           
       } else {
-        console.log('Error al eliminar el departamento:', resultAction.message);
+        console.log('Error al eliminar el rol:', resultAction.message);
       }
 
       Swal.fire({
         icon: 'success',
-        title: 'Departamento Eliminado (INACTIVO)',
-        text: 'El departamento ha sido eliminada exitosamente.',
+        title: 'Rol Eliminado ',
+        text: 'El rol ha sido eliminado exitosamente.',
         confirmButtonText: 'OK',
       });
 
       onClose(); // Cerrar el modal al completar cualquier acción
           
     } catch (error) {
-      console.error('Error al eliminar el departamento:', error);
+      console.error('Error al eliminar el rol:', error);
 
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'Hubo un problema al eliminar el departamento. Por favor, inténtalo de nuevo.',
+        text: 'Hubo un problema al eliminar el rol. Por favor, inténtalo de nuevo.',
         confirmButtonText: 'OK',
       });
 
@@ -67,37 +68,40 @@ const DeleteRoles: React.FC<DeleteDepartamentoProps> = ({ isOpen, onClose, roles
       isOpen={isOpen}
       onRequestClose={onClose}
       contentLabel="Eliminar Nueva Entity"
-      className="modal_CRUD_Entity"
-      overlayClassName="modal_OverlayCRUD_Entity"
+      className="modalRoles"
     >
-      <div className="modal_Content">
-        <div>
-          <h2>Eliminar Rol</h2>
-          <p>¿Quiere eliminar el rol? </p> 
+
+      <div className="mainDiv_modalRoles" >
+        <h2>Eliminar Rol</h2>
+        <p>¿Quiere eliminar el rol? </p> 
+
+
+        <div className='mainInputs_Delete_AdminEntity'>
+          <strong>
+            {rolesToDelete?.name } 
+          </strong>
 
         </div>
-        <p> 
-          <strong>{rolesToDelete?.name} <br /> </strong>
-
-        </p>
         
-        <div className="modal_buttons">
-          <button 
-            type="button" 
-            className="button_delete" 
-            onClick={handleDelete}
-          >
-            Confirmar Eliminación
-          </button>
-          <button 
-            type="button" 
-            className="button_close" 
-            onClick={onClose}
-          >
-            Cancelar
-          </button>
-        </div>
+        
+        <ModalButtons
+          buttons={[
+            {
+              text: 'Eliminar',
+              type: 'button',
+              className: 'button_delete',
+              onClick: handleDelete
+            },
+            {
+              text: 'Cancelar',
+              type: 'button',
+              className: 'button_close',
+              onClick: onClose
+            }
+          ]}
+        />
       </div>
+
     </Modal>
   );
 };

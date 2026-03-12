@@ -13,7 +13,6 @@ class AuthController extends Controller
     //  CHECK
     public function check()
     {
-
         try {
             // Verificar si el usuario está autenticado
             if (!Auth::check()) {
@@ -30,12 +29,27 @@ class AuthController extends Controller
                 'message' => 'Usuario autenticado.',
                 'user' => $user
             ], 200);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Manejar errores específicos de base de datos
+            if (strpos($e->getMessage(), 'sessions') !== false || 
+                strpos($e->getMessage(), 'no existe la relación') !== false) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error en base de datos. Contacta a Sistemas.'
+                ], 500);
+            }
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de conexión a la base de datos.'
+            ], 500);
+            
         } catch (\Exception $e) {
-            // Manejo de errores
-            $response['message'] = 'Error al verificar Auth: ' . $e->getMessage();
+            // Manejo de errores generales
+            return response()->json([
+                'success' => false,
+                'message' => 'Error interno del servidor. Contacta a Sistemas.'
+            ], 500);
         }
-
-        return response()->json($response, 200);
     }
 
     // REGISTER
@@ -82,58 +96,108 @@ class AuthController extends Controller
         // Respuesta inicial
         $response = ["success" => false];
 
-        // Validación de los datos
-        $validator = Validator::make($request->all(), [
-            'email_usuario' => 'required',
-            'password' => 'required',
-        ]);
+        // Try-catch que envuelve TODO el método para capturar errores de sesiones
+        try {
+            // Intentar validaciones y lógica principal
+            try {
+                // Validación de los datos
+                $validator = Validator::make($request->all(), [
+                    'email_usuario' => 'required',
+                    'password' => 'required',
+                ]);
 
-        // Si hay errores de validación
-        if ($validator->fails()) {
-            return response()->json(["error" => $validator->errors()], 422);
+                // Si hay errores de validación
+                if ($validator->fails()) {
+                    return response()->json(["error" => $validator->errors()], 422);
+                }
+
+                // Obtener el usuario por correo
+                $user = User::where('email_usuario', $request->email_usuario)->first();
+
+                // Verificar si el usuario existe
+                if (!$user) {
+                    $response['message'] = 'El usuario no existe!';
+                    return response()->json($response, 401);
+                }
+
+                // Verificar si el usuario está activo
+                if (!$user->estatus_activo) {
+                    $response['message'] = 'Tu cuenta está desactivada. Contacta a Sistemas!';
+                    return response()->json($response, 403);
+                }
+
+                // Intentar autenticar al usuario
+                if (Auth::attempt(['email_usuario' => $request->email_usuario, 'password' => $request->password])) {
+
+                    $roleName = $user->getRoleNames()->first() ?? 'No definido';
+                    $departamento = $user->departamentos ? $user->departamentos->nombre_departamento : 'No definido';
+
+                    $response['user'] = $user; // Obtener el usuario autenticado
+                    $response['rol'] = $roleName; // Agregar el nombre del rol a la respuesta
+                    $response['departamento'] = $departamento; // Agregar el nombre del rol a la respuesta
+
+                    session(['user_id' => $user->id_usuario]); // Almacenar información en la sesión, como el ID del usuario
+
+                    $response['message'] = 'Login exitoso!';
+                    $response['success'] = true;
+
+                    // Actualiza el último acceso
+                    $user->update(['ultimo_acceso' => now()]);
+                } else {
+                    // Si la autenticación falla
+                    $response['message'] = 'Credenciales inválidas!';
+                }
+
+            } catch (\Illuminate\Database\QueryException $e) {
+                // Manejar errores específicos de base de datos
+                $errorCode = $e->getCode();
+                $errorMessage = $e->getMessage();
+                
+                // Verificar si es un error de tabla no encontrada (PostgreSQL: 42P01, MySQL: 1146)
+                if ($errorCode == '42P01' || $errorCode == '1146' || strpos($errorMessage, 'no existe la relación') !== false || strpos($errorMessage, "doesn't exist") !== false) {
+                    $response['message'] = 'Error en base de datos. Contacta a Sistemas.';
+                } else {
+                    $response['message'] = 'Error de conexión a la base de datos. Intenta más tarde.';
+                }
+                
+                // Log del error para debugging (opcional)
+                \Log::error('Database error during login: ' . $e->getMessage());
+                
+                return response()->json($response, 500);
+                
+            } catch (\Exception $e) {
+                // Manejar cualquier otro tipo de error
+                $response['message'] = 'Error interno del servidor. Contacta a Sistemas.';
+                
+                // Log del error para debugging (opcional)
+                \Log::error('General error during login: ' . $e->getMessage());
+                
+                return response()->json($response, 500);
+            }
+
+            return response()->json($response, 200);
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Catch global para errores de sesiones que ocurren antes del código principal
+            $errorMessage = $e->getMessage();
+            
+            if (strpos($errorMessage, 'sessions') !== false || 
+                strpos($errorMessage, 'no existe la relación') !== false ||
+                $e->getCode() == '42P01') {
+                $response['message'] = 'Error en base de datos. Contacta a Sistemas.';
+            } else {
+                $response['message'] = 'Error de conexión a la base de datos. Intenta más tarde.';
+            }
+            
+            \Log::error('Global database error during login: ' . $e->getMessage());
+            return response()->json($response, 500);
+            
+        } catch (\Exception $e) {
+            // Catch global para cualquier otro error
+            $response['message'] = 'Error interno del servidor. Contacta a Sistemas.';
+            \Log::error('Global error during login: ' . $e->getMessage());
+            return response()->json($response, 500);
         }
-
-        // Obtener el usuario por correo
-        $user = User::where('email_usuario', $request->email_usuario)->first();
-
-        // Verificar si el usuario existe
-        if (!$user) {
-            $response['message'] = 'El usuario no existe!';
-            return response()->json($response, 401);
-        }
-
-        // Verificar si el usuario está activo
-        if (!$user->estatus_activo) {
-            $response['message'] = 'Tu cuenta está desactivada. Contacta a Sistemas!';
-            return response()->json($response, 403);
-        }
-
-        // Intentar autenticar al usuario
-        if (Auth::attempt(['email_usuario' => $request->email_usuario, 'password' => $request->password])) {
-
-            $roleName = $user->getRoleNames()->first() ?? 'No definido';
-            $departamento = $user->departamentos ? $user->departamentos->nombre_departamento : 'No definido';
-
-
-            $response['user'] = $user; // Obtener el usuario autenticado
-            $response['rol'] = $roleName; // Agregar el nombre del rol a la respuesta
-            $response['departamento'] = $departamento; // Agregar el nombre del rol a la respuesta
-
-
-            session(['user_id' => $user->id_usuario]); // Almacenar información en la sesión, como el ID del usuario
-
-
-            $response['message'] = 'Login exitoso!';
-            $response['success'] = true;
-
-            // Actualiza el último acceso
-            $user->update(['ultimo_acceso' => now()]);
-        } else {
-            // Si la autenticación falla
-            $response['message'] = 'Credenciales inválidas!';
-        }
-
-        return response()->json($response, 200);
     }
 
     // LOGOUT
@@ -161,9 +225,20 @@ class AuthController extends Controller
                 "success" => true,
                 "message" => "Sesión cerrada exitosamente.",
             ];
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Manejar errores específicos de base de datos
+            if (strpos($e->getMessage(), 'sessions') !== false || 
+                strpos($e->getMessage(), 'no existe la relación') !== false) {
+                $response['message'] = 'Error en base de datos. Contacta a Sistemas.';
+            } else {
+                $response['message'] = 'Error de conexión a la base de datos.';
+            }
+            return response()->json($response, 500);
+            
         } catch (\Exception $e) {
-            // Manejo de errores
-            $response['message'] = 'Error al cerrar sesión: ' . $e->getMessage();
+            // Manejo de errores generales
+            $response['message'] = 'Error interno del servidor. Contacta a Sistemas.';
+            return response()->json($response, 500);
         }
 
         return response()->json($response, 200);

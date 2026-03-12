@@ -26,7 +26,7 @@ class table_EmpleadosSeeder extends Seeder
             'estatus_activo' => true,
             'fecha_alta' => now(),
             'fecha_baja' => null,
-            'foto_empleado' => 'ruta/foto.jpg',
+            'foto_empleado' => 'fotosEmpleados/defaultProfile.png',
             'firma_movimientos' => Hash::make('firma_movimientos'),
             'id_departamento' => 1 // Administración
         ]);
@@ -44,7 +44,7 @@ class table_EmpleadosSeeder extends Seeder
                 'estatus_activo' => true,
                 'fecha_alta' => now(),
                 'fecha_baja' => null,
-                'foto_empleado' => 'fotos/carlos.jpg',
+                'foto_empleado' => 'fotosEmpleados/defaultProfile.png',
                 'firma_movimientos' => Hash::make('firma_001'),
                 'id_departamento' => 2 // Sistemas
             ],
@@ -59,7 +59,7 @@ class table_EmpleadosSeeder extends Seeder
                 'estatus_activo' => true,
                 'fecha_alta' => now(),
                 'fecha_baja' => null,
-                'foto_empleado' => 'fotos/ana.jpg',
+                'foto_empleado' => 'fotosEmpleados/defaultProfile.png',
                 'firma_movimientos' => Hash::make('firma_002'),
                 'id_departamento' => 3 // Recursos Humanos
             ],
@@ -74,7 +74,7 @@ class table_EmpleadosSeeder extends Seeder
                 'estatus_activo' => true,
                 'fecha_alta' => now(),
                 'fecha_baja' => null,
-                'foto_empleado' => 'fotos/luis.jpg',
+                'foto_empleado' => 'fotosEmpleados/defaultProfile.png',
                 'firma_movimientos' => Hash::make('firma_003'),
                 'id_departamento' => 4 // Contabilidad
             ],
@@ -89,7 +89,7 @@ class table_EmpleadosSeeder extends Seeder
                 'estatus_activo' => true,
                 'fecha_alta' => now(),
                 'fecha_baja' => null,
-                'foto_empleado' => 'fotos/maria.jpg',
+                'foto_empleado' => 'fotosEmpleados/defaultProfile.png',
                 'firma_movimientos' => Hash::make('firma_004'),
                 'id_departamento' => 5 // Almacén
             ],
@@ -104,7 +104,7 @@ class table_EmpleadosSeeder extends Seeder
                 'estatus_activo' => true,
                 'fecha_alta' => now(),
                 'fecha_baja' => null,
-                'foto_empleado' => 'fotos/javier.jpg',
+                'foto_empleado' => 'fotosEmpleados/defaultProfile.png',
                 'firma_movimientos' => Hash::make('firma_005'),
                 'id_departamento' => 6 // Mantenimiento
             ],
@@ -119,7 +119,7 @@ class table_EmpleadosSeeder extends Seeder
                 'estatus_activo' => true,
                 'fecha_alta' => now(),
                 'fecha_baja' => null,
-                'foto_empleado' => 'fotos/sofia.jpg',
+                'foto_empleado' => 'fotosEmpleados/defaultProfile.png',
                 'firma_movimientos' => Hash::make('firma_006'),
                 'id_departamento' => 7 // Servicio Médico
             ],
@@ -134,7 +134,7 @@ class table_EmpleadosSeeder extends Seeder
                 'estatus_activo' => true,
                 'fecha_alta' => now(),
                 'fecha_baja' => null,
-                'foto_empleado' => 'fotos/pedro.jpg',
+                'foto_empleado' => 'fotosEmpleados/defaultProfile.png',
                 'firma_movimientos' => Hash::make('firma_007'),
                 'id_departamento' => 8 // Enfermería
             ],
@@ -149,7 +149,7 @@ class table_EmpleadosSeeder extends Seeder
                 'estatus_activo' => true,
                 'fecha_alta' => now(),
                 'fecha_baja' => null,
-                'foto_empleado' => 'fotos/laura.jpg',
+                'foto_empleado' => 'fotosEmpleados/defaultProfile.png',
                 'firma_movimientos' => Hash::make('firma_008'),
                 'id_departamento' => 9 // Auditoría
             ],
@@ -164,7 +164,7 @@ class table_EmpleadosSeeder extends Seeder
                 'estatus_activo' => true,
                 'fecha_alta' => now(),
                 'fecha_baja' => null,
-                'foto_empleado' => 'fotos/diego.jpg',
+                'foto_empleado' => 'fotosEmpleados/defaultProfile.png',
                 'firma_movimientos' => Hash::make('firma_009'),
                 'id_departamento' => 2 // Sistemas
             ],
@@ -179,7 +179,7 @@ class table_EmpleadosSeeder extends Seeder
                 'estatus_activo' => true,
                 'fecha_alta' => now(),
                 'fecha_baja' => null,
-                'foto_empleado' => 'fotos/elena.jpg',
+                'foto_empleado' => 'fotosEmpleados/defaultProfile.png',
                 'firma_movimientos' => Hash::make('firma_010'),
                 'id_departamento' => 5 // Almacén
             ],

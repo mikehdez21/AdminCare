@@ -46,3 +46,33 @@ body::-webkit-scrollbar-thumb {
 body::-webkit-scrollbar-thumb:hover {
     background-color: #aebdd4;
 }
+
+:root {
+    --scrollbar-width: 15px;
+    --sidebar-width: 3.7vw;
+    --content-padding: 20px;
+
+    --modal-width: 95vw;
+    --modal-height: 95vh;
+    --modal-max-width: 1600px;
+    --modal-max-height: 900px;
+    --modal-min-width: 800px;
+    --modal-min-height: 600px;
+    --columns-gap: 1px;
+    --header-height: 60px;
+    --column-header-height: 50px;
+}
+
+/* Agrega esto a tu CSS global */
+.ReactModal__Overlay {
+  z-index: 1000 !important;
+  background: #0000002e !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ReactModal__Content {
+    animation: fadeInRight 0.4s;
+}
+

@@ -150,8 +150,8 @@ class EmpleadoController extends Controller
                 'fecha_alta' => 'required|date',
                 'fecha_baja' => 'nullable|date',
                 'foto_empleado' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-                'firma_movimientos' => 'required|string|max:255',
-                'id_departamento' => 'required|exists:departamentos,id_departamento',
+                'firma_movimientos' => 'nullable|string|max:255',
+                'id_departamento' => 'required',
             ]);
 
             // Buscar empleado

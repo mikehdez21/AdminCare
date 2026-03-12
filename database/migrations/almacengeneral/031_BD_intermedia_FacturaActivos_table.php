@@ -22,11 +22,17 @@ return new class extends Migration {
             // Clave foránea que referencia a la tabla de facturas en 'almacengeneral'
             $table->foreignId('id_activo_fijo')->constrained('almacengeneral.tableAF_ActivosFijos', 'id_activo_fijo')->onDelete('restrict');
 
+            // Cantidad de activos fijos en la factura
+            // $table->integer('cantidad_activos')->default(1);
+
             // Precio unitario del activo fijo en la factura
             $table->decimal('precio_unitarioaf', 21, 2)->nullable();
 
-            // Cantidad de activos fijos en la factura
-            $table->integer('cantidad_activos')->default(1);
+            // Descuento aplicado al activo fijo en la factura
+            $table->decimal('descuento_af', 21, 2)->nullable();
+
+            // Descuento porcentual aplicado al activo fijo en la factura
+            $table->decimal('descuento_porcentajeaf', 5, 2)->nullable();
 
             // Observaciones adicionales sobre el detalle de la factura
             $table->text('observaciones_detalleaf')->nullable();

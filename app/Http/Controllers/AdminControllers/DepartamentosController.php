@@ -23,7 +23,6 @@ class DepartamentosController extends Controller
                 'id_departamento',
                 'nombre_departamento',
                 'descripcion',
-                'tipo_departamento',
                 'atiende_pacientes',
                 'estatus_activo',
                 'created_at',
@@ -79,22 +78,47 @@ class DepartamentosController extends Controller
     }
 
 
-    // Obtener un Usuario por ID
-    public function show($id) {}
+    // Obtener un Departamento por ID
+    public function show($id_departamento) {}
 
-    // Actualizar Usuario
-    public function update(Request $request, $id)
+    // Actualizar Departamento
+    public function update(Request $request, $id_departamento)
     {
-        $response = ["success" => false, "message" => ""];
+        $response = ["success" => false, "message" => "", "data" => []];
 
+        try{
+            $departamento = Departamento::findOrFail($id_departamento);
+            $departamento->update($request->all());
+            
+            $response['success'] = true;
+            $response['message'] = 'Departamento actualizado exitosamente.';
+            $response['data'] = $departamento;
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            $response['message'] = 'Departamento no encontrado.';
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $response['message'] = 'Errores de validación.';
+            $response['data'] = $e->errors();
+        } catch (\Exception $e) {
+            $response['message'] = 'Error al actualizar el departamento: ' . $e->getMessage();
+        }
 
         return response()->json($response, $response['success'] ? 200 : 500);
     }
 
     // Eliminar un Usuario
-    public function destroy($id)
+    public function destroy($id_departamento)
     {
         $response = ["success" => false, "message" => ""];
+
+        try{
+            Departamento::findOrFail($id_departamento)->delete();
+            $response['success'] = true;
+            $response['message'] = 'Departamento eliminado exitosamente.';
+        } catch (\Exception $e) {
+            $response['message'] = 'Error al eliminar el departamento: ' . $e->getMessage();
+        }
 
 
 

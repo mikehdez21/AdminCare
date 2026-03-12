@@ -5,18 +5,22 @@ import { useDispatch, useSelector } from 'react-redux';
 
 // Usuarios
 import { User } from '@/@types/mainTypes';
-import { getUsers } from '@/store/Users/usersActions';
-import { setListUsuarios } from '@/store/Users/usersReducer';
+import { getUsers } from '@/store/administrador/Users/usersActions';
+import { setListUsuarios } from '@/store/administrador/Users/usersReducer';
 
 // Departamentos
-import { getDepartamentos } from '@/store/Departamentos/departamentosActions';
-import { setListDepartamentos } from '@/store/Departamentos/departamentosReducer';
+import { getDepartamentos } from '@/store/administrador/Departamentos/departamentosActions';
+import { setListDepartamentos } from '@/store/administrador/Departamentos/departamentosReducer';
+
+// Empleados
+import { getEmpleados } from '@/store/administrador/Empleados/empleadosActions';
+import { setListEmpleados } from '@/store/administrador/Empleados/empleadosReducer';
 
 // Componentes
 import AddUser from './AddUser';
 import EditUser from './EditUser';
 import DeleteUser from './DeleteUser';
- 
+
 import ShowUserRoles from '@/components/99_Administrador/Usuarios/ShowUserRoles'
 import Paginacion from '@/components/00_Utils/Paginacion';
 
@@ -27,26 +31,28 @@ import { PiUserList } from 'react-icons/pi';
 import { FiAlertTriangle } from 'react-icons/fi';
 
 
+import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 
 // Styles
-import '@styles/99_Administrador/usuariosControl.css';
+import '@styles/99_Administrador/Usuarios/usuariosControl.css';
 
 const Main_UsuariosControl: React.FC = () => {
 
   const dispatch = useDispatch<AppDispatch>(); // Tipar el dispatch aquí
-  
+
   const departamentos = useSelector((state: RootState) => state.departamentos.departamentos);
+  const empleados = useSelector((state: RootState) => state.empleados.empleados);
   const usuarios = useSelector((state: RootState) => state.users.users || []);
   const totalUsuarios = usuarios.length;
-  
+
   const [usuarioToEdit_Delete, setUsuarioToEdit_Delete] = useState<User | null>(null); // Usuario seleccionado para editar_eliminar
   const [usuarioToShow, setUsuarioToShow] = useState<User | null>(null); // Usuario seleccionado para editar_eliminar
-  
+
   const [busqueda, setBusqueda] = useState<string>('');
   const [paginaActual, setPaginaActual] = useState<number>(1);
   const [usuariosPorPagina, setUsuariosPorPagina] = useState<number>(5);
 
-    
+
   const [isModalAddUsuarioOpen, setModalAddUsuarioOpen] = useState(false);
   const [isModalEditUsuarioOpen, setModalEditUsuarioOpen] = useState(false);
   const [isModalDeleteUsuarioOpen, setModalDeleteUsuarioOpen] = useState(false);
@@ -63,7 +69,7 @@ const Main_UsuariosControl: React.FC = () => {
   const closeModalAddUsuario = () => {
     setModalAddUsuarioOpen(false);
   };
-  
+
   // Editar Usuario
   const openModalEditUsuario = (usuario: User) => {
     setUsuarioToEdit_Delete(usuario)
@@ -73,7 +79,7 @@ const Main_UsuariosControl: React.FC = () => {
     setModalEditUsuarioOpen(false);
     setUsuarioToEdit_Delete(null)
   };
-  
+
   // Eliminar Usuario
   const openAlertDeleteUsuario = (usuario: User) => {
     setUsuarioToEdit_Delete(usuario)
@@ -103,7 +109,7 @@ const Main_UsuariosControl: React.FC = () => {
     setFotoUsuario(null);
   };
 
-  
+
 
   // Cargar los usuarios desde la API solo si no están cargados en el store
   useEffect(() => {
@@ -138,9 +144,24 @@ const Main_UsuariosControl: React.FC = () => {
       };
       cargarDepartamentos();
     }
-  }, [dispatch, usuarios.length]); // Solo ejecuta el effect si los usuarios no están en el store
 
+    if (empleados.length === 0) { // Si no hay empleados en el store
+      const cargarEmpleados = async () => {
+        try {
+          const resultAction = await dispatch(getEmpleados()).unwrap();
+          if (resultAction.success) {
+            dispatch(setListEmpleados(resultAction.empleados!)); // Guarda los empleados en el store
+          } else {
+            console.log('Error', resultAction.message);
+          }
+        } catch (error) {
+          console.error('Error al cargar empleados:', error);
+        }
+      }
+      cargarEmpleados();
+    }
 
+  }, [dispatch, usuarios.length, departamentos.length, empleados.length]); // Solo ejecuta el effect si los usuarios no están en el store
 
 
   // Filtrar y ordenar usuarios basados en la búsqueda
@@ -178,15 +199,15 @@ const Main_UsuariosControl: React.FC = () => {
   };
 
 
-  return(
+  return (
     <div className='mainDiv_UserControl'>
       <div className='searchAdd_ButtonDiv'>
- 
+
         <div className='text_Div'>
           <h1>Usuarios</h1>
           <p>Mostrando {usuariosPaginaActual.length} de {totalUsuarios} usuarios</p>
         </div>
-        
+
         <div className='buttons_Div'>
           <select className='selectList' value={usuariosPorPagina} id='selectList' name='selectList' onChange={handleChangeUsuariosPorPagina}>
             <option value={5}>5</option>
@@ -238,6 +259,7 @@ const Main_UsuariosControl: React.FC = () => {
                   <th id='th_EstatusActivo'>Estatus</th>
                   <th id='th_UserRol'>Roles</th>
                   <th id='th_Departamento'>Departamento</th>
+                  <th id='th_FechaBaja'>Fecha Baja</th>
                   <th id='th_FechaCreacion'>Fecha Creación</th>
                   <th id='th_FechaModificacion'>Fecha Modificación</th>
                   <th id='th_Acciones'>ACCIONES</th>
@@ -251,11 +273,11 @@ const Main_UsuariosControl: React.FC = () => {
                     <td id='td_UserID'>{usuarios.id_usuario}</td>
                     <td id='td_NombreUsuario'>{usuarios.nombre_usuario}</td>
                     <td id='td_EmailUsuario'>{usuarios.email_usuario}</td>
-                    <td id='td_EstatusActivo'   className={usuarios.estatus_activo ? 'status-activo' : 'status-inactivo'}> {usuarios.estatus_activo ? 'Activo' : 'Inactivo'}</td>
-                    
+                    <td id='td_EstatusActivo' className={usuarios.estatus_activo ? 'status-activo' : 'status-inactivo'}> {usuarios.estatus_activo ? 'Activo' : 'Inactivo'}</td>
+
 
                     <td id='td_UserRol' >
-                      <PiUserList id='rolesIcon' onClick={() => openModalShowUserRoles(usuarios)}/>
+                      <PiUserList id='rolesIcon' onClick={() => openModalShowUserRoles(usuarios)} />
                     </td>
 
                     <td id='td_Departamento'>{departamentos.map((departamento) => (
@@ -264,13 +286,18 @@ const Main_UsuariosControl: React.FC = () => {
                       </div>
                     ))}</td>
 
+                    <td id='td_FechaBaja' className={usuarios.estatus_activo ? '' : 'status-inactivo'}>
+                      {formatDateHorasToFrontend(usuarios.fecha_baja) || 'Sin Registro'}
+                    </td>
+
+
                     <td id='td_FechaCreacion'>{usuarios.created_at}</td>
                     <td id='td_FechaModificacion'>{usuarios.updated_at}</td>
 
                     <td id='td_Acciones'>
                       <div className='divActions'>
-                        <button className='button_editEntity' onClick={() => openModalEditUsuario(usuarios)}> <MdEdit/></button>
-                        <button className='button_deleteEntity' onClick={() => openAlertDeleteUsuario(usuarios)}><MdDeleteForever/></button>
+                        <button className='button_editEntity' onClick={() => openModalEditUsuario(usuarios)}> <MdEdit /></button>
+                        <button className='button_deleteEntity' onClick={() => openAlertDeleteUsuario(usuarios)}><MdDeleteForever /></button>
                       </div>
                     </td>
                   </tr>
@@ -295,11 +322,11 @@ const Main_UsuariosControl: React.FC = () => {
       )}
 
       {isModalEditUsuarioOpen && usuarioToEdit_Delete && (
-        <EditUser isOpen={isModalEditUsuarioOpen} onClose={closeModalEditUsuario} usuarioToEdit={usuarioToEdit_Delete}/>
+        <EditUser isOpen={isModalEditUsuarioOpen} onClose={closeModalEditUsuario} usuarioToEdit={usuarioToEdit_Delete} />
       )}
 
       {isModalDeleteUsuarioOpen && usuarioToEdit_Delete && (
-        <DeleteUser isOpen={isModalDeleteUsuarioOpen} onClose={closeAlertDeleteUsuario} usuarioToDelete={usuarioToEdit_Delete}/>
+        <DeleteUser isOpen={isModalDeleteUsuarioOpen} onClose={closeAlertDeleteUsuario} usuarioToDelete={usuarioToEdit_Delete} />
       )}
 
       {isModalShowUserRoles && usuarioToShow && (
@@ -310,7 +337,7 @@ const Main_UsuariosControl: React.FC = () => {
         <div className="modalFoto">
           <div className="modalContent">
             <span className="closeButton" onClick={closeModalFoto}>
-        &times;
+              &times;
             </span>
             <img src={fotoUsuario} alt="Foto del usuario" className="fotoUsuario" />
           </div>

@@ -1,25 +1,4 @@
-.AddFactura{
-    
-    .header_AddFactura{
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        margin-bottom: 5px;
-        align-items: center;
-        font-weight: bold;
-        color: #333;
-        
-        h1{
-            font-size: 26px;
-            margin: 0;
-        }
-
-        p{
-            margin: 0;
-            font-size: 12px;
-            color: #666;
-        }
-    }
+.AddEditFactura{
 
     form{
         display: flex;
@@ -32,7 +11,8 @@
             background-color: #ece7f1;
             border: 2px solid #b4adad;
             border-radius: 10px;
-            
+            padding: 10px;
+
             .title_Container{
                 display: flex;
                 padding: 10px;
@@ -129,7 +109,7 @@
                     flex-wrap: nowrap;
 
                     th, td{
-                        padding: 10px;
+                        padding: 5px 10px;
                         text-align: left;
                         border-bottom: 1px solid #c7bebe;
                     }
@@ -139,6 +119,39 @@
                         span{
                             font-size: 14px;
                             color: #666;
+                        }
+
+                        &:last-child{
+                            display: flex;
+                            justify-content: center;
+                        }
+                    }
+
+                    .btn-remover-activo{
+                        background: #dc3545;
+                        color: white;
+                        border: none;
+                        border-radius: 50%;
+                        width: 30px;
+                        height: 30px;
+                        cursor: pointer;
+                        font-size: 14px;
+                        font-weight: bold;
+                        transition: all 0.3s ease;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+
+                        &:hover{
+                            background: #c82333;
+                            transform: scale(1.1);
+                        }
+                    }
+
+                    td{
+                        &:last-child{
+                            display: flex;
+                            justify-content: center;
                         }
                     }
 
@@ -172,35 +185,115 @@
                     font-weight: bold;
                     color: #333;
 
-                    #totalFactura{
-                        margin: 0;
-                        font-size: 24px;
-                    }
-
-                    #totalFacturaDescuento{
+                    #subTotalSinIVA, #subTotalFacturaConDescuento, #subTotalFacturaConFlete{
                         margin: 0;
                         font-size: 16px;
                         color: #3f7cee;
-
                     }
+
+                    #totalFacturaFinal{
+                        margin: 0;
+                        font-size: 24px;
+                        color: #13a332;
+                    }
+
+                    
                 }
 
                 .totalFacturaCalculado{
                     flex: 1;
                     text-align: right;
                     font-weight: bold;
-                    color: #13a332;
 
-                    #totalFacturaValue{
-                        margin: 0;
-                        font-size: 24px;
-                    }
-
-                    #totalFacturaDescuentoValue{
+                    #subTotalSinIVAValue, #subTotalFacturaConDescuentoValue, #subTotalFacturaConFleteValue{
                         margin: 0;
                         font-size: 16px;
                         color: #3f7cee;
                     }
+
+                    #totalFacturaFinalValue{
+                        margin: 0;
+                        font-size: 24px;
+                        color: #13a332;
+                    }
+
+                    
+                }
+
+            }
+
+        }
+
+        section.id_FechaFactura{
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            padding-left: 20vw;
+            padding-right: 20vw;
+            max-height: 80px;
+
+            
+            label{
+                display: flex;
+                flex-direction: column;
+                padding: 0px 10px;
+
+                select, input{
+                    padding: 8px;
+                    margin: 5px 0;
+                    border: 2px groove #df67f7;
+                    border-radius: 14px;
+                    font-size: 16px;
+                }
+
+                
+            }
+
+            .idFactura{
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+
+                h2{
+                    gap: 10px;
+                    margin: 0;
+                    font-size: 20px;
+                    color: #495057;
+                }
+
+                p{
+                    display: flex;
+                    align-items: center;
+                    margin: 0px;
+                    font-size: 40px;
+
+                    .idIcon{
+                        font-size: 40px;
+                        margin-right: 2px;
+                    }
+
+                }
+
+            }
+
+            .fechaRecepcion{
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+
+                h2{
+                    display: flex;
+                    align-items: center;
+                    margin: 0px;
+                    font-size: 20px;
+
+                    .icon_FechaRecepcion{
+                        font-size: 24px;
+                        color: #45d85d;
+                        margin-right: 8px;
+                    }
+
                 }
 
             }
@@ -211,4 +304,8 @@
         
 
     }
+}
+
+.DeleteFactura{
+
 }

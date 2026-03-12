@@ -14,7 +14,8 @@ class Clasificaciones extends Model
     protected $primaryKey = 'id_clasificacion'; // Especifica el campo de la clave primaria
 
     protected $fillable = [
-        'descripcion_clasificacionaf',
+        'nombre_clasificacion',
+        'cuenta_contable',
         'estatus_activo',
 
     ];

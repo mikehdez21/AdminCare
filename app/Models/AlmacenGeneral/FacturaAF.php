@@ -19,7 +19,6 @@ class FacturaAF extends Model
         'id_proveedor',
         'num_factura',
         'id_tipo_factura',
-        'fecha_fac_emision',
         'fecha_fac_recepcion',
         'id_forma_pago',
         'id_tipo_moneda',
@@ -35,5 +34,25 @@ class FacturaAF extends Model
     public function proveedor()
     {
         return $this->belongsTo(Proveedores::class, 'id_proveedor', 'id_proveedor');
+    }
+
+    // Relación con los detalles de activos fijos de la factura
+    public function facturaActivos()
+    {
+        return $this->hasMany(FacturaActivos::class, 'id_factura', 'id_factura');
+    }
+
+    // Relación con activos fijos a través de la tabla intermedia
+    public function activosFijos()
+    {
+        return $this->belongsToMany(
+            ActivosFijos::class,
+            'almacengeneral.tableInter_FacturaActivos',
+            'id_factura',
+            'id_activo_fijo',
+            'id_factura',
+            'id_activo_fijo'
+        )->withPivot('precio_unitarioaf', 'descuento_af', 'descuento_porcentajeaf', 'observaciones_detalleaf')
+         ->withTimestamps();
     }
 }

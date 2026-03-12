@@ -38,15 +38,6 @@ return new class extends Migration {
             // Clave foránea que referencia la ubicación del activo fijo actual
             $table->foreignId('id_ubicacion_actual')->nullable()->constrained('tableUbicaciones', 'id_ubicacion')->onDelete('set null');
 
-            // Clave foránea que referencia al departamento anterior
-            $table->foreignId('id_departamento_anterior')->nullable()->constrained('tableDepartamentos', 'id_departamento')->onDelete('set null');
-
-            // Clave foránea que referencia al departamento actual
-            $table->foreignId('id_departamento_actual')->nullable()->constrained('tableDepartamentos', 'id_departamento')->onDelete('set null');
-
-            // Clave foránea que referencia al usuario que realiza el movimiento
-            $table->foreignId('id_usuario')->constrained('tableUsuarios', 'id_usuario')->onDelete('restrict');
-
             // Campos de fecha de creación y actualización con zona horaria
             $table->timestamps();
 

@@ -3,19 +3,22 @@ import Modal from 'react-modal';
 import { RootState, AppDispatch } from '@/store/store';
 import { useSelector, useDispatch } from 'react-redux';
 
-import AddRolModal from '@/components/99_Administrador/Usuarios/AddRolModal'
+import AddRolModal from '@/components/99_Administrador/Usuarios/AddRolModal';
 
-import { editUsuario, getUsers } from '@/store/Users/usersActions';
-import { setListUsuarios } from '@/store/Users/usersReducer';
+import { editUsuario, getUsers } from '@/store/administrador/Users/usersActions';
+import { setListUsuarios } from '@/store/administrador/Users/usersReducer';
 
 import { User, Roles, Departamentos } from '@/@types/mainTypes';
 import { Empleados } from '@/@types/mainTypes';
-import { getRoles } from '@/store/Roles/rolesActions';
-import { getDepartamentos } from '@/store/Departamentos/departamentosActions';
+import { getRoles } from '@/store/administrador/Roles/rolesActions';
+import { getDepartamentos } from '@/store/administrador/Departamentos/departamentosActions';
+import { getEmpleados } from '@/store/administrador/Empleados/empleadosActions';
 
-import Swal from 'sweetalert2'; 
+import Swal from 'sweetalert2';
+import ModalButtons from '@/components/00_Utils/ModalButtons';
 
-import '@styles/99_Administrador/addeditdelete_adminEntities.css'
+import '@styles/99_Administrador/Usuarios/modalUsuarios.css';
+import { formatDateHorasToInputs, getFechaHoraActual } from '@/utils/dateFormat';
 
 interface EditUserProps {
   isOpen: boolean;
@@ -26,35 +29,26 @@ interface EditUserProps {
 Modal.setAppElement('#root');
 
 const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, usuarioToEdit }) => {
-
   const dispatch = useDispatch<AppDispatch>();
   const roles = useSelector((state: RootState) => state.roles.roles);
   const departamentos = useSelector((state: RootState) => state.departamentos.departamentos);
-  const empleados = useSelector((state: RootState) => state.empleados.empleados)
-  
+  const empleados = useSelector((state: RootState) => state.empleados.empleados);
+
   const [isModalAddRolOpen, setModalAddRolOpen] = useState(false);
 
-
-  // Añadir Roles
-  const openModalAddRol = () => {
-    setModalAddRolOpen(true);
-  };
-  const closeModalAddRol = () => {
-    setModalAddRolOpen(false);
-  };
-
-  
   const [nombreUsuario, setNombreUsuario] = useState<string>('');
   const [emailUsuario, setEmail] = useState<string>('@');
   const emailParts = emailUsuario ? emailUsuario.split('@') : ['', ''];
   const localPart = emailParts[0] || '';
   const domainPart = emailParts[1] || '';
   const [passwordUsuario, setPassword] = useState<string>('');
-  const [userActive, setUserActive] = useState<boolean>(true);
-  const [userShared, setUserShared] = useState<boolean>(true);
+  const [estatusActivo, setEstatusActivo] = useState<boolean>(true);
+  const [fechaBaja, setFechaBaja] = useState<string>('');
+  const [userCompartido, setUserCompartido] = useState<boolean>(false);
   const [rolesUsuario, setRolesUsuario] = useState<Roles[]>(usuarioToEdit?.roles || []);
-  const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState<Empleados['id_empleado']>(0);
-  const [departamentoSeleccionado, setUserDepartamento] = useState<Departamentos['id_departamento']>(0);
+  const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState<number>(0);
+  const [departamentoSeleccionado, setDepartamentoSeleccionado] = useState<number>(0);
+
 
   // Cargar roles y departamentos si no están disponibles
   useEffect(() => {
@@ -64,57 +58,78 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, usuarioToEdit }) =
     if (departamentos.length === 0) {
       dispatch(getDepartamentos());
     }
-  }, [dispatch, roles.length, departamentos.length]);
+    if (empleados.length === 0) {
+      dispatch(getEmpleados());
+    }
+  }, [dispatch, roles.length, departamentos.length, empleados.length]);
 
-  const handleUserActive = () => {
-    setUserActive((prevState) => !prevState);
+  // Añadir Roles
+  const openModalAddRol = () => {
+    setModalAddRolOpen(true);
+  };
+  const closeModalAddRol = () => {
+    setModalAddRolOpen(false);
   };
 
-  const handleUserShared = () => {
-    setUserShared((prevState) => !prevState);
+  const handleFechaBaja = () => {
+    if (estatusActivo) {
+      setFechaBaja(getFechaHoraActual());
+    } else {
+      setFechaBaja('');
+    }
+  }
+
+  const handleUserActive = () => {
+    setEstatusActivo((prevState) => !prevState);
+    handleFechaBaja();
+
+  };
+
+  const handleUserCompartido = () => {
+    setUserCompartido((prevState) => !prevState);
   };
 
   const handleAddRol = () => {
     openModalAddRol();
-  }
+  };
 
   const handleRolesSelected = (selectedRoles: Roles[]) => {
-    console.log('asd:', selectedRoles)
-    const newRole = selectedRoles[0]; // Siempre es un único rol
-    // Evitar duplicados
-    if (!rolesUsuario.some((rol) => rol.id === newRole.id)) {
-      setRolesUsuario((prev) => [...prev, newRole]);
-    }
+    const newRole = selectedRoles;
+    setRolesUsuario(newRole);
   };
 
   useEffect(() => {
     if (usuarioToEdit) {
       console.log('Información ACTUAL del usuario:', usuarioToEdit); // Log completo del usuario
-  
-      setNombreUsuario(usuarioToEdit.nombre_usuario);
-  
-      setEmail(usuarioToEdit.email_usuario || '@');
-  
-      setPassword(usuarioToEdit.password || '');
-  
-      setUserActive(usuarioToEdit.estatus_activo || false);
 
-      setUserShared(usuarioToEdit.usuario_compartido || false);
-  
+      setNombreUsuario(usuarioToEdit.nombre_usuario);
+
+      setEmail(usuarioToEdit.email_usuario || '@');
+
+      setPassword(usuarioToEdit.password || '');
+
+      setEstatusActivo(usuarioToEdit.estatus_activo || false);
+
+      setFechaBaja(formatDateHorasToInputs(usuarioToEdit.fecha_baja) || '');
+
+      setUserCompartido(usuarioToEdit.usuario_compartido || false);
+
       setRolesUsuario(usuarioToEdit.roles || []);
-  
-      setUserDepartamento(usuarioToEdit.id_departamento || 0);
-      
+      setEmpleadoSeleccionado(usuarioToEdit.id_empleado || 0);
+
+      setDepartamentoSeleccionado(usuarioToEdit.id_departamento || 0);
     } else {
       // Reset states for a clean form
       console.log('Reseteando los estados del formulario porque no hay usuario a editar.');
       setNombreUsuario('');
       setEmail('@');
       setPassword('');
-      setUserActive(true);
-      setUserShared(false);
+      setEstatusActivo(true);
+      setFechaBaja('');
+      setUserCompartido(false);
       setRolesUsuario([]);
-      setUserDepartamento(0);
+      setEmpleadoSeleccionado(0);
+      setDepartamentoSeleccionado(0);
     }
   }, [usuarioToEdit]);
 
@@ -131,77 +146,62 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, usuarioToEdit }) =
         });
         return;
       }
-      
+
       const usuarioEditado: User = {
         id_usuario: usuarioToEdit?.id_usuario, // Mantener el ID del usuario
         nombre_usuario: nombreUsuario,
         email_usuario: emailUsuario,
         password: passwordUsuario,
-        estatus_activo: userActive,
-        usuario_compartido: userShared,
+        estatus_activo: estatusActivo,
+        fecha_baja: fechaBaja ? fechaBaja : null,
+        usuario_compartido: userCompartido,
         roles: rolesUsuario,
-        id_empleado: usuarioToEdit?.id_empleado,
-        id_departamento: usuarioToEdit?.id_departamento,
-
-        
+        id_empleado: empleadoSeleccionado,
+        id_departamento: departamentoSeleccionado,
       };
-    
+
       const formData = new FormData();
-      
+
       formData.append('id_usuario', usuarioEditado.id_usuario!.toString());
       formData.append('nombre_usuario', usuarioEditado.nombre_usuario);
-      formData.append('email', usuarioEditado.email_usuario);
+
+      if (usuarioToEdit?.password) {
+        formData.append('password', usuarioToEdit.password);
+      } else {
+        formData.append('firma_movimientos', passwordUsuario);
+      }
+
       formData.append('password', usuarioEditado.password);
-
-      formData.append('estatus_activo', usuarioEditado.estatus_activo ? '1' : '0'); 
-      formData.append('usuario_compartido', usuarioEditado.usuario_compartido ? '1' : '0');
-
-      const empleado = empleados.find((emp) => emp.id_empleado === empleadoSeleccionado);
-      if (empleado) {
-        formData.append('id_empleado', empleado.id_empleado!.toString());
-      } else {
-        console.error('Empleado no encontrado:', empleadoSeleccionado);
+      formData.append('is_active', usuarioEditado.estatus_activo ? '1' : '0');
+      if (usuarioEditado.id_empleado) {
+        formData.append('id_empleado', usuarioEditado.id_empleado.toString());
       }
+      formData.append('id_departamento', usuarioEditado.id_departamento!.toString());
 
-      const departamento = departamentos.find((dep) => dep.id_departamento === departamentoSeleccionado);
-      if (departamento) {
-        formData.append('id_departamento', departamento.id_departamento!.toString());
-      } else {
-        console.error('Departamento no encontrado:', departamentoSeleccionado);
-      }
-  
-
-      // Agregar roles al FormData
-      const roleNames = rolesUsuario.map((rol) => rol.name);  // Extraer solo los 'name'
-      roleNames.forEach((name) => {
-        formData.append('roles[]', name);
+      // Agregar roles (puedes hacer lo mismo si el usuario tiene roles asociados)
+      usuarioEditado.roles.forEach((role) => {
+        formData.append('roles[]', role.name);
       });
-  
-      
-      for (const [key, value] of formData.entries()) {
-        console.log(`EditUser - ${key}: `, value);  // Verifica todos los valores que están siendo agregados
-      }
-  
-      console.log('dataUserEDIT_Enviada: ', usuarioEditado)
+
+      console.log('dataUserEDIT_Enviada: ', usuarioEditado);
       const resultAction = await dispatch(editUsuario(usuarioEditado)).unwrap();
       console.log('Respuesta del servidor:', resultAction);
-  
+
       if (resultAction.success) {
         // Si el proveedor fue editado con éxito, recargar la lista de usuarios
         const usuariosActualizados = await dispatch(getUsers()).unwrap();
         if (usuariosActualizados.success) {
           dispatch(setListUsuarios(usuariosActualizados.users!)); // Actualiza la lista de usuarios en el estado
-          setNombreUsuario('')
-          setEmail('')
-          setPassword('')
-          setUserActive(true)
-          setUserShared(false)
+          setNombreUsuario('');
+          setEmail('');
+          setPassword('');
+          setEstatusActivo(true);
+          setUserCompartido(false);
           setRolesUsuario([]); // Limpiar roles seleccionados
-          setUserDepartamento(0); // Limpiar departamento seleccionado
           setEmpleadoSeleccionado(0); // Limpiar empleado seleccionado
+          setDepartamentoSeleccionado(0); // Limpiar departamento seleccionado
 
           console.log('Usuario editado y lista recargada:', usuariosActualizados.users);
-
         }
 
         Swal.fire({
@@ -237,88 +237,162 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, usuarioToEdit }) =
       isOpen={isOpen}
       onRequestClose={onClose}
       contentLabel="Editar Nueva Entity"
-      className="modal_CRUD_AdminEntity"
-      overlayClassName="modal_OverlayCRUD_AdminEntity"
+      className="modalUsuarios"
       shouldCloseOnEsc={false}
       shouldCloseOnOverlayClick={false}
     >
-      <div className="modal_Content_Admin">
+      <div className="mainDiv_modalUsuarios">
         <h2>Editar Usuario</h2>
+        <form onSubmit={handleSubmit} className="formUsuarios">
+          <div className="dataInputs_Usuario">
+            <section className="firstDiv_Inputs">
+              <label>
+                *Usuario:
+                <input
+                  type="text"
+                  value={nombreUsuario}
+                  id="nombreUsuario"
+                  name="nombreUsuario"
+                  onChange={(e) => setNombreUsuario(e.target.value)}
+                  placeholder="JUsuario - Usuario"
+                  required
+                />
+              </label>
 
-        <div className='mainInputs_addedit_AdminEntity'>
-          <form onSubmit={handleSubmit} className="form_AdminEntity">
-
-            <div className='dataInputs_Usuario'>
-
-              <div className='leftDiv_Inputs'>
-
-                <label>
-*Usuario:
-                  <input 
-                    type="text" 
-                    value={nombreUsuario} 
-                    id='nombreUsuario'
-                    name='nombreUsuario'
-                    onChange={(e) => setNombreUsuario(e.target.value)} 
-                    placeholder='JUsuario - Usuario'
-                    required 
+              <label>
+                *Email:
+                <div className="emailInput">
+                  <input
+                    type="text"
+                    value={localPart || ''}
+                    onChange={(e) => setEmail(`${e.target.value}@${domainPart}`)}
                   />
-                </label>
+                  <span> @ </span>
+                  <input
+                    type="text"
+                    value={domainPart || ''}
+                    onChange={(e) => setEmail(`${localPart}@${e.target.value}`)}
+                  />
+                </div>
+              </label>
 
-                <label>
-*Email:
-                  <div className='emailInput'>
-                    <input
-                      type="text"
-                      value={localPart || ''}
-                      onChange={(e) => setEmail(`${e.target.value}@${domainPart}`)}
-                    />
-                    <span> @ </span>
-                    <input
-                      type="text"
-                      value={domainPart || ''}
-                      onChange={(e) => setEmail(`${localPart}@${e.target.value}`)}
-                    />
+              <label>
+                *Contraseña:
+                <input
+                  type="text"
+                  value={passwordUsuario}
+                  id="passwordUsuario"
+                  name="passwordUsuario"
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Contraseña de mínimo 8 caracteres"
+                />
+              </label>
+
+              <label>
+                *Departamento:
+                <select
+                  value={departamentoSeleccionado}
+                  id="departamentoSeleccionado"
+                  name="departamentoSeleccionado"
+                  onChange={(e) => setDepartamentoSeleccionado(parseInt(e.target.value, 10))} // Convertir string a number
+                  required
+                >
+                  <option>Selecciona el Departamento Asignado</option>
+                  {Array.isArray(departamentos) && departamentos.length > 0 ? (
+                    departamentos.map((departamentos: Departamentos) => (
+                      <option key={departamentos.id_departamento} value={departamentos.id_departamento}>
+                        {departamentos.nombre_departamento.charAt(0).toUpperCase() +
+                          departamentos.nombre_departamento.slice(1)}
+                      </option>
+                    ))
+                  ) : (
+                    <option disabled>No existen Departamentos Creados</option>
+                  )}
+                </select>
+              </label>
+
+
+            </section>
+
+            <section className="secondDiv_Inputs">
+              <div className="rolDepartamentoActive_Inputs">
+                <small>
+                  *Estatus del Usuario:
+                  <div className="checkDiv">
+                    <span>
+                      {' '}
+                      {estatusActivo ? 'Cuenta Activa' : 'Cuenta Desactivada'}
+                      <label>
+                        <input
+                          name="cuentaActiva"
+                          id="cuentaActiva"
+                          type="checkbox"
+                          onChange={handleUserActive}
+                          checked={estatusActivo}
+                        />
+                      </label>
+                    </span>
                   </div>
-                </label>
+                </small>
 
-                <label>
-*Contraseña:
-                  <input 
-                    type="text" 
-                    value={passwordUsuario} 
-                    id='passwordUsuario'
-                    name='passwordUsuario'
-                    onChange={(e) => setPassword(e.target.value)} 
-                    placeholder='Contraseña de mínimo 8 caracteres'
-                    required 
-                  />
-                </label>
+                <label htmlFor="fecha_baja">Fecha Baja:</label>
+                <input
+                  type="datetime-local"
+                  id="fecha_baja"
+                  disabled={estatusActivo}
+                  value={fechaBaja}
+                  onChange={(e) => setFechaBaja(e.target.value)}
+                />
+
+                <small>
+                  *Tipo de Usuario:
+                  <div className="checkDiv">
+                    <span>
+                      {' '}
+                      {userCompartido ? 'Usuario Compartido' : 'Usuario Asociado'}
+                      <label>
+                        <input
+                          name="userShared"
+                          id="userShared"
+                          type="checkbox"
+                          onChange={handleUserCompartido}
+                          checked={!userCompartido}
+                        />
+                      </label>
+                    </span>
+                  </div>
+                </small>
 
                 <label>
                   *Empleado Asociado
                   <select
                     value={empleadoSeleccionado}
-                    id='empleadoSeleccionado'
-                    name='empleadoSeleccionado'
-                    disabled={userShared}
-                    onChange={(e) => setUserDepartamento(parseInt(e.target.value, 10))} // Convertir string a number
+                    id="empleadoSeleccionado"
+                    name="empleadoSeleccionado"
+                    disabled={userCompartido}
+                    onChange={(e) => setEmpleadoSeleccionado(parseInt(e.target.value, 10))} // Convertir string a number
                     required
                   >
                     <option>Selecciona el Empleado Asociado</option>
                     {Array.isArray(empleados) && empleados.length > 0 ? (
                       [...empleados]
                         .sort((a, b) => {
-                          const nombreCompletoA = `${a.nombre_empleado} ${a.apellido_paterno} ${a.apellido_materno}`.toLowerCase();
-                          const nombreCompletoB = `${b.nombre_empleado} ${b.apellido_paterno} ${b.apellido_materno}`.toLowerCase();
+                          const nombreCompletoA =
+                            `${a.nombre_empleado} ${a.apellido_paterno} ${a.apellido_materno}`.toLowerCase();
+                          const nombreCompletoB =
+                            `${b.nombre_empleado} ${b.apellido_paterno} ${b.apellido_materno}`.toLowerCase();
                           return nombreCompletoA.localeCompare(nombreCompletoB);
                         })
                         .map((empleado: Empleados) => (
                           <option key={empleado.id_empleado} value={empleado.id_empleado!}>
                             {empleado.nombre_empleado.charAt(0).toUpperCase() +
-                                                  empleado.nombre_empleado.slice(1) +
-                                                  ' ' + empleado.apellido_paterno.charAt(0).toUpperCase() + empleado.apellido_paterno.slice(1) +
-                                                  ' ' + empleado.apellido_materno.charAt(0).toUpperCase() + empleado.apellido_materno.slice(1)}
+                              empleado.nombre_empleado.slice(1) +
+                              ' ' +
+                              empleado.apellido_paterno.charAt(0).toUpperCase() +
+                              empleado.apellido_paterno.slice(1) +
+                              ' ' +
+                              empleado.apellido_materno.charAt(0).toUpperCase() +
+                              empleado.apellido_materno.slice(1)}
                           </option>
                         ))
                     ) : (
@@ -327,101 +401,56 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, usuarioToEdit }) =
                   </select>
                 </label>
 
-              </div>
-
-              <div className='rightDiv_Inputs'>
-
-
-                <div className="rolDepartamentoActive_Inputs">
-                
-                  <small>
-                      *Estatus del Usuario:
-                    <div className='checkDiv'>
-
-                      <span> {userActive ? 'Cuenta Activa' : 'Cuenta Desactivada'}
-                        <label>
-                          <input name="cuentaActiva" id="cuentaActiva" type="checkbox" onChange={handleUserActive} checked={userActive} />
-                        </label>
-                      </span>
-
-                    </div>
-                  </small>
-
-                  <small>
-                      *Tipo de Usuario:
-                    <div className='checkDiv'>
-
-                      <span> {userShared ? 'Usuario Compartido' : 'Usuario Asociado'}
-                        <label>
-                          <input name="userShared" id="userShared" type="checkbox" onChange={handleUserShared} checked={userShared} />
-                        </label>
-                      </span>
-
-                    </div>
-                  </small>
-
-                  <label>
-              *Departamento:
-                    <select
-                      value={departamentoSeleccionado}
-                      id='departamentoSeleccionado'
-                      name='departamentoSeleccionado'
-                      onChange={(e) => setUserDepartamento(parseInt(e.target.value, 10))} // Convertir string a number
-                      required
-                    >
-                      <option value="Selecciona el Departamento Asignado" disabled>
-    Selecciona el Departamento Asignado
-                      </option>
-                      {departamentos.map((departamento) => (
-                        <option key={departamento.id_departamento} value={departamento.id_departamento}>
-                          {departamento.nombre_departamento.charAt(0).toUpperCase() + departamento.nombre_departamento.slice(1)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-
-                </div>
-
 
               </div>
+            </section>
 
-              <div className='mainlist_roles'>
-                <h3>Roles del Usuario</h3>
+            <section className="mainlist_roles">
+              <h3>Roles del Usuario</h3>
 
-                <div className="list_roles">
-                  <ul>
-                    {rolesUsuario.length > 0 ? (
-                      rolesUsuario.map((rol, index) => (
-                        <li key={index}>
-                          {rol.name}
-                        </li>
-                      ))
-                    ) : (
-                      <p>No tiene roles asignados.</p>
-                    )}
-                  </ul>
-                </div>
-
-                <div className='addRol' onClick={handleAddRol}>
-                  <p> Modificar Roles </p>
-                </div>
-
+              <div className="list_roles">
+                <ul>
+                  {rolesUsuario.length > 0 ? (
+                    rolesUsuario.map((rol, index) => (
+                      <li key={index}>{rol.name.charAt(0).toUpperCase() + rol.name.slice(1)}</li>
+                    ))
+                  ) : (
+                    <p>No tiene roles asignados.</p>
+                  )}
+                </ul>
               </div>
 
-            </div>
-            
-            <div className="modal_buttons">
-              <button type="submit" className="button_addedit">Guardar Cambios</button>
-              <button type="button" className="button_close" onClick={onClose}>Cancelar</button>
-            </div>
+              <div className="addRol" onClick={handleAddRol}>
+                <p> Modificar Roles </p>
+              </div>
+            </section>
+          </div>
 
-          </form>
-        </div>
+          <ModalButtons
+            buttons={[
+              {
+                text: 'Guardar',
+                type: 'submit',
+                className: 'button_addedit',
+              },
+              {
+                text: 'Cancelar',
+                type: 'button',
+                className: 'button_close',
+                onClick: onClose,
+              },
+            ]}
+          />
+        </form>
 
         {isModalAddRolOpen && (
-          <AddRolModal isOpen={isModalAddRolOpen} onClose={closeModalAddRol} onRolesSelected={handleRolesSelected} initialSelectedRoles={rolesUsuario}/>
+          <AddRolModal
+            isOpen={isModalAddRolOpen}
+            onClose={closeModalAddRol}
+            onRolesSelected={handleRolesSelected}
+            initialSelectedRoles={rolesUsuario}
+          />
         )}
-        
       </div>
     </Modal>
   );

@@ -28,6 +28,9 @@ return new class extends Migration
             // Estatus del usuario (booleano: true = activo, false = inactivo, valor por defecto true, obligatorio)
             $table->boolean('estatus_activo')->default(true)->notNull();
 
+            // Fecha de Baja del Usuario
+            $table->dateTime('fecha_baja')->nullable();
+
             // Estatus del usuario (booleano: true = activo, false = inactivo, valor por defecto true, obligatorio)
             $table->boolean('usuario_compartido')->default(false)->notNull();
 

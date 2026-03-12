@@ -21,10 +21,10 @@ return new class extends Migration {
             $table->foreignId('id_activo_fijo')->constrained('almacengeneral.tableAF_ActivosFijos', 'id_activo_fijo')->onDelete('restrict');
 
             // Fecha de la solicitud de baja del activo
-            $table->date('fecha_solicitud')->notNull();
+            $table->dateTime('fecha_solicitud')->notNull();
 
             // Fecha de la aprobación de la baja del activo
-            $table->date('fecha_aprobacion')->nullable();
+            $table->dateTime('fecha_aprobacion')->nullable();
 
             // Motivo de la baja del activo
             $table->string('motivo_baja_af', 255)->notNull();
@@ -45,7 +45,7 @@ return new class extends Migration {
             $table->text('observaciones_bajaaf')->nullable();
 
             // Fecha de registro de la baja del activo en el sistema
-            $table->date('fecha_registro_bajaaf')->notNull();
+            $table->dateTime('fecha_registro_bajaaf')->notNull();
 
             // Campos de timestamps para registrar la fecha de creación y actualización de la baja del activo
             $table->timestamps();

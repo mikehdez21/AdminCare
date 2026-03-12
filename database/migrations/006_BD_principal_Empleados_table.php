@@ -45,10 +45,10 @@ return new class extends Migration
             $table->boolean('estatus_activo')->default(true);
 
             // Fecha de alta del empleado (tipo fecha, obligatoria)
-            $table->date('fecha_alta');
+            $table->dateTime('fecha_alta');
 
             // Fecha de baja del empleado (tipo fecha, opcional)
-            $table->date('fecha_baja')->nullable();
+            $table->dateTime('fecha_baja')->nullable();
 
             // Almacena la ruta donde se guarda la foto en el sistema de archivos (storage/app/public/fotosEmpleados)
             $table->string('foto_empleado')->nullable();

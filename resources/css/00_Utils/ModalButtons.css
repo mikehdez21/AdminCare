@@ -1,0 +1,52 @@
+.modal_buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 10px 20px;
+
+
+    .button_addedit, .button_delete, .button_close {
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    .button_addedit {
+        background-color: #0056b3;
+        color: white;
+        border: 1px solid #cecece;
+
+        &:hover{
+            background-color: #004085;
+            border: 1px solid #757575;
+
+        }
+
+    }
+
+    .button_delete {
+        background-color: #e71b0c;
+        color: white;
+        border: none;
+
+        &:hover{
+            background-color: #b50e00;
+
+        }
+    }
+
+    
+    .button_close {
+        background-color: #6c757d;
+        color: #ffffff;
+        border: 1px solid #cecece;
+
+            &:hover{
+            background-color: #5a6268;
+        }
+
+    }
+
+    
+}

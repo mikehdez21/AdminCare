@@ -1,7 +1,7 @@
 .divMain_AlmacenGeneral{
     display: flex;
     flex-direction: column;
-    height: 100%;
+    
 
     .navbar_AlmacenGeneral{
         display: flex;
@@ -146,7 +146,6 @@
     }
     
     .div_Content{
-        height: 100%;
         padding: 5px;
     }
 

@@ -19,7 +19,6 @@ class Departamento extends Model
     protected $fillable = [
         'nombre_departamento',
         'descripcion',
-        'tipo_departamento',
         'atiende_pacientes',
         'estatus_activo',
     ];

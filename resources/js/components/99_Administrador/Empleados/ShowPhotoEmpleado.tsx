@@ -2,6 +2,7 @@ import React from 'react';
 import Modal from 'react-modal';
 
 import { Empleados } from '@/@types/mainTypes';
+import ModalButtons from '@/components/00_Utils/ModalButtons';
 
 
 interface showPhotoEmpleadoProps {
@@ -18,27 +19,34 @@ const ShowPhotoEmpleado: React.FC<showPhotoEmpleadoProps> = ({ isOpen, onClose, 
     <Modal
       isOpen={isOpen}
       onRequestClose={onClose}
-      overlayClassName="modal_Overlay_photoEmpleado"
-      className="modal_photoEmpleado"
+      className="modalFotoEmpleado"
       contentLabel="Foto del Empleado"
     >
-      <h3>Empleado <br /> {empleadoToShow?.nombre_empleado} {empleadoToShow?.apellido_paterno} {empleadoToShow?.apellido_materno}</h3>
 
-      <div className="divImage">
-        <img
-          src={
-            typeof empleadoToShow?.foto_empleado === 'string'
-              ? empleadoToShow.foto_empleado
-              : undefined
-          }
+      <div className="mainDiv_FotoEmpleado">
+
+        <h3>Empleado <br /> {empleadoToShow?.nombre_empleado} {empleadoToShow?.apellido_paterno} {empleadoToShow?.apellido_materno}</h3>
+
+        <div className="divImage">
+          <img
+            src={
+              typeof empleadoToShow?.foto_empleado === 'string'
+                ? empleadoToShow.foto_empleado
+                : undefined
+            }
+          />
+        </div>
+
+        <ModalButtons 
+          buttons={[
+            {
+              text: 'Cancelar',
+              type: 'button',
+              className: 'button_close',
+              onClick: onClose
+            }
+          ]}
         />
-      </div>
-
-      <div className='buttons'>
-        <button onClick={onClose} className="button_close">
-        Cerrar
-        </button>
-
       </div>
 
     </Modal>

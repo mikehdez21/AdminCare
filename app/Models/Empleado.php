@@ -41,8 +41,6 @@ class Empleado extends Model
     protected $casts = [
         'estatus_activo' => 'boolean', // Convierte el campo 'estatus_activo' a booleano
         'fecha_nacimiento' => 'date', // Convierte el campo 'fecha_nacimiento' a tipo fecha
-        'fecha_alta' => 'date', // Convierte el campo 'fecha_alta' a tipo fecha
-        'fecha_baja' => 'date', // Convierte el campo 'fecha_baja' a tipo fecha
     ];
 
     // Relación con la tabla de departamentos (si existe)

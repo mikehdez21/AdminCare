@@ -20,6 +20,8 @@ class User extends Authenticatable
         'email_usuario',
         'password',
         'estatus_activo',
+        'fecha_baja',
+        'usuario_compartido',
         'id_empleado',
         'id_departamento',
     ];

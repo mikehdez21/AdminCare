@@ -77,22 +77,46 @@ class RolesController extends Controller
     }
 
 
-    // Obtener un Usuario por ID
+    // Obtener un ROL por ID
     public function show($id) {}
 
-    // Actualizar Usuario
+
+    // Actualizar ROL
     public function update(Request $request, $id)
     {
-        $response = ["success" => false, "message" => ""];
+        $response = ["success" => false, "message" => "", "data" => []];
 
+        try {
+            $rol = Role::findOrFail($id);
+            $rol->update($request->all());
+
+            $response['success'] = true;
+            $response['message'] = 'Rol actualizado exitosamente.';
+            $response['data'] = $rol;
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            $response['message'] = 'Rol no encontrado.';
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $response['message'] = 'Errores de validación.';
+            $response['data'] = $e->errors();
+        } catch (\Exception $e) {
+            $response['message'] = 'Error al actualizar el rol: ' . $e->getMessage();
+        }
 
         return response()->json($response, $response['success'] ? 200 : 500);
     }
 
-    // Eliminar un Usuario
+    // Eliminar un ROL
     public function destroy($id)
     {
         $response = ["success" => false, "message" => ""];
+
+        try {
+            Role::findOrFail($id)->delete();
+            $response['success'] = true;
+            $response['message'] = 'Rol eliminado exitosamente.';
+        } catch (\Exception $e) {
+            $response['message'] = 'Error al eliminar el rol: ' . $e->getMessage();
+        }
 
 
 

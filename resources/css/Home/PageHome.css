@@ -467,14 +467,17 @@
         background-color: #aebdd4;
         flex-direction: column;   
         padding: 10px 10px;
-        width: 100%;
-        
+        flex: 1;
+        min-width: 0;
+
         .div_MainContent{
             display: flex;
             flex-direction: column;
             height: 100%;
-            margin-left: 3.7vw;
+            margin-left: var(--sidebar-width);
+            flex: 1;
             max-width: 95vw;
+            min-width: 0;
 
             .div_infoHeader{
                 background: linear-gradient(180deg, #1f0166 30%, #a52bf7 80%, #af36ffe3 95%);
@@ -496,7 +499,8 @@
                 border-bottom-style: groove;
                 border-color: #1f0166;
                 border-width: 4px;
-                
+                overflow: hidden;
+                min-width: 0;
             }
         }
 
@@ -541,6 +545,11 @@
 }
 
 .delayOption4 {
+    animation: fadeInSlide 0.3s ease forwards;
+    animation-delay: 0.2s;
+}
+
+.delayOption5 {
     animation: fadeInSlide 0.3s ease forwards;
     animation-delay: 0.2s;
 }

@@ -16,6 +16,7 @@ import Main_UsuariosControl from '@/components/99_Administrador/Usuarios/Usuario
 import Main_EmpleadosControl from '@/components/99_Administrador/Empleados/EmpleadosControl';
 import Main_DepartamentosControl from '@/components/99_Administrador/Departamentos/DepartamentoControl';
 import Main_RolesControl from '@/components/99_Administrador/Roles/RolesControl';
+import Main_UbicacionesControl from '@/components/99_Administrador/Ubicaciones/UbicacionControl';
 
 // Interface
 import { User } from '@/@types/mainTypes';
@@ -72,6 +73,7 @@ const MainContent: React.FC<MainContentProps> = ({ currentUser }) => {
         {sectionSelected_FromSidebar === 'GestionEmpleados' && <Main_EmpleadosControl />}
         {sectionSelected_FromSidebar === 'GestionDepartamentos' && <Main_DepartamentosControl />}
         {sectionSelected_FromSidebar === 'GestionRoles' && <Main_RolesControl />}
+        {sectionSelected_FromSidebar === 'GestionUbicaciones' && <Main_UbicacionesControl />}
 
 
 

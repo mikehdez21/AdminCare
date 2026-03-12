@@ -5,12 +5,12 @@ import { useDispatch, useSelector } from 'react-redux';
 
 // Departamentos
 import { Departamentos } from '@/@types/mainTypes';
-import { getDepartamentos } from '@/store/Departamentos/departamentosActions';
-import { setListDepartamentos } from '@/store/Departamentos/departamentosReducer';
+import { getDepartamentos } from '@/store/administrador/Departamentos/departamentosActions';
+import { setListDepartamentos } from '@/store/administrador/Departamentos/departamentosReducer';
 
 // Componentes
 import Paginacion from '@/components/00_Utils/Paginacion';
-import AddDepartamentoControl from './AddDepartamento';
+import AddDepartamento from './AddDepartamento';
 import EditDepartamento from './EditDepartamento';
 import DeleteDepartamentos from './DeleteDepartamento';
 
@@ -22,7 +22,7 @@ import { FiAlertTriangle } from 'react-icons/fi';
 
 
 // Styles
-import '@styles/99_Administrador/departamentosControl.css';
+import '@styles/99_Administrador/Departamentos/departamentosControl.css';
 
 const Main_DepartamentosControl: React.FC = () => {
 
@@ -184,7 +184,6 @@ const Main_DepartamentosControl: React.FC = () => {
                   <th id='th_DepartamentoID'>ID</th>
                   <th id='th_NombreDepartamento'>Departamento</th>
                   <th id='th_DescripcionDepartamento'>Descripción</th>
-                  <th id='th_TipoDepartamento'>Tipo</th>
                   <th id='th_Atiende'>AtiendePx</th>
                   <th id='th_EstatusActivo'>Estatus</th>
                   <th id='th_FechaCreacion'>Fecha Creación</th>
@@ -200,7 +199,6 @@ const Main_DepartamentosControl: React.FC = () => {
                     <td id='td_DepartamentoID'>{departamento.id_departamento}</td>
                     <td id='td_NombreDepartamento'>{departamento.nombre_departamento}</td>
                     <td id='td_DescripcionDepartamento'>{departamento.descripcion}</td>
-                    <td id='td_TipoDepartamento'>{departamento.tipo_departamento}</td>
                     <td id='td_Atiende'>{departamento.atiende_pacientes ? 'Atiende Px' : 'No Atiende Px'}</td>
                     <td id='td_EstatusActivo'   className={departamento.estatus_activo ? 'status-activo' : 'status-inactivo'}> {departamento.estatus_activo ? 'Activo' : 'Inactivo'}</td>
                     <td id='td_FechaCreacion'>{departamento.created_at}</td>
@@ -232,7 +230,7 @@ const Main_DepartamentosControl: React.FC = () => {
       )}
 
       {isModalAddDepartamentoOpen && (
-        <AddDepartamentoControl isOpen={isModalAddDepartamentoOpen} onClose={closeModalAddDepartamento} />
+        <AddDepartamento isOpen={isModalAddDepartamentoOpen} onClose={closeModalAddDepartamento} />
       )}
 
       {isModalEditDepartamentoOpen && departamentoToEdit_Delete && (

@@ -3,12 +3,12 @@ import Modal from 'react-modal';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '@/store/store';
 import { Departamentos } from '@/@types/mainTypes';
-import { addDepartamento, getDepartamentos } from '@/store/Departamentos/departamentosActions';
-import { setListDepartamentos } from '@/store/Departamentos/departamentosReducer';
+import { addDepartamento, getDepartamentos } from '@/store/administrador/Departamentos/departamentosActions';
+import { setListDepartamentos } from '@/store/administrador/Departamentos/departamentosReducer';
 import Swal from 'sweetalert2';
+import ModalButtons from '@/components/00_Utils/ModalButtons';
 
-import '@styles/99_Administrador/addeditdelete_adminEntities.css'
-
+import '@styles/99_Administrador/Departamentos/modalDepartamentos.css'
 
 interface AddDepartamentoProps {
     isOpen: boolean;
@@ -18,24 +18,31 @@ interface AddDepartamentoProps {
 Modal.setAppElement('#root');
 
 
-const AddDepartamentoControl: React.FC<AddDepartamentoProps> = ({ isOpen, onClose }) => {
+const AddDepartamento: React.FC<AddDepartamentoProps> = ({ isOpen, onClose }) => {
   const dispatch = useDispatch<AppDispatch>();
   
   const [nombreDepartamento, setNombreDepartamento] = useState<string>('');
   const [descripcionDepartamento, setDescripcionDepartamento] = useState<string>('');
-  
+  const [atiendePacientes, setAtiendePacientes] = useState<boolean>(false); 
+  const [estatusActivo, setEstatusActivo] = useState<boolean>(true); 
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try{
       const nuevoDepartamento: Departamentos = {
         nombre_departamento: nombreDepartamento,
-        descripcion: descripcionDepartamento
+        descripcion: descripcionDepartamento,
+        atiende_pacientes: atiendePacientes,
+        estatus_activo: estatusActivo
+
       }
 
       const formData = new FormData();
 
       formData.append('nombre_departamento', nuevoDepartamento.nombre_departamento);
       formData.append('descripcion', nuevoDepartamento.descripcion);
+      formData.append('atiende_pacientes', nuevoDepartamento.atiende_pacientes.toString());
+      formData.append('estatus_activo', nuevoDepartamento.estatus_activo.toString());
 
       const resultAction = await dispatch(addDepartamento(nuevoDepartamento)).unwrap();
 
@@ -46,6 +53,8 @@ const AddDepartamentoControl: React.FC<AddDepartamentoProps> = ({ isOpen, onClos
           dispatch(setListDepartamentos(departamentosActualizados.departamentos!));
           setNombreDepartamento('')
           setDescripcionDepartamento('')
+          setAtiendePacientes(false)
+          setEstatusActivo(true)
 
           console.log('Departamento agregado y lista recargada:', departamentosActualizados.departamentos);
 
@@ -56,7 +65,7 @@ const AddDepartamentoControl: React.FC<AddDepartamentoProps> = ({ isOpen, onClos
       // Mostrar SweetAlert para éxito
       Swal.fire({
         icon: 'success',
-        title: 'Departamento Añadida',
+        title: 'Departamento Añadido',
         text: 'El Departamento ha sido añadido exitosamente.',
         confirmButtonText: 'OK',
     
@@ -77,72 +86,103 @@ const AddDepartamentoControl: React.FC<AddDepartamentoProps> = ({ isOpen, onClos
           
   };
 
-  const customModalStyle_Departamento = {
-    content: {
-      width: '600px'
-    }
-  }
+  
       
   return (
     <Modal
       isOpen={isOpen}
       onRequestClose={onClose}
       contentLabel="Añadir Nueva Entity"
-      className="modal_CRUD_AdminEntity"
-      overlayClassName="modal_OverlayCRUD_AdminEntity"
-      style={customModalStyle_Departamento}
+      className="modalDepartamentos"
     >
 
-      <div className="modal_Content_Admin" >
+      <div className="mainDiv_modalDepartamentos" >
         <h2>Añadir Departamento</h2>
 
-        <div className='mainInputs_addedit_AdminEntity'>
-        
-          <form onSubmit={handleSubmit} className="Form_AdminEntity">
+        <form onSubmit={handleSubmit} className="formDepartamentos">
                     
-            <div className='dataInputs'>
+          <div className='dataInputs_Departamentos'>
                     
-              <div className='leftDiv_Inputs'>
+            <section className='leftDiv_Inputs'>
         
-                <label>
+              <label>
                       *Departamento:
-                  <input 
-                    type="text" 
-                    value={nombreDepartamento} 
-                    id='nombreDepartamento'
-                    name='nombreDepartamento'
-                    onChange={(e) => setNombreDepartamento(e.target.value)} 
-                    placeholder='Nombre del Departamento'
-                    required 
-                  />
-                </label>
+                <input 
+                  type="text" 
+                  value={nombreDepartamento} 
+                  id='nombreDepartamento'
+                  name='nombreDepartamento'
+                  onChange={(e) => setNombreDepartamento(e.target.value)} 
+                  placeholder='Nombre del Departamento'
+                  required 
+                />
+              </label>
 
-                <label>
+              <label>
                   *Descripción
-                  <input 
-                    type="text" 
-                    value={descripcionDepartamento}
-                    id='descripcionDepartamento'
-                    name='descripcionDepartamento'
-                    onChange={(e) => setDescripcionDepartamento(e.target.value)}
-                    placeholder='Descripción del Departamento'
-                    required
-                  />
-                </label>
-              </div>
+                <input 
+                  type="text" 
+                  value={descripcionDepartamento}
+                  id='descripcionDepartamento'
+                  name='descripcionDepartamento'
+                  onChange={(e) => setDescripcionDepartamento(e.target.value)}
+                  placeholder='Descripción del Departamento'
+                  required
+                />
+              </label>
+
+            </section>
+
+            <section className='rightDiv_Inputs'>
+
+              <label>
+                  *Atiende Pacientes
+                <input 
+                  type="checkbox" 
+                  checked={atiendePacientes}
+                  id='atiendePacientes'
+                  name='atiendePacientes'
+                  onChange={(e) => setAtiendePacientes(e.target.checked)}
+                  placeholder='Atiende Pacientes'
+                  
+                />
+              </label>
+
+              <label>
+                  *Estatus Activo
+                <input 
+                  type="checkbox" 
+                  checked={estatusActivo}
+                  id='estatusActivo'
+                  name='estatusActivo'
+                  onChange={(e) => setEstatusActivo(e.target.checked)}
+                  placeholder='Estatus Activo'
+                />
+              </label>
+
+            </section>
         
-            </div>
+          </div>
+        
+          <ModalButtons 
+            buttons={[
+              {
+                text: 'Guardar',
+                type: 'submit',
+                className: 'button_addedit'
+              },
+              {
+                text: 'Cancelar',
+                type: 'button',
+                className: 'button_close',
+                onClick: onClose
+              }
+            ]}
+          />
+        
+        </form>
         
         
-            <div className="modal_buttons">
-              <button type="submit" className="button_addedit">Añadir</button>
-              <button type="button" className="button_close" onClick={onClose}>Cancelar</button>
-            </div>
-        
-          </form>
-        
-        
-        </div>
 
       </div>
 
@@ -150,4 +190,4 @@ const AddDepartamentoControl: React.FC<AddDepartamentoProps> = ({ isOpen, onClos
   )
 }
 
-export default AddDepartamentoControl
+export default AddDepartamento

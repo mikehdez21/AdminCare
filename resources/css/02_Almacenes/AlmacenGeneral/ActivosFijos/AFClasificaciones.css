@@ -1,0 +1,106 @@
+.mainDiv_AFClasificaciones{
+
+	.noClasificaciones{
+		display: flex;
+		justify-content: center;
+		width: 50%;
+		align-self: center;
+		padding: 35px 20px;
+		border-radius: 12px;
+		background-color: #f7fa52a2;
+		border: 1px dashed #00000057;;
+
+		p{
+			margin: 0;
+			font-size: 16px;
+			font-weight: 600;
+			color: #383838d5;
+		}
+	}
+
+	.cardsClasificaciones{
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        padding: 10px;
+		gap: 12px;
+        align-content: start;;
+	}
+
+	.cardClasificacion{
+		display: flex;
+		flex-direction: column;
+        text-align: center;
+		gap: 8px;
+		padding: 14px;
+		border-radius: 12px;
+		background: #ffffff;
+		border: 1px solid #e8e8e8;
+		box-shadow: 0 2px 6px #0000001a;
+		min-height: 80px;
+        cursor: pointer;
+
+
+		h3{
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 8px;
+			margin: 0;
+			font-size: 15px;
+			color: #2d2d2d;
+
+			.nombreClasificacion{
+				flex: 1;
+				min-width: 0;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+		}
+
+		p{
+			margin: 0;
+			font-size: 13px;
+			color: #5a5a5a;
+			overflow: hidden;
+			display: -webkit-box;
+			-webkit-box-orient: vertical;
+			-webkit-line-clamp: 2;
+		}
+
+		.estado{
+            display: flex;
+            align-self: center;
+            width: fit-content;
+            margin-top: 5px;
+            padding: 3px 10px;
+			border-radius: 999px;
+			font-size: 12px;
+			font-weight: 700;
+			line-height: 1.1;
+		}
+
+		.activo{
+			background-color: #dcfce7;
+			color: #15803d;
+		}
+
+		.inactivo{
+			background-color: #fee2e2;
+			color: #b91c1c;
+		}
+	}
+
+    .cardClasificacion:hover{
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        box-shadow: 0 10px 12px #00000033;
+
+        h3{
+            color: #fff;
+        }
+
+        p{
+            color: #f0f0f0;
+        }
+    }
+}

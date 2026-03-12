@@ -34,6 +34,7 @@ class ProveedorController extends Controller
                 'id_tipo_regimen',
                 'id_tipo_descuento',
                 'id_tipo_facturacion',
+                'estatus_activo',
                 'created_at',
                 'updated_at'
             ]);
@@ -62,15 +63,16 @@ class ProveedorController extends Controller
             'email_proveedor' => 'required|email',
             'telefono_proveedor' => 'nullable|string',
             'sitioWeb' => 'nullable|string',
-            'moneda_proveedor' => 'nullable|string',
             'rfc' => 'required|string',
+            'estatus_activo' => 'boolean',
 
             // Datos de Tablas Relacionadas 
-            'tipo_proveedor' => 'required|integer',
-            'forma_pago' => 'required|integer',
-            'tipo_regimen' => 'required|integer',
-            'tipo_descuento' => 'required|integer',
-            'tipo_facturacion' => 'required|integer'
+            'id_tipo_moneda' => 'required|integer',
+            'id_tipo_proveedor' => 'required|integer',
+            'id_forma_pago' => 'required|integer',
+            'id_tipo_regimen' => 'required|integer',
+            'id_tipo_descuento' => 'required|integer',
+            'id_tipo_facturacion' => 'required|integer'
         ]);
 
         if ($validator->fails()) {

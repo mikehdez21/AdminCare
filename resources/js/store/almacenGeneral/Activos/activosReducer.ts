@@ -1,22 +1,24 @@
-import { ActivosFijos } from '@/@types/AlmacenGeneralTypes/almacenGeneralTypes';
+import { ActivosFijos, EstatusActivosFijos } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { addActivoFijo, getActivosFijos } from './activosActions';
+import { addActivoFijo, getActivosFijos, getEstatusActivosFijos } from './activosActions';
 
 export interface ActivosState {
   activosfijos: ActivosFijos[];
+  estatusActivoFijo: EstatusActivosFijos[];
   error: string | null; // Agregar un campo para manejar errores
 }
 
 const initialState: ActivosState = {
   activosfijos: [],
+  estatusActivoFijo: [],
   error: null,
 }
 
-const activosSlice = createSlice({  
+const activosSlice = createSlice({
   name: 'activosfijos',
   initialState,
   reducers: {
-    setActivosFijos: (state, action: PayloadAction<ActivosFijos[]>) => {
+    setListActivosFijos: (state, action: PayloadAction<ActivosFijos[]>) => {
       state.activosfijos = action.payload;
     },
     updateActivosFijos: (state, action: PayloadAction<ActivosFijos>) => {
@@ -25,33 +27,52 @@ const activosSlice = createSlice({
         state.activosfijos[index] = action.payload;
       }
     },
+
+    setListEstatusActivosFijos: (state, action: PayloadAction<EstatusActivosFijos[]>) => {
+      state.estatusActivoFijo = action.payload;
+    }
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getActivosFijos.fulfilled, (state, action: PayloadAction<{ success: boolean; activos?: ActivosFijos[]; message: string }>) => {
-        if (action.payload.success && action.payload.activos) {
-          state.activosfijos = action.payload.activos;
+
+      .addCase(getActivosFijos.fulfilled, (state, action) => {
+        if (action.payload.success && action.payload.activosFijos) {
+          state.activosfijos = action.payload.activosFijos;
+          state.error = null;
         } else {
-          state.activosfijos = [];
           state.error = action.payload.message || 'Error al obtener activos';
         }
       })
       .addCase(getActivosFijos.rejected, (state, action) => {
-        state.error = action.payload as string;
+        state.error = action.error.message || 'Error inesperado'; // Manejo de errores inesperados
       })
-      .addCase(addActivoFijo.fulfilled, (state, action: PayloadAction<{ success: boolean; activos?: ActivosFijos[]; message: string }>) => {
-        if (action.payload.success && action.payload.activos) {
-          state.activosfijos = [...state.activosfijos, ...action.payload.activos];
+
+
+      .addCase(addActivoFijo.fulfilled, (state, action) => {
+        if (action.payload.success && action.payload.activofijo) {
+          state.activosfijos = [...state.activosfijos, action.payload.activofijo]; // Mantener activos anteriores y añadir nuevos
         } else {
           state.activosfijos = [];
           state.error = action.payload.message || 'Error al añadir el activo';
         }
       })
       .addCase(addActivoFijo.rejected, (state, action) => {
-        state.error = action.payload as string;
-      });
+        state.error = action.error.message || 'Error inesperado';
+      })
+
+      .addCase(getEstatusActivosFijos.fulfilled, (state, action) => {
+        if (action.payload.success && action.payload.estatusAF) {
+          state.estatusActivoFijo = action.payload.estatusAF;
+        } else {
+          state.estatusActivoFijo = [];
+          state.error = action.payload.message || 'Error al obtener estatus de activos fijos';
+        }
+      })
+      .addCase(getEstatusActivosFijos.rejected, (state, action) => {
+        state.error = action.error.message || 'Error inesperado';
+      })
   }
 });
 
-export const { setActivosFijos, updateActivosFijos } = activosSlice.actions;
+export const { setListActivosFijos, updateActivosFijos, setListEstatusActivosFijos } = activosSlice.actions;
 export default activosSlice.reducer;

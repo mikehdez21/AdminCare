@@ -4,7 +4,8 @@ import React from 'react'
 // Componentes
 import PageHome from '../components/Home/PageHome'
 
-const LayoutJefatura = () => {
+const LayoutJefatura: React.FC = () => {
+  
   return (
     <>
       <p>LayoutJefatura</p>

@@ -26,9 +26,6 @@ return new class extends Migration
             // Descripción del departamento (texto, opcional)
             $table->text('descripcion')->nullable();
 
-            // Clasificación del departamento (ENUM: solo permite 'Almacen', 'General' o 'Medico', opcional)
-            $table->enum('tipo_departamento', ['Almacen', 'General', 'Medico'])->nullable();
-
             // Indica si el departamento atiende a pacientes (booleano: true = sí, false = no, valor por defecto false, obligatorio)
             $table->boolean('atiende_pacientes')->default(false)->notNull();
 
@@ -40,7 +37,6 @@ return new class extends Migration
 
             // Índices para mejorar el rendimiento de las consultas
             $table->index('nombre_departamento'); // Índice para búsquedas por nombre
-            $table->index('tipo_departamento'); // Índice para filtros por tipo de departamento
             $table->index('estatus_activo'); // Índice para filtros por estatus del departamento
         });
     }

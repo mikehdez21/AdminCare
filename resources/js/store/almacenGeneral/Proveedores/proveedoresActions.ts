@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { Proveedores } from '@/@types/AlmacenGeneralTypes/almacenGeneralTypes';
-import {formatDateHorasToFrontend } from '@/utils/dateFormat'; 
+import { Proveedores } from '@/@types/AlmacenGeneralTypes/proveedorTypes';
+import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
 
@@ -41,13 +41,13 @@ export const addProveedor = createAsyncThunk<{ success: boolean; message: string
 );
 
 // Obtener los proveedores registrados
-export const getProveedores = createAsyncThunk<{success: boolean; proveedor?: Proveedores[]; message: string }>(
+export const getProveedores = createAsyncThunk<{ success: boolean; proveedor?: Proveedores[]; message: string }>(
   'almacenGeneral/getProveedores',
   async () => {
-    try{
+    try {
       await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      
+
       const response = await axios.get('http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/proveedores', {
         headers: {
           'Content-Type': 'application/json',
@@ -65,10 +65,10 @@ export const getProveedores = createAsyncThunk<{success: boolean; proveedor?: Pr
           updated_at: proveedor.updated_at
             ? formatDateHorasToFrontend(proveedor.updated_at)
             : null,
-            
+
         };
       });
-      
+
       return { success: response.data.success, proveedor: proveedoresFormateados as Proveedores[], message: response.data.message };
 
     } catch (error) {
@@ -80,7 +80,7 @@ export const getProveedores = createAsyncThunk<{success: boolean; proveedor?: Pr
           message: error.response.data.message || 'Error inesperado',
         });
       }
-      
+
       return ({
         success: false,
         message: 'Error inesperado',
@@ -96,8 +96,7 @@ export const editProveedor = createAsyncThunk<{ success: boolean; message: strin
     try {
       await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      console.log(csrfToken);
-      
+
       // Incluir el id del proveedor en la URL para hacer la actualización correcta
       const response = await axios.put(
         `http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/proveedores/${proveedorEditado.id_proveedor}`,
@@ -111,7 +110,6 @@ export const editProveedor = createAsyncThunk<{ success: boolean; message: strin
         }
       );
 
-      console.log('updateAction', response.data.success)
       return { success: response.data.success, message: response.data.message };
 
     } catch (error) {
@@ -138,7 +136,7 @@ export const deleteProveedor = createAsyncThunk<{ success: boolean; message: str
       await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       console.log(csrfToken);
-      
+
       // Incluir el id del proveedor en la URL para hacer la eliminación correcta
       const response = await axios.delete(
         `http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/proveedores/${proveedorEliminado.id_proveedor}`,
@@ -153,7 +151,7 @@ export const deleteProveedor = createAsyncThunk<{ success: boolean; message: str
 
       console.log('deleteAction', response.data.success)
       return { success: response.data.success, message: response.data.message };
-      
+
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         return {
@@ -169,3 +167,75 @@ export const deleteProveedor = createAsyncThunk<{ success: boolean; message: str
     }
   }
 );
+
+// Obtener los tipos de proveedores registrados
+export const getTiposProveedores = createAsyncThunk<{ success: boolean; tiposProveedores?: []; message: string }>(
+  'almacenGeneral/getTiposProveedores',
+  async () => {
+    try {
+      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+      const response = await axios.get('http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/tipos-proveedor', {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken || '',
+        },
+        withCredentials: true,
+      });
+
+      return { success: response.data.success, tiposProveedores: response.data.API_Response || [], message: response.data.message };
+
+    } catch (error) {
+      // Manejo de errores
+      if (axios.isAxiosError(error) && error.response) {
+        // Retornar la respuesta del backend como parte del error
+        return ({
+          success: false,
+          message: error.response.data.message || 'Error inesperado',
+        });
+      }
+
+      return ({
+        success: false,
+        message: 'Error inesperado',
+      });
+    }
+  }
+)
+
+// Obtener los tipos de descuento registrados
+export const getTiposDescuento = createAsyncThunk<{ success: boolean; descuentosProveedor?: []; message: string }>(
+  'almacenGeneral/getTiposDescuento',
+  async () => {
+    try {
+      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+      const response = await axios.get('http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/descuentos-proveedor', {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken || '',
+        },
+        withCredentials: true,
+      });
+
+      return { success: response.data.success, descuentosProveedor: response.data.API_Response || [], message: response.data.message };
+    } catch (error) {
+      // Manejo de errores
+      if (axios.isAxiosError(error) && error.response) {
+        // Retornar la respuesta del backend como parte del error
+        return ({
+          success: false,
+          message: error.response.data.message || 'Error inesperado',
+        });
+      }
+
+      return ({
+        success: false,
+        message: 'Error inesperado',
+      });
+    }
+  }
+)
+

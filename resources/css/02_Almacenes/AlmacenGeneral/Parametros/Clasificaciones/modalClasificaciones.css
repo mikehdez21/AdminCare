@@ -1,0 +1,94 @@
+.modalClasificaciones {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .mainDiv_modalClasificaciones {
+        background-color: #ffffff;
+        border-radius: 15px;
+        padding: 15px;
+        width: 40vw;
+
+        .formClasificaciones {
+
+            max-height: 500px;
+            gap: 30px;
+
+            label {
+                display: flex;
+                flex-direction: column;
+                font-size: 13px;
+                text-align: left;
+                margin-top: 10px;
+                font-weight: bold;
+            }
+
+            input,
+            select,
+            input[checkbox] {
+                padding: 8px;
+                margin-top: 5px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 14px;
+                text-align: center;
+
+
+            }
+
+            .dataInputs_Clasificaciones {
+                #estatusActivo {
+                    transform: scale(2.0);
+                    margin: 20px 0px;
+                    cursor: pointer;
+                    width: fit-content;
+                    align-self: center;
+
+                }
+
+            }
+
+
+        }
+
+
+
+    }
+
+
+    .divDeleteClasificacion {
+        display: flex;
+        flex-direction: column;
+        padding: 15px;
+        background-color: #ececec;
+        border: 2px solid #b31500;
+        border-radius: 10px;
+        align-items: center;
+        gap: 20px;
+
+
+        p {
+            text-align: center;
+
+            small {
+                font-size: 15px;
+                font-weight: 500;
+                color: #b31500;
+            }
+
+        }
+
+        ul {
+            margin: 0px;
+            padding: 0px;
+            list-style: none;
+
+        }
+
+
+
+    }
+}

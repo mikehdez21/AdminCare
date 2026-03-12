@@ -1,15 +1,14 @@
-import React, { useEffect } from 'react'
-import Modal from 'react-modal'
-import { AppDispatch } from '@/store/store'
-import { useDispatch } from 'react-redux'
-import { bajaEmpleado, getEmpleados } from '@/store/Empleados/empleadosActions'
-import { setListEmpleados } from '@/store/Empleados/empleadosReducer'
-import { Empleados } from '@/@types/mainTypes'
-import { formatDateHorasToFrontend } from '@/utils/dateFormat';
+import React, { useEffect } from 'react';
+import Modal from 'react-modal';
+import { AppDispatch } from '@/store/store';
+import { useDispatch } from 'react-redux';
+import { bajaEmpleado, getEmpleados } from '@/store/administrador/Empleados/empleadosActions';
+import { setListEmpleados } from '@/store/administrador/Empleados/empleadosReducer';
+import { Empleados } from '@/@types/mainTypes';
+import { formatDateHorasToFrontend, getFechaHoraActual } from '@/utils/dateFormat';
 
-import Swal from 'sweetalert2'
-
-import '@styles/99_Administrador/addeditdelete_adminEntities.css'
+import Swal from 'sweetalert2';
+import ModalButtons from '@/components/00_Utils/ModalButtons';
 
 interface DeleteEmpleadoProps {
   isOpen: boolean;
@@ -19,8 +18,7 @@ interface DeleteEmpleadoProps {
 
 Modal.setAppElement('#root');
 
-
-const DeleteEmpleado: React.FC<DeleteEmpleadoProps> = ({isOpen, onClose, empleadoToDelete}) => {
+const DeleteEmpleado: React.FC<DeleteEmpleadoProps> = ({ isOpen, onClose, empleadoToDelete }) => {
   const dispatch = useDispatch<AppDispatch>();
 
   const [fechaBaja, setFechaBaja] = React.useState<string | null>(null);
@@ -28,15 +26,8 @@ const DeleteEmpleado: React.FC<DeleteEmpleadoProps> = ({isOpen, onClose, emplead
   useEffect(() => {
     // Si el modal se abre, establecer la fecha de baja
     if (isOpen && empleadoToDelete) {
-      const getLocalDateTime = () => {
-        const date = new Date();
-        const offset = date.getTimezoneOffset();
-        const localDate = new Date(date.getTime() - offset * 60 * 1000);
-        return localDate.toISOString().slice(0, 16);
-      };
-
-      setFechaBaja(getLocalDateTime);
-      const formattedDate = formatDateHorasToFrontend(getLocalDateTime());
+      setFechaBaja(getFechaHoraActual());
+      const formattedDate = formatDateHorasToFrontend(getFechaHoraActual());
       setFechaBaja(formattedDate);
     }
   }, [isOpen, empleadoToDelete]);
@@ -63,7 +54,6 @@ const DeleteEmpleado: React.FC<DeleteEmpleadoProps> = ({isOpen, onClose, emplead
       });
 
       onClose(); // Cerrar el modal al completar cualquier acción
-
     } catch (error) {
       console.error('Error al eliminar el empleado:', error);
 
@@ -74,55 +64,51 @@ const DeleteEmpleado: React.FC<DeleteEmpleadoProps> = ({isOpen, onClose, emplead
         confirmButtonText: 'OK',
       });
     }
-  }
+  };
+
   return (
     <Modal
       isOpen={isOpen}
       onRequestClose={onClose}
       contentLabel="Eliminar Nueva Entity"
-      className="modal_CRUD_AdminEntity"
-      id='modal_CRUD_AdminDeleteEntity'
-      overlayClassName="modal_OverlayCRUD_AdminEntity"
+      className="modalEmpleados"
+      id="modal_CRUD_AdminDeleteEntity"
     >
-      <div className="modal_Content_Admin">
+      <div className="mainDiv_modalDepartamentos">
         <h2>Baja de Empleado</h2>
-    
-        <div className='dataEmpleadoDelete'>
-          <strong>{empleadoToDelete?.nombre_empleado } </strong>
-          <strong>{empleadoToDelete?.apellido_paterno} </strong>
-          <strong>{empleadoToDelete?.apellido_materno} </strong>
 
-          <p> 
-            <small>
-            ¿Quieres dar de baja al empleado?
-            </small>
+        <div className="mainInputs_Delete_AdminEntity">
+          <strong>
+            {empleadoToDelete?.nombre_empleado} {empleadoToDelete?.apellido_paterno}{' '}
+            {empleadoToDelete?.apellido_materno}
+          </strong>
 
+          <p>
+            <small>¿Quieres dar de baja al empleado?</small>
             <br />
-            
             <strong> Fecha de Baja Establecida: </strong> <small>{fechaBaja}</small>
-
           </p>
         </div>
-            
-        <div className="modal_buttons">
-          <button 
-            type="button" 
-            className="button_delete" 
-            onClick={handleDelete}
-          >
-                Confirmar Baja
-          </button>
-          <button 
-            type="button" 
-            className="button_close" 
-            onClick={onClose}
-          >
-                Cancelar
-          </button>
-        </div>
+
+        <ModalButtons
+          buttons={[
+            {
+              text: 'Confirmar Baja',
+              type: 'button',
+              className: 'button_delete',
+              onClick: handleDelete,
+            },
+            {
+              text: 'Cancelar',
+              type: 'button',
+              className: 'button_close',
+              onClick: onClose,
+            },
+          ]}
+        />
       </div>
     </Modal>
-  )
-}
+  );
+};
 
-export default DeleteEmpleado
+export default DeleteEmpleado;

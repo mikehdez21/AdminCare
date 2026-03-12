@@ -1,16 +1,16 @@
 // Bibliotecas
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppDispatch, RootState } from '@/store/store';
-import {useSelector, useDispatch} from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 
 // Empleados
 import { Empleados } from '@/@types/mainTypes';
-import { getEmpleados } from '@/store/Empleados/empleadosActions';
-import { setListEmpleados } from '@/store/Empleados/empleadosReducer';
+import { getEmpleados } from '@/store/administrador/Empleados/empleadosActions';
+import { setListEmpleados } from '@/store/administrador/Empleados/empleadosReducer';
 
 // Departamentos
-import { getDepartamentos } from '@/store/Departamentos/departamentosActions';
-import { setListDepartamentos } from '@/store/Departamentos/departamentosReducer';
+import { getDepartamentos } from '@/store/administrador/Departamentos/departamentosActions';
+import { setListDepartamentos } from '@/store/administrador/Departamentos/departamentosReducer';
 
 
 // Componentes
@@ -18,6 +18,7 @@ import AddEmpleado from './AddEmpleado';
 import EditEmpleado from './EditEmpleado';
 import DeleteEmpleado from './DeleteEmpleado';
 import Paginacion from '@/components/00_Utils/Paginacion';
+import ShowPhotoEmpleado from './ShowPhotoEmpleado';
 
 // Icons
 import { IoAddCircleOutline } from 'react-icons/io5';
@@ -25,11 +26,10 @@ import { MdEdit, MdDeleteForever } from 'react-icons/md';
 import { FiAlertTriangle } from 'react-icons/fi';
 import { FaImagePortrait } from 'react-icons/fa6';
 
+import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 
 // Styles
-import '@styles/99_Administrador/empleadosControl.css';
-import ShowPhotoEmpleado from './ShowPhotoEmpleado';
-import { formatDateHorasToFrontend, formatDateNacimientoToFrontend } from '@/utils/dateFormat';
+import '@styles/99_Administrador/Empleados/empleadosControl.css';
 
 const Main_EmpleadosControl: React.FC = () => {
 
@@ -48,7 +48,7 @@ const Main_EmpleadosControl: React.FC = () => {
   const [isModalAddEmpleadoOpen, setModalAddEmpleadoOpen] = useState(false);
   const [isModalEditEmpleadoOpen, setModalEditEmpleadoOpen] = useState(false);
   const [isModalDeleteEmpeladoOpen, setModalDeleteEmpleadoOpen] = useState(false);
-  
+
   // Abrir y cerrar modal de foto de empleado
   const openModalFotoEmpleado = (empleado: Empleados) => {
     setEmpleadoToShow(empleado);
@@ -74,8 +74,8 @@ const Main_EmpleadosControl: React.FC = () => {
   }
   const closeModalEditEmpleado = () => {
     setModalEditEmpleadoOpen(false);
-    setEmpleadoToEdit_Delete(null); 
-  } 
+    setEmpleadoToEdit_Delete(null);
+  }
 
   // Eliminar Empleado
   const openModalDeleteEmpleado = (empleado: Empleados) => {
@@ -95,7 +95,7 @@ const Main_EmpleadosControl: React.FC = () => {
   useEffect(() => {
     if (empleados.length === 0) {
       const cargarEmpleados = async () => {
-        try{
+        try {
           const resultAction = await dispatch(getEmpleados()).unwrap();
           console.log('Empleados cargados:', resultAction);
           if (resultAction.success) {
@@ -130,7 +130,7 @@ const Main_EmpleadosControl: React.FC = () => {
   // Filtrar y ordenar empleados basados en la busqueda
   const empleadosFiltrados = empleados
     .filter((empleado): empleado is Empleados => {
-    // Filtramos solo empleados válidos
+      // Filtramos solo empleados válidos
       return !!empleado && typeof empleado.nombre_empleado === 'string';
     })
     .filter((empleado) => {
@@ -168,15 +168,15 @@ const Main_EmpleadosControl: React.FC = () => {
     setPaginaActual(1); // Reiniciar a la primera página al cambiar el número de proveedores por página
   };
 
-  return(
+  return (
     <div className='mainDiv_EmpleadosControl'>
       <div className='searchAdd_ButtonDiv'>
- 
+
         <div className='text_Div'>
           <h1>Empleados</h1>
           <p>Mostrando {empleadosPaginaActual.length} de {totalEmpleados} empleados</p>
         </div>
-        
+
         <div className='buttons_Div'>
           <select className='selectList' value={empleadosPorPagina} id='selectList' name='selectList' onChange={handleChangeEmpleadosPorPagina}>
             <option value={5}>5</option>
@@ -218,7 +218,7 @@ const Main_EmpleadosControl: React.FC = () => {
           />
           <div className='list_entitiesDiv' >
             <table>
-              
+
               <thead>
                 <tr>
                   <th id='th_EmpleadoID'>ID</th>
@@ -232,32 +232,30 @@ const Main_EmpleadosControl: React.FC = () => {
                   <th id='th_FechaAlta'>Fecha Alta</th>
                   <th id='th_FechaBaja'>Fecha Baja</th>
                   <th id='th_Departamento'>Departamento</th>
-                  
+
                   <th id='th_Foto'>Foto</th>
 
                   <th id='th_FechaCreacion'>Fecha Creación</th>
                   <th id='th_FechaModificacion'>Fecha Modificación</th>
-             
+
                   <th id='th_Acciones'>ACCIONES</th>
                 </tr>
               </thead>
-              
+
               <tbody>
                 {empleadosPaginaActual.map(empleados => (
                   <tr key={empleados.id_empleado}>
                     <td id='td_EmpleadoID'>{empleados.id_empleado}</td>
                     <td id='td_NombreEmpleado'><p>{empleados.nombre_empleado} {empleados.apellido_paterno} {empleados.apellido_materno}</p></td>
                     <td id='td_EmailEmpleado'>{empleados.email_empleado}</td>
-                    <td id='td_TelefonoEmpleado'>{empleados.telefono_empleado}</td>
+                    <td id='td_TelefonoEmpleado'>{empleados.telefono_empleado || 'Sin Registro'}</td>
                     <td id='td_Genero'>{empleados.genero}</td>
-                    <td id='td_FechaNacimiento'>{formatDateNacimientoToFrontend(empleados.fecha_nacimiento)}</td>
-                    <td id='td_EstatusActivo'   className={empleados.estatus_activo ? 'status-activo' : 'status-inactivo'}> {empleados.estatus_activo ? 'Activo' : 'Inactivo'}</td>
-                    <td id='td_FechaAlta'>{formatDateHorasToFrontend(empleados.fecha_alta)}</td>
+                    <td id='td_FechaNacimiento'>{empleados.fecha_nacimiento}</td>
+                    <td id='td_EstatusActivo' className={empleados.estatus_activo ? 'status-activo' : 'status-inactivo'}> {empleados.estatus_activo ? 'Activo' : 'Inactivo'}</td>
+                    <td id='td_FechaAlta'>{formatDateHorasToFrontend(empleados.fecha_alta) || 'Sin Registro'}</td>
 
                     <td id='td_FechaBaja' className={empleados.estatus_activo ? '' : 'status-inactivo'}>
-                      {empleados.fecha_baja
-                        ? formatDateHorasToFrontend(empleados.fecha_baja)
-                        : 'Sin Registro'}
+                      {formatDateHorasToFrontend(empleados.fecha_baja) || 'Sin Registro'}
                     </td>
 
                     <td id='td_Departamento'>{departamentos.map((departamento) => (
@@ -275,8 +273,8 @@ const Main_EmpleadosControl: React.FC = () => {
 
                     <td id='td_Acciones'>
                       <div className='divActions'>
-                        <button className='button_editEntity' onClick={() => openModalEditEmpleado(empleados)}> <MdEdit/></button>
-                        <button className='button_deleteEntity' onClick={() => openModalDeleteEmpleado(empleados)}><MdDeleteForever/></button>
+                        <button className='button_editEntity' onClick={() => openModalEditEmpleado(empleados)}> <MdEdit /></button>
+                        <button className='button_deleteEntity' onClick={() => openModalDeleteEmpleado(empleados)}><MdDeleteForever /></button>
                       </div>
                     </td>
                   </tr>
@@ -307,14 +305,14 @@ const Main_EmpleadosControl: React.FC = () => {
       )}
 
       {isModalEditEmpleadoOpen && (
-        <EditEmpleado isOpen={isModalEditEmpleadoOpen} onClose={closeModalEditEmpleado} empleadoToEdit={empleadoToEdit_Delete} /> 
+        <EditEmpleado isOpen={isModalEditEmpleadoOpen} onClose={closeModalEditEmpleado} empleadoToEdit={empleadoToEdit_Delete} />
       )}
 
       {isModalDeleteEmpeladoOpen && (
         <DeleteEmpleado isOpen={isModalDeleteEmpeladoOpen} onClose={closeAlertDeleteEmpleado} empleadoToDelete={empleadoToEdit_Delete} />
       )}
 
-    </div>  
+    </div>
 
 
   )

@@ -68,14 +68,43 @@ LoginSuccessResponse, // Tipos de datos retornados en caso de éxito
       };
     } catch (error) {
       if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        const errorMessage = error.response?.data?.message;
+        
+        // Manejar diferentes tipos de errores basados en el status code
+        let message = '';
+        
+        switch (status) {
+        case 401:
+          message = errorMessage || 'Credenciales inválidas';
+          break;
+        case 403:
+          message = errorMessage || 'Acceso denegado';
+          break;
+        case 422:
+          message = errorMessage || 'Datos inválidos';
+          break;
+        case 500:
+          // Para errores de servidor (incluye errores de base de datos)
+          message = errorMessage || 'Error interno del servidor';
+          break;
+        default:
+          // Para errores de red u otros no clasificados
+          if (error.code === 'NETWORK_ERROR' || error.code === 'ERR_NETWORK') {
+            message = 'Error de conexión. Verifica tu conexión a internet.';
+          } else {
+            message = errorMessage || 'Error en el servidor';
+          }
+        }
+        
         return rejectWithValue({
           success: false,
-          message: error.response?.data?.message || 'Error en el servidor',
+          message: message,
         });
       } else if (error instanceof Error) {
         return rejectWithValue({
           success: false,
-          message: error.message,
+          message: 'Error de conexión',
         });
       }
     
