@@ -19,7 +19,7 @@ import { MdEdit, MdVisibility } from 'react-icons/md';
 import { FiAlertTriangle } from 'react-icons/fi';
 
 // Styles
-import '@styles/02_Almacenes/AlmacenGeneral/MovimientosAF/MovimientosAFControl.css';
+import '@styles/02_Almacenes/AlmacenGeneral/MovimientosAF/movimientosAFControl.css';
 import { getEstatusActivosFijos } from '@/store/almacenGeneral/Activos/activosActions';
 import { setListEstatusActivosFijos } from '@/store/almacenGeneral/Activos/activosReducer';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat';

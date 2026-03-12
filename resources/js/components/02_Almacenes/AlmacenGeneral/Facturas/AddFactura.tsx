@@ -15,7 +15,7 @@ import { IoAddCircleOutline } from 'react-icons/io5';
 import { AiOutlineNumber } from 'react-icons/ai';
 
 
-import '@styles/02_Almacenes/AlmacenGeneral/Facturas/addFactura.css'
+import '@styles/02_Almacenes/AlmacenGeneral/Facturas/AddFactura.css'
 import { getFechaHoraActual } from '@/utils/dateFormat';
 import { getProveedores } from '@/store/almacenGeneral/Proveedores/proveedoresActions';
 import { getFormasPago, getTiposMoneda } from '@/store/shared/fiscalActions';
