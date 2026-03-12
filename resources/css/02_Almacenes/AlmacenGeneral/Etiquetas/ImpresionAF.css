@@ -406,11 +406,6 @@
                     animation: spin 1s linear infinite;
                   }
 
-                  @keyframes spin {
-                    0% { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
-                  }
-
                   p {
                     margin: 0;
                     font-size: 0.95rem;
@@ -429,6 +424,11 @@
               }
             }
           }
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 
           .columnInfo {
             display: flex;
