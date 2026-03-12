@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "framework": null,
+  "buildCommand": "composer install --no-dev --optimize-autoloader && npm install && npm run build",
+  "functions": {
+    "api/index.php": {
+      "runtime": "vercel-php@0.7.2"
+    }
+  },
+  "routes": [
+    {
+      "src": "/build/(.*)",
+      "dest": "/public/build/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/api/index.php"
+    }
+  ],
+  "env": {
+    "APP_ENV": "production"
+  }
+}
