@@ -1,0 +1,49 @@
+# Node
+node_modules/
+pnpm-lock.yaml
+package-lock.json
+package.json
+pnpm-workspace.yaml
+
+# Frontend source (already built into public/build/)
+resources/js/
+resources/css/
+resources/sass/
+
+# Build tooling
+vite.config.ts
+tsconfig.json
+eslint.config.js
+
+# Tests
+tests/
+
+# Database dev files
+database/factories/
+database/seeders/
+
+# Dev-only PHP vendor packages
+vendor/fakerphp/
+vendor/filp/
+vendor/hamcrest/
+vendor/mockery/
+vendor/myclabs/
+vendor/nunomaduro/
+vendor/phar-io/
+vendor/phpunit/
+vendor/sebastian/
+vendor/staabm/
+vendor/theseer/
+vendor/laravel/pint/
+vendor/laravel/sail/
+
+# Logs / cache
+storage/logs/
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/views/
+bootstrap/cache/
+
+# Misc
+.git/
+README.md
