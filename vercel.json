@@ -1,7 +1,7 @@
 {
   "version": 2,
   "framework": null,
-  "buildCommand": "pnpm run build && rm -rf node_modules resources/js resources/css resources/sass",
+  "buildCommand": "composer install --no-dev --optimize-autoloader && pnpm run build && rm -rf node_modules resources/js resources/css resources/sass",
   "outputDirectory": "public",
   "functions": {
     "api/index.php": {

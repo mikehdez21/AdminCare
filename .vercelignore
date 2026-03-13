@@ -1,9 +1,6 @@
 # Node modules (installed fresh by build step, removed in buildCommand)
 node_modules/
 
-# PHP vendor - vercel-php runtime runs composer install --no-dev automatically
-vendor/
-
 # Tests
 tests/
 
