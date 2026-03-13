@@ -8,7 +8,6 @@ const LayoutJefatura: React.FC = () => {
   
   return (
     <>
-      <p>LayoutJefatura</p>
       <PageHome/>
     </>
   )

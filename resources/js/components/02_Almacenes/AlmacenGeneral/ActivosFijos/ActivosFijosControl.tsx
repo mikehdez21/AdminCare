@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { AppDispatch } from '@/store/store'; // Asegúrate de importar AppDispatch
 import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+
 
 // Icons
 import {
@@ -46,6 +48,7 @@ import '@styles/02_Almacenes/AlmacenGeneral/ActivosFijos/activosFijosControl.css
 const AlmacenGeneral_ActivosFijos: React.FC = () => {
 
   const dispatch = useDispatch<AppDispatch>(); // Tipar el dispatch aquí
+  const navigate = useNavigate();
 
   const [isOpenAFDepartamentos, setOpenAFDepartamentos] = useState(false);
   const [isOpenAFUbicacion, setOpenAFUbicacion] = useState(false);
@@ -169,6 +172,7 @@ const AlmacenGeneral_ActivosFijos: React.FC = () => {
 
 
   const handleRegresarFiltrosAF = () => {
+    navigate('/almacen_general/activos');
     setOpenAFDepartamentos(false);
     setOpenAFUbicacion(false);
     setOpenAFClasificacion(false);
@@ -178,6 +182,36 @@ const AlmacenGeneral_ActivosFijos: React.FC = () => {
     setDepartamentoSeleccionadoId(null);
 
   }
+
+  const handleOpcionAFDepartamentos = () => {
+    setOpenAFDepartamentos(true);
+    setOpenAFUbicacion(false);
+    setOpenAFClasificacion(false);
+    setOpenAFDeBaja(false);
+    setOpenTodosAF(false);
+    navigate('/almacen_general/activos/departamentos');
+  }
+
+  const handleOpcionAFUbicacion = () => {
+    setOpenAFDepartamentos(false);
+    setOpenAFUbicacion(true);
+    setOpenAFClasificacion(false);
+    setOpenAFDeBaja(false);
+    setOpenTodosAF(false);
+    navigate('/almacen_general/activos/ubicaciones');
+  }
+
+  const handleOpcionAFClasificacion = () => {
+    setOpenAFDepartamentos(false);
+    setOpenAFUbicacion(false);
+    setOpenAFClasificacion(true);
+    setOpenAFDeBaja(false);
+    setOpenTodosAF(false);
+    navigate('/almacen_general/activos/clasificaciones');
+  }
+
+
+
 
 
   // Renders //
@@ -210,20 +244,20 @@ const AlmacenGeneral_ActivosFijos: React.FC = () => {
       <hr />
   
       <section>
-        <div className='divAFDepartamento' onClick={() => setOpenAFDepartamentos(true)}>
+        <div className='divAFDepartamento' onClick={() => handleOpcionAFDepartamentos()}>
           <FaBuilding className='iconFiltro' />
           <h2> AF por Departamento </h2>
           <p>Consultar activos por departamento específico</p>
         </div>
 
-        <div className='divAFUbicacion' onClick={() => setOpenAFUbicacion(true)}>
+        <div className='divAFUbicacion' onClick={() => handleOpcionAFUbicacion()}>
           <FaMapMarkerAlt className='iconFiltro' />
           <h2> AF por Ubicación </h2>
           <p>Consultar activos por ubicación específica</p>
   
         </div>
 
-        <div className='divAFClasificacion' onClick={() => setOpenAFClasificacion(true)}>
+        <div className='divAFClasificacion' onClick={() => handleOpcionAFClasificacion()}>
           <FaTags className='iconFiltro' />
           <h2> AF por Clasificación </h2>
           <p>Consultar activos por clasificación específica</p>
@@ -416,7 +450,6 @@ const AlmacenGeneral_ActivosFijos: React.FC = () => {
   
   return (
     <div className='mainDiv_ActivosControl'>
-      
       {isOpenAFDepartamentos ? renderAFDepartamentos() : 
         isOpenAFUbicacion ? renderAFUbicacion() : 
           isOpenAFClasificacion ? renderAFClasificacion() : 

@@ -1,6 +1,8 @@
 import React from 'react';
 import { RootState } from '@/store/store'; // Asegúrate de importar AppDispatch
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+
 
 // Types
 import { ClasificacionesAF } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
@@ -17,10 +19,13 @@ interface AFClasificacionesProps {
 }
 
 const AFClasificaciones: React.FC<AFClasificacionesProps> = ({ clasificacionSeleccionadaId, onSelectClasificacion }) => {
+  const navigate = useNavigate();
   const clasificaciones = useSelector((state: RootState) => state.clasificacion.clasificacionesAF);
 
   const handleClasificacionSelected = (clasificacion: ClasificacionesAF) => {
     onSelectClasificacion(clasificacion.id_clasificacion ?? null);
+    navigate(`/almacen_general/activos/clasificacion/${clasificacion.id_clasificacion}`);
+  
   }
 
   const renderAFClasificacion = () => (

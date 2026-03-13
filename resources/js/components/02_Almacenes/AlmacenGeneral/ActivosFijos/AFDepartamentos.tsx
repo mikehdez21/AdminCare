@@ -2,6 +2,7 @@ import React from 'react';
 import { RootState } from '@/store/store'; // Asegúrate de importar AppDispatch
 import { useSelector } from 'react-redux';
 
+
 // Types
 import { Departamentos } from '@/@types/mainTypes';
 
@@ -19,11 +20,11 @@ interface AFDepartamentosProps {
 const AFDepartamentos: React.FC<AFDepartamentosProps> = ({ departamentoSeleccionadoId, onSelectDepartamento }) => {
   const departamentos = useSelector((state: RootState) => state.departamentos.departamentos);
 
-
   const handleDepartamentoSelected = (departamento: Departamentos) => {
     onSelectDepartamento(departamento.id_departamento ?? null);
 
   }
+
 
   const renderAFDepartamento = () => (
     <ListActivosFijos 
@@ -33,6 +34,7 @@ const AFDepartamentos: React.FC<AFDepartamentosProps> = ({ departamentoSeleccion
   )
 
   const renderListadoDepartamentos = () => (
+
     <>
       {departamentos.length === 0 ? (
         <div className='noDepartamentos'>

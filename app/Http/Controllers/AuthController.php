@@ -160,17 +160,12 @@ class AuthController extends Controller
                     $response['message'] = 'Error de conexión a la base de datos. Intenta más tarde.';
                 }
                 
-                // Log del error para debugging (opcional)
-                \Log::error('Database error during login: ' . $e->getMessage());
                 
                 return response()->json($response, 500);
                 
             } catch (\Exception $e) {
                 // Manejar cualquier otro tipo de error
                 $response['message'] = 'Error interno del servidor. Contacta a Sistemas.';
-                
-                // Log del error para debugging (opcional)
-                \Log::error('General error during login: ' . $e->getMessage());
                 
                 return response()->json($response, 500);
             }
@@ -189,13 +184,11 @@ class AuthController extends Controller
                 $response['message'] = 'Error de conexión a la base de datos. Intenta más tarde.';
             }
             
-            \Log::error('Global database error during login: ' . $e->getMessage());
             return response()->json($response, 500);
             
         } catch (\Exception $e) {
             // Catch global para cualquier otro error
             $response['message'] = 'Error interno del servidor. Contacta a Sistemas.';
-            \Log::error('Global error during login: ' . $e->getMessage());
             return response()->json($response, 500);
         }
     }

@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { RootState, AppDispatch } from '@/store/store'; // Asegúrate de importar AppDispatch
 import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+
 
 // Activos Fijos
 import { ActivosFijos } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
@@ -34,6 +36,7 @@ interface ListActivoFijoProps {
 
 const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccionado, UbicacionSeleccionada, ClasificacionSeleccionada, ActivosBajas }) => {
   const dispatch = useDispatch<AppDispatch>();
+    const navigate = useNavigate();
 
   const [activosFiltrados, setActivosFiltrados] = useState<ActivosFijos[]>([]);
   const estatusActivoFijo = useSelector((state: RootState) => state.activos.estatusActivoFijo);
@@ -45,9 +48,11 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
 
   const [actualizarActivosFijos, setActualizarActivosFijos] = useState(false);
 
+
   useEffect(() => {
 
     if (DepartamentoSeleccionado) {
+      navigate(`/almacen_general/activos/departamento/${DepartamentoSeleccionado}`);
       const cargarAFporDepartamento = async () => {
         try {
           const resultAction = await dispatch(getActivosFijosPorDepartamento(DepartamentoSeleccionado!)).unwrap();
@@ -97,6 +102,7 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
       cargarAFporClasificacion();
 
     } else if (ActivosBajas) {
+      navigate('/almacen_general/activosfijos-bajas');
       const cargarAFBajas = async () => {
         try {
           const resultAction = await dispatch(getActivosFijosDadosDeBaja()).unwrap();
@@ -114,6 +120,7 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
 
     } else if (!DepartamentoSeleccionado && !UbicacionSeleccionada && !ClasificacionSeleccionada) {
       const cargarActivosFijos = async () => {
+        navigate('/almacen_general/activosfijos');
         try {
           const resultAction = await dispatch(getActivosFijos()).unwrap();
           console.log('Todos los Activos Fijos cargados:', resultAction.activosFijos);
@@ -148,7 +155,6 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
   }, [DepartamentoSeleccionado, UbicacionSeleccionada, ClasificacionSeleccionada, actualizarActivosFijos, dispatch]);
 
 
-
   const totalActivosFijos = activosFiltrados.length;
   const [activoFijoToEdit_Delete, setActivoFijoToEdit_Delete] = useState<ActivosFijos | null>(null);
 
@@ -156,9 +162,7 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
   const [paginaActual, setPaginaActual] = useState<number>(1);
   const [activosFijosPorPagina, setActivosFijosPorPagina] = useState<number>(5);
 
-
-
-
+  
   // Filtrar y ordenar activos fijos basados en la búsqueda
   const activosFijosFiltrados = Array.isArray(activosFiltrados)
     ? activosFiltrados

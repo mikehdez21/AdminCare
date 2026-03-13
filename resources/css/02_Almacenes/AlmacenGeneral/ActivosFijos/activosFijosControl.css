@@ -32,14 +32,14 @@
 
      header{
         display: grid;
-        grid-template-columns: 1fr auto 1fr;
-        align-items: center;
+        grid-template-columns: 1fr 1fr 1fr;
         width: 100%;
-        
+
+
         .returnButton{
             display: flex;
             justify-content: flex-start;
-            padding: 5px;
+            padding: 13px;
 
             button{
                 display: flex;
@@ -74,20 +74,20 @@
 
             }
         }
-        
+
         h1{
+            text-align: center;
             color: #383838d5;
             font-size: 25px;
             margin: 13px;
-            text-align: center;
-            justify-self: center;
+
         }
 
         .verTodosAF{
             display: flex;
             justify-content: flex-end;
             padding: 0px 20px;
-
+            
             p{
                 display: flex;
                 gap: 5px;

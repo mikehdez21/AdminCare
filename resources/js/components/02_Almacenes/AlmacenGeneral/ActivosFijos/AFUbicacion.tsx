@@ -1,6 +1,7 @@
 import React from 'react';
 import { RootState } from '@/store/store'; // Asegúrate de importar AppDispatch
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 // Types
 import { Ubicaciones } from '@/@types/mainTypes';
@@ -17,11 +18,12 @@ interface AFUbicacionesProps {
 }
 
 const AFUbicacion: React.FC<AFUbicacionesProps> = ({ ubicacionSeleccionadaId, onSelectUbicacion }) => {
+    const navigate = useNavigate();
   const ubicaciones = useSelector((state: RootState) => state.ubicaciones.ubicaciones);
 
   const handleUbicacionSelected = (ubicacion: Ubicaciones) => {
     onSelectUbicacion(ubicacion.id_ubicacion ?? null);
-
+    navigate(`/almacen_general/activos/ubicacion/${ubicacion.id_ubicacion}`);
   }
 
   const renderAFUbicacion = () => (

@@ -23,18 +23,27 @@ const Main_AlmacenGeneral: React.FC = () => {
 
   const [isRotated, setIsRotated] = React.useState(false);
   const [isSubMenuOpen, setIsSubMenuOpen] = React.useState(false);
-  const [isLocationSelected, setIsLocationSelected] = React.useState(true);
 
-  const toggleSubMenu_Parametros = () => {
+  const isKnownSection =
+    location.pathname.startsWith('/almacen_general/facturas') ||
+    location.pathname.startsWith('/almacen_general/activos') ||
+    location.pathname.startsWith('/almacen_general/movimientos_activos') ||
+    location.pathname.startsWith('/almacen_general/etiquetas') ||
+    location.pathname.startsWith('/almacen_general/proveedores') ||
+    location.pathname.startsWith('/almacen_general/params/regClasificacion');
+
+  const handleOpenSubMenu = () => {
     setIsSubMenuOpen(!isSubMenuOpen);
     setIsRotated(!isRotated);
   };
 
   const handleSelectSection = (url: string) => {
-    navigate(url); // Cambia la ruta en lugar de cambiar el estado
-    setIsLocationSelected(false); 
     setIsSubMenuOpen(false);
+    setIsRotated(false);
+    navigate(url); // Cambia la ruta en lugar de cambiar el estado
+
   };
+  
 
   return (
     <div className='divMain_AlmacenGeneral'>
@@ -44,7 +53,7 @@ const Main_AlmacenGeneral: React.FC = () => {
 
           <li
             onClick={() => handleSelectSection('/almacen_general/facturas')}
-            className={location.pathname === '/almacen_general/facturas' ? 'selectedNavbarAlmacen' : ''}
+            className={location.pathname.startsWith('/almacen_general/facturas') ? 'selectedNavbarAlmacen' : ''}
           >
             <p>Facturas</p>
           </li>
@@ -52,14 +61,14 @@ const Main_AlmacenGeneral: React.FC = () => {
             
           <li
             onClick={() => handleSelectSection('/almacen_general/activos')}
-            className={location.pathname === '/almacen_general/activos' ? 'selectedNavbarAlmacen' : ''}
+            className={location.pathname.startsWith('/almacen_general/activos') ? 'selectedNavbarAlmacen' : ''}
           >
             <p>Activos</p>
           </li>
 
           <li
             onClick={() => handleSelectSection('/almacen_general/movimientos_activos')}
-            className={location.pathname === '/almacen_general/movimientos_activos' ? 'selectedNavbarAlmacen' : ''}
+            className={location.pathname.startsWith('/almacen_general/movimientos_activos') ? 'selectedNavbarAlmacen' : ''}
           >
             <p>Movimientos de Activos</p>
           </li>
@@ -67,22 +76,24 @@ const Main_AlmacenGeneral: React.FC = () => {
             
           <li
             onClick={() => handleSelectSection('/almacen_general/etiquetas')}
-            className={location.pathname === '/almacen_general/etiquetas' ? 'selectedNavbarAlmacen' : ''}
+            className={location.pathname.startsWith('/almacen_general/etiquetas') ? 'selectedNavbarAlmacen' : ''}
           >
             <p>Etiquetas</p>
           </li>
 
           <li 
             onClick={() => handleSelectSection('/almacen_general/proveedores')}
-            className={location.pathname === '/almacen_general/proveedores' ? 'selectedNavbarAlmacen' : ''}
+            
+            className={location.pathname.startsWith('/almacen_general/proveedores') ? 'selectedNavbarAlmacen' : ''}
           >
             <p>Proveedores</p>
           </li>
 
 
-          <li onClick={toggleSubMenu_Parametros}
+          <li onClick={handleOpenSubMenu}
+
             className={
-              location.pathname.includes('/almacen_general/params') ? 'selectedNavbarAlmacen' : ''
+              location.pathname.startsWith('/almacen_general/params') ? 'selectedNavbarAlmacen' : ''
             }
           >
 
@@ -97,7 +108,7 @@ const Main_AlmacenGeneral: React.FC = () => {
                 <ul>
                   <li
                     id='subMenu1'
-                    className={location.pathname === '/almacen_general/params/regClasificacion' ? 'selectedNavbarAlmacen_subMenu' : ''}
+                    className={location.pathname.startsWith('/almacen_general/params/regClasificacion') ? 'selectedNavbarAlmacen_subMenu' : ''}
                     onClick={() => handleSelectSection('/almacen_general/params/regClasificacion')}
                   >
                       Clasificación AF
@@ -117,7 +128,7 @@ const Main_AlmacenGeneral: React.FC = () => {
         </ul>
       </nav>
 
-      { isLocationSelected ? 
+      { !isKnownSection ? 
         <div className='noLocationSelected'>
           <p>  Selecciona una opción del submenú superior </p> 
         </div>
@@ -125,13 +136,13 @@ const Main_AlmacenGeneral: React.FC = () => {
         :
 
         <div className='div_Content'>
-          {location.pathname === '/almacen_general/facturas' && <AlmacenGeneral_Facturas />}
-          {location.pathname === '/almacen_general/activos' && <AlmacenGeneral_Activos />}
-          {location.pathname === '/almacen_general/movimientos_activos' && <AlmacenGeneral_MovimientosAF />}
-          {location.pathname === '/almacen_general/etiquetas' && <AlmacenGeneral_Etiquetas />}
-          {location.pathname === '/almacen_general/proveedores' && <AlmacenGeneral_ControlProveedor />}
+          {location.pathname.startsWith('/almacen_general/facturas') && <AlmacenGeneral_Facturas />}
+          {location.pathname.startsWith('/almacen_general/activos') && <AlmacenGeneral_Activos />}          
+          {location.pathname.startsWith('/almacen_general/movimientos_activos') && <AlmacenGeneral_MovimientosAF />}
+          {location.pathname.startsWith('/almacen_general/etiquetas') && <AlmacenGeneral_Etiquetas />}          
+          {location.pathname.startsWith('/almacen_general/proveedores') && <AlmacenGeneral_ControlProveedor />}          
+          {location.pathname.startsWith('/almacen_general/params/regClasificacion') && <AlmacenGeneral_ControlClasificacion />}          
 
-          {location.pathname === '/almacen_general/params/regClasificacion' && <AlmacenGeneral_ControlClasificacion />}
         </div>
       }  
 

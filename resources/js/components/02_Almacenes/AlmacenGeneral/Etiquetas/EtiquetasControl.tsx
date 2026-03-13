@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { AppDispatch } from '@/store/store'; // Asegúrate de importar AppDispatch
 import { useDispatch } from 'react-redux';
 import { FaBarcode, FaFileInvoiceDollar } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+
 
 // Componentes
 import ImpresionAF from './ImpresionAF';
@@ -30,13 +32,25 @@ import '@styles/02_Almacenes/AlmacenGeneral/Etiquetas/etiquetasControl.css';
 
 const AlmacenGeneral_Etiquetas: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
 
   const [isOpenImprAF, setOpenImprAF] = useState(false);
   const [isOpenImprFactura, setOpenImprFactura] = useState(false);
 
   const handleRegresarImpresiones = () => {
+    navigate('/almacen_general/etiquetas');
     setOpenImprAF(false);
     setOpenImprFactura(false);
+  }
+
+  const handleOpcionImprAF = () => {
+    setOpenImprAF(true);
+    navigate('/almacen_general/etiquetas/activofijo');
+  }
+
+  const handleOpcionImprFactura = () => {
+    setOpenImprAF(true);
+    navigate('/almacen_general/etiquetas/factura');
   }
 
   useEffect(() => {
@@ -120,13 +134,13 @@ const AlmacenGeneral_Etiquetas: React.FC = () => {
       <hr />
 
       <section>
-        <div className='divImpr_PorAF' onClick={() => setOpenImprAF(true)}>
+        <div className='divImpr_PorAF' onClick={() => handleOpcionImprAF()}>
           <FaBarcode className='iconImpr' />
           <h2> Impresión por Activo Fijo </h2>
           <p>Seleccionar e imprimir activos específicos</p>
         </div>
 
-        <div className='divImpr_PorFactura' onClick={() => setOpenImprFactura(true)}>
+        <div className='divImpr_PorFactura' onClick={() => handleOpcionImprFactura()}>
           <FaFileInvoiceDollar className='iconImpr' />
           <h2> Impresión por Factura </h2>
           <p> Imprimir todos los activos de una factura </p>

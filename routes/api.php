@@ -35,9 +35,15 @@ Route::prefix('HSS1')->group(function () {
     Route::post('/auth/register', [AuthController::class, 'register'])->name('register');
     Route::post('/auth/login', [AuthController::class, 'login'])->name('login');
     
+    // Rutas Privadas ::private
+    Route::group(['middleware' => 'auth'], function () {
 
+        Route::get('/status', [ApiStatusController::class]);
+        //::auth
+        Route::post('/auth/logout', [AuthController::class, 'logout']);
+        Route::post('/auth/logout-inactive', [AuthController::class, 'logoutInactive']);
 
-// Mantener aquí las rutas TEMPORALMENTE para pruebas en DEV, ya en producción final pasar dentro del group middlware de auth (Sessions)
+        // Mantener aquí las rutas TEMPORALMENTE para pruebas en DEV, ya en producción final pasar dentro del group middlware de auth (Sessions)
 
     // ALMACENES
 
@@ -123,21 +129,6 @@ Route::prefix('HSS1')->group(function () {
 
 // Mantener aquí las rutas TEMPORALMENTE para pruebas en DEV, ya en producción final pasar dentro del group middlware de auth (Sessions)
 
-
-
-
-
-
-
-
-
-    // Rutas Privadas ::private
-    Route::group(['middleware' => 'auth'], function () {
-
-        Route::get('/status', [ApiStatusController::class]);
-        //::auth
-        Route::post('/auth/logout', [AuthController::class, 'logout']);
-        Route::post('/auth/logout-inactive', [AuthController::class, 'logoutInactive']);
 
 
 

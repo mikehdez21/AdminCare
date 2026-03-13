@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { AppDispatch, RootState } from '@/store/store'; // Asegúrate de importar AppDispatch
 import { useDispatch, useSelector } from 'react-redux';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Modal from 'react-modal';
 import Swal from 'sweetalert2';
 
@@ -40,6 +41,9 @@ import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 
 const AlmacenGeneral_Facturas: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
   const facturas = useSelector((state: RootState) => state.facturasaf.facturasaf);
   const proveedores = useSelector((state: RootState) => state.proveedor.proveedores);
 
@@ -92,10 +96,19 @@ const AlmacenGeneral_Facturas: React.FC = () => {
     setPaginaActual(1);
   };
 
-  // Añadir Factura
+  // Añadir Factura - Control de Rutas
   const handleNuevaFactura = () => {
-    setShowAddFacturaForm(true);
+    navigate('/almacen_general/facturas/nuevaFactura');
   };
+
+  // Editar Factura - Control de Rutas
+  const handleEditarFactura = (factura: FacturasAF) => {
+    navigate(`/almacen_general/facturas/editarFactura/${factura.id_factura}`);
+    setFacturaToEdit_Delete(factura);
+    setShowAddFacturaForm(false);
+    setShowEditFacturaForm(true);
+  }
+
 
   const handleRegresarAfterSubmit = (facturaId?: number) => {
     setShowAddFacturaForm(false);
@@ -124,6 +137,7 @@ const AlmacenGeneral_Facturas: React.FC = () => {
         setShowEditFacturaForm(false);
         setShowImpresionFactura(false);
         setFacturaCreadaId(null);
+        navigate('/almacen_general/facturas');
       }
     });
   };
@@ -143,6 +157,7 @@ const AlmacenGeneral_Facturas: React.FC = () => {
       if (result.isConfirmed) {
         setShowImpresionFactura(false);
         setFacturaCreadaId(null);
+        navigate('/almacen_general/facturas');
       }
     });
 
@@ -154,14 +169,9 @@ const AlmacenGeneral_Facturas: React.FC = () => {
     setFacturaCreadaId(null);
     setShowAddFacturaForm(false);
     setShowEditFacturaForm(false);
+    navigate('/almacen_general/facturas');
   }
 
-  // Editar Factura
-  const openEditFacturaForm = (factura: FacturasAF) => {
-    setFacturaToEdit_Delete(factura);
-    setShowAddFacturaForm(false);
-    setShowEditFacturaForm(true);
-  };
 
   /*
   // Eliminar Factura
@@ -174,6 +184,16 @@ const AlmacenGeneral_Facturas: React.FC = () => {
     setModalDeleteFacturaOpen(false);
   };
   */
+
+  useEffect(() => {
+    const isNuevaFacturaRoute = location.pathname === '/almacen_general/facturas/nuevaFactura';
+    setShowAddFacturaForm(isNuevaFacturaRoute);
+
+    if (isNuevaFacturaRoute) {
+      setShowEditFacturaForm(false);
+      setShowImpresionFactura(false);
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     const cargarFacturas = async () => {
@@ -274,7 +294,7 @@ const AlmacenGeneral_Facturas: React.FC = () => {
     };
     cargarClasificaciones();
 
-  }, [])
+  }, [dispatch])
 
   // Vista de listado de facturas
   const renderListaFacturas = () => (
@@ -388,7 +408,7 @@ const AlmacenGeneral_Facturas: React.FC = () => {
                     <td id='td_FechaModificacion'> {factura.updated_at} </td>
                     <td id='td_Acciones'>
                       <div className='divActions'>
-                        <button className='button_editEntity' onClick={() => openEditFacturaForm(factura)}> <MdEdit /> </button>
+                        <button className='button_editEntity' onClick={() => handleEditarFactura(factura)}> <MdEdit /> </button>
                         {/*<button className='button_deleteEntity' disabled onClick={() => openAlertDeleteFactura(factura)}><MdDeleteForever/> </button>*/}                      </div>
                     </td>
                   </tr>
@@ -438,7 +458,6 @@ const AlmacenGeneral_Facturas: React.FC = () => {
       </div>
     </div>
   );
-
 
   // Vista de formulario de editar factura
   const renderEditFactura = () => (

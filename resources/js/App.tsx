@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider, useDispatch } from 'react-redux';
@@ -6,23 +6,25 @@ import store from './store/store';
 import { AppDispatch } from './store/store';
 import { setCurrentUser } from './store/administrador/Users/usersReducer';
 
-// -- Layouts
-import Layout_Public from './layouts/LayoutPublic';
-import LayoutAdmin from './layouts/LayoutAdmin';
-import LayoutJefatura from './layouts/LayoutJefatura';
-import LayoutUsuario from './layouts/LayoutUsuario';
+const Layout_Public = lazy(() => import('./layouts/LayoutPublic'));
+const LayoutAdmin = lazy(() => import('./layouts/LayoutAdmin'));
+const LayoutJefatura = lazy(() => import('./layouts/LayoutJefatura'));
+const LayoutUsuario = lazy(() => import('./layouts/LayoutUsuario'));
 
+const Status = lazy(() => import('./components/Status'));
+const PageLogin = lazy(() => import('./components/Login/PageLogin'));
+const ActivoQRPublic = lazy(() => import('./pages/ActivoQRPublic'));
 
-// -- Public
-import Status from './components/Status';
-import PageLogin from './components/Login/PageLogin';
-import ActivoQRPublic from './pages/ActivoQRPublic';
-
-// -- Private
-import ProtectedRoutes from './pages/auth/ProtectedRoutes'; 
+const ProtectedRoutes = lazy(() => import('./pages/auth/ProtectedRoutes'));
 
 // Styles
 import '../css/app.css'
+
+const RouteLoader: React.FC = () => (
+  <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}>
+    Cargando modulo...
+  </div>
+);
 
 const App: React.FC = () => {
   
@@ -40,7 +42,8 @@ const App: React.FC = () => {
 
   return (
     <Router>
-      <Routes>
+      <Suspense fallback={<RouteLoader />}>
+        <Routes>
 
         
         {/* Rutas públicas */}
@@ -95,6 +98,9 @@ const App: React.FC = () => {
           
           {/* Almacenes */}
           <Route path="/almacen_general/*" element={<LayoutUsuario />} />
+          <Route path="/almacen_general/facturas/nuevaFactura" element={<LayoutUsuario />} />
+
+
           <Route path="/servicios_generales/*" element={<LayoutUsuario />} />
           <Route path="/farmacia_interna/*" element={<LayoutUsuario />} />
 
@@ -108,6 +114,7 @@ const App: React.FC = () => {
 
 
       </Routes>
+      </Suspense>
     </Router>
   )
 }
@@ -123,3 +130,4 @@ if (rootElement) {
     </Provider>
   );
 }
+

@@ -10,7 +10,6 @@ const LayoutUsuario: React.FC = () => {
   
   return (
     <>
-      <p>LayoutUsuario</p>
       <PageHome/>
     </>
   )

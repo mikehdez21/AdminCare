@@ -12,7 +12,8 @@ import Swal from 'sweetalert2';
 // Interface
 import { User } from '@/@types/mainTypes';
 
-import '../../css/Home/LogoutModal.css';
+// Styles
+import '@styles/Home/LogoutModal.css';
 
 interface LogoutModalProps {
   currentUser: User; // Cambia esto para usar el usuario proporcionado
