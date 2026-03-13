@@ -1,25 +1,13 @@
-# Node modules (Vercel installs from package.json)
+# Node modules (installed fresh by build step, removed in buildCommand)
 node_modules/
 
-# Tests (not needed in production)
+# PHP vendor - vercel-php runtime runs composer install --no-dev automatically
+vendor/
+
+# Tests
 tests/
 
-# Dev-only PHP vendor packages (not needed at runtime)
-vendor/fakerphp/
-vendor/filp/
-vendor/hamcrest/
-vendor/mockery/
-vendor/myclabs/
-vendor/nunomaduro/
-vendor/phar-io/
-vendor/phpunit/
-vendor/sebastian/
-vendor/staabm/
-vendor/theseer/
-vendor/laravel/pint/
-vendor/laravel/sail/
-
-# Storage cache/logs (generated at runtime, not needed in deploy)
+# Storage cache/logs (generated at runtime)
 storage/logs/
 storage/framework/cache/
 storage/framework/sessions/
