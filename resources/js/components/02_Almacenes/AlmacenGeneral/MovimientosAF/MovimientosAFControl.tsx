@@ -18,11 +18,14 @@ import EditMovimientoAF from './EditMovifimientoAF';
 import { MdEdit, MdVisibility } from 'react-icons/md';
 import { FiAlertTriangle } from 'react-icons/fi';
 
-// Styles
-import '@styles/02_Almacenes/AlmacenGeneral/MovimientosAF/movimientosAFControl.css';
+// Store
 import { getEstatusActivosFijos } from '@/store/almacenGeneral/Activos/activosActions';
 import { setListEstatusActivosFijos } from '@/store/almacenGeneral/Activos/activosReducer';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat';
+
+// Styles
+import '@styles/02_Almacenes/AlmacenGeneral/MovimientosAF/movimientosAFControl.css';
+
 
 const AlmacenGeneral_MovimientosAF: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();

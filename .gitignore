@@ -24,6 +24,4 @@ yarn-error.log
 /public/img/profile_users/*
 !/public/img/profile_users/.gitkeep
 /storage/app/archivos_digitales/
-/bootstrap/cache/*
-!/bootstrap/cache/.gitignore
 /1_ModularDocs

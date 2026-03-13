@@ -15,7 +15,6 @@ import { IoAddCircleOutline } from 'react-icons/io5';
 import { AiOutlineNumber } from 'react-icons/ai';
 
 
-import '@styles/02_Almacenes/AlmacenGeneral/Facturas/AddFactura.css'
 import { getFechaHoraActual } from '@/utils/dateFormat';
 import { getProveedores } from '@/store/almacenGeneral/Proveedores/proveedoresActions';
 import { getFormasPago, getTiposMoneda } from '@/store/shared/fiscalActions';
@@ -25,6 +24,10 @@ import { ActivoFactura } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 import { FacturasAF, ActivoFacturaInput } from '@/@types/AlmacenGeneralTypes/facturasTypes';
 import ModalButtons from '@/components/00_Utils/ModalButtons';
 import { formatCurrency, formatPeso, toSafeNumber, parseInputNumber } from '@/utils/numbersFormat';
+
+// Styles
+import '@styles/02_Almacenes/AlmacenGeneral/Facturas/AddFactura.css';
+
 
 interface AddFacturaProps {
   onClose?: () => void;
