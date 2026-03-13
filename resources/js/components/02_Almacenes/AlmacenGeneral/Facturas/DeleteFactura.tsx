@@ -2,7 +2,7 @@ import React from 'react';
 import Modal from 'react-modal';
 import { FacturasAF } from '@/@types/AlmacenGeneralTypes/facturasTypes'; 
 
-import '@styles/02_Almacenes/AlmacenGeneral/Facturas/addFactura.css';
+import '@styles/02_Almacenes/AlmacenGeneral/Facturas/AddFactura.css';
 
 
 interface DeleteFacturaProps {
