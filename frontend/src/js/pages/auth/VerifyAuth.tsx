@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '@/variableApi';
 
 const VerifyAuth: React.FC = () => {
   const location = useLocation(); // Obtener la ruta actual
@@ -11,7 +12,7 @@ const VerifyAuth: React.FC = () => {
     const checkAuth = async () => {
       try {
         // Realizar una solicitud al backend para verificar la autenticación
-        const response = await axios.get('http://pruebas.hssadmincare.web/api/HSS1/auth/check', {
+        const response = await axios.get(`${API_BASE_URL}/api/HSS1/auth/check`, {
           withCredentials: true, // Incluir cookies si usas sesiones
         });
 

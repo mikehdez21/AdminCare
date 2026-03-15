@@ -2,13 +2,14 @@ import axios from 'axios';
 import { User } from '@/@types/mainTypes';
 import { formatDateHorasToFrontend, getFechaHoraActual } from '@/utils/dateFormat';
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import { API_BASE_URL } from '@/variableApi';
 
 // Agregar un nuevo usuario
 export const addUser = createAsyncThunk<{ success: boolean; users?: User[]; message: string }, User>(
   '/addUser',
   async (nuevoUsuario: User) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
       const payload = {
@@ -17,7 +18,7 @@ export const addUser = createAsyncThunk<{ success: boolean; users?: User[]; mess
         roles: nuevoUsuario.roles.map((role) => role.name),
       };
 
-      const response = await axios.post('http://pruebas.hssadmincare.web/api/HSS1/admin/users', payload, {
+      const response = await axios.post(`${API_BASE_URL}/api/HSS1/admin/users`, payload, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -47,10 +48,10 @@ export const getUsers = createAsyncThunk<{ success: boolean; users?: User[]; mes
   '/getUsers',
   async () => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get('http://pruebas.hssadmincare.web/api/HSS1/admin/users', {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/admin/users`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -93,7 +94,7 @@ export const editUsuario = createAsyncThunk<{ success: boolean; message: string 
   '/editUsuario',
   async (usuarioEditado: User) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
       const payload = {
@@ -102,7 +103,7 @@ export const editUsuario = createAsyncThunk<{ success: boolean; message: string 
       };
 
       const response = await axios.put(
-        `http://pruebas.hssadmincare.web/api/HSS1/admin/users/${usuarioEditado.id_usuario}`,
+        `${API_BASE_URL}/api/HSS1/admin/users/${usuarioEditado.id_usuario}`,
         payload,
         {
           headers: {
@@ -135,7 +136,7 @@ export const bajaUsuario = createAsyncThunk<{ success: boolean; message: string 
   '/bajaUsuario',
   async (usuarioBaja: User) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       console.log(csrfToken);
 
@@ -143,7 +144,7 @@ export const bajaUsuario = createAsyncThunk<{ success: boolean; message: string 
 
       // Incluir el id del usuario en la URL para hacer la baja correcta
       const response = await axios.put(
-        `http://pruebas.hssadmincare.web/api/HSS1/admin/users/${usuarioBaja.id_usuario}`,
+        `${API_BASE_URL}/api/HSS1/admin/users/${usuarioBaja.id_usuario}`,
         {
           estatus_activo: false,
           fecha_baja: getFechaHoraActual(),
@@ -181,13 +182,13 @@ export const deleteUsuario = createAsyncThunk<{ success: boolean; message: strin
   '/deleteUsuario',
   async (usuarioEliminado: User) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie` , { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       console.log(csrfToken);
       
       // Incluir el id del usuario en la URL para hacer la eliminación correcta
       const response = await axios.delete(
-        `http://pruebas.hssadmincare.web/api/HSS1/admin/users/${usuarioEliminado.id_usuario}`,
+        `${API_BASE_URL}/api/HSS1/admin/users/${usuarioEliminado.id_usuario}`,
         {
           headers: {
             'Content-Type': 'application/json',
