@@ -25,3 +25,5 @@ yarn-error.log
 !/public/img/profile_users/.gitkeep
 /storage/app/archivos_digitales/
 /1_ModularDocs
+/frontend/node_modules
+/frontend/dist

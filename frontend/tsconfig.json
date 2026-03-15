@@ -24,12 +24,12 @@
     /* Paths y resolución */
     "baseUrl": ".", // Define la raíz del proyecto
     "paths": {
-      "@/*": ["resources/js/*"], // Alias para directorios comunes
-      "@styles/*": ["resources/css/*"]
+      "@/*": ["src/js/*"], // Alias para directorios comunes
+      "@styles/*": ["src/css/*"]
     }
   },
   "include": [
-    "resources/**/*", // Incluir todo en el directorio de 'resources'
+    "src/**/*", // Incluir todo en el directorio de 'resources'
     "vite.config.ts" // Incluir el archivo de configuración de Vite
   ],
   "exclude": [

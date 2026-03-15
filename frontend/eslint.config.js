@@ -6,7 +6,7 @@ import pluginReact from 'eslint-plugin-react';
 
 export default [
   {
-    files: ['resources/js/**/*.{js,jsx,ts,tsx}', 'vite.config.ts'],
+    files: ['src/js/**/*.{js,jsx,ts,tsx}', 'vite.config.ts'],
     languageOptions: { globals: {...globals.browser, ...globals.node} },
     rules: {
       indent: ['error', 2], // Indentación de 2 espacios

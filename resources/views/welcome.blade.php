@@ -10,14 +10,14 @@
 
     @if (app()->environment('local'))
         @viteReactRefresh
-        @vite(['resources/js/App.tsx'])
+        @vite(['frontend/src/js/App.tsx'])
     @else
         <!-- Archivos compilados para producciÃ³n -->
         @php
             $manifestPath = public_path('build/manifest.json');
             if (file_exists($manifestPath)) {
                 $manifest = json_decode(file_get_contents($manifestPath), true);
-                $appEntry = $manifest['resources/js/App.tsx'] ?? null;
+                $appEntry = $manifest['frontend/src/js/App.tsx'] ?? null;
                 $appJs = $appEntry['file'] ?? null;
                 $appCss = isset($appEntry['css']) && is_array($appEntry['css']) ? $appEntry['css'][0] : null;
             } else {

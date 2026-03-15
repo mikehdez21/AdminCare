@@ -7,7 +7,7 @@
     "scripts": {
         "dev": "vite",
         "build": "tsc && vite build",
-        "lint": "eslint resources/js vite.config.ts",
+        "lint": "eslint src/js vite.config.ts",
         "preview": "vite preview"
     },
     

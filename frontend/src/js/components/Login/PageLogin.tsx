@@ -7,7 +7,7 @@ import NewsProvider from './News/NewsProvider';
 import LoginFormInputs from './FormLogin/LoginFormInputs';
 
 // Estilos
-import '../../../css/Login/PageLogin.css';
+import '@styles/Login/PageLogin.css';
 
 
 const PageLogin: React.FC = () => {
