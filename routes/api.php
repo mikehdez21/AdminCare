@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Session\Middleware\StartSession;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 // Api/Controllers
 use App\Http\Controllers\ApiStatusController;
@@ -40,6 +41,7 @@ Route::prefix('HSS1')->group(function () {
         ->withoutMiddleware([
             EnsureFrontendRequestsAreStateful::class,
             StartSession::class,
+            ShareErrorsFromSession::class,
         ]);
     
     // Rutas Privadas ::private
