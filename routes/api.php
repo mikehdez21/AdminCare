@@ -34,11 +34,11 @@ Route::prefix('HSS1')->group(function () {
     Route::get('/auth/check', [AuthController::class, 'check'])->name('check');
     Route::post('/auth/register', [AuthController::class, 'register'])->name('register');
     Route::post('/auth/login', [AuthController::class, 'login'])->name('login');
+    Route::get('/status', [ApiStatusController::class, 'index']);
     
     // Rutas Privadas ::private
     Route::group(['middleware' => 'auth'], function () {
 
-        Route::get('/status', [ApiStatusController::class]);
         //::auth
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::post('/auth/logout-inactive', [AuthController::class, 'logoutInactive']);

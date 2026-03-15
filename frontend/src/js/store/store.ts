@@ -1,6 +1,7 @@
 // store.ts
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from '@/store/authReducer';
+import statusReducer from '@/store/statusReducer';
 
 import userReducer from '@/store/administrador/Users/usersReducer'
 import empleadosReducer from '@/store/administrador/Empleados/empleadosReducer'
@@ -26,6 +27,7 @@ const store = configureStore({
 
     // Auth y Usuarios
     auth: authReducer,
+    apiStatus: statusReducer,
     users: userReducer,
     roles: rolesReducer,
     departamentos: departamentosReducer,
