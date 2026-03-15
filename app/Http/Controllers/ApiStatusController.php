@@ -11,7 +11,7 @@ class ApiStatusController extends Controller
         // Generar la respuesta JSON para indicar que la API está funcionando
         $data = [
             'success' => true,
-            'message' => 'La API Railway está funcionando correctamente.',
+            'message' => 'La API Railway funciona correctamente.',
             'status_code' => Response::HTTP_OK,
         ];
         try {
