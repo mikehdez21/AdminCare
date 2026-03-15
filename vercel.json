@@ -7,11 +7,11 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://admincare-production.up.railway.app"
+      "destination": "https://admincare-production.up.railway.app/api/$1"
     },
     {
       "source": "/sanctum/csrf-cookie",
-      "destination": "https://admincare-production.up.railway.app/api/sanctum/csrf-cookie"
+      "destination": "https://admincare-production.up.railway.app/sanctum/csrf-cookie"
     },
     {
       "source": "/(.*)",
