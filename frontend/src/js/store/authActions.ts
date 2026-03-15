@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { User, Roles, Departamentos } from '@/@types/mainTypes';
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { API_BASE_URL } from '@/axiosInstance';
+import { API_BASE_URL } from '@/variableApi';
 // Definiciones de tipos
 
 interface LoginCredentials {
@@ -33,7 +33,7 @@ LoginSuccessResponse, // Tipos de datos retornados en caso de éxito
     console.log(credentials)
     try {
       // Obtener CSRF cookie para la protección del servidor
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true }); // /sanctum no lleva /api/
 
       // Obtener token CSRF de la metaetiqueta si está disponible
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -44,7 +44,7 @@ LoginSuccessResponse, // Tipos de datos retornados en caso de éxito
 
       // Realizar solicitud de inicio de sesión
       const response = await axios.post(
-        `${API_BASE_URL}/HSS1/auth/login`,
+        `${API_BASE_URL}/api/HSS1/auth/login`,
         credentials,
         {
           headers: {
@@ -127,7 +127,7 @@ export const logout = createAsyncThunk<
   async (_, { rejectWithValue }) => {
     try {
       const response = await axios.post(
-        `${API_BASE_URL}/HSS1/auth/logout`,
+        `${API_BASE_URL}/api/HSS1/auth/logout`,
         {},
         { withCredentials: true }
       );
