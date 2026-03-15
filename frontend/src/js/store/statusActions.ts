@@ -7,7 +7,7 @@ interface ApiStatusResponse {
   statusCode: number;
 }
 
-const apiBaseUrl = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+const apiBaseUrl = (import.meta.env.VITE_APP_API || '').replace(/\/$/, '');
 const apiStatusUrl = apiBaseUrl ? `${apiBaseUrl}/api/HSS1/status` : '/api/HSS1/status';
 
 export const checkApiStatus = createAsyncThunk<
