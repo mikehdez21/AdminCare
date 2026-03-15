@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Session\Middleware\StartSession;
+use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
 // Api/Controllers
 use App\Http\Controllers\ApiStatusController;
@@ -34,7 +36,11 @@ Route::prefix('HSS1')->group(function () {
     Route::get('/auth/check', [AuthController::class, 'check'])->name('check');
     Route::post('/auth/register', [AuthController::class, 'register'])->name('register');
     Route::post('/auth/login', [AuthController::class, 'login'])->name('login');
-    Route::get('/status', [ApiStatusController::class, 'index']);
+    Route::get('/status', [ApiStatusController::class, 'index'])
+        ->withoutMiddleware([
+            EnsureFrontendRequestsAreStateful::class,
+            StartSession::class,
+        ]);
     
     // Rutas Privadas ::private
     Route::group(['middleware' => 'auth'], function () {
