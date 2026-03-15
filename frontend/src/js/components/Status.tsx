@@ -19,7 +19,7 @@ const Status: React.FC = () => {
 
   return (
     <div>
-      <h1>Estado de API HSSAdminCare</h1>
+      <h1>Estado de API AdminCare</h1>
 
       {loading && <p>Verificando conexión...</p>}
 
