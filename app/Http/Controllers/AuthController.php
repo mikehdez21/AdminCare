@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Str;
-use Laravel\Sanctum\Sanctum;
 
 
 
@@ -96,7 +95,6 @@ class AuthController extends Controller
         Log::info('CSRF Token from request: ' . $request->header('X-XSRF-TOKEN'));
         Log::info('CSRF Token from session: ' . csrf_token());
         Log::info('Cookies received: ' . json_encode($request->cookies->all()));
-        Log::info('Is stateful domain: ' . (Sanctum::isStatefulRequest() ? 'YES' : 'NO'));
 
         // Respuesta inicial
         $response = ["success" => false];
