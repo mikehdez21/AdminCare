@@ -50,8 +50,8 @@ Route::prefix('HSS1')->group(function () {
             ShareErrorsFromSession::class,
         ]);
     
-    // Rutas Privadas ::private
-    Route::group(['middleware' => 'auth'], function () {
+    // Rutas Privadas ::private (protegidas con Sanctum tokens)
+    Route::group(['middleware' => 'auth:sanctum'], function () {
 
         //::auth
         Route::post('/auth/logout', [AuthController::class, 'logout']);

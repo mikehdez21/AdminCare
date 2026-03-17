@@ -8,6 +8,10 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
+/**
+ * @method \Laravel\Sanctum\PersonalAccessToken|null currentAccessToken()
+ * @method \Illuminate\Database\Eloquent\Collection tokens()
+ */
 class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasRoles, HasApiTokens;

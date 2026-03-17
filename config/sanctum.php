@@ -15,10 +15,13 @@ return [
     |
     */
 
-    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
-        '%s%s',
-        'localhost,admin-care-teal.vercel.app,localhost:5173',
-        Sanctum::currentApplicationUrlWithPort()
+    'stateful' => array_values(array_filter(array_map(
+        static fn (string $domain) => trim($domain),
+        explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
+            '%s,%s',
+            'localhost,admin-care-teal.vercel.app,localhost:5173',
+            Sanctum::currentApplicationUrlWithPort()
+        )))
     ))),
 
     /*

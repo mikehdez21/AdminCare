@@ -8,13 +8,19 @@ const base = (import.meta.env.VITE_APP_API || '').replace(/\/$/, '');
 
 export const API_BASE_URL = base;
 
-// Sanctum SPA: axios lee automáticamente la cookie XSRF-TOKEN y envía X-XSRF-TOKEN.
-// No manipular CSRF manualmente en los actions.
+// Sanctum API tokens: usar Authorization Bearer en lugar de cookies cross-domain
 const axiosInstance = axios.create({
   baseURL: base || undefined,
   withCredentials: true,
-  xsrfCookieName: 'XSRF-TOKEN',
-  xsrfHeaderName: 'X-XSRF-TOKEN',
 });
+
+// Interceptor para agregar token de autenticación en cada request
+axiosInstance.interceptors.request.use((config) => {
+  const token = localStorage.getItem('auth_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+}, (error) => Promise.reject(error));
 
 export default axiosInstance;

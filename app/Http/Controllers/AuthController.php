@@ -126,11 +126,13 @@ class AuthController extends Controller
                     $roleName = $user->getRoleNames()->first() ?? 'No definido';
                     $departamento = $user->departamentos ? $user->departamentos->nombre_departamento : 'No definido';
 
+                    // Generar token de Sanctum para evitar problemas de cookies cross-domain
+                    $token = $user->createToken('auth_token')->plainTextToken;
+
                     $response['user'] = $user; // Obtener el usuario autenticado
                     $response['rol'] = $roleName; // Agregar el nombre del rol a la respuesta
                     $response['departamento'] = $departamento; // Agregar el nombre del rol a la respuesta
-
-                    session(['user_id' => $user->id_usuario]); // Almacenar información en la sesión, como el ID del usuario
+                    $response['token'] = $token; // Devolver el token al frontend
 
                     $response['message'] = 'Login exitoso!';
                     $response['success'] = true;
@@ -193,12 +195,10 @@ class AuthController extends Controller
                     'message' => 'Usuario no autenticado.'
                 ], 401);
             }
-            // Cerrar sesión del usuario (Sessions)
-            Auth::logout();
-
-            // Invalidar la sesión y regenerar el token CSRF
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+            
+            // Revocar token de Sanctum actual
+            $user = Auth::user();
+            $user->currentAccessToken()->delete();
 
             $response = [
                 "success" => true,

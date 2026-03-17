@@ -32,10 +32,7 @@ LoginSuccessResponse, // Tipos de datos retornados en caso de éxito
   async (credentials, { rejectWithValue }) => {
     console.log(credentials)
     try {
-      // Obtener CSRF cookie — axios leerá XSRF-TOKEN y enviará X-XSRF-TOKEN automáticamente.
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-
-      // Realizar solicitud de inicio de sesión
+      // Realizar solicitud de inicio de sesión (devuelve token en respuesta)
       const response = await axios.post(
         `${API_BASE_URL}/api/HSS1/auth/login`,
         credentials,
@@ -44,6 +41,11 @@ LoginSuccessResponse, // Tipos de datos retornados en caso de éxito
           withCredentials: true,
         }
       );
+
+      // Guardar token en localStorage para futuras solicitudes
+      if (response.data?.token) {
+        localStorage.setItem('auth_token', response.data.token);
+      }
 
       console.log(response)
 
@@ -121,6 +123,9 @@ export const logout = createAsyncThunk<
         {},
         { withCredentials: true }
       );
+
+      // Limpiar token del localStorage al cerrar sesión
+      localStorage.removeItem('auth_token');
 
       // Validar respuesta del backend
       if (response.data.success) {
