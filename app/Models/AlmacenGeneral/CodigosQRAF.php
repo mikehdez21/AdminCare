@@ -11,7 +11,9 @@ use Endroid\QrCode\Logo\Logo;
 use Endroid\QrCode\RoundBlockSizeMode;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\Encoding\Encoding;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+
 
 class CodigosQRAF extends Model
 {
@@ -183,7 +185,7 @@ class CodigosQRAF extends Model
             // Crear el directorio si no existe (recursivo)
             if (!$disk->exists($carpeta)) {
                 $dirCreado = $disk->makeDirectory($carpeta, 0755, true);
-                \Log::info("Directorio QR creado: {$carpeta}, resultado: " . ($dirCreado ? 'true' : 'false'));
+                Log::info("Directorio QR creado: {$carpeta}, resultado: " . ($dirCreado ? 'true' : 'false'));
             }
 
             $writer = new PngWriter();
@@ -213,7 +215,7 @@ class CodigosQRAF extends Model
             $guardado = $disk->put($ruta, $contenido);
             
             if (!$guardado) {
-                \Log::error("Fallo al guardar QR", [
+                Log::error("Fallo al guardar QR", [
                     'ruta' => $ruta,
                     'codigo_qr' => $this->codigo_qr,
                     'tamaño_contenido' => strlen($contenido)
@@ -223,11 +225,11 @@ class CodigosQRAF extends Model
 
             // Verificar que se guardó correctamente
             if (!$disk->exists($ruta)) {
-                \Log::error("Archivo QR no encontrado después de guardar", ['ruta' => $ruta]);
+                Log::error("Archivo QR no encontrado después de guardar", ['ruta' => $ruta]);
                 throw new \Exception("El archivo QR no se guardó correctamente en: {$ruta}");
             }
 
-            \Log::info("QR guardado exitosamente", [
+            Log::info("QR guardado exitosamente", [
                 'codigo_qr' => $this->codigo_qr,
                 'ruta' => $ruta,
                 'tamaño' => $disk->size($ruta)
@@ -236,7 +238,7 @@ class CodigosQRAF extends Model
             return $ruta;
 
         } catch (\Exception $e) {
-            \Log::error("Error al guardar imagen QR: " . $e->getMessage(), [
+            Log::error("Error al guardar imagen QR: " . $e->getMessage(), [
                 'codigo_qr' => $this->codigo_qr,
                 'trace' => $e->getTraceAsString()
             ]);
@@ -251,10 +253,15 @@ class CodigosQRAF extends Model
      */
     public function getUrlImagenQRAttribute()
     {
-        $ruta = "qr_codes/{$this->codigo_qr}.png";
-        
-        if (Storage::disk('public')->exists($ruta)) {
-            return Storage::disk('public')->url($ruta);
+        $rutas = [
+            "qr_codes/activos/{$this->codigo_qr}.png", // ruta actual
+            "qr_codes/{$this->codigo_qr}.png", // compatibilidad con registros antiguos
+        ];
+
+        foreach ($rutas as $ruta) {
+            if (Storage::disk('public')->exists($ruta)) {
+                return Storage::url($ruta);
+            }
         }
 
         return null;

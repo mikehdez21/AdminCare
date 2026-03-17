@@ -3,6 +3,7 @@
 namespace App\Services\Printing;
 
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class ZebraService
 {
@@ -216,18 +217,18 @@ class ZebraService
     private function generarLogoZpl(string $ruta, int $ancho, int $alto): ?string
     {
         if (!file_exists($ruta)) {
-            \Log::warning('Logo Zebra no encontrado', ['ruta' => $ruta]);
+            Log::warning('Logo Zebra no encontrado', ['ruta' => $ruta]);
             return null;
         }
 
         if (!function_exists('imagecreatefrompng')) {
-            \Log::warning('GD no disponible para convertir logo a ZPL');
+            Log::warning('GD no disponible para convertir logo a ZPL');
             return null;
         }
 
         $img = @imagecreatefrompng($ruta);
         if (!$img) {
-            \Log::warning('No se pudo cargar PNG para logo', ['ruta' => $ruta]);
+            Log::warning('No se pudo cargar PNG para logo', ['ruta' => $ruta]);
             return null;
         }
 
@@ -359,6 +360,7 @@ class ZebraService
                 ? $this->generarZPLCompacto(
                     $datos['qr'],
                     $datos['codigo'],
+                    $datos['nombreaf'] ?? 'Sin Nombre'
                 )
                 : $this->generarZPL(
                     $datos['qr'],
@@ -373,7 +375,7 @@ class ZebraService
             $this->desconectar();
 
             // Log de impresión (opcional)
-            \Log::info('Impresión Zebra completada', [
+            Log::info('Impresión Zebra completada', [
                 'exito' => $resultado['success'],
                 'codigo' => $datos['codigo'],
                 'mensaje' => $resultado['message']
@@ -383,7 +385,7 @@ class ZebraService
 
         } catch (Exception $e) {
             $this->desconectar();
-            \Log::error('Error en impresión Zebra: ' . $e->getMessage());
+            Log::error('Error en impresión Zebra: ' . $e->getMessage());
 
             return [
                 'success' => false,
