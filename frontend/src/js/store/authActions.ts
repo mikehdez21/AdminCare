@@ -32,25 +32,15 @@ LoginSuccessResponse, // Tipos de datos retornados en caso de éxito
   async (credentials, { rejectWithValue }) => {
     console.log(credentials)
     try {
-      // Obtener CSRF cookie para la protección del servidor
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true }); // /sanctum no lleva /api/
-
-      // Obtener token CSRF de la metaetiqueta si está disponible
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      if (csrfToken) {
-        axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
-      }
-
+      // Obtener CSRF cookie — axios leerá XSRF-TOKEN y enviará X-XSRF-TOKEN automáticamente.
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
 
       // Realizar solicitud de inicio de sesión
       const response = await axios.post(
         `${API_BASE_URL}/api/HSS1/auth/login`,
         credentials,
         {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
+          headers: { 'Content-Type': 'application/json' },
           withCredentials: true,
         }
       );

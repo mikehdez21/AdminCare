@@ -8,9 +8,13 @@ const base = (import.meta.env.VITE_APP_API || '').replace(/\/$/, '');
 
 export const API_BASE_URL = base;
 
+// Sanctum SPA: axios lee automáticamente la cookie XSRF-TOKEN y envía X-XSRF-TOKEN.
+// No manipular CSRF manualmente en los actions.
 const axiosInstance = axios.create({
   baseURL: base || undefined,
   withCredentials: true,
+  xsrfCookieName: 'XSRF-TOKEN',
+  xsrfHeaderName: 'X-XSRF-TOKEN',
 });
 
 export default axiosInstance;
