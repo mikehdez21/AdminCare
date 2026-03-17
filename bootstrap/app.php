@@ -11,6 +11,7 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use App\Http\Middleware\HandleDatabaseErrors;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 
 
@@ -42,11 +43,30 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions) {
         // Manejar excepciones de base de datos a nivel global
         $exceptions->render(function (\Illuminate\Database\QueryException $e, $request) {
+            $errorId = (string) Str::uuid();
+            $isDebug = (bool) config('app.debug');
             $errorCode = $e->getCode();
             $errorMessage = $e->getMessage();
             
             // Log del error para debugging
-            Log::error('Global database exception: ' . $errorMessage);
+            Log::error('Global database exception', [
+                'error_id' => $errorId,
+                'code' => $errorCode,
+                'message' => $errorMessage,
+                'path' => $request->path(),
+                'method' => $request->method(),
+            ]);
+
+            $payload = [
+                'success' => false,
+                'message' => 'Error en base de datos. Contacta a Sistemas. Ref: ' . $errorId,
+                'error_id' => $errorId,
+                'error_code' => (string) $errorCode,
+            ];
+
+            if ($isDebug) {
+                $payload['details'] = $errorMessage;
+            }
             
             // Verificar si es un error de tabla no encontrada
             if ($errorCode == '42P01' || $errorCode == '1146' || 
@@ -56,18 +76,12 @@ return Application::configure(basePath: dirname(__DIR__))
                 
                 // Si es una solicitud específica de API, devolver JSON
                 if ($request->is('api/*')) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Error en base de datos. Contacta a Sistemas.'
-                    ], 500);
+                    return response()->json($payload, 500);
                 }
                 
                 // Si es solicitud AJAX (desde frontend React), devolver JSON
                 if ($request->expectsJson() || $request->ajax()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Error en base de datos. Contacta a Sistemas.'
-                    ], 500);
+                    return response()->json($payload, 500);
                 }
                 
                 // Para navegadores normales, servir la aplicación React
@@ -77,10 +91,7 @@ return Application::configure(basePath: dirname(__DIR__))
             
             // Otros errores de base de datos
             if ($request->is('api/*') || $request->expectsJson() || $request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Error de conexión a la base de datos. Intenta más tarde.'
-                ], 500);
+                return response()->json($payload, 500);
             }
             
             // Para navegadores, servir la aplicación React

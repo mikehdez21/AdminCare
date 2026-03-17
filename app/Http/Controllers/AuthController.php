@@ -6,7 +6,10 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -29,26 +32,17 @@ class AuthController extends Controller
                 'message' => 'Usuario autenticado.',
                 'user' => $user
             ], 200);
-        } catch (\Illuminate\Database\QueryException $e) {
+        } catch (QueryException $e) {
             // Manejar errores específicos de base de datos
             if (strpos($e->getMessage(), 'sessions') !== false || 
                 strpos($e->getMessage(), 'no existe la relación') !== false) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Error en base de datos. Contacta a Sistemas.'
-                ], 500);
+                return $this->buildDbErrorResponse($e, 'Error en base de datos. Contacta a Sistemas.');
             }
-            return response()->json([
-                'success' => false,
-                'message' => 'Error de conexión a la base de datos.'
-            ], 500);
+            return $this->buildDbErrorResponse($e, 'Error de conexión a la base de datos.');
             
         } catch (\Exception $e) {
             // Manejo de errores generales
-            return response()->json([
-                'success' => false,
-                'message' => 'Error interno del servidor. Contacta a Sistemas.'
-            ], 500);
+            return $this->buildInternalErrorResponse($e);
         }
     }
 
@@ -148,48 +142,40 @@ class AuthController extends Controller
                     $response['message'] = 'Credenciales inválidas!';
                 }
 
-            } catch (\Illuminate\Database\QueryException $e) {
+            } catch (QueryException $e) {
                 // Manejar errores específicos de base de datos
                 $errorCode = $e->getCode();
                 $errorMessage = $e->getMessage();
                 
                 // Verificar si es un error de tabla no encontrada (PostgreSQL: 42P01, MySQL: 1146)
                 if ($errorCode == '42P01' || $errorCode == '1146' || strpos($errorMessage, 'no existe la relación') !== false || strpos($errorMessage, "doesn't exist") !== false) {
-                    $response['message'] = 'Error en base de datos. Contacta a Sistemas.';
+                    return $this->buildDbErrorResponse($e, 'Error en base de datos. Contacta a Sistemas.');
                 } else {
-                    $response['message'] = 'Error de conexión a la base de datos. Intenta más tarde.';
+                    return $this->buildDbErrorResponse($e, 'Error de conexión a la base de datos. Intenta más tarde.');
                 }
-                
-                
-                return response()->json($response, 500);
                 
             } catch (\Exception $e) {
                 // Manejar cualquier otro tipo de error
-                $response['message'] = 'Error interno del servidor. Contacta a Sistemas.';
-                
-                return response()->json($response, 500);
+                return $this->buildInternalErrorResponse($e);
             }
 
             return response()->json($response, 200);
 
-        } catch (\Illuminate\Database\QueryException $e) {
+        } catch (QueryException $e) {
             // Catch global para errores de sesiones que ocurren antes del código principal
             $errorMessage = $e->getMessage();
             
             if (strpos($errorMessage, 'sessions') !== false || 
                 strpos($errorMessage, 'no existe la relación') !== false ||
                 $e->getCode() == '42P01') {
-                $response['message'] = 'Error en base de datos. Contacta a Sistemas.';
+                return $this->buildDbErrorResponse($e, 'Error en base de datos. Contacta a Sistemas.');
             } else {
-                $response['message'] = 'Error de conexión a la base de datos. Intenta más tarde.';
+                return $this->buildDbErrorResponse($e, 'Error de conexión a la base de datos. Intenta más tarde.');
             }
-            
-            return response()->json($response, 500);
             
         } catch (\Exception $e) {
             // Catch global para cualquier otro error
-            $response['message'] = 'Error interno del servidor. Contacta a Sistemas.';
-            return response()->json($response, 500);
+            return $this->buildInternalErrorResponse($e);
         }
     }
 
@@ -218,20 +204,18 @@ class AuthController extends Controller
                 "success" => true,
                 "message" => "Sesión cerrada exitosamente.",
             ];
-        } catch (\Illuminate\Database\QueryException $e) {
+        } catch (QueryException $e) {
             // Manejar errores específicos de base de datos
             if (strpos($e->getMessage(), 'sessions') !== false || 
                 strpos($e->getMessage(), 'no existe la relación') !== false) {
-                $response['message'] = 'Error en base de datos. Contacta a Sistemas.';
+                return $this->buildDbErrorResponse($e, 'Error en base de datos. Contacta a Sistemas.');
             } else {
-                $response['message'] = 'Error de conexión a la base de datos.';
+                return $this->buildDbErrorResponse($e, 'Error de conexión a la base de datos.');
             }
-            return response()->json($response, 500);
             
         } catch (\Exception $e) {
             // Manejo de errores generales
-            $response['message'] = 'Error interno del servidor. Contacta a Sistemas.';
-            return response()->json($response, 500);
+            return $this->buildInternalErrorResponse($e);
         }
 
         return response()->json($response, 200);
@@ -252,5 +236,53 @@ class AuthController extends Controller
             "success" => true,
             "message" => "Sesión cerrada por inactividad."
         ]);
+    }
+
+    private function buildDbErrorResponse(QueryException $e, string $message)
+    {
+        $errorId = (string) Str::uuid();
+        $isDebug = (bool) config('app.debug');
+
+        Log::error('AuthController DB error', [
+            'error_id' => $errorId,
+            'code' => $e->getCode(),
+            'message' => $e->getMessage(),
+        ]);
+
+        $payload = [
+            'success' => false,
+            'message' => $message . ' Ref: ' . $errorId,
+            'error_id' => $errorId,
+            'error_code' => (string) $e->getCode(),
+        ];
+
+        if ($isDebug) {
+            $payload['details'] = $e->getMessage();
+        }
+
+        return response()->json($payload, 500);
+    }
+
+    private function buildInternalErrorResponse(\Throwable $e)
+    {
+        $errorId = (string) Str::uuid();
+        $isDebug = (bool) config('app.debug');
+
+        Log::error('AuthController internal error', [
+            'error_id' => $errorId,
+            'message' => $e->getMessage(),
+        ]);
+
+        $payload = [
+            'success' => false,
+            'message' => 'Error interno del servidor. Contacta a Sistemas. Ref: ' . $errorId,
+            'error_id' => $errorId,
+        ];
+
+        if ($isDebug) {
+            $payload['details'] = $e->getMessage();
+        }
+
+        return response()->json($payload, 500);
     }
 }
