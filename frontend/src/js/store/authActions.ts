@@ -32,30 +32,30 @@ LoginSuccessResponse, // Tipos de datos retornados en caso de éxito
   async (credentials, { rejectWithValue }) => {
     console.log(credentials)
     try {
-      // Realizar solicitud de inicio de sesión (devuelve token en respuesta)
+      // 1. Obtener el CSRF cookie requerido por Sanctum SPA
+      await axios.get(
+        `${API_BASE_URL}/sanctum/csrf-cookie`,
+        { withCredentials: true }
+      );
+
+      // 2. Realizar solicitud de inicio de sesión
       const response = await axios.post(
         `${API_BASE_URL}/api/HSS1/auth/login`,
         credentials,
         {
           headers: { 'Content-Type': 'application/json' },
-          withCredentials: true,
+          withCredentials: true, // Las cookies se manejan automáticamente
         }
       );
 
-      // Guardar token en localStorage para futuras solicitudes
-      if (response.data?.token) {
-        localStorage.setItem('auth_token', response.data.token);
-      }
-
       console.log(response)
-
 
       // Retornar datos en caso de éxito
       return {
         success: response.data.success,
         userData: response.data.user as User,
-        userRol: response.data.rol as Roles, // Roles específicos del usuario logueado
-        userDepartamento: response.data.departamento as Departamentos, // Departamento específico del usuario
+        userRol: response.data.rol as Roles,
+        userDepartamento: response.data.departamento as Departamentos,
         message: response.data.message,
       };
     } catch (error) {
@@ -124,8 +124,7 @@ export const logout = createAsyncThunk<
         { withCredentials: true }
       );
 
-      // Limpiar token del localStorage al cerrar sesión
-      localStorage.removeItem('auth_token');
+      // Las cookies se limpian automáticamente en el servidor
 
       // Validar respuesta del backend
       if (response.data.success) {
