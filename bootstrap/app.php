@@ -1,14 +1,8 @@
 <?php
 
-use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Session\Middleware\StartSession;
-use Illuminate\Routing\Middleware\SubstituteBindings;
-use Illuminate\Cookie\Middleware\EncryptCookies;
-use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use App\Http\Middleware\HandleDatabaseErrors;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -23,22 +17,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->api(append: [
+        // Configuracion oficial de Sanctum SPA para rutas API stateful.
+        $middleware->statefulApi();
+
+        $middleware->api(prepend: [
             HandleDatabaseErrors::class,
-            EnsureFrontendRequestsAreStateful::class,
-            StartSession::class,
-            VerifyCsrfToken::class, // ✅ Necesario para Sanctum SPA
-            SubstituteBindings::class,
-            EncryptCookies::class,
-            ShareErrorsFromSession::class,
         ]);
 
-        $middleware->web(append: [
+        $middleware->web(prepend: [
             HandleDatabaseErrors::class,
-            EnsureFrontendRequestsAreStateful::class,
-            EncryptCookies::class,
-            ShareErrorsFromSession::class,
-            VerifyCsrfToken::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
