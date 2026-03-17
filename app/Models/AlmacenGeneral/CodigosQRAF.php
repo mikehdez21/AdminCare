@@ -91,7 +91,8 @@ class CodigosQRAF extends Model
 
             // Generar código único
             $codigoQR = self::generarCodigo($idActivo);
-            $urlDestino = url("/activosfijos/qraf/{$codigoQR}");
+            $frontendUrl = rtrim((string) config('app.frontend_url', config('app.url')), '/');
+            $urlDestino = $frontendUrl . '/activosfijos/qraf/' . rawurlencode($codigoQR);
 
             // Crear registro en la base de datos
             $qraf = self::create([

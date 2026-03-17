@@ -7,6 +7,8 @@ use App\Models\AlmacenGeneral\ActivosFijos;
 use App\Models\AlmacenGeneral\CodigosQRAF;
 use App\Services\Printing\ZebraService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+
 
 class PrinterController extends Controller
 {
@@ -61,18 +63,10 @@ class PrinterController extends Controller
             // Enviar a imprimir
             $resultado = $this->zebraService->impresionCompleta($datosImpresion, $compacto);
 
-            // Log de la impresión
-            \Log::info('Impresión iniciada para activo', [
-                'id_activo' => $idActivo,
-                'codigo' => $activo->codigo_etiqueta,
-                'usuario_id' => auth()->id(),
-                'resultado' => $resultado['success']
-            ]);
-
             return response()->json($resultado, $resultado['success'] ? 200 : 500);
 
         } catch (\Exception $e) {
-            \Log::error('Error en impresión Zebra', [
+            Log::error('Error en impresión Zebra', [
                 'id_activo' => $idActivo,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
@@ -255,6 +249,7 @@ class PrinterController extends Controller
             $zpl = $this->zebraService->generarZPL(
                 $urlQR,
                 $activo->codigo_unico,
+                $activo->nombre_af ?? 'Sin nombre',
             );
 
             return response()->json([
