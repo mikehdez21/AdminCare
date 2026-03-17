@@ -197,15 +197,19 @@ class AuthController extends Controller
 
         try {
             // Verificar si el usuario está autenticado
-            if (!Auth::check()) {
+            $user = $request->user();
+            if (!$user) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Usuario no autenticado.'
                 ], 401);
             }
             
-            // Cerrar sesión del usuario (Sanctum SPA mode)
-            Auth::logout();
+            // Cerrar sesión usando el guard web (en auth:sanctum, Auth::logout puede resolver RequestGuard)
+            if (Auth::guard('web')->check()) {
+                Auth::guard('web')->logout();
+            }
+
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
@@ -237,7 +241,9 @@ class AuthController extends Controller
         // y cerrar sesión si es necesario
 
         // Cerrar sesión del usuario autenticado
-        Auth::logout();
+        if (Auth::guard('web')->check()) {
+            Auth::guard('web')->logout();
+        }
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
