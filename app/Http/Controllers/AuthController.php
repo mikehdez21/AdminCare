@@ -124,7 +124,7 @@ class AuthController extends Controller
                 if (Auth::attempt(['email_usuario' => $request->email_usuario, 'password' => $request->password])) {
 
                     $roleName = $user->getRoleNames()->first() ?? 'No definido';
-                    $departamento = $user->departamentos ? $user->departamentos->nombre_departamento : 'No definido';
+                    $departamento = $user->departamento ? $user->departamento->nombre_departamento : 'No definido';
 
                     // Generar token de Sanctum para evitar problemas de cookies cross-domain
                     $token = $user->createToken('auth_token')->plainTextToken;
@@ -198,7 +198,7 @@ class AuthController extends Controller
             
             // Revocar token de Sanctum actual
             $user = Auth::user();
-            $user->currentAccessToken()->delete();
+            $user->tokens()->where('name', 'auth_token')->delete();
 
             $response = [
                 "success" => true,
