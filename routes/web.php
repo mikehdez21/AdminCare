@@ -3,6 +3,7 @@
 //use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ApiStatusController;
+use Illuminate\Http\Request;
 
 
 
@@ -11,8 +12,18 @@ use App\Http\Controllers\ApiStatusController;
 Route::get('/status', [ApiStatusController::class, 'index']);
 
 // Compatibilidad para QR historicos que apuntan al backend.
-Route::get('/activosfijos/qraf/{codigoQR}', function (string $codigoQR) {
-    $frontendUrl = rtrim((string) config('app.frontend_url', config('app.url')), '/');
+Route::get('/activosfijos/qraf/{codigoQR}', function (Request $request, string $codigoQR) {
+    $frontendUrl = rtrim((string) config('app.frontend_url', ''), '/');
+
+    if ($frontendUrl === '') {
+        return response('Configuracion pendiente: FRONTEND_URL no definido en backend.', 503);
+    }
+
+    $currentHost = $request->getSchemeAndHttpHost();
+    if (rtrim($currentHost, '/') === $frontendUrl) {
+        return response('Configuracion invalida: FRONTEND_URL no puede ser igual al dominio backend.', 500);
+    }
+
     return redirect()->away($frontendUrl . '/activosfijos/qraf/' . rawurlencode($codigoQR));
 });
 
