@@ -32,11 +32,9 @@ use App\Http\Controllers\FillTypes\AlmacenGeneral\TypesProveedorController;
 
 Route::prefix('HSS1')->group(function () {
 
-    // Rutas Publicas ::public
-    // ::auth (Register y Login) 
-    Route::get('/auth/check', [AuthController::class, 'check'])->name('check');
-    Route::post('/auth/register', [AuthController::class, 'register'])->name('register');
-    Route::post('/auth/login', [AuthController::class, 'login'])->name('login');
+    // ============================================================
+    // 1️⃣ RUTAS PÚBLICAS (sin autenticación, con sesión + CSRF)
+    // ============================================================
     Route::get('/status', [ApiStatusController::class, 'index'])
         ->withoutMiddleware([
             EnsureFrontendRequestsAreStateful::class,
@@ -49,19 +47,25 @@ Route::prefix('HSS1')->group(function () {
             StartSession::class,
             ShareErrorsFromSession::class,
         ]);
-    
-    // Rutas Privadas ::private (protegidas con Sanctum tokens)
+
+    // ============================================================
+    // 2️⃣ RUTAS DE AUTENTICACIÓN (sin protección, con sesión + CSRF)
+    // ============================================================
+    // ✅ Estas rutas obtienen sesión + CSRF automáticamente del middleware de API
+    Route::get('/auth/check', [AuthController::class, 'check'])->name('check');
+    Route::post('/auth/register', [AuthController::class, 'register'])->name('register');
+    Route::post('/auth/login', [AuthController::class, 'login'])->name('login');
+
+    // ============================================================
+    // 3️⃣ RUTAS PROTEGIDAS (auth:sanctum con sesión + CSRF)
+    // ============================================================
     Route::group(['middleware' => 'auth:sanctum'], function () {
 
-        //::auth
+        // Auth
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::post('/auth/logout-inactive', [AuthController::class, 'logoutInactive']);
 
-        // Mantener aquí las rutas TEMPORALMENTE para pruebas en DEV, ya en producción final pasar dentro del group middlware de auth (Sessions)
-
-    // ALMACENES
-
-        // TIPOS
+        // ALMACENES - TIPOS
         Route::get('/almacenGeneral/tipos-proveedor', [TypesProveedorController::class, 'getTiposProveedor']);
         Route::get('/almacenGeneral/formas-pago', [TypesProveedorController::class, 'getFormasPago']);
         Route::get('/almacenGeneral/tipos-regimen', [TypesProveedorController::class, 'getTiposRegimen']);
@@ -69,12 +73,11 @@ Route::prefix('HSS1')->group(function () {
         Route::get('/almacenGeneral/tipos-facturacion', [TypesProveedorController::class, 'getTiposFacturacion']);
         Route::get('/almacenGeneral/tipos-moneda', [TypesProveedorController::class, 'getTiposMoneda']);
 
-
         // FACTURAS
         Route::apiResource('/almacenGeneral/facturas', FacturaController::class);
         Route::get('/almacenGeneral/tipos-facturas', [FacturaController::class, 'getTiposFacturas']);
         
-        // FACTURA-ACTIVOS (Asociación Activos Fijos en Facturas)
+        // FACTURA-ACTIVOS
         Route::get('/almacenGeneral/facturas/{idFactura}/activos', [FacturaActivosController::class, 'getActivosByFactura']);
         Route::post('/almacenGeneral/facturas/activos', [FacturaActivosController::class, 'addActivosToFactura']);
         Route::put('/almacenGeneral/facturas/{idFactura}/activos', [FacturaActivosController::class, 'updateActivosFactura']);
@@ -120,31 +123,22 @@ Route::prefix('HSS1')->group(function () {
             Route::post('preview-zpl/{idActivo}', [PrinterController::class, 'previewZPL']);
         });
 
-
-    // ADMINISTRADOR
-    
-        // Rutas CRUD Roles
+        // ADMINISTRADOR - Roles
         Route::apiResource('/admin/roles', RolesAdminController::class);
         
-        // Rutas CRUD Departamentos
+        // ADMINISTRADOR - Departamentos
         Route::apiResource('/admin/departamentos', DepartamentosAdminController::class);
 
-        // Rutas CRUD Usuarios
+        // ADMINISTRADOR - Usuarios
         Route::apiResource('/admin/users', UserAdminController::class);
         Route::put('/admin/empleados/{id}/bajaUsuario', [UserAdminController::class, 'updateBajaUsuario']);
 
-        // Rutas CRUD Empleado
+        // ADMINISTRADOR - Empleados
         Route::apiResource('/admin/empleados', EmpleadoAdminController::class);
         Route::put('/admin/empleados/{id}/bajaEmpleado', [EmpleadoAdminController::class, 'updateBajaEmpleado']);
 
-        // Rutas CRUD Ubicaciones
+        // ADMINISTRADOR - Ubicaciones
         Route::apiResource('/admin/ubicaciones', UbicacionController::class);
-
-
-// Mantener aquí las rutas TEMPORALMENTE para pruebas en DEV, ya en producción final pasar dentro del group middlware de auth (Sessions)
-
-
-
 
     });
 });

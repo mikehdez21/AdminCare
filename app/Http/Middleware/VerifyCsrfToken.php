@@ -2,19 +2,22 @@
 
 namespace App\Http\Middleware;
 
-use Closure;
-use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken as Middleware;
 
-class VerifyCsrfToken
+class VerifyCsrfToken extends Middleware
 {
     /**
-     * Handle an incoming request.
+     * Los URIs que deberían ser excluidos de la verificación CSRF.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @var array<int, string>
      */
-    public function handle(Request $request, Closure $next): Response
-    {
-        return $next($request);
-    }
+    protected $except = [
+        // Excluir rutas específicas si es necesario (generalmente públicas)
+    ];
+
+    /**
+     * Indica si el middleware debe agregar el cookie XSRF-TOKEN a las respuestas.
+     * ✅ Debe estar en true para Sanctum SPA
+     */
+    protected $addHttpCookie = true;
 }

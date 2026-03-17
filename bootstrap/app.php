@@ -24,20 +24,21 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->api(append: [
-            HandleDatabaseErrors::class, // Manejar errores de base de datos ANTES de las sesiones
-            EnsureFrontendRequestsAreStateful::class, // Necesario para autenticación en frontend
-            StartSession::class, // Para manejar sesiones
-            SubstituteBindings::class, // Sustituir bindings de rutas
-            EncryptCookies::class, // Encriptar cookies
-            ShareErrorsFromSession::class, // Compartir errores desde la sesión
+            HandleDatabaseErrors::class,
+            EnsureFrontendRequestsAreStateful::class,
+            StartSession::class,
+            VerifyCsrfToken::class, // ✅ Necesario para Sanctum SPA
+            SubstituteBindings::class,
+            EncryptCookies::class,
+            ShareErrorsFromSession::class,
         ]);
 
         $middleware->web(append: [
-            HandleDatabaseErrors::class, // Manejar errores de base de datos ANTES de las sesiones
-            EnsureFrontendRequestsAreStateful::class, // Necesario para autenticación en frontend
-            EncryptCookies::class, // Encriptar cookies
-            ShareErrorsFromSession::class, // Compartir errores desde la sesión
-            VerifyCsrfToken::class, // Verificación CSRF (Depende de la lógica de tu API)
+            HandleDatabaseErrors::class,
+            EnsureFrontendRequestsAreStateful::class,
+            EncryptCookies::class,
+            ShareErrorsFromSession::class,
+            VerifyCsrfToken::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
