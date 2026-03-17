@@ -35,7 +35,7 @@ LoginSuccessResponse, // Tipos de datos retornados en caso de éxito
       // 1. Obtener el CSRF cookie requerido por Sanctum SPA
       await axios.get(
         `${API_BASE_URL}/sanctum/csrf-cookie`,
-        { withCredentials: true }
+        { withCredentials: true, headers: { 'Content-Type': 'application/json' } }
       );
 
       // 2. Realizar solicitud de inicio de sesión
@@ -43,7 +43,11 @@ LoginSuccessResponse, // Tipos de datos retornados en caso de éxito
         `${API_BASE_URL}/api/HSS1/auth/login`,
         credentials,
         {
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest', // Ayuda a Laravel a identificar petición AJAX
+          },          
           withCredentials: true, // Las cookies se manejan automáticamente
         }
       );
