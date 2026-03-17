@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_BASE_URL } from '@/variableApi';
 import { ActivosFijos } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 import { createAsyncThunk } from '@reduxjs/toolkit';
@@ -8,11 +9,11 @@ export const addActivoFijo = createAsyncThunk<{ success: boolean; activofijo?: A
   'almacenGeneral/addActivoFijo',
   async (nuevoActivo: ActivosFijos) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
       const response = await axios.post(
-        'http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/activosfijos',
+        `${API_BASE_URL}/api/HSS1/almacenGeneral/activosfijos`,
         nuevoActivo,
         {
           headers: {
@@ -45,10 +46,10 @@ export const getActivosFijos = createAsyncThunk<{ success: boolean; activosFijos
   'almacenGeneral/getActivos',
   async () => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get('http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/activosfijos', {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/activosfijos`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -92,12 +93,12 @@ export const editActivoFijo = createAsyncThunk<{ success: boolean; message: stri
   'almacenGeneral/editActivoFijo',
   async (activoFijoEditado: ActivosFijos) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       console.log(csrfToken);
 
       const response = await axios.put(
-        `http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/activosfijos/${activoFijoEditado.id_activo_fijo}`,
+        `${API_BASE_URL}/api/HSS1/almacenGeneral/activosfijos/${activoFijoEditado.id_activo_fijo}`,
         activoFijoEditado,
         {
           headers: {
@@ -131,13 +132,13 @@ export const deleteActivoFijo = createAsyncThunk<{ success: boolean; message: st
   'almacenGeneral/deleteActivoFijo',
   async (activoFijoEliminado: ActivosFijos) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       console.log(csrfToken);
 
       // Incluir el id del proveedor en la URL para hacer la eliminación correcta
       const response = await axios.delete(
-        `http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/activosfijos/${activoFijoEliminado.id_activo_fijo}`,
+        `${API_BASE_URL}/api/HSS1/almacenGeneral/activosfijos/${activoFijoEliminado.id_activo_fijo}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -171,10 +172,10 @@ export const getEstatusActivosFijos = createAsyncThunk<{ success: boolean; estat
   'almacenGeneral/getEstatusActivosFijos',
   async () => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get('http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/tipos-estatusaf', {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/tipos-estatusaf`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -211,10 +212,10 @@ export const getActivosFijosPorDepartamento = createAsyncThunk<{ success: boolea
   'almacenGeneral/getActivosFijosPorDepartamento',
   async (id_departamento: number) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get(`http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/activosfijos/departamento/${id_departamento}`, {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/activosfijos/departamento/${id_departamento}`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -265,10 +266,10 @@ export const getActivosFijosPorUbicacion = createAsyncThunk<{ success: boolean; 
   'almacenGeneral/getActivosFijosPorUbicacion',
   async (id_ubicacion: number) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get(`http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/activosfijos/ubicacion/${id_ubicacion}`, {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/activosfijos/ubicacion/${id_ubicacion}`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -319,10 +320,10 @@ export const getActivosFijosPorClasificacion = createAsyncThunk<{ success: boole
   'almacenGeneral/getActivosFijosPorClasificacion',
   async (id_clasificacion: number) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get(`http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/activosfijos/clasificacion/${id_clasificacion}`, {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/activosfijos/clasificacion/${id_clasificacion}`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -374,10 +375,10 @@ export const getActivosFijosDadosDeBaja = createAsyncThunk<{ success: boolean; a
   'almacenGeneral/getActivosFijosDadosDeBaja',
   async () => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get('http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/activosfijos-bajas', {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/activosfijos-bajas`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',

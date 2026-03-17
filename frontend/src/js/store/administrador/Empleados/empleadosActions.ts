@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_BASE_URL } from '@/variableApi';
 import { Empleados } from '@/@types/mainTypes';
 import { formatDateHorasToFrontend, formatDateNacimientoToFrontend, getFechaHoraActual } from '@/utils/dateFormat';
 import { createAsyncThunk } from '@reduxjs/toolkit';
@@ -8,14 +9,14 @@ export const addEmpleado = createAsyncThunk<{ success: boolean; empleados?: Empl
   '/addEmpleado',
   async (nuevoEmpleado: FormData) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', {
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, {
         withCredentials: true,
       });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
       console.log('EmpleadoToAdd:', nuevoEmpleado);
 
-      const response = await axios.post('http://pruebas.hssadmincare.web/api/HSS1/admin/empleados', nuevoEmpleado, {
+      const response = await axios.post(`${API_BASE_URL}/api/HSS1/admin/empleados`, nuevoEmpleado, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -53,12 +54,12 @@ export const getEmpleados = createAsyncThunk<{ success: boolean; empleados?: Emp
   '/getEmpleados',
   async () => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', {
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, {
         withCredentials: true,
       });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get('http://pruebas.hssadmincare.web/api/HSS1/admin/empleados', {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/admin/empleados`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -105,14 +106,14 @@ export const editEmpleado = createAsyncThunk<{ success: boolean; message: string
   '/editEmpleado',
   async (empleadoEditado: Empleados) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', {
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, {
         withCredentials: true,
       });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       console.log(csrfToken);
 
       const response = await axios.put(
-        `http://pruebas.hssadmincare.web/api/HSS1/admin/empleados/${empleadoEditado.id_empleado}`,
+        `${API_BASE_URL}/api/HSS1/admin/empleados/${empleadoEditado.id_empleado}`,
         empleadoEditado,
         {
           headers: {
@@ -148,7 +149,7 @@ export const bajaEmpleado = createAsyncThunk<{ success: boolean; message: string
   '/bajaEmpleado',
   async (empleadoBaja: Empleados) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', {
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, {
         withCredentials: true,
       });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -156,7 +157,7 @@ export const bajaEmpleado = createAsyncThunk<{ success: boolean; message: string
       console.log('Empleado a dar de baja:', empleadoBaja);
 
       const response = await axios.put(
-        `http://pruebas.hssadmincare.web/api/HSS1/admin/empleados/${empleadoBaja.id_empleado}/bajaEmpleado`,
+        `${API_BASE_URL}/api/HSS1/admin/empleados/${empleadoBaja.id_empleado}/bajaEmpleado`,
         {
           estatus_activo: false,
           fecha_baja: getFechaHoraActual(),
@@ -196,10 +197,10 @@ export const deleteEmpleado = createAsyncThunk<{ success: boolean; message: stri
   '/deleteEmpleado',
   async (empleadoEliminado: Empleados) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       const response = await axios.delete(
-        `http://pruebas.hssadmincare.web/api/HSS1/admin/empleados/${empleadoEliminado.id_empleado}`,
+        `${API_BASE_URL}/api/HSS1/admin/empleados/${empleadoEliminado.id_empleado}`,
         {
           headers: {
             'Content-Type': 'application/json',

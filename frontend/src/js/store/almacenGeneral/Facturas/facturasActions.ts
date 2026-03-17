@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_BASE_URL } from '@/variableApi';
 import { FacturasAF, ActivosFacturaApiResponse, ActivoFacturaInput } from '@/@types/AlmacenGeneralTypes/facturasTypes';
 import { ActivoEntityResponse } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat';
@@ -58,11 +59,11 @@ export const addFactura = createAsyncThunk<{ success: boolean; message: string; 
   async (nuevaFactura: FacturasAF) => {
     try {
       console.log('Nueva factura a agregar:', nuevaFactura),
-        await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+        await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
       const response = await axios.post(
-        'http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/facturas',
+        `${API_BASE_URL}/api/HSS1/almacenGeneral/facturas`,
         nuevaFactura,
         {
           headers: {
@@ -121,10 +122,10 @@ export const getFacturas = createAsyncThunk<{ success: boolean; facturas?: Factu
   'almacenGeneral/getFacturas',
   async () => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get('http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/facturas', {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/facturas`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -171,10 +172,10 @@ export const updateFactura = createAsyncThunk<
   'almacenGeneral/updateFactura',
   async ({ id, factura }) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       const response = await axios.put(
-        `http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/facturas/${id}`,
+        `${API_BASE_URL}/api/HSS1/almacenGeneral/facturas/${id}`,
         factura,
         {
           headers: {
@@ -209,10 +210,10 @@ export const getTiposFacturas = createAsyncThunk<{ success: boolean; tiposFactur
   'almacenGeneral/getTiposFacturas',
   async () => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get('http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/tipos-facturas', {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/tipos-facturas`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -244,10 +245,10 @@ export const getActivosFactura = createAsyncThunk<ActivosFacturaApiResponse, num
   'almacenGeneral/getActivosFactura',
   async (idFactura: number) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get(`http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/facturas/${idFactura}/activos`, {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/facturas/${idFactura}/activos`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -280,11 +281,11 @@ export const addActivosToFactura = createAsyncThunk<
   'almacenGeneral/addActivosToFactura',
   async ({ id_factura, activos }) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
       const response = await axios.post(
-        'http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/facturas/activos',
+        `${API_BASE_URL}/api/HSS1/almacenGeneral/facturas/activos`,
         { id_factura, activos },
         {
           headers: {
@@ -320,11 +321,11 @@ export const updateActivosFactura = createAsyncThunk<
   'almacenGeneral/updateActivosFactura',
   async ({ id_factura, activos }) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
       const response = await axios.put(
-        `http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/facturas/${id_factura}/activos`,
+        `${API_BASE_URL}/api/HSS1/almacenGeneral/facturas/${id_factura}/activos`,
         { activos },
         {
           headers: {
@@ -360,11 +361,11 @@ export const removeActivoFromFactura = createAsyncThunk<
   'almacenGeneral/removeActivoFromFactura',
   async ({ id_factura, id_activo }) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
       const response = await axios.delete(
-        `http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/facturas/${id_factura}/activos/${id_activo}`,
+        `${API_BASE_URL}/api/HSS1/almacenGeneral/facturas/${id_factura}/activos/${id_activo}`,
         {
           headers: {
             'Content-Type': 'application/json',

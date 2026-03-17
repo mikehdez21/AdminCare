@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_BASE_URL } from '@/variableApi';
 import { ClasificacionesAF } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat';
@@ -9,11 +10,11 @@ export const addClasificacion = createAsyncThunk<{ success: boolean; message: st
   'almacenGeneral/addClasificacion',
   async (nuevaClasificacion: ClasificacionesAF) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       console.log(nuevaClasificacion)
       const response = await axios.post(
-        'http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/clasificaciones',
+        `${API_BASE_URL}/api/HSS1/almacenGeneral/clasificaciones`,
         nuevaClasificacion,
         {
           headers: {
@@ -46,10 +47,10 @@ export const getClasificaciones = createAsyncThunk<{ success: boolean; clasifica
   'almacenGeneral/getClasificaciones',
   async () => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get('http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/clasificaciones', {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/clasificaciones`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -95,13 +96,13 @@ export const editClasificacion = createAsyncThunk<{ success: boolean; message: s
   'almacenGeneral/editClasificacion',
   async (clasificacionEditada: ClasificacionesAF) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       console.log(csrfToken);
 
       // Incluir el id de la clasificación en la URL para hacer la actualización correcta
       const response = await axios.put(
-        `http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/clasificaciones/${clasificacionEditada.id_clasificacion}`,
+        `${API_BASE_URL}/api/HSS1/almacenGeneral/clasificaciones/${clasificacionEditada.id_clasificacion}`,
         clasificacionEditada,
         {
           headers: {
@@ -136,13 +137,13 @@ export const deleteClasificacion = createAsyncThunk<{ success: boolean; message:
   'almacenGeneral/deleteClasificacion',
   async (clasificacionEliminada: ClasificacionesAF) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       console.log(csrfToken);
 
       // Incluir el id de la clasificación en la URL para hacer la eliminación correcta
       const response = await axios.delete(
-        `http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/clasificaciones/${clasificacionEliminada.id_clasificacion}`,
+        `${API_BASE_URL}/api/HSS1/almacenGeneral/clasificaciones/${clasificacionEliminada.id_clasificacion}`,
         {
           headers: {
             'Content-Type': 'application/json',

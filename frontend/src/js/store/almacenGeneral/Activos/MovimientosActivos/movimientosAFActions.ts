@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_BASE_URL } from '@/variableApi';
 import { MovimientosActivosFijos, VwMovimientosAF } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 import {formatDateHorasToFrontend } from '@/utils/dateFormat'; 
 import { createAsyncThunk } from '@reduxjs/toolkit';
@@ -8,10 +9,10 @@ export const addMovimientoActivoFijo = createAsyncThunk<{ success: boolean; mess
   'almacenGeneral/addMovimientoActivoFijo',
   async (nuevoMovimientoActivo: MovimientosActivosFijos) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       const response = await axios.post(
-        'http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/movimientos-activosfijos',
+        `${API_BASE_URL}/api/HSS1/almacenGeneral/movimientos-activosfijos`,
         nuevoMovimientoActivo,
         {
           headers: {
@@ -44,10 +45,10 @@ export const getMovimientosActivosFijos = createAsyncThunk<{ success: boolean; m
   'almacenGeneral/movimientosActivosFijos',
   async () => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       
-      const response = await axios.get('http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/movimientos-activosfijos', {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/movimientos-activosfijos`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -91,12 +92,12 @@ export const editMovimientoActivoFijo = createAsyncThunk<{ success: boolean; mes
   'almacenGeneral/editMovimientoActivoFijo',
   async (MovimientoActivoFijoEditado: MovimientosActivosFijos) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       console.log(csrfToken);
       
       const response = await axios.put(
-        `http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/movimientos-activosfijos/${MovimientoActivoFijoEditado.id_movimientoAF}`,
+        `${API_BASE_URL}/api/HSS1/almacenGeneral/movimientos-activosfijos/${MovimientoActivoFijoEditado.id_movimientoAF}`,
         MovimientoActivoFijoEditado,
         {
           headers: {
@@ -130,13 +131,13 @@ export const deleteMovimientoActivoFijo = createAsyncThunk<{ success: boolean; m
   'almacenGeneral/deleteMovimientoActivoFijo',
   async (MovimientoActivoFijoEliminado: MovimientosActivosFijos) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       console.log(csrfToken);
       
       // Incluir el id del proveedor en la URL para hacer la eliminación correcta
       const response = await axios.delete(
-        `http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/movimientos-activosfijos/${MovimientoActivoFijoEliminado.id_movimientoAF}`,
+        `${API_BASE_URL}/api/HSS1/almacenGeneral/movimientos-activosfijos/${MovimientoActivoFijoEliminado.id_movimientoAF}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -172,10 +173,10 @@ export const getVWmovimientosActivosFijos = createAsyncThunk<{ success: boolean;
   'almacenGeneral/view-activosfijos',
   async () => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get('http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/view-activosfijos', {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/view-activosfijos`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -229,9 +230,9 @@ export const getTipoMovimientosActivosFijos = createAsyncThunk<{ success: boolea
   'almacenGeneral/tipo-movimientosActivosFijos',
   async () => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      const response = await axios.get('http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/tipos-movimientosaf', {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/tipos-movimientosaf`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_BASE_URL } from '@/variableApi';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
 
@@ -7,10 +8,10 @@ export const getFormasPago = createAsyncThunk<{success: boolean; formasPago?: []
   'almacenGeneral/getFormasPago',
   async () => {
     try{
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         
-      const response = await axios.get('http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/formas-pago', {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/formas-pago`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -44,10 +45,10 @@ export const getTiposRegimen = createAsyncThunk<{success: boolean; regimenesFisc
   'almacenGeneral/getTiposRegimen',
   async () => {
     try{
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get('http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/tipos-regimen', {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/tipos-regimen`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -80,10 +81,10 @@ export const getTiposMoneda = createAsyncThunk<{success: boolean; tiposMoneda?: 
   'almacenGeneral/getTiposMoneda',
   async () => {
     try{
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get('http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/tipos-moneda', {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/tipos-moneda`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -116,10 +117,10 @@ export const getTiposFacturacion = createAsyncThunk<{success: boolean; tiposFact
   'almacenGeneral/getTiposFacturacion',
   async () => {
     try{
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get('http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/tipos-facturacion', {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/tipos-facturacion`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',

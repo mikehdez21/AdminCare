@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_BASE_URL } from '@/variableApi';
 import { Roles } from '@/@types/mainTypes';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat'; 
 import { createAsyncThunk } from '@reduxjs/toolkit';
@@ -9,10 +10,10 @@ export const addRol = createAsyncThunk<{ success: boolean; message: string }, Ro
   '/addRol',
   async (nuevoRol: Roles) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       const response = await axios.post(
-        'http://pruebas.hssadmincare.web/api/HSS1/admin/roles',
+        `${API_BASE_URL}/api/HSS1/admin/roles`,
         nuevoRol,
         {
           headers: {
@@ -45,10 +46,10 @@ export const getRoles = createAsyncThunk<{success: boolean; roles?: Roles[]; mes
   '/getRoles',
   async () => {
     try{
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       
-      const response = await axios.get('http://pruebas.hssadmincare.web/api/HSS1/admin/roles', {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/admin/roles`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -96,13 +97,13 @@ export const editRol = createAsyncThunk<{ success: boolean; message: string }, R
   '/editRol',
   async (rolEditado: Roles) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       console.log(csrfToken);
       
       // Incluir el id del rol en la URL para hacer la actualización correcta
       const response = await axios.put(
-        `http://pruebas.hssadmincare.web/api/HSS1/admin/roles/${rolEditado.id}`,
+        `${API_BASE_URL}/api/HSS1/admin/roles/${rolEditado.id}`,
         rolEditado,
         {
           headers: {
@@ -137,13 +138,13 @@ export const deleteRol = createAsyncThunk<{ success: boolean; message: string },
   '/deleteDepartamento',
   async (rolEliminado: Roles) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       console.log(csrfToken);
       
       // Incluir el id del rol en la URL para hacer la eliminación correcta
       const response = await axios.delete(
-        `http://pruebas.hssadmincare.web/api/HSS1/admin/roles/${rolEliminado.id}`,
+        `${API_BASE_URL}/api/HSS1/admin/roles/${rolEliminado.id}`,
         {
           headers: {
             'Content-Type': 'application/json',

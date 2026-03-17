@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_BASE_URL } from '@/variableApi';
 import { Ubicaciones, ActivosUbicacionApiResponse} from '@/@types/mainTypes';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat'; 
 import { createAsyncThunk } from '@reduxjs/toolkit';
@@ -9,10 +10,10 @@ export const addUbicacion = createAsyncThunk<{ success: boolean; message: string
   '/addUbicacion',
   async (nuevaUbicacion: Ubicaciones) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       const response = await axios.post(
-        'http://pruebas.hssadmincare.web/api/HSS1/admin/ubicaciones',
+        `${API_BASE_URL}/api/HSS1/admin/ubicaciones`,
         nuevaUbicacion,
         {
           headers: {
@@ -45,10 +46,10 @@ export const getUbicaciones = createAsyncThunk<{success: boolean; ubicaciones?: 
   '/getUbicaciones',
   async () => {
     try{
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       
-      const response = await axios.get('http://pruebas.hssadmincare.web/api/HSS1/admin/ubicaciones', {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/admin/ubicaciones`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -94,13 +95,13 @@ export const editUbicacion = createAsyncThunk<{ success: boolean; message: strin
   '/editUbicacion',
   async (ubicacionEditada: Ubicaciones) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       console.log(csrfToken);
       
       // Incluir el id de la ubicación en la URL para hacer la actualización correcta
       const response = await axios.put(
-        `http://pruebas.hssadmincare.web/api/HSS1/admin/ubicaciones/${ubicacionEditada.id_ubicacion}`,
+        `${API_BASE_URL}/api/HSS1/admin/ubicaciones/${ubicacionEditada.id_ubicacion}`,
         ubicacionEditada,
         {
           headers: {
@@ -135,13 +136,13 @@ export const deleteUbicacion = createAsyncThunk<{ success: boolean; message: str
   '/deleteUbicacion',
   async (ubicacionEliminada: Ubicaciones) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       console.log(csrfToken);
       
       // Incluir el id de la ubicación en la URL para hacer la eliminación correcta
       const response = await axios.delete(
-        `http://pruebas.hssadmincare.web/api/HSS1/admin/ubicaciones/${ubicacionEliminada.id_ubicacion}`,
+        `${API_BASE_URL}/api/HSS1/admin/ubicaciones/${ubicacionEliminada.id_ubicacion}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -175,10 +176,10 @@ export const getActivosUbicacion = createAsyncThunk<ActivosUbicacionApiResponse,
   'almacenGeneral/getActivosUbicacion',
   async (idUbicacion: number) => {
     try {
-      await axios.get('http://pruebas.hssadmincare.web/sanctum/csrf-cookie', { withCredentials: true });
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         
-      const response = await axios.get(`http://pruebas.hssadmincare.web/api/HSS1/almacenGeneral/activosfijos/ubicacion/${idUbicacion}`, {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/activosfijos/ubicacion/${idUbicacion}`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
