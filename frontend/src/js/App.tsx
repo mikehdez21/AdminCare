@@ -12,6 +12,7 @@ const LayoutJefatura = lazy(() => import('./layouts/LayoutJefatura'));
 const LayoutUsuario = lazy(() => import('./layouts/LayoutUsuario'));
 
 const Status = lazy(() => import('./components/Status'));
+const DBStatus = lazy(() => import('./components/DBStatus'));
 const PageLogin = lazy(() => import('./components/Login/PageLogin'));
 const ActivoQRPublic = lazy(() => import('./pages/ActivoQRPublic'));
 
@@ -50,6 +51,7 @@ const App: React.FC = () => {
         <Route path="/" element={<Layout_Public />} >
           <Route index element={<Navigate to="/login" />} />
           <Route path='/status' element={<Status />} />
+          <Route path='/dbstatus' element={<DBStatus />} />
           <Route path='/login' element={<PageLogin />} />
           <Route path='/activosfijos/qraf/:codigoQR' element={<ActivoQRPublic />} />
         </Route>

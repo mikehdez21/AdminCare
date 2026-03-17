@@ -43,6 +43,12 @@ Route::prefix('HSS1')->group(function () {
             StartSession::class,
             ShareErrorsFromSession::class,
         ]);
+    Route::get('/dbstatus', [ApiStatusController::class, 'dbStatus'])
+        ->withoutMiddleware([
+            EnsureFrontendRequestsAreStateful::class,
+            StartSession::class,
+            ShareErrorsFromSession::class,
+        ]);
     
     // Rutas Privadas ::private
     Route::group(['middleware' => 'auth'], function () {

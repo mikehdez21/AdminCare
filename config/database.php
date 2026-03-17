@@ -95,6 +95,9 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'require'),
+            'options' => extension_loaded('pgsql') ? array_filter([ 
+                '--dbname=' . env('DB_DATABASE'), env('DB_SSLMODE') ? '--sslmode=' . env('DB_SSLMODE') : null, 
+            ]) : []
         ],
 
         'sqlsrv' => [
