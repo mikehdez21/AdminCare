@@ -142,8 +142,11 @@ class CodigosQRAFController extends Controller
             $activo = $qr->activoFijo;
             $label = $activo->codigo_etiqueta;
 
-            // Generar imagen QR con la nueva API
-            $writer = new \Endroid\QrCode\Writer\PngWriter();
+            // Generar PNG cuando GD esta disponible, si no usar SVG para evitar error 500.
+            $usaPng = extension_loaded('gd');
+            $writer = $usaPng
+                ? new \Endroid\QrCode\Writer\PngWriter()
+                : new \Endroid\QrCode\Writer\SvgWriter();
             
             $qrCode = new \Endroid\QrCode\QrCode(
                 data: $qr->url_destino,
@@ -160,9 +163,12 @@ class CodigosQRAFController extends Controller
 
             $result = $writer->write($qrCode, null, $labelObj);
 
+            $mimeType = $usaPng ? 'image/png' : 'image/svg+xml';
+            $extension = $usaPng ? 'png' : 'svg';
+
             return response($result->getString())
-                ->header('Content-Type', 'image/png')
-                ->header('Content-Disposition', 'attachment; filename="' . $qr->codigo_qr . '.png"');
+                ->header('Content-Type', $mimeType)
+                ->header('Content-Disposition', 'attachment; filename="' . $qr->codigo_qr . '.' . $extension . '"');
 
         } catch (\Exception $e) {
             return response()->json([

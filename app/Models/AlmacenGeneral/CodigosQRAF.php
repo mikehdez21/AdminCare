@@ -5,6 +5,7 @@ namespace App\Models\AlmacenGeneral;
 use Illuminate\Database\Eloquent\Model;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
+use Endroid\QrCode\Writer\SvgWriter;
 use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\Label\Label;
 use Endroid\QrCode\Logo\Logo;
@@ -144,7 +145,7 @@ class CodigosQRAF extends Model
      */
     public function generarImagenQR($size = 300, $label = null)
     {
-        $writer = new PngWriter();
+        $writer = extension_loaded('gd') ? new PngWriter() : new SvgWriter();
         
         // Crear el código QR con todos los parámetros en el constructor
         $qrCode = new QrCode(
@@ -166,7 +167,7 @@ class CodigosQRAF extends Model
 
         $result = $writer->write($qrCode, null, $labelObj);
 
-        // Retornar como base64
+        // Retorna base64 PNG cuando GD esta disponible y SVG cuando no.
         return base64_encode($result->getString());
     }
 
@@ -188,7 +189,7 @@ class CodigosQRAF extends Model
                 Log::info("Directorio QR creado: {$carpeta}, resultado: " . ($dirCreado ? 'true' : 'false'));
             }
 
-            $writer = new PngWriter();
+            $writer = extension_loaded('gd') ? new PngWriter() : new SvgWriter();
             
             // Crear el código QR con todos los parámetros en el constructor
             $qrCode = new QrCode(
@@ -207,7 +208,8 @@ class CodigosQRAF extends Model
 
             $result = $writer->write($qrCode, null, $label);
 
-            $nombreArchivo = $this->codigo_qr . '.png';
+            $extension = $writer instanceof PngWriter ? 'png' : 'svg';
+            $nombreArchivo = $this->codigo_qr . '.' . $extension;
             $ruta = "{$carpeta}/{$nombreArchivo}";
 
             // Guardar en storage/app/public/qr_codes
@@ -232,6 +234,7 @@ class CodigosQRAF extends Model
             Log::info("QR guardado exitosamente", [
                 'codigo_qr' => $this->codigo_qr,
                 'ruta' => $ruta,
+                'formato' => $extension,
                 'tamaño' => $disk->size($ruta)
             ]);
 
@@ -255,7 +258,9 @@ class CodigosQRAF extends Model
     {
         $rutas = [
             "qr_codes/activos/{$this->codigo_qr}.png", // ruta actual
+            "qr_codes/activos/{$this->codigo_qr}.svg", // fallback sin GD
             "qr_codes/{$this->codigo_qr}.png", // compatibilidad con registros antiguos
+            "qr_codes/{$this->codigo_qr}.svg", // compatibilidad sin GD
         ];
 
         foreach ($rutas as $ruta) {
