@@ -7,20 +7,26 @@ import laravel from 'laravel-vite-plugin'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, __dirname, '');
   const proxyTarget = env.VITE_PROXY_TARGET || env.VITE_APP_API || 'https://admincare-production.up.railway.app';
+  const isVercel = process.env.VERCEL === '1';
+  const isLaravelBuild = !isVercel;
 
   return {
     plugins: [
       react(),
-      laravel({
-        input: ['src/js/App.tsx'],
-        publicDirectory: '../public',
-        buildDirectory: 'build',
-      }),
+      ...(isLaravelBuild
+        ? [
+            laravel({
+              input: ['src/js/App.tsx'],
+              publicDirectory: '../public',
+              buildDirectory: 'build',
+            }),
+          ]
+        : []),
     ],
     build: {
-      outDir: '../public/build',
+      outDir: isVercel ? 'dist' : '../public/build',
       emptyOutDir: true,
-      manifest: true,
+      manifest: isLaravelBuild,
       rollupOptions: {
         input: path.resolve(__dirname, 'src/js/App.tsx'),
       },
