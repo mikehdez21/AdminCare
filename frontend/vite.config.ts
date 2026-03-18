@@ -23,14 +23,19 @@ export default defineConfig(({ mode }) => {
           ]
         : []),
     ],
-    build: {
-      outDir: isVercel ? 'dist' : '../public/build',
-      emptyOutDir: true,
-      manifest: isLaravelBuild,
-      rollupOptions: {
-        input: path.resolve(__dirname, 'src/js/App.tsx'),
-      },
-    },
+    build: isVercel
+      ? {
+          outDir: 'dist',
+          emptyOutDir: true,
+        }
+      : {
+          outDir: '../public/build',
+          emptyOutDir: true,
+          manifest: true,
+          rollupOptions: {
+            input: path.resolve(__dirname, 'src/js/App.tsx'),
+          },
+        },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src/js'),

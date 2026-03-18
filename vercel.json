@@ -4,18 +4,21 @@
   "installCommand": "cd frontend && npm ci",
   "buildCommand": "cd frontend && npm run build",
   "outputDirectory": "frontend/dist",
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "https://admincare-production.up.railway.app/api/$1"
+      "src": "/api/(.*)",
+      "dest": "https://admincare-production.up.railway.app/api/$1"
     },
     {
-      "source": "/sanctum/csrf-cookie",
-      "destination": "https://admincare-production.up.railway.app/sanctum/csrf-cookie"
+      "src": "/sanctum/csrf-cookie",
+      "dest": "https://admincare-production.up.railway.app/sanctum/csrf-cookie"
     },
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
