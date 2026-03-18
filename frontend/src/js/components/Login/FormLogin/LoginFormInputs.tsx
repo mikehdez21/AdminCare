@@ -109,7 +109,7 @@ const LoginFormInputs: React.FC = () => {
   return (
     <form onSubmit={handleLogin}>
       <div className='titleDiv_Login'>
-        <h1>PRUEBAS</h1>
+        <h1>PRUEBAS DEV</h1>
       </div>
 
       <div className='divInputs_Login'>

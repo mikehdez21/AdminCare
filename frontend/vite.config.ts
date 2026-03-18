@@ -1,6 +1,7 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig, loadEnv } from 'vite'
 import path from 'path'
+import laravel from 'laravel-vite-plugin'
 
 
 export default defineConfig(({ mode }) => {
@@ -10,8 +11,20 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       react(),
-
+      laravel({
+        input: ['src/js/App.tsx'],
+        publicDirectory: '../public',
+        buildDirectory: 'build',
+      }),
     ],
+    build: {
+      outDir: '../public/build',
+      emptyOutDir: true,
+      manifest: true,
+      rollupOptions: {
+        input: path.resolve(__dirname, 'src/js/App.tsx'),
+      },
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src/js'),
@@ -19,6 +32,9 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
+      host: '127.0.0.1',
+      port: 5173,
+      strictPort: true,
       proxy: {
         '/api': {
           target: proxyTarget,
