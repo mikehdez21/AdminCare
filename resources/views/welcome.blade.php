@@ -6,18 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="./img/logo/design3Color_x512.png" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>PRUEBAS - Hospital San Serafin</title>
+    <title>AdminCare</title>
 
     @if (app()->environment('local'))
         @viteReactRefresh
-        @vite(['frontend/src/js/App.tsx'])
+        @vite(['src/js/App.tsx'])
     @else
-        <!-- Archivos compilados para producciÃ³n -->
+        <!-- Archivos compilados para produccion -->
         @php
             $manifestPath = public_path('build/manifest.json');
             if (file_exists($manifestPath)) {
                 $manifest = json_decode(file_get_contents($manifestPath), true);
-                $appEntry = $manifest['frontend/src/js/App.tsx'] ?? null;
+                $appEntry = $manifest['src/js/App.tsx'] ?? null;
                 $appJs = $appEntry['file'] ?? null;
                 $appCss = isset($appEntry['css']) && is_array($appEntry['css']) ? $appEntry['css'][0] : null;
             } else {
@@ -34,7 +34,7 @@
             <script type="module" src="{{ asset('build/' . $appJs) }}"></script>
         @else
             <p style="color: red; text-align: center; padding: 20px; font-size: 26px;">
-                Error: Los archivos compilados no se encontraron. Por favor ejecuta: <code>pnpm run build</code>
+                Error: Los archivos compilados no se encontraron. Por favor ejecuta: <code>npm run build</code>
             </p>
         @endif
     @endif
@@ -44,4 +44,4 @@
     <div id="root"></div>
 </body>
 
-</html>s
+</html>
