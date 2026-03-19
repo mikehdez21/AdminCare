@@ -1,0 +1,11 @@
+# softcomputing/railway.toml
+
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+# Comando para iniciar FastAPI
+startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+
+# Opcional: si tu archivo principal tiene otro nombre
+# startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
