@@ -3,10 +3,11 @@ import { AppDispatch, RootState } from '@/store/store'; // Asegúrate de importa
 import { useDispatch, useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
 
-import { getTiposFacturas, addFactura, getFacturas } from '@/store/almacenGeneral/Facturas/facturasActions';
+import { getTiposFacturas, addFactura, getFacturas, getActivosFactura } from '@/store/almacenGeneral/Facturas/facturasActions';
 import { setFacturas } from '@/store/almacenGeneral/Facturas/facturasReducer';
 import { analyzeSoftComputing } from '@/store/softcomputing/openAIActions';
 import { trainPricingModel, predictPricingModel } from '@/store/softcomputing/pricingModelActions';
+import type { PricingTrainRow } from '@/store/softcomputing/pricingModelActions';
 
 // Components
 import { FaCircleInfo, FaBoxesPacking } from 'react-icons/fa6';
@@ -213,34 +214,34 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
         })
       );
 
-      const rows = activosHistoricosPorFactura.flatMap(({ factura, activos }) => {
+      const rows: PricingTrainRow[] = activosHistoricosPorFactura.flatMap(({ factura, activos }) => {
         const activosArray = Array.isArray(activos) ? activos : [];
 
-        return activosArray
-          .map((activo) => {
-            const activoItem = activo as {
-              precio_unitario?: number;
-              total?: number;
-            };
+        return activosArray.reduce<PricingTrainRow[]>((acc, activo) => {
+          const activoItem = activo as {
+            precio_unitario?: number;
+            total?: number;
+          };
 
-            const target = toSafeNumber(activoItem.precio_unitario, 0);
-            if (target <= 0) {
-              return null;
-            }
+          const target = toSafeNumber(activoItem.precio_unitario, 0);
+          if (target <= 0) {
+            return acc;
+          }
 
-            return {
-              features: {
-                subtotal_factura: toSafeNumber(factura.subtotal_factura, 0),
-                descuento_factura: toSafeNumber(factura.descuento_factura, 0),
-                flete_factura: toSafeNumber(factura.flete_factura, 0),
-                iva_factura: toSafeNumber(factura.iva_factura, 0),
-                total_factura: toSafeNumber(factura.total_factura, 0),
-                total_linea: toSafeNumber(activoItem.total, target),
-              },
-              target,
-            };
-          })
-          .filter((item): item is { features: Record<string, number>; target: number } => item !== null);
+          acc.push({
+            features: {
+              subtotal_factura: toSafeNumber(factura.subtotal_factura, 0),
+              descuento_factura: toSafeNumber(factura.descuento_factura, 0),
+              flete_factura: toSafeNumber(factura.flete_factura, 0),
+              iva_factura: toSafeNumber(factura.iva_factura, 0),
+              total_factura: toSafeNumber(factura.total_factura, 0),
+              total_linea: toSafeNumber(activoItem.total, target),
+            },
+            target,
+          });
+
+          return acc;
+        }, []);
       });
 
       if (rows.length < 8) {
