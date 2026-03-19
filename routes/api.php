@@ -11,6 +11,7 @@ use App\Http\Controllers\AuthController;
 
 // SoftComputing Controller
 use App\Http\Controllers\SoftComputing\OpenAIController;
+use App\Http\Controllers\SoftComputing\PricingModelController;
 
 // Admin/Controllers 
 use App\Http\Controllers\AdminControllers\UserController as UserAdminController;
@@ -70,6 +71,11 @@ Route::prefix('HSS1')->group(function () {
 
         // OPENAI Controller
         Route::post('/softcomputing/analyze', [OpenAIController::class, 'chat']);
+
+        // SOFTCOMPUTING - TRAINING REAL DE MODELOS (SCIKIT-LEARN + FASTAPI)
+        Route::post('/softcomputing/pricing/train', [PricingModelController::class, 'train']);
+        Route::post('/softcomputing/pricing/predict', [PricingModelController::class, 'predict']);
+        Route::get('/softcomputing/pricing/models', [PricingModelController::class, 'listModels']);
         
         // ALMACENES - TIPOS
         Route::get('/almacenGeneral/tipos-proveedor', [TypesProveedorController::class, 'getTiposProveedor']);

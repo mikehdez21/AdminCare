@@ -6,6 +6,7 @@ import Swal from 'sweetalert2';
 import { getTiposFacturas, addFactura, getFacturas } from '@/store/almacenGeneral/Facturas/facturasActions';
 import { setFacturas } from '@/store/almacenGeneral/Facturas/facturasReducer';
 import { analyzeSoftComputing } from '@/store/softcomputing/openAIActions';
+import { trainPricingModel, predictPricingModel } from '@/store/softcomputing/pricingModelActions';
 
 // Components
 import { FaCircleInfo, FaBoxesPacking } from 'react-icons/fa6';
@@ -51,6 +52,8 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
   const [fleteFactura, setFleteFactura] = useState<number>(0);
   const [ivaFactura, setIvaFactura] = useState<number>(0.16);
   const [totalFactura, setTotalFactura] = useState<number>(0);
+  const [loadingOpenAIRecommendation, setLoadingOpenAIRecommendation] = useState(false);
+  const [loadingMLRecommendation, setLoadingMLRecommendation] = useState(false);
 
 
   const facturas = useSelector((state: RootState) => state.facturasaf.facturasaf);
@@ -96,7 +99,254 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
     if (!formasPago?.length) dispatch(getFormasPago());
     if (!tiposMoneda?.length) dispatch(getTiposMoneda());
     if (!clasificacionActivoFijo?.length) dispatch(getClasificaciones());
+    if (!facturas?.length) dispatch(getFacturas());
   }, [dispatch]);
+
+  const obtenerResumenActivosActuales = () => {
+    return activosFactura.map((activo) => ({
+      nombre_af: activo.nombre_af,
+      cantidad: toSafeNumber(activo.cantidad, 0),
+      precio_unitario: toSafeNumber(activo.precio_unitario, 0),
+      total_linea: toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.precio_unitario, 0),
+      id_clasificacion: toSafeNumber(activo.id_clasificacion, 0),
+    }));
+  };
+
+  const handleOpenAIRecommendation = async () => {
+    if (activosFactura.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Activos requeridos',
+        text: 'Agrega activos para obtener una recomendación OpenAI.',
+        confirmButtonText: 'OK',
+      });
+      return;
+    }
+
+    try {
+      setLoadingOpenAIRecommendation(true);
+      const resumenActivos = obtenerResumenActivosActuales();
+
+      const openAITestResult = await dispatch(
+        analyzeSoftComputing({
+          mode: 'price_prediction',
+          algorithm: 'linear_regression',
+          prompt:
+            'Evalúa coherencia de precios unitarios por activo y total de factura. Detecta posibles sobreprecios y entrega recomendaciones puntuales para compras.',
+          data: {
+            numero_factura: numeroFactura.trim() || 'PENDIENTE',
+            subtotal_factura: toSafeNumber(subTotalFactura, 0),
+            descuento_factura: toSafeNumber(descuentoFactura, 0),
+            flete_factura: toSafeNumber(fleteFactura, 0),
+            iva_factura: toSafeNumber(ivaFactura, 0),
+            total_factura: toSafeNumber(totalFactura, 0),
+            activos: resumenActivos,
+          },
+        })
+      ).unwrap();
+
+      if (openAITestResult.success && openAITestResult.data?.analysis_text) {
+        const analysisText = openAITestResult.data.analysis_text;
+        await Swal.fire({
+          icon: 'info',
+          title: 'Recomendación OpenAI',
+          text: analysisText.length > 1200 ? `${analysisText.slice(0, 1200)}...` : analysisText,
+          confirmButtonText: 'OK',
+        });
+      } else {
+        await Swal.fire({
+          icon: 'warning',
+          title: 'Recomendación OpenAI no disponible',
+          text: openAITestResult.message || 'No se pudo obtener respuesta de OpenAI.',
+          confirmButtonText: 'OK',
+        });
+      }
+    } catch (error) {
+      console.error('Error en recomendación OpenAI:', error);
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error OpenAI',
+        text: 'No fue posible obtener la recomendación OpenAI.',
+        confirmButtonText: 'OK',
+      });
+    } finally {
+      setLoadingOpenAIRecommendation(false);
+    }
+  };
+
+  const handleMLRecommendation = async () => {
+    if (activosFactura.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Activos requeridos',
+        text: 'Agrega activos para obtener una recomendación ML.',
+        confirmButtonText: 'OK',
+      });
+      return;
+    }
+
+    try {
+      setLoadingMLRecommendation(true);
+
+      const facturasResp = await dispatch(getFacturas()).unwrap();
+      const facturasHistoricas = (facturasResp.facturas || [])
+        .filter((f) => !!f.id_factura)
+        .slice(0, 20);
+
+      if (facturasHistoricas.length < 4) {
+        await Swal.fire({
+          icon: 'warning',
+          title: 'Datos históricos insuficientes',
+          text: 'Se requieren más facturas en la base de datos para entrenar el modelo ML.',
+          confirmButtonText: 'OK',
+        });
+        return;
+      }
+
+      const activosHistoricosPorFactura = await Promise.all(
+        facturasHistoricas.map(async (factura) => {
+          const response = await dispatch(getActivosFactura(Number(factura.id_factura))).unwrap();
+          return {
+            factura,
+            activos: (response as { activosFactura?: unknown[] }).activosFactura || [],
+          };
+        })
+      );
+
+      const rows = activosHistoricosPorFactura.flatMap(({ factura, activos }) => {
+        const activosArray = Array.isArray(activos) ? activos : [];
+
+        return activosArray
+          .map((activo) => {
+            const activoItem = activo as {
+              precio_unitario?: number;
+              total?: number;
+            };
+
+            const target = toSafeNumber(activoItem.precio_unitario, 0);
+            if (target <= 0) {
+              return null;
+            }
+
+            return {
+              features: {
+                subtotal_factura: toSafeNumber(factura.subtotal_factura, 0),
+                descuento_factura: toSafeNumber(factura.descuento_factura, 0),
+                flete_factura: toSafeNumber(factura.flete_factura, 0),
+                iva_factura: toSafeNumber(factura.iva_factura, 0),
+                total_factura: toSafeNumber(factura.total_factura, 0),
+                total_linea: toSafeNumber(activoItem.total, target),
+              },
+              target,
+            };
+          })
+          .filter((item): item is { features: Record<string, number>; target: number } => item !== null);
+      });
+
+      if (rows.length < 8) {
+        await Swal.fire({
+          icon: 'warning',
+          title: 'Muestras insuficientes',
+          text: 'No hay suficientes líneas históricas de activos para entrenar un modelo confiable.',
+          confirmButtonText: 'OK',
+        });
+        return;
+      }
+
+      const trainResponse = await dispatch(
+        trainPricingModel({
+          algorithm: 'random_forest',
+          rows,
+          test_size: 0.25,
+          random_state: 42,
+          n_estimators: 300,
+        })
+      ).unwrap();
+
+      if (!trainResponse.success || !trainResponse.data?.model_id) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Entrenamiento ML fallido',
+          text: trainResponse.message || 'No fue posible entrenar el modelo ML.',
+          confirmButtonText: 'OK',
+        });
+        return;
+      }
+
+      const modelId = String(trainResponse.data.model_id);
+
+      const predictRows = activosFactura.map((activo) => {
+        const cantidad = toSafeNumber(activo.cantidad, 0);
+        const precioUnitario = toSafeNumber(activo.precio_unitario, 0);
+        const totalLinea = cantidad * precioUnitario;
+
+        return {
+          features: {
+            subtotal_factura: toSafeNumber(subTotalFactura, 0),
+            descuento_factura: toSafeNumber(descuentoFactura, 0),
+            flete_factura: toSafeNumber(fleteFactura, 0),
+            iva_factura: toSafeNumber(ivaFactura, 0),
+            total_factura: toSafeNumber(totalFactura, 0),
+            total_linea: toSafeNumber(totalLinea, precioUnitario),
+          },
+        };
+      });
+
+      const predictResponse = await dispatch(
+        predictPricingModel({
+          model_id: modelId,
+          rows: predictRows,
+        })
+      ).unwrap();
+
+      if (!predictResponse.success || !predictResponse.data?.predictions) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Predicción ML fallida',
+          text: predictResponse.message || 'No fue posible predecir precios unitarios.',
+          confirmButtonText: 'OK',
+        });
+        return;
+      }
+
+      const predicted = Array.isArray(predictResponse.data.predictions)
+        ? (predictResponse.data.predictions as number[])
+        : [];
+
+      const comparativo = activosFactura.map((activo, idx) => {
+        const actual = toSafeNumber(activo.precio_unitario, 0);
+        const estimado = toSafeNumber(predicted[idx], 0);
+        const diferenciaPct = estimado > 0 ? ((actual - estimado) / estimado) * 100 : 0;
+
+        let estatus = 'OK';
+        if (diferenciaPct > 15) estatus = 'Sobreprecio probable';
+        if (diferenciaPct < -15) estatus = 'Debajo de referencia';
+
+        return `${activo.nombre_af}: actual ${formatPeso(actual)} | ML ${formatPeso(estimado)} | ${diferenciaPct.toFixed(2)}% (${estatus})`;
+      });
+
+      const metrics = (trainResponse.data.metrics || {}) as { mae?: number; rmse?: number; r2?: number };
+      const resumenMetricas = `MAE: ${toSafeNumber(metrics.mae, 0).toFixed(2)} | RMSE: ${toSafeNumber(metrics.rmse, 0).toFixed(2)} | R2: ${toSafeNumber(metrics.r2, 0).toFixed(4)}`;
+
+      await Swal.fire({
+        icon: 'info',
+        title: 'Recomendación ML (Random Forest)',
+        html: `<div style="text-align:left; max-height: 340px; overflow:auto;"><p><strong>Modelo:</strong> ${modelId}</p><p><strong>Métricas:</strong> ${resumenMetricas}</p><hr/><pre style="white-space:pre-wrap; font-size:12px;">${comparativo.join('\n')}</pre></div>`,
+        width: 800,
+        confirmButtonText: 'OK',
+      });
+    } catch (error) {
+      console.error('Error en recomendación ML:', error);
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error ML',
+        text: 'No fue posible obtener la recomendación ML.',
+        confirmButtonText: 'OK',
+      });
+    } finally {
+      setLoadingMLRecommendation(false);
+    }
+  };
 
   const openModalAddActivosFactura = () => {
     setIsModalAddActivosFacturaOpen(true);
@@ -198,49 +448,6 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
       console.log('Resultado de addFactura:', resultAction);
 
       if (resultAction.success) {
-
-        // Prueba básica de OpenAI: analizar precios unitarios y total de la factura.
-        const resumenActivos = activosFactura.map((activo) => ({
-          nombre_af: activo.nombre_af,
-          cantidad: toSafeNumber(activo.cantidad, 0),
-          precio_unitario: toSafeNumber(activo.precio_unitario, 0),
-          total_linea: toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.precio_unitario, 0),
-        }));
-
-        const openAITestResult = await dispatch(
-          analyzeSoftComputing({
-            mode: 'price_prediction',
-            algorithm: 'linear_regression',
-            prompt:
-              'Analiza si los precios unitarios de los activos y el total de la factura son coherentes con una estimación básica de predicción de precios. Identifica posibles sobreprecios y genera recomendaciones.',
-            data: {
-              numero_factura: numeroFacturaTrim,
-              subtotal_factura: toSafeNumber(subTotalFactura, 0),
-              iva_factura: toSafeNumber(ivaFactura, 0),
-              total_factura: toSafeNumber(totalFactura, 0),
-              activos: resumenActivos,
-            },
-          })
-        ).unwrap();
-
-        if (openAITestResult.success && openAITestResult.data?.analysis_text) {
-          const analysisText = openAITestResult.data.analysis_text;
-
-          await Swal.fire({
-            icon: 'info',
-            title: 'Prueba OpenAI - Análisis de Precios',
-            text: analysisText.length > 1000 ? `${analysisText.slice(0, 1000)}...` : analysisText,
-            confirmButtonText: 'Continuar',
-          });
-        } else {
-          await Swal.fire({
-            icon: 'warning',
-            title: 'Prueba OpenAI no disponible',
-            text: openAITestResult.message || 'No se pudo obtener análisis de OpenAI para esta factura.',
-            confirmButtonText: 'Continuar',
-          });
-        }
-
         // Actualizar la lista de facturas
         const facturasActualizadas = await dispatch(getFacturas()).unwrap();
 
@@ -445,6 +652,26 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
             <div className='agregarActivos' onClick={openModalAddActivosFactura}>
               <IoAddCircleOutline className='addActivoIcon' /> Agregar Activos
             </div>
+          </div>
+
+          <div className='inputs_Container' style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+            <button
+              type='button'
+              className='button_addedit'
+              onClick={handleOpenAIRecommendation}
+              disabled={loadingOpenAIRecommendation || loadingMLRecommendation || activosFactura.length === 0}
+            >
+              {loadingOpenAIRecommendation ? 'Generando...' : 'Recomendación OpenAI'}
+            </button>
+
+            <button
+              type='button'
+              className='button_addedit'
+              onClick={handleMLRecommendation}
+              disabled={loadingMLRecommendation || loadingOpenAIRecommendation || activosFactura.length === 0}
+            >
+              {loadingMLRecommendation ? 'Entrenando / Prediciendo...' : 'Recomendación ML'}
+            </button>
           </div>
 
 
