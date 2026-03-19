@@ -9,6 +9,9 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Http\Controllers\ApiStatusController;
 use App\Http\Controllers\AuthController;
 
+// SoftComputing Controller
+use App\Http\Controllers\SoftComputing\OpenAIController;
+
 // Admin/Controllers 
 use App\Http\Controllers\AdminControllers\UserController as UserAdminController;
 use App\Http\Controllers\AdminControllers\RolesController as RolesAdminController;
@@ -33,7 +36,7 @@ use App\Http\Controllers\FillTypes\AlmacenGeneral\TypesProveedorController;
 Route::prefix('HSS1')->group(function () {
 
     // ============================================================
-    // 1️⃣ RUTAS PÚBLICAS (sin autenticación, con sesión + CSRF)
+    // RUTAS PÚBLICAS (sin autenticación, con sesión + CSRF)
     // ============================================================
     Route::get('/status', [ApiStatusController::class, 'index'])
         ->withoutMiddleware([
@@ -49,15 +52,15 @@ Route::prefix('HSS1')->group(function () {
         ]);
 
     // ============================================================
-    // 2️⃣ RUTAS DE AUTENTICACIÓN (sin protección, con sesión + CSRF)
+    // RUTAS DE AUTENTICACIÓN (sin protección, con sesión + CSRF)
     // ============================================================
-    // ✅ Estas rutas obtienen sesión + CSRF automáticamente del middleware de API
+    // Estas rutas obtienen sesión + CSRF automáticamente del middleware de API
     Route::get('/auth/check', [AuthController::class, 'check'])->name('check');
     Route::post('/auth/register', [AuthController::class, 'register'])->name('register');
     Route::post('/auth/login', [AuthController::class, 'login'])->name('login');
 
     // ============================================================
-    // 3️⃣ RUTAS PROTEGIDAS (auth:sanctum con sesión + CSRF)
+    // RUTAS PROTEGIDAS (auth:sanctum con sesión + CSRF)
     // ============================================================
     Route::group(['middleware' => 'auth:sanctum'], function () {
 
@@ -65,6 +68,9 @@ Route::prefix('HSS1')->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::post('/auth/logout-inactive', [AuthController::class, 'logoutInactive']);
 
+        // OPENAI Controller
+        Route::post('/softcomputing/analyze', [OpenAIController::class, 'chat']);
+        
         // ALMACENES - TIPOS
         Route::get('/almacenGeneral/tipos-proveedor', [TypesProveedorController::class, 'getTiposProveedor']);
         Route::get('/almacenGeneral/formas-pago', [TypesProveedorController::class, 'getFormasPago']);
