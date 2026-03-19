@@ -3,7 +3,7 @@ import { AppDispatch, RootState } from '@/store/store'; // Asegúrate de importa
 import { useDispatch, useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
 
-import { getTiposFacturas, addFactura, getFacturas, getActivosFactura } from '@/store/almacenGeneral/Facturas/facturasActions';
+import { addFactura, getFacturas, getActivosFactura } from '@/store/almacenGeneral/Facturas/facturasActions';
 import { setFacturas } from '@/store/almacenGeneral/Facturas/facturasReducer';
 import { analyzeSoftComputing } from '@/store/softcomputing/openAIActions';
 import { trainPricingModel, predictPricingModel } from '@/store/softcomputing/pricingModelActions';
@@ -19,9 +19,6 @@ import { AiOutlineNumber } from 'react-icons/ai';
 
 
 import { getFechaHoraActual } from '@/utils/dateFormat';
-import { getProveedores } from '@/store/almacenGeneral/Proveedores/proveedoresActions';
-import { getFormasPago, getTiposMoneda } from '@/store/shared/fiscalActions';
-import { getClasificaciones } from '@/store/almacenGeneral/Clasificaciones/clasificacionesActions';
 import AddActivosFactura from './AddActivosFactura';
 import { ActivoFactura } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 import { FacturasAF, ActivoFacturaInput } from '@/@types/AlmacenGeneralTypes/facturasTypes';
@@ -93,15 +90,6 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
     setIvaFactura(ivaCalculado);
     setTotalFactura(totalFinal);
   }, [subtotal, ivaCalculado, totalFinal]);
-
-  useEffect(() => {
-    if (!proveedores?.length) dispatch(getProveedores());
-    if (!tiposFactura?.length) dispatch(getTiposFacturas());
-    if (!formasPago?.length) dispatch(getFormasPago());
-    if (!tiposMoneda?.length) dispatch(getTiposMoneda());
-    if (!clasificacionActivoFijo?.length) dispatch(getClasificaciones());
-    if (!facturas?.length) dispatch(getFacturas());
-  }, [dispatch]);
 
   const obtenerResumenActivosActuales = () => {
     return activosFactura.map((activo) => ({

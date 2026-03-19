@@ -1,5 +1,5 @@
 // Bibliotecas
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AppDispatch, RootState } from '@/store/store'; // Asegúrate de importar AppDispatch
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -56,6 +56,7 @@ const AlmacenGeneral_Facturas: React.FC = () => {
   const tiposFacturas = useSelector((state: RootState) => state.facturasaf.tiposFacturas);
   const formasPago = useSelector((state: RootState) => state.fiscal.formasPago);
   const tiposMoneda = useSelector((state: RootState) => state.fiscal.tiposMoneda);
+  const clasificacionesAF = useSelector((state: RootState) => state.clasificacion.clasificacionesAF);
 
   const [busqueda, setBusqueda] = useState<string>('');
   const [paginaActual, setPaginaActual] = useState<number>(1);
@@ -65,6 +66,7 @@ const AlmacenGeneral_Facturas: React.FC = () => {
   const [showEditFacturaForm, setShowEditFacturaForm] = useState<boolean>(false);
   const [showImpresionFactura, setShowImpresionFactura] = useState<boolean>(false);
   const [facturaCreadaId, setFacturaCreadaId] = useState<number | null>(null);
+  const didLoadInitialDataRef = useRef(false);
   /*const [isModalDeleteFacturaOpen, setModalDeleteFacturaOpen] = useState<boolean>(false);*/
 
   // Filtrar y ordenar facturas basados en la búsqueda
@@ -196,105 +198,54 @@ const AlmacenGeneral_Facturas: React.FC = () => {
   }, [location.pathname]);
 
   useEffect(() => {
-    const cargarFacturas = async () => {
+    // Evita doble llamada en desarrollo por React.StrictMode.
+    if (didLoadInitialDataRef.current) {
+      return;
+    }
+
+    didLoadInitialDataRef.current = true;
+
+    const cargarDatosIniciales = async () => {
       try {
-        const resultAction = await dispatch(getFacturas()).unwrap();
-        console.log('Facturas cargadas:', facturas);
-        if (resultAction.success) {
-          dispatch(setFacturas(resultAction.facturas!));
-        } else {
-          console.log('Error', resultAction.message)
+        if (!facturas?.length) {
+          const resultFacturas = await dispatch(getFacturas()).unwrap();
+          if (resultFacturas.success) {
+            dispatch(setFacturas(resultFacturas.facturas || []));
+          }
         }
 
-      } catch (error) {
-        console.error('Error al cargar las facturas:', error);
-      }
-    };
-    cargarFacturas();
-
-    const cargarProveedores = async () => {
-      try {
-        const resultAction = await dispatch(getProveedores()).unwrap();
-        console.log('Proveedores cargados:', resultAction);
-
-        if (resultAction.success) {
-          dispatch(setListProveedor(resultAction.proveedor!)); // Establece el proveedor en el estado
-
-        } else {
-          console.log('Error', resultAction.message)
+        if (!proveedores?.length) {
+          const resultProveedores = await dispatch(getProveedores()).unwrap();
+          if (resultProveedores.success) {
+            dispatch(setListProveedor(resultProveedores.proveedor || []));
+          }
         }
 
-
-      } catch (error) {
-        console.error('Error al cargar proveedores:', error);
-      }
-    };
-    cargarProveedores();
-
-    const cargarTiposFacturas = async () => {
-      try {
-        const resultAction = await dispatch(getTiposFacturas()).unwrap();
-        console.log('Tipos de facturas cargados:', resultAction);
-
-        if (resultAction.success) {
-          console.log('Tipos de facturas establecidos en el estado:', resultAction.tiposFacturas);
-        } else {
-          console.log('Error', resultAction.message);
-        }
-      } catch (error) {
-        console.error('Error al cargar tipos de facturas:', error);
-      }
-    };
-    cargarTiposFacturas();
-
-    const cargarFormasPago = async () => {
-      try {
-        const resultAction = await dispatch(getFormasPago()).unwrap();
-        if (resultAction.success) {
-          // Aquí puedes manejar las formas de pago obtenidas
-          console.log('Formas de pago cargadas:', resultAction.formasPago);
-        } else {
-          console.log('Error al cargar formas de pago:', resultAction.message);
-        }
-      } catch (error) {
-        console.error('Error al cargar formas de pago:', error);
-      }
-    };
-    cargarFormasPago();
-
-    const cargarTiposMoneda = async () => {
-      try {
-        const resultAction = await dispatch(getTiposMoneda()).unwrap();
-        if (resultAction.success) {
-          // Aquí puedes manejar los tipos de moneda obtenidos
-          console.log('Tipos de moneda cargados:', resultAction.tiposMoneda);
-        } else {
-          console.log('Error al cargar tipos de moneda:', resultAction.message);
-        }
-      } catch (error) {
-        console.error('Error al cargar tipos de moneda:', error);
-      }
-    };
-    cargarTiposMoneda();
-
-    const cargarClasificaciones = async () => {
-      try {
-        const resultAction = await dispatch(getClasificaciones()).unwrap();
-
-        if (resultAction.success) {
-          dispatch(setListClasificacion(resultAction.clasificacion!)); // Establece el clasificacion en el estado
-        } else {
-          console.log('Error', resultAction.message)
+        if (!tiposFacturas?.length) {
+          await dispatch(getTiposFacturas()).unwrap();
         }
 
+        if (!formasPago?.length) {
+          await dispatch(getFormasPago()).unwrap();
+        }
 
+        if (!tiposMoneda?.length) {
+          await dispatch(getTiposMoneda()).unwrap();
+        }
+
+        if (!clasificacionesAF?.length) {
+          const clasificacionesActuales = await dispatch(getClasificaciones()).unwrap();
+          if (clasificacionesActuales.success && clasificacionesActuales.clasificacion) {
+            dispatch(setListClasificacion(clasificacionesActuales.clasificacion));
+          }
+        }
       } catch (error) {
-        console.error('Error al cargar clasificaciones:', error);
+        console.error('Error al cargar datos iniciales de facturas:', error);
       }
     };
-    cargarClasificaciones();
 
-  }, [dispatch])
+    cargarDatosIniciales();
+  }, [dispatch, facturas?.length, proveedores?.length, tiposFacturas?.length, formasPago?.length, tiposMoneda?.length, clasificacionesAF?.length])
 
   // Vista de listado de facturas
   const renderListaFacturas = () => (
