@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'softcomputing' => [
+        'url' => env('ML_SERVICE_URL'),
+    ],
+
 ];

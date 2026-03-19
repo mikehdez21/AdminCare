@@ -27,3 +27,7 @@ yarn-error.log
 /1_ModularDocs
 /frontend/node_modules
 /frontend/dist
+softcomputing.venv/
+softcomputing/.venv/
+softcomputing/**/__pycache__/
+*.py[cod]
