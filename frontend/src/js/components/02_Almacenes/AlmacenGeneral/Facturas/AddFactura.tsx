@@ -94,11 +94,88 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
   const obtenerResumenActivosActuales = () => {
     return activosFactura.map((activo) => ({
       nombre_af: activo.nombre_af,
+      marca_af: activo.marca_af,
+      modelo_af: activo.modelo_af,
       cantidad: toSafeNumber(activo.cantidad, 0),
       precio_unitario: toSafeNumber(activo.precio_unitario, 0),
       total_linea: toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.precio_unitario, 0),
       id_clasificacion: toSafeNumber(activo.id_clasificacion, 0),
     }));
+  };
+
+  const renderOpenAIRecommendationHtml = (analysisText: string): string => {
+    const escapeHtml = (value: string) =>
+      value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+
+    try {
+      const parsed = JSON.parse(analysisText) as {
+        resumen_general?: string;
+        resultados?: Array<{
+          activo?: string;
+          precio_actual?: number;
+          opcion_mas_barata?: string;
+          precio_referencia?: number;
+          ahorro_estimado?: number;
+          url?: string;
+          notas?: string;
+        }>;
+      };
+
+      const resumen = escapeHtml(parsed.resumen_general || 'Sin resumen disponible.');
+      const resultados = Array.isArray(parsed.resultados) ? parsed.resultados : [];
+
+      const resultadosHtml = resultados.length
+        ? resultados
+            .map((item) => {
+              const activo = escapeHtml(item.activo || 'Activo');
+              const opcion = escapeHtml(item.opcion_mas_barata || 'Sin opción específica');
+              const precioActual = toSafeNumber(item.precio_actual, 0);
+              const precioRef = toSafeNumber(item.precio_referencia, 0);
+              const ahorro = toSafeNumber(item.ahorro_estimado, 0);
+              const notas = escapeHtml(item.notas || '');
+              const rawUrl = (item.url || '').trim();
+              const safeUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : '';
+              const urlHtml = safeUrl
+                ? `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">Ver opción</a>`
+                : '<span>URL no disponible</span>';
+
+              return `
+                <div style="padding:8px 0; border-bottom:1px solid #eee;">
+                  <p><strong>${activo}</strong></p>
+                  <p>Precio actual: ${formatPeso(precioActual)}</p>
+                  <p>Opción sugerida: ${opcion}</p>
+                  <p>Precio referencia: ${formatPeso(precioRef)} | Ahorro estimado: ${formatPeso(ahorro)}</p>
+                  <p>${urlHtml}</p>
+                  ${notas ? `<p style="color:#555;">Notas: ${notas}</p>` : ''}
+                </div>
+              `;
+            })
+            .join('')
+        : '<p>No se recibieron resultados estructurados.</p>';
+
+      return `
+        <div style="text-align:left; max-height:380px; overflow:auto;">
+          <p><strong>Resumen:</strong> ${resumen}</p>
+          <hr />
+          ${resultadosHtml}
+        </div>
+      `;
+    } catch {
+      const plain = analysisText
+        .replace(/\n/g, '<br/>')
+        .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+
+      return `
+        <div style="text-align:left; max-height:380px; overflow:auto; white-space:normal;">
+          ${plain}
+        </div>
+      `;
+    }
   };
 
   const handleOpenAIRecommendation = async () => {
@@ -121,7 +198,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
           mode: 'price_prediction',
           algorithm: 'linear_regression',
           prompt:
-            'Evalúa coherencia de precios unitarios por activo y total de factura. Detecta posibles sobreprecios y entrega recomendaciones puntuales para compras.',
+            'Con base en nombre, marca, modelo y precio unitario de cada activo, realiza una búsqueda sencilla tipo Google Shopping para identificar la misma opción (o alternativa comparable) más barata. Responde en JSON con llaves: resumen_general y resultados[]. Cada resultado debe incluir: activo, precio_actual, opcion_mas_barata, precio_referencia, ahorro_estimado, url, notas. Si no hay navegación en tiempo real o no puedes validar la URL, indícalo explícitamente en notas y no inventes enlaces.',
           data: {
             numero_factura: numeroFactura.trim() || 'PENDIENTE',
             subtotal_factura: toSafeNumber(subTotalFactura, 0),
@@ -139,7 +216,8 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
         await Swal.fire({
           icon: 'info',
           title: 'Recomendación OpenAI',
-          text: analysisText.length > 1200 ? `${analysisText.slice(0, 1200)}...` : analysisText,
+          html: renderOpenAIRecommendationHtml(analysisText),
+          width: 860,
           confirmButtonText: 'OK',
         });
       } else {
