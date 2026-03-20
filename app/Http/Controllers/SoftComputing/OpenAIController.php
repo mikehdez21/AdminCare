@@ -62,9 +62,9 @@ class OpenAIController extends Controller
 							'content' => json_encode($userPrompt, JSON_UNESCAPED_UNICODE),
 						],
 					],
-					'tools' => [
-						['type' => 'web_search'],
-					],
+					// 'tools' => [
+					// 	['type' => 'web_search'],
+					// ],
 					'temperature' => 0.2,
 				]);
 
