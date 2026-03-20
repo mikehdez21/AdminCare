@@ -721,10 +721,10 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
             </div>
           </div>
 
-          <div className='inputs_Container' style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+          <div className='inputs_Container recommendationButtonsRow'>
             <button
               type='button'
-              className='button_addedit'
+              className='recommendationButton recommendationButton--openai'
               onClick={handleOpenAIRecommendation}
               disabled={loadingOpenAIRecommendation || loadingMLRecommendation || activosFactura.length === 0}
             >
@@ -733,7 +733,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
 
             <button
               type='button'
-              className='button_addedit'
+              className='recommendationButton recommendationButton--ml'
               onClick={handleMLRecommendation}
               disabled={loadingMLRecommendation || loadingOpenAIRecommendation || activosFactura.length === 0}
             >
