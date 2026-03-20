@@ -37,6 +37,8 @@ return [
 
     'softcomputing' => [
         'url' => env('ML_SERVICE_URL'),
+        'public_url' => env('ML_SERVICE_PUBLIC_URL'),
+        'timeout' => env('ML_SERVICE_TIMEOUT', 120),
     ],
 
     'openai' => [

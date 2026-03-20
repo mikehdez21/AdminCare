@@ -33,6 +33,41 @@ interface GenericSoftComputingResponse {
   data?: Record<string, unknown>;
 }
 
+const composeBackendErrorMessage = (fallback: string, responseData: unknown): string => {
+  if (!responseData || typeof responseData !== 'object') {
+    return fallback;
+  }
+
+  const payload = responseData as {
+    message?: string;
+    data?: {
+      error?: string;
+      errors?: Array<{ base_url?: string; path?: string; error?: string }>;
+      hint?: string;
+    };
+  };
+
+  const lines: string[] = [];
+  lines.push(payload.message || fallback);
+
+  if (payload.data?.error) {
+    lines.push(payload.data.error);
+  }
+
+  if (Array.isArray(payload.data?.errors) && payload.data?.errors.length > 0) {
+    const first = payload.data.errors[0];
+    lines.push(`base_url: ${first.base_url || 'n/a'}`);
+    if (first.path) lines.push(`path: ${first.path}`);
+    if (first.error) lines.push(`detalle: ${first.error}`);
+  }
+
+  if (payload.data?.hint) {
+    lines.push(payload.data.hint);
+  }
+
+  return lines.filter(Boolean).join('\n');
+};
+
 const getCsrfToken = async (): Promise<string> => {
   await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
   return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
@@ -64,7 +99,7 @@ export const trainPricingModel = createAsyncThunk<GenericSoftComputingResponse, 
       if (axios.isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error al entrenar modelo de precios.',
+          message: composeBackendErrorMessage('Error al entrenar modelo de precios.', error.response.data),
           data: error.response.data.data,
         };
       }
@@ -103,7 +138,7 @@ export const predictPricingModel = createAsyncThunk<GenericSoftComputingResponse
       if (axios.isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error al predecir precios.',
+          message: composeBackendErrorMessage('Error al predecir precios.', error.response.data),
           data: error.response.data.data,
         };
       }
@@ -138,7 +173,7 @@ export const listPricingModels = createAsyncThunk<GenericSoftComputingResponse>(
       if (axios.isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error al listar modelos entrenados.',
+          message: composeBackendErrorMessage('Error al listar modelos entrenados.', error.response.data),
           data: error.response.data.data,
         };
       }

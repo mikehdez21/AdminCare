@@ -21,9 +21,8 @@ class PricingModelController extends Controller
 
     public function listModels(): JsonResponse
     {
-        $baseUrl = rtrim((string) config('services.softcomputing.url', ''), '/');
-
-        if ($baseUrl === '') {
+        $baseUrls = $this->resolveBaseUrls();
+        if (empty($baseUrls)) {
             return response()->json([
                 'success' => false,
                 'message' => 'ML_SERVICE_URL no está configurada.',
@@ -31,31 +30,43 @@ class PricingModelController extends Controller
             ], 500);
         }
 
-        try {
-            $response = Http::timeout(60)->get($baseUrl . '/api/v1/pricing/models');
+        $timeout = (int) config('services.softcomputing.timeout', 60);
+        $errors = [];
 
-            return response()->json(
-                $response->json() ?: [
-                    'success' => false,
-                    'message' => 'Respuesta vacía del microservicio de modelos.',
-                    'data' => null,
-                ],
-                $response->status()
-            );
-        } catch (\Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al listar modelos entrenados.',
-                'data' => ['error' => $e->getMessage()],
-            ], 502);
+        foreach ($baseUrls as $baseUrl) {
+            try {
+                $response = Http::timeout($timeout)->get($baseUrl . '/api/v1/pricing/models');
+
+                return response()->json(
+                    $response->json() ?: [
+                        'success' => false,
+                        'message' => 'Respuesta vacía del microservicio de modelos.',
+                        'data' => null,
+                    ],
+                    $response->status()
+                );
+            } catch (\Throwable $e) {
+                $errors[] = [
+                    'base_url' => $baseUrl,
+                    'error' => $e->getMessage(),
+                ];
+            }
         }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al listar modelos entrenados.',
+            'data' => [
+                'errors' => $errors,
+                'hint' => 'Verifica ML_SERVICE_URL y ML_SERVICE_PUBLIC_URL en Railway.',
+            ],
+        ], 502);
     }
 
     private function forwardToSoftComputing(string $path, array $payload, string $action): JsonResponse
     {
-        $baseUrl = rtrim((string) config('services.softcomputing.url', ''), '/');
-
-        if ($baseUrl === '') {
+        $baseUrls = $this->resolveBaseUrls();
+        if (empty($baseUrls)) {
             return response()->json([
                 'success' => false,
                 'message' => 'ML_SERVICE_URL no está configurada.',
@@ -63,23 +74,45 @@ class PricingModelController extends Controller
             ], 500);
         }
 
-        try {
-            $response = Http::timeout(120)->post($baseUrl . $path, $payload);
+        $timeout = (int) config('services.softcomputing.timeout', 120);
+        $errors = [];
 
-            return response()->json(
-                $response->json() ?: [
-                    'success' => false,
-                    'message' => 'Respuesta vacía del microservicio de modelos.',
-                    'data' => null,
-                ],
-                $response->status()
-            );
-        } catch (\Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => "Error al {$action}.",
-                'data' => ['error' => $e->getMessage()],
-            ], 502);
+        foreach ($baseUrls as $baseUrl) {
+            try {
+                $response = Http::timeout($timeout)->post($baseUrl . $path, $payload);
+
+                return response()->json(
+                    $response->json() ?: [
+                        'success' => false,
+                        'message' => 'Respuesta vacía del microservicio de modelos.',
+                        'data' => null,
+                    ],
+                    $response->status()
+                );
+            } catch (\Throwable $e) {
+                $errors[] = [
+                    'base_url' => $baseUrl,
+                    'path' => $path,
+                    'error' => $e->getMessage(),
+                ];
+            }
         }
+
+        return response()->json([
+            'success' => false,
+            'message' => "Error al {$action}.",
+            'data' => [
+                'errors' => $errors,
+                'hint' => 'Si usas Vercel + Railway, define ML_SERVICE_PUBLIC_URL en el backend Laravel.',
+            ],
+        ], 502);
+    }
+
+    private function resolveBaseUrls(): array
+    {
+        $internalUrl = rtrim((string) config('services.softcomputing.url', ''), '/');
+        $publicUrl = rtrim((string) config('services.softcomputing.public_url', ''), '/');
+
+        return array_values(array_unique(array_filter([$internalUrl, $publicUrl])));
     }
 }
