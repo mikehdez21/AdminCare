@@ -1,7 +1,10 @@
 import os
+import sqlite3
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qs, urlparse
 from uuid import uuid4
 
 import joblib
@@ -119,6 +122,96 @@ def _load_model(model_id: str) -> dict[str, Any]:
 app = FastAPI(title="SoftComputing Service", version="1.0.0")
 
 
+def _check_database_connection() -> dict[str, Any]:
+    database_url = os.environ.get("ML_DATABASE_URL") or os.environ.get("DATABASE_URL")
+    if not database_url:
+        return {
+            "connected": False,
+            "message": "No se encontró ML_DATABASE_URL o DATABASE_URL.",
+            "engine": None,
+        }
+
+    parsed = urlparse(database_url)
+    engine = parsed.scheme.split("+", 1)[0].lower()
+    started = time.perf_counter()
+
+    try:
+        if engine == "sqlite":
+            db_path = parsed.path or ":memory:"
+            if db_path.startswith("/") and os.name == "nt" and len(db_path) > 2 and db_path[2] == ":":
+                db_path = db_path[1:]
+
+            with sqlite3.connect(db_path, timeout=5) as conn:
+                conn.execute("SELECT 1")
+
+        elif engine in {"postgres", "postgresql"}:
+            try:
+                import psycopg2  # type: ignore
+            except Exception as exc:  # pragma: no cover
+                return {
+                    "connected": False,
+                    "message": f"Driver no disponible para PostgreSQL: {exc}",
+                    "engine": engine,
+                }
+
+            with psycopg2.connect(database_url, connect_timeout=5) as conn:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT 1")
+                    cur.fetchone()
+
+        elif engine in {"mysql", "mariadb"}:
+            try:
+                import pymysql  # type: ignore
+            except Exception as exc:  # pragma: no cover
+                return {
+                    "connected": False,
+                    "message": f"Driver no disponible para MySQL/MariaDB: {exc}",
+                    "engine": engine,
+                }
+
+            query = parse_qs(parsed.query)
+            db_name = parsed.path.lstrip("/") if parsed.path else None
+
+            conn = pymysql.connect(
+                host=parsed.hostname,
+                port=parsed.port or 3306,
+                user=parsed.username,
+                password=parsed.password,
+                database=db_name,
+                connect_timeout=5,
+                charset=query.get("charset", ["utf8mb4"])[0],
+            )
+            try:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT 1")
+                    cur.fetchone()
+            finally:
+                conn.close()
+
+        else:
+            return {
+                "connected": False,
+                "message": f"Motor de base de datos no soportado: {engine}",
+                "engine": engine,
+            }
+
+        elapsed_ms = round((time.perf_counter() - started) * 1000, 2)
+        return {
+            "connected": True,
+            "message": "Conexión a base de datos OK.",
+            "engine": engine,
+            "elapsed_ms": elapsed_ms,
+        }
+    except Exception as exc:
+        elapsed_ms = round((time.perf_counter() - started) * 1000, 2)
+        return {
+            "connected": False,
+            "message": f"Error de conexión a BD: {exc}",
+            "engine": engine,
+            "elapsed_ms": elapsed_ms,
+        }
+
+
 @app.get("/")
 def root():
     return {"ok": True, "service": "softcomputing", "version": "1.0.0"}
@@ -130,6 +223,16 @@ def health():
         "status": "up",
         "service": "softcomputing",
         "models_dir": str(MODEL_DIR),
+    }
+
+
+@app.get("/dbhealth")
+def db_health():
+    result = _check_database_connection()
+    return {
+        "status": "up" if result["connected"] else "down",
+        "service": "softcomputing",
+        "database": result,
     }
 
 
