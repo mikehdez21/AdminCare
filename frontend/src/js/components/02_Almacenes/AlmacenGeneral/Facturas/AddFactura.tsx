@@ -211,8 +211,20 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
         })
       ).unwrap();
 
-      if (openAITestResult.success && openAITestResult.data?.analysis_text) {
-        const analysisText = openAITestResult.data.analysis_text;
+      if (openAITestResult.success && openAITestResult.data) {
+        const analysisText = openAITestResult.data.analysis_text
+          || JSON.stringify(openAITestResult.data.raw_response || {}, null, 2);
+
+        if (!analysisText || analysisText.trim() === '') {
+          await Swal.fire({
+            icon: 'warning',
+            title: 'Recomendación OpenAI vacía',
+            text: 'OpenAI respondió sin contenido interpretable para mostrar.',
+            confirmButtonText: 'OK',
+          });
+          return;
+        }
+
         await Swal.fire({
           icon: 'info',
           title: 'Recomendación OpenAI',

@@ -36,7 +36,7 @@ class OpenAIController extends Controller
 			$inputData = $validated['data'] ?? [];
 
 			$systemPrompt = "Eres un analista de SoftComputing para el sistema AdminCare. "
-				. "Responde únicamente en JSON válido con las llaves: summary, score, risks, recommendations. "
+				. "Responde únicamente en JSON válido, siguiendo exactamente la estructura solicitada por el usuario en el campo question. "
 				. "No uses markdown. "
 				. "Contexto de tarea: {$modeContext}.";
 
@@ -75,8 +75,12 @@ class OpenAIController extends Controller
 				], 502);
 			}
 
-			$responsePayload = $openAIResponse->json();
+			$responsePayload = $openAIResponse->json() ?? [];
 			$outputText = $this->extractOutputText($responsePayload);
+
+			if ($outputText === '') {
+				$outputText = json_encode($responsePayload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) ?: '';
+			}
 
 			return response()->json([
 				'success' => true,
@@ -118,6 +122,16 @@ class OpenAIController extends Controller
 			return $outputText;
 		}
 
+		if (is_array($outputText)) {
+			$chunks = array_values(array_filter(array_map(function ($item) {
+				return is_string($item) ? trim($item) : '';
+			}, $outputText)));
+
+			if (!empty($chunks)) {
+				return trim(implode("\n", $chunks));
+			}
+		}
+
 		$output = data_get($responsePayload, 'output', []);
 		if (!is_array($output)) {
 			return '';
@@ -134,6 +148,18 @@ class OpenAIController extends Controller
 				$text = $content['text'] ?? null;
 				if (is_string($text) && trim($text) !== '') {
 					$chunks[] = $text;
+					continue;
+				}
+
+				$jsonPayload = $content['json'] ?? null;
+				if (is_array($jsonPayload)) {
+					$chunks[] = json_encode($jsonPayload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+					continue;
+				}
+
+				$rawContent = $content['content'] ?? null;
+				if (is_string($rawContent) && trim($rawContent) !== '') {
+					$chunks[] = $rawContent;
 				}
 			}
 		}
