@@ -56,10 +56,14 @@ class OpenAIController extends Controller
 							'role' => 'system',
 							'content' => $systemPrompt,
 						],
+						
 						[
 							'role' => 'user',
 							'content' => json_encode($userPrompt, JSON_UNESCAPED_UNICODE),
 						],
+					],
+					'tools' => [
+						['type' => 'web_search'],
 					],
 					'temperature' => 0.2,
 				]);
