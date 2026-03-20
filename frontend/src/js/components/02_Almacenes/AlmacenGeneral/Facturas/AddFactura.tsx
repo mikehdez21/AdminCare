@@ -3,11 +3,10 @@ import { AppDispatch, RootState } from '@/store/store'; // Asegúrate de importa
 import { useDispatch, useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
 
-import { addFactura, getFacturas, getActivosFactura } from '@/store/almacenGeneral/Facturas/facturasActions';
+import { addFactura, getFacturas } from '@/store/almacenGeneral/Facturas/facturasActions';
 import { setFacturas } from '@/store/almacenGeneral/Facturas/facturasReducer';
 import { analyzeSoftComputing } from '@/store/softcomputing/openAIActions';
-import { trainPricingModel, predictPricingModel } from '@/store/softcomputing/pricingModelActions';
-import type { PricingTrainRow } from '@/store/softcomputing/pricingModelActions';
+import { trainPricingModelFromDb, predictPricingModel } from '@/store/softcomputing/pricingModelActions';
 
 // Components
 import { FaCircleInfo, FaBoxesPacking } from 'react-icons/fa6';
@@ -266,79 +265,13 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
 
     try {
       setLoadingMLRecommendation(true);
-
-      const facturasResp = await dispatch(getFacturas()).unwrap();
-      const facturasHistoricas = (facturasResp.facturas || [])
-        .filter((f) => !!f.id_factura)
-        .slice(0, 20);
-
-      if (facturasHistoricas.length < 4) {
-        await Swal.fire({
-          icon: 'warning',
-          title: 'Datos históricos insuficientes',
-          text: 'Se requieren más facturas en la base de datos para entrenar el modelo ML.',
-          confirmButtonText: 'OK',
-        });
-        return;
-      }
-
-      const activosHistoricosPorFactura = await Promise.all(
-        facturasHistoricas.map(async (factura) => {
-          const response = await dispatch(getActivosFactura(Number(factura.id_factura))).unwrap();
-          return {
-            factura,
-            activos: (response as { activosFactura?: unknown[] }).activosFactura || [],
-          };
-        })
-      );
-
-      const rows: PricingTrainRow[] = activosHistoricosPorFactura.flatMap(({ factura, activos }) => {
-        const activosArray = Array.isArray(activos) ? activos : [];
-
-        return activosArray.reduce<PricingTrainRow[]>((acc, activo) => {
-          const activoItem = activo as {
-            precio_unitario?: number;
-            total?: number;
-          };
-
-          const target = toSafeNumber(activoItem.precio_unitario, 0);
-          if (target <= 0) {
-            return acc;
-          }
-
-          acc.push({
-            features: {
-              subtotal_factura: toSafeNumber(factura.subtotal_factura, 0),
-              descuento_factura: toSafeNumber(factura.descuento_factura, 0),
-              flete_factura: toSafeNumber(factura.flete_factura, 0),
-              iva_factura: toSafeNumber(factura.iva_factura, 0),
-              total_factura: toSafeNumber(factura.total_factura, 0),
-              total_linea: toSafeNumber(activoItem.total, target),
-            },
-            target,
-          });
-
-          return acc;
-        }, []);
-      });
-
-      if (rows.length < 8) {
-        await Swal.fire({
-          icon: 'warning',
-          title: 'Muestras insuficientes',
-          text: 'No hay suficientes líneas históricas de activos para entrenar un modelo confiable.',
-          confirmButtonText: 'OK',
-        });
-        return;
-      }
-
       const trainResponse = await dispatch(
-        trainPricingModel({
+        trainPricingModelFromDb({
           algorithm: 'random_forest',
-          rows,
           test_size: 0.25,
           random_state: 42,
           n_estimators: 300,
+          limit: 1000,
         })
       ).unwrap();
 

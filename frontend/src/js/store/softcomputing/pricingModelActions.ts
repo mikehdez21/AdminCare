@@ -18,6 +18,15 @@ export interface PricingTrainRequest {
   n_neighbors?: number;
 }
 
+export interface PricingTrainFromDbRequest {
+  algorithm?: PricingAlgorithm;
+  test_size?: number;
+  random_state?: number;
+  n_estimators?: number;
+  n_neighbors?: number;
+  limit?: number;
+}
+
 export interface PricingPredictRow {
   features: Record<string, number>;
 }
@@ -146,6 +155,45 @@ export const predictPricingModel = createAsyncThunk<GenericSoftComputingResponse
       return {
         success: false,
         message: 'Error inesperado en predictPricingModel.',
+      };
+    }
+  }
+);
+
+export const trainPricingModelFromDb = createAsyncThunk<GenericSoftComputingResponse, PricingTrainFromDbRequest | undefined>(
+  'softcomputing/trainPricingModelFromDb',
+  async (payload) => {
+    try {
+      const csrfToken = await getCsrfToken();
+      const response = await axios.post(
+        `${API_BASE_URL}/api/HSS1/softcomputing/pricing/train-db`,
+        payload || {},
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+          },
+          withCredentials: true,
+        }
+      );
+
+      return {
+        success: response.data.success,
+        message: response.data.message,
+        data: response.data.data,
+      };
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        return {
+          success: false,
+          message: composeBackendErrorMessage('Error al entrenar modelo de precios desde base de datos.', error.response.data),
+          data: error.response.data.data,
+        };
+      }
+
+      return {
+        success: false,
+        message: 'Error inesperado en trainPricingModelFromDb.',
       };
     }
   }

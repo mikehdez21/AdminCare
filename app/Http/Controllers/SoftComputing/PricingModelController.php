@@ -5,6 +5,7 @@ namespace App\Http\Controllers\SoftComputing;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 class PricingModelController extends Controller
@@ -12,6 +13,87 @@ class PricingModelController extends Controller
     public function train(Request $request): JsonResponse
     {
         return $this->forwardToSoftComputing('/api/v1/pricing/train', $request->all(), 'entrenar modelo de precios');
+    }
+
+    public function trainFromDatabase(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'algorithm' => 'nullable|in:linear_regression,random_forest,knn',
+            'test_size' => 'nullable|numeric|gt:0|lt:0.5',
+            'random_state' => 'nullable|integer',
+            'n_estimators' => 'nullable|integer|min:10|max:2000',
+            'n_neighbors' => 'nullable|integer|min:1|max:50',
+            'limit' => 'nullable|integer|min:8|max:5000',
+        ]);
+
+        $limit = (int) ($validated['limit'] ?? 1000);
+
+        $records = DB::table('almacengeneral.tableInter_FacturaActivos as d')
+            ->join('almacengeneral.tableAF_Facturas as f', 'f.id_factura', '=', 'd.id_factura')
+            ->whereNotNull('d.precio_unitarioaf')
+            ->where('d.precio_unitarioaf', '>', 0)
+            ->orderByDesc('f.fecha_fac_recepcion')
+            ->limit($limit)
+            ->get([
+                'f.subtotal_factura',
+                'f.descuento_factura',
+                'f.flete_factura',
+                'f.iva_factura',
+                'f.total_factura',
+                'd.precio_unitarioaf',
+                'd.descuento_af',
+                'd.descuento_porcentajeaf',
+            ]);
+
+        $rows = [];
+        foreach ($records as $record) {
+            $target = (float) ($record->precio_unitarioaf ?? 0);
+            if ($target <= 0) {
+                continue;
+            }
+
+            $lineTotal = max(
+                0,
+                $target
+                - (float) ($record->descuento_af ?? 0)
+                - ($target * ((float) ($record->descuento_porcentajeaf ?? 0) / 100))
+            );
+
+            $rows[] = [
+                'features' => [
+                    'subtotal_factura' => (float) ($record->subtotal_factura ?? 0),
+                    'descuento_factura' => (float) ($record->descuento_factura ?? 0),
+                    'flete_factura' => (float) ($record->flete_factura ?? 0),
+                    'iva_factura' => (float) ($record->iva_factura ?? 0),
+                    'total_factura' => (float) ($record->total_factura ?? 0),
+                    'total_linea' => $lineTotal,
+                ],
+                'target' => $target,
+            ];
+        }
+
+        if (count($rows) < 8) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No hay suficientes registros en BD para entrenar el modelo.',
+                'data' => [
+                    'required' => 8,
+                    'available' => count($rows),
+                    'hint' => 'Verifica registros en almacengeneral.tableInter_FacturaActivos y precios unitarios mayores a 0.',
+                ],
+            ], 422);
+        }
+
+        $payload = [
+            'algorithm' => $validated['algorithm'] ?? 'random_forest',
+            'rows' => $rows,
+            'test_size' => $validated['test_size'] ?? 0.25,
+            'random_state' => $validated['random_state'] ?? 42,
+            'n_estimators' => $validated['n_estimators'] ?? 300,
+            'n_neighbors' => $validated['n_neighbors'] ?? 5,
+        ];
+
+        return $this->forwardToSoftComputing('/api/v1/pricing/train', $payload, 'entrenar modelo de precios desde BD');
     }
 
     public function predict(Request $request): JsonResponse

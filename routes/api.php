@@ -74,6 +74,7 @@ Route::prefix('HSS1')->group(function () {
 
         // SOFTCOMPUTING - TRAINING REAL DE MODELOS (SCIKIT-LEARN + FASTAPI)
         Route::post('/softcomputing/pricing/train', [PricingModelController::class, 'train']);
+        Route::post('/softcomputing/pricing/train-db', [PricingModelController::class, 'trainFromDatabase']);
         Route::post('/softcomputing/pricing/predict', [PricingModelController::class, 'predict']);
         Route::get('/softcomputing/pricing/models', [PricingModelController::class, 'listModels']);
         
