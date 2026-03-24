@@ -53,7 +53,7 @@ const ActivoQRPublic: React.FC = () => {
       try {
         await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/qraf/scan/${codigoQR}`, {
+        const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/qraf/scan/${codigoQR}`, {
           headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': csrfToken || '',

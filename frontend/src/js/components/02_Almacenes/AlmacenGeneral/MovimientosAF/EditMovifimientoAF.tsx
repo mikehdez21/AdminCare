@@ -2,9 +2,9 @@ import { MovimientosActivosFijos, VwMovimientosAF } from '@/@types/AlmacenGenera
 import ModalButtons from '@/components/00_Utils/ModalButtons';
 import { getEmpleados } from '@/store/administrador/Empleados/empleadosActions';
 import { getUbicaciones } from '@/store/administrador/Ubicaciones/ubicacionesActions';
-import { editMovimientoActivoFijo, getMovimientosActivosFijos, getVWmovimientosActivosFijos } from '@/store/almacenGeneral/Activos/MovimientosActivos/movimientosAFActions';
-import { setListMovimientosAF } from '@/store/almacenGeneral/Activos/MovimientosActivos/movimientosAFReducer';
-import { setListvwMovimientosAF } from '@/store/almacenGeneral/Activos/vwMovimientosAFReducer';
+import { editMovimientoActivoFijo, getMovimientosActivosFijos, getVWmovimientosActivosFijos } from '@/store/almacengeneral/Activos/MovimientosActivos/movimientosAFActions';
+import { setListMovimientosAF } from '@/store/almacengeneral/Activos/MovimientosActivos/movimientosAFReducer';
+import { setListvwMovimientosAF } from '@/store/almacengeneral/Activos/vwMovimientosAFReducer';
 import { AppDispatch, RootState } from '@/store/store';
 import { formatDateHorasToInputs, getFechaHoraActual } from '@/utils/dateFormat';
 import React, { useEffect, useState } from 'react';

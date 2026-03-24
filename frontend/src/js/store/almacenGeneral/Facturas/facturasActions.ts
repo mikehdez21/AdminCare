@@ -55,7 +55,7 @@ const buildBackendErrorMessage = (payload: unknown): string => {
 
 // Agregar una nueva factura
 export const addFactura = createAsyncThunk<{ success: boolean; message: string; id_factura?: number }, FacturasAF>(
-  'almacenGeneral/addFactura',
+  'almacengeneral/addFactura',
   async (nuevaFactura: FacturasAF) => {
     try {
       console.log('Nueva factura a agregar:', nuevaFactura),
@@ -63,7 +63,7 @@ export const addFactura = createAsyncThunk<{ success: boolean; message: string; 
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
       const response = await axios.post(
-        `${API_BASE_URL}/api/HSS1/almacenGeneral/facturas`,
+        `${API_BASE_URL}/api/HSS1/almacengeneral/facturas`,
         nuevaFactura,
         {
           headers: {
@@ -119,13 +119,13 @@ export const addFactura = createAsyncThunk<{ success: boolean; message: string; 
 
 // Obtener las facturas registradas
 export const getFacturas = createAsyncThunk<{ success: boolean; facturas?: FacturasAF[], message: string }>(
-  'almacenGeneral/getFacturas',
+  'almacengeneral/getFacturas',
   async () => {
     try {
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/facturas`, {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/facturas`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -169,13 +169,13 @@ export const updateFactura = createAsyncThunk<
   { success: boolean; message: string },
   { id: number; factura: Partial<FacturasAF> }
 >(
-  'almacenGeneral/updateFactura',
+  'almacengeneral/updateFactura',
   async ({ id, factura }) => {
     try {
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       const response = await axios.put(
-        `${API_BASE_URL}/api/HSS1/almacenGeneral/facturas/${id}`,
+        `${API_BASE_URL}/api/HSS1/almacengeneral/facturas/${id}`,
         factura,
         {
           headers: {
@@ -207,13 +207,13 @@ export const updateFactura = createAsyncThunk<
 
 // Obtener los tipos de facturas registrados
 export const getTiposFacturas = createAsyncThunk<{ success: boolean; tiposFacturas?: []; message: string }>(
-  'almacenGeneral/getTiposFacturas',
+  'almacengeneral/getTiposFacturas',
   async () => {
     try {
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/tipos-facturas`, {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/tipos-facturas`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -242,13 +242,13 @@ export const getTiposFacturas = createAsyncThunk<{ success: boolean; tiposFactur
 
 // Obtener activos asociados a una factura específica
 export const getActivosFactura = createAsyncThunk<ActivosFacturaApiResponse, number>(
-  'almacenGeneral/getActivosFactura',
+  'almacengeneral/getActivosFactura',
   async (idFactura: number) => {
     try {
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/facturas/${idFactura}/activos`, {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/facturas/${idFactura}/activos`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -278,14 +278,14 @@ export const addActivosToFactura = createAsyncThunk<
   { success: boolean; message: string; data?: ActivoEntityResponse[] },
   { id_factura: number; activos: ActivoFacturaInput[] }
 >(
-  'almacenGeneral/addActivosToFactura',
+  'almacengeneral/addActivosToFactura',
   async ({ id_factura, activos }) => {
     try {
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
       const response = await axios.post(
-        `${API_BASE_URL}/api/HSS1/almacenGeneral/facturas/activos`,
+        `${API_BASE_URL}/api/HSS1/almacengeneral/facturas/activos`,
         { id_factura, activos },
         {
           headers: {
@@ -318,14 +318,14 @@ export const updateActivosFactura = createAsyncThunk<
   { success: boolean; message: string; data?: ActivoEntityResponse[] },
   { id_factura: number; activos: ActivoFacturaInput[] }
 >(
-  'almacenGeneral/updateActivosFactura',
+  'almacengeneral/updateActivosFactura',
   async ({ id_factura, activos }) => {
     try {
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
       const response = await axios.put(
-        `${API_BASE_URL}/api/HSS1/almacenGeneral/facturas/${id_factura}/activos`,
+        `${API_BASE_URL}/api/HSS1/almacengeneral/facturas/${id_factura}/activos`,
         { activos },
         {
           headers: {
@@ -358,14 +358,14 @@ export const removeActivoFromFactura = createAsyncThunk<
   { success: boolean; message: string },
   { id_factura: number; id_activo: number }
 >(
-  'almacenGeneral/removeActivoFromFactura',
+  'almacengeneral/removeActivoFromFactura',
   async ({ id_factura, id_activo }) => {
     try {
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
       const response = await axios.delete(
-        `${API_BASE_URL}/api/HSS1/almacenGeneral/facturas/${id_factura}/activos/${id_activo}`,
+        `${API_BASE_URL}/api/HSS1/almacengeneral/facturas/${id_factura}/activos/${id_activo}`,
         {
           headers: {
             'Content-Type': 'application/json',

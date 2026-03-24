@@ -5,11 +5,11 @@ import { useDispatch, useSelector } from 'react-redux';
 
 // Proveedores
 import { Proveedores } from '@/@types/AlmacenGeneralTypes/proveedorTypes';
-import { getProveedores } from '@/store/almacenGeneral/Proveedores/proveedoresActions';
-import { setListProveedor } from '@/store/almacenGeneral/Proveedores/proveedoresReducer';
+import { getProveedores } from '@/store/almacengeneral/Proveedores/proveedoresActions';
+import { setListProveedor } from '@/store/almacengeneral/Proveedores/proveedoresReducer';
 
 // Almacen General Tipos
-import { getTiposProveedores, getTiposDescuento, } from '@/store/almacenGeneral/Proveedores/proveedoresActions';
+import { getTiposProveedores, getTiposDescuento, } from '@/store/almacengeneral/Proveedores/proveedoresActions';
 import { getFormasPago, getTiposRegimen, getTiposMoneda, getTiposFacturacion } from '@/store/shared/fiscalActions';
 
 // Componentes

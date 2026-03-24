@@ -173,13 +173,13 @@ export const deleteUbicacion = createAsyncThunk<{ success: boolean; message: str
 
 // Obtener activos asociados a una ubicación específica
 export const getActivosUbicacion = createAsyncThunk<ActivosUbicacionApiResponse, number>(
-  'almacenGeneral/getActivosUbicacion',
+  'almacengeneral/getActivosUbicacion',
   async (idUbicacion: number) => {
     try {
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/activosfijos/ubicacion/${idUbicacion}`, {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos/ubicacion/${idUbicacion}`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',

@@ -79,46 +79,46 @@ Route::prefix('HSS1')->group(function () {
         Route::get('/softcomputing/pricing/models', [PricingModelController::class, 'listModels']);
         
         // ALMACENES - TIPOS
-        Route::get('/almacenGeneral/tipos-proveedor', [TypesProveedorController::class, 'getTiposProveedor']);
-        Route::get('/almacenGeneral/formas-pago', [TypesProveedorController::class, 'getFormasPago']);
-        Route::get('/almacenGeneral/tipos-regimen', [TypesProveedorController::class, 'getTiposRegimen']);
-        Route::get('/almacenGeneral/descuentos-proveedor', [TypesProveedorController::class, 'getDescuentosProveedor']);
-        Route::get('/almacenGeneral/tipos-facturacion', [TypesProveedorController::class, 'getTiposFacturacion']);
-        Route::get('/almacenGeneral/tipos-moneda', [TypesProveedorController::class, 'getTiposMoneda']);
+        Route::get('/almacengeneral/tipos-proveedor', [TypesProveedorController::class, 'getTiposProveedor']);
+        Route::get('/almacengeneral/formas-pago', [TypesProveedorController::class, 'getFormasPago']);
+        Route::get('/almacengeneral/tipos-regimen', [TypesProveedorController::class, 'getTiposRegimen']);
+        Route::get('/almacengeneral/descuentos-proveedor', [TypesProveedorController::class, 'getDescuentosProveedor']);
+        Route::get('/almacengeneral/tipos-facturacion', [TypesProveedorController::class, 'getTiposFacturacion']);
+        Route::get('/almacengeneral/tipos-moneda', [TypesProveedorController::class, 'getTiposMoneda']);
 
         // FACTURAS
-        Route::apiResource('/almacenGeneral/facturas', FacturaController::class);
-        Route::get('/almacenGeneral/tipos-facturas', [FacturaController::class, 'getTiposFacturas']);
+        Route::apiResource('/almacengeneral/facturas', FacturaController::class);
+        Route::get('/almacengeneral/tipos-facturas', [FacturaController::class, 'getTiposFacturas']);
         
         // FACTURA-ACTIVOS
-        Route::get('/almacenGeneral/facturas/{idFactura}/activos', [FacturaActivosController::class, 'getActivosByFactura']);
-        Route::post('/almacenGeneral/facturas/activos', [FacturaActivosController::class, 'addActivosToFactura']);
-        Route::put('/almacenGeneral/facturas/{idFactura}/activos', [FacturaActivosController::class, 'updateActivosFactura']);
-        Route::delete('/almacenGeneral/facturas/{idFactura}/activos/{idActivo}', [FacturaActivosController::class, 'removeActivoFromFactura']);
+        Route::get('/almacengeneral/facturas/{idFactura}/activos', [FacturaActivosController::class, 'getActivosByFactura']);
+        Route::post('/almacengeneral/facturas/activos', [FacturaActivosController::class, 'addActivosToFactura']);
+        Route::put('/almacengeneral/facturas/{idFactura}/activos', [FacturaActivosController::class, 'updateActivosFactura']);
+        Route::delete('/almacengeneral/facturas/{idFactura}/activos/{idActivo}', [FacturaActivosController::class, 'removeActivoFromFactura']);
 
         // PROVEEDORES 
-        Route::apiResource('/almacenGeneral/proveedores', ProveedorController::class);
+        Route::apiResource('/almacengeneral/proveedores', ProveedorController::class);
         
         // CLASIFICACIONES
-        Route::apiResource('/almacenGeneral/clasificaciones', ClasificacionController::class);
+        Route::apiResource('/almacengeneral/clasificaciones', ClasificacionController::class);
         
         // ACTIVOS FIJOS
-        Route::apiResource('/almacenGeneral/activosfijos', ActivosFijosController::class);
+        Route::apiResource('/almacengeneral/activosfijos', ActivosFijosController::class);
 
         // ACTIVOS FIJOS FILTRADOS
-        Route::get('/almacenGeneral/activosfijos/departamento/{idDepartamento}', [ActivosFijosController::class, 'getActivosPorDepartamento']);
-        Route::get('/almacenGeneral/activosfijos/ubicacion/{idUbicacion}', [ActivosFijosController::class, 'getActivosPorUbicacion']);
-        Route::get('/almacenGeneral/activosfijos/clasificacion/{idClasificacion}', [ActivosFijosController::class, 'getActivosPorClasificacion']);
-        Route::get('/almacenGeneral/activosfijos-bajas', [ActivosFijosController::class, 'getActivosDadosDeBaja']);
+        Route::get('/almacengeneral/activosfijos/departamento/{idDepartamento}', [ActivosFijosController::class, 'getActivosPorDepartamento']);
+        Route::get('/almacengeneral/activosfijos/ubicacion/{idUbicacion}', [ActivosFijosController::class, 'getActivosPorUbicacion']);
+        Route::get('/almacengeneral/activosfijos/clasificacion/{idClasificacion}', [ActivosFijosController::class, 'getActivosPorClasificacion']);
+        Route::get('/almacengeneral/activosfijos-bajas', [ActivosFijosController::class, 'getActivosDadosDeBaja']);
         
         // ACTIVOS FIJOS - MOVIMIENTOS 
-        Route::apiResource('/almacenGeneral/movimientos-activosfijos', MovimientosActivosFijosController::class);
-        Route::get('/almacenGeneral/tipos-estatusaf', [ActivosFijosController::class, 'getEstatusActivosFijos']);
-        Route::get('/almacenGeneral/view-activosfijos', [MovimientosActivosFijosController::class, 'getVWMovimientosAFCompletos']);
-        Route::get('/almacenGeneral/tipos-movimientosaf', [MovimientosActivosFijosController::class, 'getTiposMovimientosAF']);
+        Route::apiResource('/almacengeneral/movimientos-activosfijos', MovimientosActivosFijosController::class);
+        Route::get('/almacengeneral/tipos-estatusaf', [ActivosFijosController::class, 'getEstatusActivosFijos']);
+        Route::get('/almacengeneral/view-activosfijos', [MovimientosActivosFijosController::class, 'getVWMovimientosAFCompletos']);
+        Route::get('/almacengeneral/tipos-movimientosaf', [MovimientosActivosFijosController::class, 'getTiposMovimientosAF']);
         
         // ACTIVOS FIJOS - CÓDIGOS QR
-        Route::prefix('almacenGeneral/qraf')->group(function () {
+        Route::prefix('almacengeneral/qraf')->group(function () {
             Route::post('generar/{idActivo}', [CodigosQRAFController::class, 'generarQR']);
             Route::post('generar-con-logo/{idActivo}', [CodigosQRAFController::class, 'generarQRConLogo']);
             Route::get('scan/{codigoQR}', [CodigosQRAFController::class, 'escanearQR']);
@@ -128,7 +128,7 @@ Route::prefix('HSS1')->group(function () {
         });
 
         // IMPRESIÓN - ZEBRA PRINTER
-        Route::prefix('almacenGeneral/printer')->group(function () {
+        Route::prefix('almacengeneral/printer')->group(function () {
             Route::post('etiqueta/{idActivo}', [PrinterController::class, 'imprimirEtiquetaZebra']);
             Route::post('etiquetas-batch', [PrinterController::class, 'imprimirEtiquetasBatch']);
             Route::get('test', [PrinterController::class, 'testConexion']);

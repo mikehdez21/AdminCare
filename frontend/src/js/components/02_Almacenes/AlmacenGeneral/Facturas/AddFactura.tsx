@@ -4,8 +4,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
 
 // Facturas
-import { addFactura, getFacturas, getTiposFacturas } from '@/store/almacenGeneral/Facturas/facturasActions';
-import { setFacturas } from '@/store/almacenGeneral/Facturas/facturasReducer';
+import { addFactura, getFacturas, getTiposFacturas } from '@/store/almacengeneral/Facturas/facturasActions';
+import { setFacturas } from '@/store/almacengeneral/Facturas/facturasReducer';
 import AddActivosFactura from './AddActivosFactura';
 import { ActivoFactura } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 import { FacturasAF, ActivoFacturaInput } from '@/@types/AlmacenGeneralTypes/facturasTypes';
@@ -23,9 +23,9 @@ import { IoAddCircleOutline } from 'react-icons/io5';
 import { AiOutlineNumber } from 'react-icons/ai';
 
 // Store
-import { getProveedores } from '@/store/almacenGeneral/Proveedores/proveedoresActions';
+import { getProveedores } from '@/store/almacengeneral/Proveedores/proveedoresActions';
 import { getFormasPago, getTiposMoneda } from '@/store/shared/fiscalActions';
-import { getClasificaciones } from '@/store/almacenGeneral/Clasificaciones/clasificacionesActions';
+import { getClasificaciones } from '@/store/almacengeneral/Clasificaciones/clasificacionesActions';
 import { getFechaHoraActual } from '@/utils/dateFormat';
 import { formatCurrency, formatPeso, toSafeNumber, parseInputNumber } from '@/utils/numbersFormat';
 

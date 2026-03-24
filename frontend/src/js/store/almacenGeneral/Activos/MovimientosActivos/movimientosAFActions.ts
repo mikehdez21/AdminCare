@@ -6,13 +6,13 @@ import { API_BASE_URL } from '@/variableApi';
 
 // Agregar un nuevo movimiento del activo fijo registrado en AddActivoFijo
 export const addMovimientoActivoFijo = createAsyncThunk<{ success: boolean; message: string }, MovimientosActivosFijos>(
-  'almacenGeneral/addMovimientoActivoFijo',
+  'almacengeneral/addMovimientoActivoFijo',
   async (nuevoMovimientoActivo: MovimientosActivosFijos) => {
     try {
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       const response = await axios.post(
-        `${API_BASE_URL}/api/HSS1/almacenGeneral/movimientos-activosfijos`,
+        `${API_BASE_URL}/api/HSS1/almacengeneral/movimientos-activosfijos`,
         nuevoMovimientoActivo,
         {
           headers: {
@@ -42,13 +42,13 @@ export const addMovimientoActivoFijo = createAsyncThunk<{ success: boolean; mess
 
 // Obtener los movimientos de los activos registrados (TABLE)
 export const getMovimientosActivosFijos = createAsyncThunk<{ success: boolean; movimientosAF?: MovimientosActivosFijos[], message: string }>(
-  'almacenGeneral/movimientosActivosFijos',
+  'almacengeneral/movimientosActivosFijos',
   async () => {
     try {
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/movimientos-activosfijos`, {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/movimientos-activosfijos`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -89,7 +89,7 @@ export const getMovimientosActivosFijos = createAsyncThunk<{ success: boolean; m
 
 // Editar un movimiento del activo fijo
 export const editMovimientoActivoFijo = createAsyncThunk<{ success: boolean; message: string }, MovimientosActivosFijos>(
-  'almacenGeneral/editMovimientoActivoFijo',
+  'almacengeneral/editMovimientoActivoFijo',
   async (MovimientoActivoFijoEditado: MovimientosActivosFijos) => {
     try {
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
@@ -97,7 +97,7 @@ export const editMovimientoActivoFijo = createAsyncThunk<{ success: boolean; mes
       console.log(csrfToken);
 
       const response = await axios.put(
-        `${API_BASE_URL}/api/HSS1/almacenGeneral/movimientos-activosfijos/${MovimientoActivoFijoEditado.id_movimientoAF}`,
+        `${API_BASE_URL}/api/HSS1/almacengeneral/movimientos-activosfijos/${MovimientoActivoFijoEditado.id_movimientoAF}`,
         MovimientoActivoFijoEditado,
         {
           headers: {
@@ -128,7 +128,7 @@ export const editMovimientoActivoFijo = createAsyncThunk<{ success: boolean; mes
 
 // Eliminar un movimiento de activo fijo
 export const deleteMovimientoActivoFijo = createAsyncThunk<{ success: boolean; message: string }, MovimientosActivosFijos>(
-  'almacenGeneral/deleteMovimientoActivoFijo',
+  'almacengeneral/deleteMovimientoActivoFijo',
   async (MovimientoActivoFijoEliminado: MovimientosActivosFijos) => {
     try {
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
@@ -137,7 +137,7 @@ export const deleteMovimientoActivoFijo = createAsyncThunk<{ success: boolean; m
 
       // Incluir el id del proveedor en la URL para hacer la eliminación correcta
       const response = await axios.delete(
-        `${API_BASE_URL}/api/HSS1/almacenGeneral/movimientos-activosfijos/${MovimientoActivoFijoEliminado.id_movimientoAF}`,
+        `${API_BASE_URL}/api/HSS1/almacengeneral/movimientos-activosfijos/${MovimientoActivoFijoEliminado.id_movimientoAF}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -170,13 +170,13 @@ export const deleteMovimientoActivoFijo = createAsyncThunk<{ success: boolean; m
 
 // Obtener los movimientos de los activos registrados (VIEW)
 export const getVWmovimientosActivosFijos = createAsyncThunk<{ success: boolean; vwMovimientosAF?: [], message: string }>(
-  'almacenGeneral/view-activosfijos',
+  'almacengeneral/view-activosfijos',
   async () => {
     try {
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/view-activosfijos`, {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/view-activosfijos`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -223,12 +223,12 @@ export const getVWmovimientosActivosFijos = createAsyncThunk<{ success: boolean;
 
 // Obtener los tipos de movimientos de los activos fijos
 export const getTipoMovimientosActivosFijos = createAsyncThunk<{ success: boolean; tipoMovimientoAF?: [], message: string }>(
-  'almacenGeneral/tipo-movimientosActivosFijos',
+  'almacengeneral/tipo-movimientosActivosFijos',
   async () => {
     try {
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/tipos-movimientosaf`, {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/tipos-movimientosaf`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',

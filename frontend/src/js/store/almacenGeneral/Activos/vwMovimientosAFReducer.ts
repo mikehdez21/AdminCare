@@ -1,6 +1,6 @@
 import { VwMovimientosAF } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { getVWmovimientosActivosFijos } from '@/store/almacenGeneral/Activos/MovimientosActivos/movimientosAFActions';
+import { getVWmovimientosActivosFijos } from '@/store/almacengeneral/Activos/MovimientosActivos/movimientosAFActions';
 
 export interface vwMovimientosAFState {
   activosMovimientos: VwMovimientosAF[];

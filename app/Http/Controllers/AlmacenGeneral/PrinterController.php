@@ -25,7 +25,7 @@ class PrinterController extends Controller
     /**
      * Imprimir etiqueta QR en impresora Zebra
      * 
-     * POST /api/HSS1/almacenGeneral/printer/etiqueta/{idActivo}
+     * POST /api/HSS1/almacengeneral/printer/etiqueta/{idActivo}
      * 
      * @param int $idActivo - ID del activo fijo a imprimir
      * 
@@ -82,7 +82,7 @@ class PrinterController extends Controller
     /**
      * Imprimir múltiples etiquetas QR (batch)
      * 
-     * POST /api/HSS1/almacenGeneral/printer/etiquetas-batch
+     * POST /api/HSS1/almacengeneral/printer/etiquetas-batch
      * 
      * @param Request $request - JSON con array de IDs: {"ids": [1, 2, 3]}
      * 
@@ -172,7 +172,7 @@ class PrinterController extends Controller
     /**
      * Probar conexión con impresora Zebra
      * 
-     * GET /api/HSS1/almacenGeneral/printer/test
+     * GET /api/HSS1/almacengeneral/printer/test
      * 
      * @return \Illuminate\Http\JsonResponse
      */
@@ -199,7 +199,7 @@ class PrinterController extends Controller
     /**
      * Obtener configuración actual de impresora
      * 
-     * GET /api/HSS1/almacenGeneral/printer/config
+     * GET /api/HSS1/almacengeneral/printer/config
      * 
      * @return \Illuminate\Http\JsonResponse
      */
@@ -224,7 +224,7 @@ class PrinterController extends Controller
     /**
      * Generar vista previa ZPL (para debugging)
      * 
-     * POST /api/HSS1/almacenGeneral/printer/preview-zpl/{idActivo}
+     * POST /api/HSS1/almacengeneral/printer/preview-zpl/{idActivo}
      * 
      * @param int $idActivo - ID del activo
      * 

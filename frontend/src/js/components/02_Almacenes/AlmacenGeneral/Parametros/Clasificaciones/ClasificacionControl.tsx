@@ -5,8 +5,8 @@ import { useDispatch, useSelector } from 'react-redux';
 
 // Clasificaciones
 import { ClasificacionesAF } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
-import { getClasificaciones } from '@/store/almacenGeneral/Clasificaciones/clasificacionesActions';
-import { setListClasificacion } from '@/store/almacenGeneral/Clasificaciones/clasificacionesReducer';
+import { getClasificaciones } from '@/store/almacengeneral/Clasificaciones/clasificacionesActions';
+import { setListClasificacion } from '@/store/almacengeneral/Clasificaciones/clasificacionesReducer';
 
 // Componentes
 import Paginacion from '../../../../00_Utils/Paginacion';

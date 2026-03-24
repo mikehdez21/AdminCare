@@ -3,16 +3,16 @@ import Modal from 'react-modal';
 import { AppDispatch, RootState } from '@/store/store';
 import { useDispatch, useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
-import { addActivoFijo, getActivosFijos, getEstatusActivosFijos } from '@/store/almacenGeneral/Activos/activosActions';
-import { setListActivosFijos } from '@/store/almacenGeneral/Activos/activosReducer';
+import { addActivoFijo, getActivosFijos, getEstatusActivosFijos } from '@/store/almacengeneral/Activos/activosActions';
+import { setListActivosFijos } from '@/store/almacengeneral/Activos/activosReducer';
 
 import { ActivoFactura, ActivosFijos, MovimientosActivosFijos } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 
-import { getClasificaciones } from '@/store/almacenGeneral/Clasificaciones/clasificacionesActions';
+import { getClasificaciones } from '@/store/almacengeneral/Clasificaciones/clasificacionesActions';
 import { getEmpleados } from '@/store/administrador/Empleados/empleadosActions';
 import { getUbicaciones } from '@/store/administrador/Ubicaciones/ubicacionesActions';
-import { addMovimientoActivoFijo, getMovimientosActivosFijos, getTipoMovimientosActivosFijos } from '@/store/almacenGeneral/Activos/MovimientosActivos/movimientosAFActions';
-import { setListMovimientosAF } from '@/store/almacenGeneral/Activos/MovimientosActivos/movimientosAFReducer';
+import { addMovimientoActivoFijo, getMovimientosActivosFijos, getTipoMovimientosActivosFijos } from '@/store/almacengeneral/Activos/MovimientosActivos/movimientosAFActions';
+import { setListMovimientosAF } from '@/store/almacengeneral/Activos/MovimientosActivos/movimientosAFReducer';
 import ModalButtons from '@/components/00_Utils/ModalButtons';
 import { getFechaHoraActual } from '@/utils/dateFormat';
 

@@ -5,9 +5,9 @@ import { useDispatch, useSelector } from 'react-redux';
 
 // Movimientos Activos Fijos  
 import { VwMovimientosAF } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
-import { getVWmovimientosActivosFijos, getTipoMovimientosActivosFijos } from '@/store/almacenGeneral/Activos/MovimientosActivos/movimientosAFActions';
-import { setListvwMovimientosAF } from '@/store/almacenGeneral/Activos/vwMovimientosAFReducer';
-import { setListTipoMovimientoAF } from '@/store/almacenGeneral/Activos/MovimientosActivos/movimientosAFReducer';
+import { getVWmovimientosActivosFijos, getTipoMovimientosActivosFijos } from '@/store/almacengeneral/Activos/MovimientosActivos/movimientosAFActions';
+import { setListvwMovimientosAF } from '@/store/almacengeneral/Activos/vwMovimientosAFReducer';
+import { setListTipoMovimientoAF } from '@/store/almacengeneral/Activos/MovimientosActivos/movimientosAFReducer';
 
 // Componentes
 import Paginacion from '@/components/00_Utils/Paginacion';
@@ -19,8 +19,8 @@ import { MdEdit, MdVisibility } from 'react-icons/md';
 import { FiAlertTriangle } from 'react-icons/fi';
 
 // Store
-import { getEstatusActivosFijos } from '@/store/almacenGeneral/Activos/activosActions';
-import { setListEstatusActivosFijos } from '@/store/almacenGeneral/Activos/activosReducer';
+import { getEstatusActivosFijos } from '@/store/almacengeneral/Activos/activosActions';
+import { setListEstatusActivosFijos } from '@/store/almacengeneral/Activos/activosReducer';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 
 // Styles

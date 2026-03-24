@@ -14,16 +14,16 @@ import ImpresionFactura from './ImpresionFactura';
 import { FaArrowCircleRight } from 'react-icons/fa';
 
 // Clasificaciones
-import { getClasificaciones } from '@/store/almacenGeneral/Clasificaciones/clasificacionesActions';
-import { setListClasificacion } from '@/store/almacenGeneral/Clasificaciones/clasificacionesReducer';
+import { getClasificaciones } from '@/store/almacengeneral/Clasificaciones/clasificacionesActions';
+import { setListClasificacion } from '@/store/almacengeneral/Clasificaciones/clasificacionesReducer';
 
 // ActivosFijos
-import { getActivosFijos } from '@/store/almacenGeneral/Activos/activosActions';
-import { setListActivosFijos } from '@/store/almacenGeneral/Activos/activosReducer';
+import { getActivosFijos } from '@/store/almacengeneral/Activos/activosActions';
+import { setListActivosFijos } from '@/store/almacengeneral/Activos/activosReducer';
 
 // Facturas
-import { getFacturas } from '@/store/almacenGeneral/Facturas/facturasActions';
-import { setFacturas } from '@/store/almacenGeneral/Facturas/facturasReducer';
+import { getFacturas } from '@/store/almacengeneral/Facturas/facturasActions';
+import { setFacturas } from '@/store/almacengeneral/Facturas/facturasReducer';
 
 // Styles
 import '@styles/02_Almacenes/AlmacenGeneral/Etiquetas/etiquetasControl.css';

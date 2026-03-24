@@ -9,13 +9,13 @@ import rolesReducer from '@/store/administrador/Roles/rolesReducer'
 import departamentosReducer from '@/store/administrador/Departamentos/departamentosReducer'
 import ubicacionesReducer from '@/store/administrador/Ubicaciones/ubicacionesReducer'
 
-import facturasReducer from '@/store/almacenGeneral/Facturas/facturasReducer'
-import activosReducer from '@/store/almacenGeneral/Activos/activosReducer'
-import vwMovimientosAFReducer from '@/store/almacenGeneral/Activos/vwMovimientosAFReducer';
-import movimientosAFReducer from '@/store/almacenGeneral/Activos/MovimientosActivos/movimientosAFReducer'
-import proveedoresReducer from '@/store/almacenGeneral/Proveedores/proveedoresReducer'
+import facturasReducer from '@/store/almacengeneral/Facturas/facturasReducer'
+import activosReducer from '@/store/almacengeneral/Activos/activosReducer'
+import vwMovimientosAFReducer from '@/store/almacengeneral/Activos/vwMovimientosAFReducer';
+import movimientosAFReducer from '@/store/almacengeneral/Activos/MovimientosActivos/movimientosAFReducer'
+import proveedoresReducer from '@/store/almacengeneral/Proveedores/proveedoresReducer'
 import fiscalReducer from '@/store/shared/fiscalReducer'
-import clasificacionesReducer from '@/store/almacenGeneral/Clasificaciones/clasificacionesReducer'
+import clasificacionesReducer from '@/store/almacengeneral/Clasificaciones/clasificacionesReducer'
 
 import sectionReducer from '@/store/sectionReducer'
 

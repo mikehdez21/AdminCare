@@ -21,12 +21,12 @@ import AFClasificaciones from './AFClasificacion';
 import ListActivosFijos from './CRUD/ListActivoFijo';
 
 // Activos Fijos
-import { getActivosFijos, getEstatusActivosFijos } from '@/store/almacenGeneral/Activos/activosActions';
-import { setListActivosFijos, setListEstatusActivosFijos } from '@/store/almacenGeneral/Activos/activosReducer';
+import { getActivosFijos, getEstatusActivosFijos } from '@/store/almacengeneral/Activos/activosActions';
+import { setListActivosFijos, setListEstatusActivosFijos } from '@/store/almacengeneral/Activos/activosReducer';
 
 // Clasificaciones
-import { getClasificaciones } from '@/store/almacenGeneral/Clasificaciones/clasificacionesActions';
-import { setListClasificacion } from '@/store/almacenGeneral/Clasificaciones/clasificacionesReducer';
+import { getClasificaciones } from '@/store/almacengeneral/Clasificaciones/clasificacionesActions';
+import { setListClasificacion } from '@/store/almacengeneral/Clasificaciones/clasificacionesReducer';
 
 // Ubicaciones
 import { getUbicaciones } from '@/store/administrador/Ubicaciones/ubicacionesActions';

@@ -5,13 +5,13 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 
 // Obtener las formas de pago registrados
 export const getFormasPago = createAsyncThunk<{success: boolean; formasPago?: []; message: string }>(
-  'almacenGeneral/getFormasPago',
+  'almacengeneral/getFormasPago',
   async () => {
     try{
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/formas-pago`, {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/formas-pago`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -42,13 +42,13 @@ export const getFormasPago = createAsyncThunk<{success: boolean; formasPago?: []
 
 // Obtener los tipos de regimen registrados
 export const getTiposRegimen = createAsyncThunk<{success: boolean; regimenesFiscales?: []; message: string }>(
-  'almacenGeneral/getTiposRegimen',
+  'almacengeneral/getTiposRegimen',
   async () => {
     try{
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/tipos-regimen`, {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/tipos-regimen`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -78,13 +78,13 @@ export const getTiposRegimen = createAsyncThunk<{success: boolean; regimenesFisc
 
 // Obtener los tipos de monedas registrados
 export const getTiposMoneda = createAsyncThunk<{success: boolean; tiposMoneda?: []; message: string }>(
-  'almacenGeneral/getTiposMoneda',
+  'almacengeneral/getTiposMoneda',
   async () => {
     try{
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/tipos-moneda`, {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/tipos-moneda`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -114,13 +114,13 @@ export const getTiposMoneda = createAsyncThunk<{success: boolean; tiposMoneda?: 
 
 // Obtener los tipos de facturacion registrados
 export const getTiposFacturacion = createAsyncThunk<{success: boolean; tiposFacturacion?: []; message: string }>(
-  'almacenGeneral/getTiposFacturacion',
+  'almacengeneral/getTiposFacturacion',
   async () => {
     try{
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/tipos-facturacion`, {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/tipos-facturacion`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',

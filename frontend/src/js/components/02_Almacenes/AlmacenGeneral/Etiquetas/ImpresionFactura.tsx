@@ -17,11 +17,11 @@ import { ActivoEntityResponse } from '@/@types/AlmacenGeneralTypes/activosFijosT
 import { FaList, FaPrint } from 'react-icons/fa';
 
 // Proveedores
-import { getProveedores } from '@/store/almacenGeneral/Proveedores/proveedoresActions';
-import { setListProveedor } from '@/store/almacenGeneral/Proveedores/proveedoresReducer';
+import { getProveedores } from '@/store/almacengeneral/Proveedores/proveedoresActions';
+import { setListProveedor } from '@/store/almacengeneral/Proveedores/proveedoresReducer';
 
 // Actions
-import { getActivosFactura } from '@/store/almacenGeneral/Facturas/facturasActions';
+import { getActivosFactura } from '@/store/almacengeneral/Facturas/facturasActions';
 
 // Interface para respuesta de impresión Zebra
 interface PrinterApiResponse {
@@ -179,7 +179,7 @@ const ImpresionFactura: React.FC<ImpresionFacturaProps> = ({ facturaNuevaID, onI
       for (const activo of activosFactura) {
         try {
           const response = await axios.post(
-            `${API_BASE_URL}/api/HSS1/almacenGeneral/printer/etiqueta/${activo.id_activo_fijo}`,
+            `${API_BASE_URL}/api/HSS1/almacengeneral/printer/etiqueta/${activo.id_activo_fijo}`,
             {},
             { withCredentials: true }
           );

@@ -8,16 +8,16 @@ import Swal from 'sweetalert2';
 
 // Facturas
 import { FacturasAF } from '@/@types/AlmacenGeneralTypes/facturasTypes';
-import { getFacturas } from '@/store/almacenGeneral/Facturas/facturasActions';
-import { setFacturas } from '@/store/almacenGeneral/Facturas/facturasReducer';
+import { getFacturas } from '@/store/almacengeneral/Facturas/facturasActions';
+import { setFacturas } from '@/store/almacengeneral/Facturas/facturasReducer';
 
 // Proveedores
-import { getProveedores } from '@/store/almacenGeneral/Proveedores/proveedoresActions';
-import { setListProveedor } from '@/store/almacenGeneral/Proveedores/proveedoresReducer';
+import { getProveedores } from '@/store/almacengeneral/Proveedores/proveedoresActions';
+import { setListProveedor } from '@/store/almacengeneral/Proveedores/proveedoresReducer';
 
 // Types
 import { getFormasPago, getTiposMoneda } from '@/store/shared/fiscalActions';
-import { getTiposFacturas } from '@/store/almacenGeneral/Facturas/facturasActions';
+import { getTiposFacturas } from '@/store/almacengeneral/Facturas/facturasActions';
 
 // Componentes
 import Paginacion from '@/components/00_Utils/Paginacion';
@@ -35,8 +35,8 @@ Modal.setAppElement('#root');
 
 // Styles
 import '@styles/02_Almacenes/AlmacenGeneral/Facturas/facturasControl.css'
-import { getClasificaciones } from '@/store/almacenGeneral/Clasificaciones/clasificacionesActions';
-import { setListClasificacion } from '@/store/almacenGeneral/Clasificaciones/clasificacionesReducer';
+import { getClasificaciones } from '@/store/almacengeneral/Clasificaciones/clasificacionesActions';
+import { setListClasificacion } from '@/store/almacengeneral/Clasificaciones/clasificacionesReducer';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 
 const AlmacenGeneral_Facturas: React.FC = () => {

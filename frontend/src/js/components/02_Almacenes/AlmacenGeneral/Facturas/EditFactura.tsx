@@ -3,8 +3,8 @@ import { AppDispatch, RootState } from '@/store/store';
 import { useDispatch, useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
 
-import { getTiposFacturas, updateFactura, getFacturas, getActivosFactura } from '@/store/almacenGeneral/Facturas/facturasActions';
-import { setFacturas } from '@/store/almacenGeneral/Facturas/facturasReducer';
+import { getTiposFacturas, updateFactura, getFacturas, getActivosFactura } from '@/store/almacengeneral/Facturas/facturasActions';
+import { setFacturas } from '@/store/almacengeneral/Facturas/facturasReducer';
 
 // Components
 import { FaCircleInfo, FaBoxesPacking } from 'react-icons/fa6';
@@ -16,14 +16,14 @@ import { AiOutlineNumber } from 'react-icons/ai';
 
 import '@styles/02_Almacenes/AlmacenGeneral/Facturas/AddFactura.css'
 
-import { getProveedores } from '@/store/almacenGeneral/Proveedores/proveedoresActions';
+import { getProveedores } from '@/store/almacengeneral/Proveedores/proveedoresActions';
 import { getFormasPago, getTiposMoneda } from '@/store/shared/fiscalActions';
 import AddActivosFactura from './AddActivosFactura';
 import { ActivoFactura } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 import { FacturasAF, ActivoFacturaInput } from '@/@types/AlmacenGeneralTypes/facturasTypes';
 import ModalButtons from '@/components/00_Utils/ModalButtons';
 import { formatCurrency, formatPeso, toSafeNumber, parseInputNumber } from '@/utils/numbersFormat';
-import { getClasificaciones } from '@/store/almacenGeneral/Clasificaciones/clasificacionesActions';
+import { getClasificaciones } from '@/store/almacengeneral/Clasificaciones/clasificacionesActions';
 
 interface EditFacturaProps {
   onClose: () => void;

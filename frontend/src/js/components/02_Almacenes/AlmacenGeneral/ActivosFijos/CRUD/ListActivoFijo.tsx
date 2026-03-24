@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 
 // Activos Fijos
 import { ActivosFijos } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
-import { getActivosFijos, getActivosFijosDadosDeBaja, getActivosFijosPorClasificacion, getActivosFijosPorDepartamento, getActivosFijosPorUbicacion } from '@/store/almacenGeneral/Activos/activosActions';
+import { getActivosFijos, getActivosFijosPorClasificacion, getActivosFijosPorDepartamento, getActivosFijosPorUbicacion, getActivosFijosDadosDeBaja } from '@/store/almacengeneral/Activos/activosActions';
 
 // Componentes
 import Paginacion from '@/components/00_Utils/Paginacion';

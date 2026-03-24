@@ -84,7 +84,7 @@ const ImpresionAF: React.FC = () => {
     try {
       // Obtener la imagen existente del QR
       const response = await axios.get(
-        `${API_BASE_URL}/api/HSS1/almacenGeneral/qraf/descargar/${activo.id_activo_fijo}`,
+        `${API_BASE_URL}/api/HSS1/almacengeneral/qraf/descargar/${activo.id_activo_fijo}`,
         {
           withCredentials: true,
           responseType: 'blob'
@@ -193,7 +193,7 @@ const ImpresionAF: React.FC = () => {
 
       // Enviar solicitud de impresión a Zebra
       const response = await axios.post(
-        `${API_BASE_URL}/api/HSS1/almacenGeneral/printer/etiqueta/${activoSeleccionadoActual.id_activo_fijo}`,
+        `${API_BASE_URL}/api/HSS1/almacengeneral/printer/etiqueta/${activoSeleccionadoActual.id_activo_fijo}`,
         {},
         { withCredentials: true }
       );
