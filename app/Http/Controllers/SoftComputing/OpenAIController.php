@@ -21,8 +21,8 @@ class OpenAIController extends Controller
 			]);
 
 			$apiKey = (string) config('services.openai.api_key');
-			$model = (string) config('services.openai.model', 'gpt-4o-mini');
-			$fallbackModel = (string) config('services.openai.fallback_model', 'gpt-4o-mini');
+			$model = (string) config('services.openai.model', 'gpt-5');
+			$fallbackModel = (string) config('services.openai.fallback_model', 'gpt-5');
 			$timeout = (int) config('services.openai.timeout', 30);
 			$webSearchEnabled = (bool) config('services.openai.web_search_enabled', true);
 
@@ -67,7 +67,8 @@ class OpenAIController extends Controller
 				? (bool) $validated['use_web_search']
 				: true;
 			$webSearchRequested = $webSearchEnabled && $useWebSearch;
-			$webSearchToolType = $this->resolveWebSearchToolType($model);
+			// Para gpt-5 y modelos compatibles, usar 'web_search' como tipo de herramienta
+			$webSearchToolType = 'web_search';
 			$webSearchStatus = [
 				'requested' => $webSearchRequested,
 				'attempted' => false,
@@ -91,10 +92,12 @@ class OpenAIController extends Controller
 					'model' => $model,
 				]));
 
+			// Si hay error de compatibilidad de herramienta, intentar sin web_search solo si el modelo no es gpt-5
 			if (
 				$openAIResponse->failed()
 				&& isset($requestPayload['tools'])
 				&& $this->isToolCompatibilityError($openAIResponse->json() ?? [])
+				&& strtolower($model) !== 'gpt-5'
 			) {
 				$payloadWithoutTools = $requestPayload;
 				unset($payloadWithoutTools['tools']);
@@ -189,12 +192,7 @@ class OpenAIController extends Controller
 			|| str_contains($message, 'not available');
 	}
 
-	private function resolveWebSearchToolType(string $model): string
-	{
-		return str_starts_with(strtolower($model), 'gpt-5')
-			? 'web_search'
-			: 'web_search_preview';
-	}
+	// resolveWebSearchToolType ya no es necesario, siempre usamos 'web_search' para gpt-5
 
 	private function extractErrorMessage(array $errorPayload): string
 	{
