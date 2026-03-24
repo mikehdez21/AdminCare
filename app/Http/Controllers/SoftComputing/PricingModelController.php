@@ -46,8 +46,6 @@ class PricingModelController extends Controller
             'f.iva_factura',
             'f.total_factura',
             'af.precio_unitario_af',
-            'af.descuento_af',
-            'af.descuento_porcentajeaf',
         ]);
 
         $rows = [];
@@ -57,13 +55,6 @@ class PricingModelController extends Controller
                 continue;
             }
 
-            $lineTotal = max(
-                0,
-                $target
-                - (float) ($record->descuento_af ?? 0)
-                - ($target * ((float) ($record->descuento_porcentajeaf ?? 0) / 100))
-            );
-
             $rows[] = [
                 'features' => [
                     'subtotal_factura' => (float) ($record->subtotal_factura ?? 0),
@@ -71,7 +62,7 @@ class PricingModelController extends Controller
                     'flete_factura' => (float) ($record->flete_factura ?? 0),
                     'iva_factura' => (float) ($record->iva_factura ?? 0),
                     'total_factura' => (float) ($record->total_factura ?? 0),
-                    'total_linea' => $lineTotal,
+                    'total_linea' => $target,
                 ],
                 'target' => $target,
             ];
