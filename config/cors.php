@@ -5,7 +5,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://localhost:5173', 'https://admin-care-teal.vercel.app'],
+    'allowed_origins' => ['http://127.0.0.1:8000', 'https://admin-care-teal.vercel.app'],
 
     'allowed_origins_patterns' => [],
 
