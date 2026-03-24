@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
+
 class PricingModelController extends Controller
 {
     public function train(Request $request): JsonResponse
@@ -28,10 +29,10 @@ class PricingModelController extends Controller
 
         $limit = (int) ($validated['limit'] ?? 1000);
 
-        $records = DB::table('almacengeneral.tableInter_FacturaActivos as d')
-            ->join('almacengeneral.tableAF_Facturas as f', 'f.id_factura', '=', 'd.id_factura')
-            ->whereNotNull('d.precio_unitario_af')
-            ->where('d.precio_unitario_af', '>', 0)
+        $records = DB::table('almacengeneral.tableAF_ActivosFijos as af')
+            ->join('almacengeneral.tableAF_Facturas as f', 'f.id_factura', '=', 'af.id_factura')
+            ->whereNotNull('af.precio_unitario_af')
+            ->where('af.precio_unitario_af', '>', 0)
             ->orderByDesc('f.fecha_fac_recepcion')
             ->limit($limit)
             ->get([
@@ -40,9 +41,9 @@ class PricingModelController extends Controller
                 'f.flete_factura',
                 'f.iva_factura',
                 'f.total_factura',
-                'd.precio_unitario_af',
-                'd.descuento_af',
-                'd.descuento_porcentajeaf',
+                'af.precio_unitario_af',
+                'af.descuento_af',
+                'af.descuento_porcentajeaf',
             ]);
 
         $rows = [];
