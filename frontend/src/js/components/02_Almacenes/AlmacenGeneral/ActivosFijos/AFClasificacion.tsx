@@ -21,6 +21,7 @@ interface AFClasificacionesProps {
 const AFClasificaciones: React.FC<AFClasificacionesProps> = ({ clasificacionSeleccionadaId, onSelectClasificacion }) => {
   const navigate = useNavigate();
   const clasificaciones = useSelector((state: RootState) => state.clasificacion.clasificacionesAF);
+  
 
   const handleClasificacionSelected = (clasificacion: ClasificacionesAF) => {
     onSelectClasificacion(clasificacion.id_clasificacion ?? null);
