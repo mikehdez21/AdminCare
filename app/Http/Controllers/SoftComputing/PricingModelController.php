@@ -29,22 +29,26 @@ class PricingModelController extends Controller
 
         $limit = (int) ($validated['limit'] ?? 1000);
 
-        $records = DB::table('almacengeneral.tableAF_ActivosFijos as af')
-            ->join('almacengeneral.tableAF_Facturas as f', 'f.id_factura', '=', 'af.id_factura')
-            ->whereNotNull('af.precio_unitario_af')
-            ->where('af.precio_unitario_af', '>', 0)
-            ->orderByDesc('f.fecha_fac_recepcion')
-            ->limit($limit)
-            ->get([
-                'f.subtotal_factura',
-                'f.descuento_factura',
-                'f.flete_factura',
-                'f.iva_factura',
-                'f.total_factura',
-                'af.precio_unitario_af',
-                'af.descuento_af',
-                'af.descuento_porcentajeaf',
-            ]);
+    // Tabla almacengeneral.tableAF_ActivosFijos contiene los activos fijos y el campo precio_unitario_af que queremos predecir
+    // Tabla almacengeneral.tableAF_Facturas contiene los datos de la factura asociada a cada activo
+    // Tabla almacengeneral.tableInter_FacturaActivos relaciona ambos con id_factura e id_activo_fijo
+    $records = DB::table('almacengeneral.tableInter_FacturaActivos as inter')
+        ->join('almacengeneral.tableAF_ActivosFijos as af', 'af.id_activo_fijo', '=', 'inter.id_activo_fijo')
+        ->join('almacengeneral.tableAF_Facturas as f', 'f.id_factura', '=', 'inter.id_factura')
+        ->whereNotNull('af.precio_unitario_af')
+        ->where('af.precio_unitario_af', '>', 0)
+        ->orderByDesc('f.fecha_fac_recepcion')
+        ->limit($limit)
+        ->get([
+            'f.subtotal_factura',
+            'f.descuento_factura',
+            'f.flete_factura',
+            'f.iva_factura',
+            'f.total_factura',
+            'af.precio_unitario_af',
+            'af.descuento_af',
+            'af.descuento_porcentajeaf',
+        ]);
 
         $rows = [];
         foreach ($records as $record) {
