@@ -91,9 +91,14 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         Log::info('=== LOGIN DEBUG ===');
-        Log::info('Session ID: ' . $request->session()->getId());
+        Log::info('Has session middleware: ' . ($request->hasSession() ? 'yes' : 'no'));
+        if ($request->hasSession()) {
+            Log::info('Session ID: ' . $request->session()->getId());
+        }
         Log::info('CSRF Token from request: ' . $request->header('X-XSRF-TOKEN'));
-        Log::info('CSRF Token from session: ' . csrf_token());
+        if ($request->hasSession()) {
+            Log::info('CSRF Token from session: ' . csrf_token());
+        }
         Log::info('Cookies received: ' . json_encode($request->cookies->all()));
 
         // Respuesta inicial
@@ -135,8 +140,10 @@ class AuthController extends Controller
                     $roleName = $user->getRoleNames()->first() ?? 'No definido';
                     $departamento = $user->departamento ? $user->departamento->nombre_departamento : 'No definido';
 
-                    // Regenerar la sesión para prevenir fijación de sesión (Sanctum SPA)
-                    $request->session()->regenerate();
+                    // Regenerar la sesión solo si el middleware de sesión está activo.
+                    if ($request->hasSession()) {
+                        $request->session()->regenerate();
+                    }
 
                     $response['user'] = $user; // Obtener el usuario autenticado
                     $response['rol'] = $roleName; // Agregar el nombre del rol a la respuesta

@@ -19,7 +19,7 @@ return [
         static fn (string $domain) => trim($domain),
         explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
             '%s,%s',
-            'localhost,admin-care-teal.vercel.app,localhost:5173',
+            'localhost,localhost:5173,127.0.0.1,127.0.0.1:8000,admin-care-teal.vercel.app',
             Sanctum::currentApplicationUrlWithPort()
         )))
     ))),

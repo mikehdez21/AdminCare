@@ -262,6 +262,56 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
     `;
   };
 
+  const renderWebSearchMetaHtml = (
+    webSearch?: {
+      requested: boolean;
+      attempted: boolean;
+      used: boolean;
+      tool_type?: string | null;
+      disabled_reason?: string | null;
+      sources?: Array<{ title: string; url: string }>;
+    },
+    modelUsed?: string
+  ) => {
+    if (!webSearch) return '';
+
+    const modelLine = modelUsed ? `<p class="recommendationPanel__line"><strong>Modelo:</strong> ${escapeHtml(modelUsed)}</p>` : '';
+    const toolLine = webSearch.tool_type
+      ? `<p class="recommendationPanel__line"><strong>Tool:</strong> ${escapeHtml(webSearch.tool_type)}</p>`
+      : '';
+
+    const statusLine = webSearch.used
+      ? '<p class="recommendationPanel__line"><strong>Búsqueda web:</strong> utilizada correctamente.</p>'
+      : webSearch.requested
+        ? `<p class="recommendationPanel__line"><strong>Búsqueda web:</strong> no confirmada.${webSearch.disabled_reason ? ` Motivo: ${escapeHtml(webSearch.disabled_reason)}` : ''}</p>`
+        : '<p class="recommendationPanel__line"><strong>Búsqueda web:</strong> desactivada.</p>';
+
+    const sources = Array.isArray(webSearch.sources) ? webSearch.sources : [];
+    const sourcesHtml = sources.length
+      ? `
+        <hr class="recommendationPanel__divider" />
+        <p class="recommendationPanel__title"><strong>Fuentes</strong></p>
+        ${sources
+    .map((source) => {
+      const safeUrl = /^https?:\/\//i.test(source.url) ? source.url : '';
+      if (!safeUrl) return '';
+
+      return `<p class="recommendationPanel__line"><a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${escapeHtml(source.title || safeUrl)}</a></p>`;
+    })
+    .join('')}
+      `
+      : '';
+
+    return `
+      <div class="recommendationPanel recommendationPanel--raw">
+        ${modelLine}
+        ${toolLine}
+        ${statusLine}
+        ${sourcesHtml}
+      </div>
+    `;
+  };
+
   const renderOpenAIRecommendationHtml = (analysisText: string): string => {
     const normalizedText = unwrapCodeFence(analysisText);
 
@@ -285,46 +335,46 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
       const resumenHtml =
         resumenRaw && typeof resumenRaw === 'object'
           ? Object.entries(resumenRaw)
-              .map(([key, value]) => {
-                const keyLabel = escapeHtml(key.replace(/_/g, ' '));
-                const valueLabel = escapeHtml(value === null ? 'N/D' : String(value));
-                return `
+            .map(([key, value]) => {
+              const keyLabel = escapeHtml(key.replace(/_/g, ' '));
+              const valueLabel = escapeHtml(value === null ? 'N/D' : String(value));
+              return `
                   <div class="recommendationSummary__item">
                     <span class="recommendationSummary__key">${keyLabel}</span>
                     <span class="recommendationSummary__value">${valueLabel}</span>
                   </div>
                 `;
-              })
-              .join('')
+            })
+            .join('')
           : `<p class="recommendationSummary__text">${escapeHtml(String(resumenRaw || 'Sin resumen disponible.'))}</p>`;
 
       const resultadosHtml = resultados.length
         ? resultados
-            .map((item) => {
-              const activoRaw = item.activo;
-              const activoObj = activoRaw && typeof activoRaw === 'object' ? activoRaw as Record<string, unknown> : null;
+          .map((item) => {
+            const activoRaw = item.activo;
+            const activoObj = activoRaw && typeof activoRaw === 'object' ? activoRaw as Record<string, unknown> : null;
 
-              const nombreActivo = activoObj
-                ? escapeHtml(String(activoObj.nombre ?? activoObj.nombre_af ?? 'Activo'))
-                : escapeHtml(typeof activoRaw === 'string' ? activoRaw : 'Activo');
+            const nombreActivo = activoObj
+              ? escapeHtml(String(activoObj.nombre ?? activoObj.nombre_af ?? 'Activo'))
+              : escapeHtml(typeof activoRaw === 'string' ? activoRaw : 'Activo');
 
-              const marca = activoObj ? escapeHtml(String(activoObj.marca ?? activoObj.marca_af ?? 'N/D')) : 'N/D';
-              const modelo = activoObj ? escapeHtml(String(activoObj.modelo ?? activoObj.modelo_af ?? 'N/D')) : 'N/D';
+            const marca = activoObj ? escapeHtml(String(activoObj.marca ?? activoObj.marca_af ?? 'N/D')) : 'N/D';
+            const modelo = activoObj ? escapeHtml(String(activoObj.modelo ?? activoObj.modelo_af ?? 'N/D')) : 'N/D';
 
-              const opcion = escapeHtml(item.opcion_mas_barata || 'Sin opción específica');
-              const precioActual = toSafeNumber(
-                item.precio_actual,
-                0);
-              const precioRef = toSafeNumber(item.precio_referencia, 0);
-              const ahorro = toSafeNumber(item.ahorro_estimado, 0);
-              const notas = escapeHtml(item.notas || '');
-              const rawUrl = (item.url || '').trim();
-              const safeUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : '';
-              const urlHtml = safeUrl
-                ? `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">Ver opción</a>`
-                : '<span>URL no disponible</span>';
+            const opcion = escapeHtml(item.opcion_mas_barata || 'Sin opción específica');
+            const precioActual = toSafeNumber(
+              item.precio_actual,
+              0);
+            const precioRef = toSafeNumber(item.precio_referencia, 0);
+            const ahorro = toSafeNumber(item.ahorro_estimado, 0);
+            const notas = escapeHtml(item.notas || '');
+            const rawUrl = (item.url || '').trim();
+            const safeUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : '';
+            const urlHtml = safeUrl
+              ? `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">Ver opción</a>`
+              : '<span>URL no disponible</span>';
 
-              return `
+            return `
                 <div class="recommendationCard">
                   <p class="recommendationCard__title"><strong>${nombreActivo}</strong></p>
                   <p class="recommendationCard__meta">Marca: ${marca} | Modelo: ${modelo}</p>
@@ -335,8 +385,8 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
                   ${notas ? `<p class="recommendationCard__notes">Notas: ${notas}</p>` : ''}
                 </div>
               `;
-            })
-            .join('')
+          })
+          .join('')
         : '<p class="recommendationPanel__empty">No se recibieron resultados estructurados.</p>';
 
       return `
@@ -371,6 +421,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
         analyzeSoftComputing({
           mode: 'price_prediction',
           algorithm: 'linear_regression',
+          use_web_search: true,
           prompt:
             'Con base en nombre, marca, modelo y precio unitario de cada activo, realiza una búsqueda sencilla tipo Google Shopping para identificar la misma opción (o alternativa comparable) más barata. Responde en JSON con llaves: resumen_general y resultados[]. Cada resultado debe incluir: activo, precio_actual, opcion_mas_barata, precio_referencia, ahorro_estimado, url, notas. Si no hay navegación en tiempo real o no puedes validar la URL, indícalo explícitamente en notas y no inventes enlaces.',
           data: {
@@ -402,7 +453,10 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
         await Swal.fire({
           icon: 'info',
           title: 'Recomendación OpenAI',
-          html: renderOpenAIRecommendationHtml(analysisText),
+          html: `
+            ${renderWebSearchMetaHtml(openAITestResult.data.web_search, openAITestResult.data.model_used)}
+            ${renderOpenAIRecommendationHtml(analysisText)}
+          `,
           width: 860,
           confirmButtonText: 'OK',
         });
@@ -651,6 +705,50 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
       console.log('Resultado de addFactura:', resultAction);
 
       if (resultAction.success) {
+
+        // Prueba básica de OpenAI: analizar precios unitarios y total de la factura.
+        const resumenActivos = activosFactura.map((activo) => ({
+          nombre_af: activo.nombre_af,
+          cantidad: toSafeNumber(activo.cantidad, 0),
+          precio_unitario: toSafeNumber(activo.precio_unitario_af, 0),
+          total_linea: toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.precio_unitario_af, 0),
+        }));
+
+        const openAITestResult = await dispatch(
+          analyzeSoftComputing({
+            mode: 'price_prediction',
+            algorithm: 'linear_regression',
+            use_web_search: false,
+            prompt:
+              'Analiza si los precios unitarios de los activos y el total de la factura son coherentes con una estimación básica de predicción de precios. Identifica posibles sobreprecios, si el análisis es negativo, solo devuelve un NO, de lo contrario, regresa OK.',
+            data: {
+              numero_factura: numeroFacturaTrim,
+              subtotal_factura: toSafeNumber(subTotalFactura, 0),
+              iva_factura: toSafeNumber(ivaFactura, 0),
+              total_factura: toSafeNumber(totalFactura, 0),
+              activos: resumenActivos,
+            },
+          })
+        ).unwrap();
+
+        if (openAITestResult.success && openAITestResult.data?.analysis_text) {
+          const analysisText = openAITestResult.data.analysis_text;
+
+          await Swal.fire({
+            icon: 'info',
+            title: 'Prueba OpenAI - Análisis de Precios',
+            text: analysisText.length > 1000 ? `${analysisText.slice(0, 1000)}...` : analysisText,
+            confirmButtonText: 'Continuar',
+          });
+        } else {
+          await Swal.fire({
+            icon: 'warning',
+            title: 'Análisis de Facturas no disponible',
+            text: openAITestResult.message || 'No se pudo obtener análisis de para esta factura.',
+            confirmButtonText: 'Continuar',
+          });
+        }
+
         // Actualizar la lista de facturas
         const facturasActualizadas = await dispatch(getFacturas()).unwrap();
 
