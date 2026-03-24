@@ -221,6 +221,13 @@ const AlmacenGeneral_Facturas: React.FC = () => {
           }
         }
 
+        if (!clasificacionesAF?.length) {
+          const resultClasificaciones = await dispatch(getClasificaciones()).unwrap();
+          if (resultClasificaciones.success) {
+            dispatch(setListClasificacion(resultClasificaciones.clasificacion || []));
+          }
+        }
+
         if (!tiposFacturas?.length) {
           await dispatch(getTiposFacturas()).unwrap();
         }
@@ -233,12 +240,7 @@ const AlmacenGeneral_Facturas: React.FC = () => {
           await dispatch(getTiposMoneda()).unwrap();
         }
 
-        if (!clasificacionesAF?.length) {
-          const clasificacionesActuales = await dispatch(getClasificaciones()).unwrap();
-          if (clasificacionesActuales.success && clasificacionesActuales.clasificacion) {
-            dispatch(setListClasificacion(clasificacionesActuales.clasificacion));
-          }
-        }
+        
       } catch (error) {
         console.error('Error al cargar datos iniciales de facturas:', error);
       }

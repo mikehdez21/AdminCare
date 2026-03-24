@@ -130,8 +130,9 @@ export interface ActivoEntityResponse {
   lote_total?: number | null;
   cantidad?: number;
   id_clasificacion: number | null;
+  fecha_registro_af: string | null;
   numero_serie_af: string;
-  precio_unitario: number;
+  precio_unitario_af: number;
   descuento_af: number;
   descuento_porcentajeaf: number;
   observaciones?: string | null;
