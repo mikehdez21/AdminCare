@@ -61,7 +61,6 @@ class OpenAIController extends Controller
 						'content' => json_encode($userPrompt, JSON_UNESCAPED_UNICODE),
 					],
 				],
-				'temperature' => 0.2,
 			];
 
 			$useWebSearch = array_key_exists('use_web_search', $validated)
