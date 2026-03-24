@@ -1,11 +1,10 @@
 import os
-import socket
 import sqlite3
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-from urllib.parse import parse_qs, unquote, urlparse
+from urllib.parse import parse_qs, urlparse
 from uuid import uuid4
 
 import joblib
@@ -123,73 +122,6 @@ def _load_model(model_id: str) -> dict[str, Any]:
 app = FastAPI(title="SoftComputing Service", version="1.0.0")
 
 
-def _build_postgres_connect_kwargs(database_url: str) -> dict[str, Any]:
-    parsed = urlparse(database_url)
-    query = parse_qs(parsed.query)
-
-    kwargs: dict[str, Any] = {
-        "dbname": parsed.path.lstrip("/") if parsed.path else None,
-        "user": unquote(parsed.username) if parsed.username else None,
-        "password": unquote(parsed.password) if parsed.password else None,
-        "host": parsed.hostname,
-        "port": parsed.port or 5432,
-        "connect_timeout": 5,
-    }
-
-    sslmode = query.get("sslmode", [None])[0]
-    if sslmode:
-        kwargs["sslmode"] = sslmode
-
-    return {key: value for key, value in kwargs.items() if value is not None}
-
-
-def _test_postgres_connection_psycopg2(database_url: str) -> tuple[bool, str | None]:
-    import psycopg2  # type: ignore
-
-    base_kwargs = _build_postgres_connect_kwargs(database_url)
-
-    try:
-        with psycopg2.connect(**base_kwargs) as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT 1")
-                cur.fetchone()
-        return True, None
-    except Exception as first_exc:
-        message = str(first_exc).lower()
-        hostname = base_kwargs.get("host")
-        port = int(base_kwargs.get("port", 5432))
-
-        # Railway containers can fail on IPv6-only DNS answers; retry forcing IPv4.
-        if not hostname or "network is unreachable" not in message:
-            return False, str(first_exc)
-
-        try:
-            addr_info = socket.getaddrinfo(hostname, port, socket.AF_INET, socket.SOCK_STREAM)
-        except Exception:
-            return False, str(first_exc)
-
-        ipv4_addresses = []
-        for info in addr_info:
-            ip = info[4][0]
-            if ip not in ipv4_addresses:
-                ipv4_addresses.append(ip)
-
-        for ipv4 in ipv4_addresses:
-            try:
-                ipv4_kwargs = dict(base_kwargs)
-                ipv4_kwargs["hostaddr"] = ipv4
-
-                with psycopg2.connect(**ipv4_kwargs) as conn:
-                    with conn.cursor() as cur:
-                        cur.execute("SELECT 1")
-                        cur.fetchone()
-                return True, None
-            except Exception:
-                continue
-
-        return False, str(first_exc)
-
-
 def _check_database_connection() -> dict[str, Any]:
     database_url = os.environ.get("ML_DATABASE_URL") or os.environ.get("DATABASE_URL")
     if not database_url:
@@ -222,9 +154,10 @@ def _check_database_connection() -> dict[str, Any]:
                     "engine": engine,
                 }
 
-            connected, error_message = _test_postgres_connection_psycopg2(database_url)
-            if not connected:
-                raise RuntimeError(error_message or "No fue posible validar la conexión PostgreSQL.")
+            with psycopg2.connect(database_url, connect_timeout=5) as conn:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT 1")
+                    cur.fetchone()
 
         elif engine in {"mysql", "mariadb"}:
             try:
