@@ -126,12 +126,14 @@ app = FastAPI(title="SoftComputing Service", version="1.0.0")
 def _build_postgres_connect_kwargs(database_url: str) -> dict[str, Any]:
     parsed = urlparse(database_url)
     query = parse_qs(parsed.query)
+    hostaddr = query.get("hostaddr", [None])[0] or os.environ.get("ML_DATABASE_HOSTADDR") or os.environ.get("PGHOSTADDR")
 
     kwargs: dict[str, Any] = {
         "dbname": parsed.path.lstrip("/") if parsed.path else None,
         "user": unquote(parsed.username) if parsed.username else None,
         "password": unquote(parsed.password) if parsed.password else None,
         "host": parsed.hostname,
+        "hostaddr": hostaddr,
         "port": parsed.port or 5432,
         "connect_timeout": 5,
     }
@@ -141,6 +143,32 @@ def _build_postgres_connect_kwargs(database_url: str) -> dict[str, Any]:
         kwargs["sslmode"] = sslmode
 
     return {key: value for key, value in kwargs.items() if value is not None}
+
+
+def _resolve_ipv4_addresses(hostname: str, port: int) -> list[str]:
+    ipv4_addresses: list[str] = []
+
+    try:
+        addr_info = socket.getaddrinfo(hostname, port, socket.AF_UNSPEC, socket.SOCK_STREAM)
+    except Exception:
+        addr_info = []
+
+    for family, _, _, _, sockaddr in addr_info:
+        if family == socket.AF_INET:
+            ip = sockaddr[0]
+            if ip not in ipv4_addresses:
+                ipv4_addresses.append(ip)
+
+    if not ipv4_addresses:
+        try:
+            _, _, ips = socket.gethostbyname_ex(hostname)
+            for ip in ips:
+                if ip not in ipv4_addresses:
+                    ipv4_addresses.append(ip)
+        except Exception:
+            pass
+
+    return ipv4_addresses
 
 
 def _test_postgres_connection_psycopg2(database_url: str) -> tuple[bool, str | None]:
@@ -158,21 +186,17 @@ def _test_postgres_connection_psycopg2(database_url: str) -> tuple[bool, str | N
         message = str(first_exc).lower()
         hostname = base_kwargs.get("host")
         port = int(base_kwargs.get("port", 5432))
+        has_hostaddr = bool(base_kwargs.get("hostaddr"))
 
         # Railway containers can fail on IPv6-only DNS answers; retry forcing IPv4.
-        if not hostname or "network is unreachable" not in message:
+        if has_hostaddr or not hostname:
             return False, str(first_exc)
 
-        try:
-            addr_info = socket.getaddrinfo(hostname, port, socket.AF_INET, socket.SOCK_STREAM)
-        except Exception:
+        if "network is unreachable" not in message and "no route to host" not in message:
             return False, str(first_exc)
 
-        ipv4_addresses = []
-        for info in addr_info:
-            ip = info[4][0]
-            if ip not in ipv4_addresses:
-                ipv4_addresses.append(ip)
+        ipv4_addresses = _resolve_ipv4_addresses(hostname, port)
+        last_error: Exception | None = None
 
         for ipv4 in ipv4_addresses:
             try:
@@ -184,18 +208,38 @@ def _test_postgres_connection_psycopg2(database_url: str) -> tuple[bool, str | N
                         cur.execute("SELECT 1")
                         cur.fetchone()
                 return True, None
-            except Exception:
+            except Exception as exc:
+                last_error = exc
                 continue
+
+        # Optional override for Supabase pooler host (usually IPv4-friendly).
+        pooler_host = os.environ.get("SUPABASE_DB_POOLER_HOST") or os.environ.get("ML_SUPABASE_DB_POOLER_HOST")
+        if pooler_host:
+            try:
+                pooler_kwargs = dict(base_kwargs)
+                pooler_kwargs["host"] = pooler_host
+                pooler_kwargs.pop("hostaddr", None)
+
+                with psycopg2.connect(**pooler_kwargs) as conn:
+                    with conn.cursor() as cur:
+                        cur.execute("SELECT 1")
+                        cur.fetchone()
+                return True, None
+            except Exception as exc:
+                last_error = exc
+
+        if last_error is not None:
+            return False, f"{first_exc} | fallback IPv4/pooler falló: {last_error}"
 
         return False, str(first_exc)
 
 
 def _check_database_connection() -> dict[str, Any]:
-    database_url = os.environ.get("ML_DATABASE_URL") or os.environ.get("DATABASE_URL")
+    database_url = os.environ.get("ML_SUPABASE_URL") or os.environ.get("DATABASE_URL")
     if not database_url:
         return {
             "connected": False,
-            "message": "No se encontró ML_DATABASE_URL o DATABASE_URL.",
+            "message": "No se encontró ML_SUPABASE_URL o DATABASE_URL.",
             "engine": None,
         }
 
