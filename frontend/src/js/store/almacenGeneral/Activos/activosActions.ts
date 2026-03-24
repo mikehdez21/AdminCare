@@ -1,8 +1,8 @@
 import axios from 'axios';
+import { API_BASE_URL } from '@/variableApi';
 import { ActivosFijos } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { API_BASE_URL } from '@/variableApi';
 
 // Agregar un nuevo activo
 export const addActivoFijo = createAsyncThunk<{ success: boolean; activofijo?: ActivosFijos; message: string }, ActivosFijos>(
@@ -226,6 +226,7 @@ export const getActivosFijosPorDepartamento = createAsyncThunk<{ success: boolea
       const activosFormateados = response.data.data.map((activosFijos: ActivosFijos) => {
         return {
           ...activosFijos,
+
           fecha_registro_af: activosFijos.fecha_registro_af
             ? formatDateHorasToFrontend(activosFijos.fecha_registro_af)
             : null,
@@ -276,6 +277,7 @@ export const getActivosFijosPorUbicacion = createAsyncThunk<{ success: boolean; 
       const activosFormateados = response.data.data.map((activosFijos: ActivosFijos) => {
         return {
           ...activosFijos,
+
           fecha_registro_af: activosFijos.fecha_registro_af
             ? formatDateHorasToFrontend(activosFijos.fecha_registro_af)
             : null,
@@ -326,6 +328,7 @@ export const getActivosFijosPorClasificacion = createAsyncThunk<{ success: boole
       const activosFormateados = response.data.data.map((activosFijos: ActivosFijos) => {
         return {
           ...activosFijos,
+
           fecha_registro_af: activosFijos.fecha_registro_af
             ? formatDateHorasToFrontend(activosFijos.fecha_registro_af)
             : null,
