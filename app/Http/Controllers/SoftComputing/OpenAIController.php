@@ -67,11 +67,23 @@ class OpenAIController extends Controller
 			$useWebSearch = array_key_exists('use_web_search', $validated)
 				? (bool) $validated['use_web_search']
 				: true;
+			$webSearchRequested = $webSearchEnabled && $useWebSearch;
+			$webSearchToolType = $this->resolveWebSearchToolType($model);
+			$webSearchStatus = [
+				'requested' => $webSearchRequested,
+				'attempted' => false,
+				'tool_type' => null,
+				'disabled_reason' => null,
+			];
 
-			if ($webSearchEnabled && $useWebSearch) {
+			if ($webSearchRequested) {
 				$requestPayload['tools'] = [
-					['type' => 'web_search_preview'],
+					['type' => $webSearchToolType],
 				];
+				$requestPayload['tool_choice'] = 'auto';
+				$requestPayload['include'] = ['web_search_call.action.sources'];
+				$webSearchStatus['attempted'] = true;
+				$webSearchStatus['tool_type'] = $webSearchToolType;
 			}
 
 			$openAIResponse = Http::timeout($timeout)
@@ -87,6 +99,9 @@ class OpenAIController extends Controller
 			) {
 				$payloadWithoutTools = $requestPayload;
 				unset($payloadWithoutTools['tools']);
+				unset($payloadWithoutTools['tool_choice']);
+				unset($payloadWithoutTools['include']);
+				$webSearchStatus['disabled_reason'] = $this->extractErrorMessage($openAIResponse->json() ?? []);
 
 				$openAIResponse = Http::timeout($timeout)
 					->withToken($apiKey)
@@ -128,6 +143,8 @@ class OpenAIController extends Controller
 
 			$responsePayload = $openAIResponse->json() ?? [];
 			$outputText = $this->extractOutputText($responsePayload);
+			$webSearchSources = $this->extractWebSearchSources($responsePayload);
+			$webSearchUsed = !empty($webSearchSources) || $this->responseIncludesWebSearchCall($responsePayload);
 
 			if ($outputText === '') {
 				$outputText = json_encode($responsePayload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) ?: '';
@@ -141,6 +158,14 @@ class OpenAIController extends Controller
 					'algorithm' => $algorithm,
 					'model_used' => $modelUsed,
 					'analysis_text' => $outputText,
+					'web_search' => [
+						'requested' => $webSearchStatus['requested'],
+						'attempted' => $webSearchStatus['attempted'],
+						'used' => $webSearchUsed,
+						'tool_type' => $webSearchStatus['tool_type'],
+						'disabled_reason' => $webSearchStatus['disabled_reason'],
+						'sources' => $webSearchSources,
+					],
 					'raw_response' => $responsePayload,
 				],
 			], 200);
@@ -157,23 +182,34 @@ class OpenAIController extends Controller
 
 	private function isToolCompatibilityError(array $errorPayload): bool
 	{
-		$error = data_get($errorPayload, 'error');
-		$message = '';
-
-		if (is_array($error)) {
-			$message = strtolower((string) ($error['message'] ?? ''));
-		} elseif (is_string($error)) {
-			$message = strtolower($error);
-		}
-
-		if ($message === '') {
-			$message = strtolower((string) json_encode($errorPayload));
-		}
+		$message = strtolower($this->extractErrorMessage($errorPayload));
 
 		return str_contains($message, 'tool')
 			|| str_contains($message, 'web_search')
 			|| str_contains($message, 'unsupported')
 			|| str_contains($message, 'not available');
+	}
+
+	private function resolveWebSearchToolType(string $model): string
+	{
+		return str_starts_with(strtolower($model), 'gpt-5')
+			? 'web_search'
+			: 'web_search_preview';
+	}
+
+	private function extractErrorMessage(array $errorPayload): string
+	{
+		$error = data_get($errorPayload, 'error');
+
+		if (is_array($error)) {
+			return (string) ($error['message'] ?? json_encode($errorPayload));
+		}
+
+		if (is_string($error) && trim($error) !== '') {
+			return $error;
+		}
+
+		return (string) json_encode($errorPayload);
 	}
 
 	private function buildModeContext(string $mode): string
@@ -237,5 +273,55 @@ class OpenAIController extends Controller
 		}
 
 		return trim(implode("\n", $chunks));
+	}
+
+	private function responseIncludesWebSearchCall(array $responsePayload): bool
+	{
+		$output = data_get($responsePayload, 'output', []);
+		if (!is_array($output)) {
+			return false;
+		}
+
+		foreach ($output as $item) {
+			if (($item['type'] ?? null) === 'web_search_call') {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private function extractWebSearchSources(array $responsePayload): array
+	{
+		$output = data_get($responsePayload, 'output', []);
+		if (!is_array($output)) {
+			return [];
+		}
+
+		$sources = [];
+		foreach ($output as $item) {
+			if (($item['type'] ?? null) !== 'web_search_call') {
+				continue;
+			}
+
+			$items = data_get($item, 'action.sources', []);
+			if (!is_array($items)) {
+				continue;
+			}
+
+			foreach ($items as $source) {
+				$url = trim((string) ($source['url'] ?? ''));
+				if ($url === '') {
+					continue;
+				}
+
+				$sources[] = [
+					'title' => (string) ($source['title'] ?? $url),
+					'url' => $url,
+				];
+			}
+		}
+
+		return array_values(array_unique($sources, SORT_REGULAR));
 	}
 }
