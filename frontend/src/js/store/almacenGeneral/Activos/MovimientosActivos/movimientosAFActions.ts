@@ -1,8 +1,8 @@
 import axios from 'axios';
-import { API_BASE_URL } from '@/variableApi';
 import { MovimientosActivosFijos, VwMovimientosAF } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
-import {formatDateHorasToFrontend } from '@/utils/dateFormat'; 
+import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import { API_BASE_URL } from '@/variableApi';
 
 // Agregar un nuevo movimiento del activo fijo registrado en AddActivoFijo
 export const addMovimientoActivoFijo = createAsyncThunk<{ success: boolean; message: string }, MovimientosActivosFijos>(
@@ -47,7 +47,7 @@ export const getMovimientosActivosFijos = createAsyncThunk<{ success: boolean; m
     try {
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      
+
       const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacenGeneral/movimientos-activosfijos`, {
         headers: {
           'Content-Type': 'application/json',
@@ -95,7 +95,7 @@ export const editMovimientoActivoFijo = createAsyncThunk<{ success: boolean; mes
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       console.log(csrfToken);
-      
+
       const response = await axios.put(
         `${API_BASE_URL}/api/HSS1/almacenGeneral/movimientos-activosfijos/${MovimientoActivoFijoEditado.id_movimientoAF}`,
         MovimientoActivoFijoEditado,
@@ -109,7 +109,7 @@ export const editMovimientoActivoFijo = createAsyncThunk<{ success: boolean; mes
       );
 
       return { success: response.data.success, message: response.data.message };
-      
+
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         return {
@@ -134,7 +134,7 @@ export const deleteMovimientoActivoFijo = createAsyncThunk<{ success: boolean; m
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       console.log(csrfToken);
-      
+
       // Incluir el id del proveedor en la URL para hacer la eliminación correcta
       const response = await axios.delete(
         `${API_BASE_URL}/api/HSS1/almacenGeneral/movimientos-activosfijos/${MovimientoActivoFijoEliminado.id_movimientoAF}`,
@@ -149,7 +149,7 @@ export const deleteMovimientoActivoFijo = createAsyncThunk<{ success: boolean; m
 
       console.log('deleteAction', response.data.success)
       return { success: response.data.success, message: response.data.message };
-      
+
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         return {
@@ -188,10 +188,6 @@ export const getVWmovimientosActivosFijos = createAsyncThunk<{ success: boolean;
         return {
           ...vwMovimientosAF,
 
-          fecha_compra_af: vwMovimientosAF.fecha_compra_af
-            ? formatDateHorasToFrontend(vwMovimientosAF.fecha_compra_af)
-            : null,
-
           fecha_registro_af: vwMovimientosAF.fecha_registro_af
             ? formatDateHorasToFrontend(vwMovimientosAF.fecha_registro_af)
             : null,
@@ -202,7 +198,7 @@ export const getVWmovimientosActivosFijos = createAsyncThunk<{ success: boolean;
 
           updated_at: vwMovimientosAF.updated_at
             ? formatDateHorasToFrontend(vwMovimientosAF.updated_at)
-            : null, 
+            : null,
         };
       });
 
