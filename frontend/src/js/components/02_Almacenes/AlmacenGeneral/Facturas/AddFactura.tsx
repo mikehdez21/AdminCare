@@ -102,17 +102,36 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
     }));
   };
 
+  const escapeHtml = (value: string) =>
+    value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+
+  const unwrapCodeFence = (text: string): string => {
+    const trimmed = text.trim();
+    const fencedMatch = trimmed.match(/^```(?:json|javascript|js)?\s*([\s\S]*?)\s*```$/i);
+    return fencedMatch ? fencedMatch[1].trim() : trimmed;
+  };
+
+  const renderRawRecommendationHtml = (rawText: string, title: string) => {
+    const safeText = escapeHtml(rawText || 'Sin contenido');
+
+    return `
+      <div class="recommendationPanel recommendationPanel--raw">
+        <p class="recommendationPanel__title"><strong>${escapeHtml(title)}</strong></p>
+        <pre class="recommendationPanel__pre">${safeText}</pre>
+      </div>
+    `;
+  };
+
   const renderOpenAIRecommendationHtml = (analysisText: string): string => {
-    const escapeHtml = (value: string) =>
-      value
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+    const normalizedText = unwrapCodeFence(analysisText);
 
     try {
-      const parsed = JSON.parse(analysisText) as {
+      const parsed = JSON.parse(normalizedText) as {
         resumen_general?: string;
         resultados?: Array<{
           activo?: string;
@@ -125,15 +144,42 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
         }>;
       };
 
-      const resumen = escapeHtml(parsed.resumen_general || 'Sin resumen disponible.');
+      const resumenRaw = parsed.resumen_general;
       const resultados = Array.isArray(parsed.resultados) ? parsed.resultados : [];
+
+      const resumenHtml =
+        resumenRaw && typeof resumenRaw === 'object'
+          ? Object.entries(resumenRaw)
+              .map(([key, value]) => {
+                const keyLabel = escapeHtml(key.replace(/_/g, ' '));
+                const valueLabel = escapeHtml(value === null ? 'N/D' : String(value));
+                return `
+                  <div class="recommendationSummary__item">
+                    <span class="recommendationSummary__key">${keyLabel}</span>
+                    <span class="recommendationSummary__value">${valueLabel}</span>
+                  </div>
+                `;
+              })
+              .join('')
+          : `<p class="recommendationSummary__text">${escapeHtml(String(resumenRaw || 'Sin resumen disponible.'))}</p>`;
 
       const resultadosHtml = resultados.length
         ? resultados
             .map((item) => {
-              const activo = escapeHtml(item.activo || 'Activo');
+              const activoRaw = item.activo;
+              const activoObj = activoRaw && typeof activoRaw === 'object' ? activoRaw as Record<string, unknown> : null;
+
+              const nombreActivo = activoObj
+                ? escapeHtml(String(activoObj.nombre ?? activoObj.nombre_af ?? 'Activo'))
+                : escapeHtml(typeof activoRaw === 'string' ? activoRaw : 'Activo');
+
+              const marca = activoObj ? escapeHtml(String(activoObj.marca ?? activoObj.marca_af ?? 'N/D')) : 'N/D';
+              const modelo = activoObj ? escapeHtml(String(activoObj.modelo ?? activoObj.modelo_af ?? 'N/D')) : 'N/D';
+
               const opcion = escapeHtml(item.opcion_mas_barata || 'Sin opción específica');
-              const precioActual = toSafeNumber(item.precio_actual, 0);
+              const precioActual = toSafeNumber(
+                item.precio_actual,
+                0);
               const precioRef = toSafeNumber(item.precio_referencia, 0);
               const ahorro = toSafeNumber(item.ahorro_estimado, 0);
               const notas = escapeHtml(item.notas || '');
@@ -144,36 +190,30 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
                 : '<span>URL no disponible</span>';
 
               return `
-                <div style="padding:8px 0; border-bottom:1px solid #eee;">
-                  <p><strong>${activo}</strong></p>
-                  <p>Precio actual: ${formatPeso(precioActual)}</p>
-                  <p>Opción sugerida: ${opcion}</p>
-                  <p>Precio referencia: ${formatPeso(precioRef)} | Ahorro estimado: ${formatPeso(ahorro)}</p>
-                  <p>${urlHtml}</p>
-                  ${notas ? `<p style="color:#555;">Notas: ${notas}</p>` : ''}
+                <div class="recommendationCard">
+                  <p class="recommendationCard__title"><strong>${nombreActivo}</strong></p>
+                  <p class="recommendationCard__meta">Marca: ${marca} | Modelo: ${modelo}</p>
+                  <p class="recommendationCard__line">Precio actual: ${formatPeso(precioActual)}</p>
+                  <p class="recommendationCard__line">Opción sugerida: ${opcion}</p>
+                  <p class="recommendationCard__line">Precio referencia: ${formatPeso(precioRef)} | Ahorro estimado: ${formatPeso(ahorro)}</p>
+                  <p class="recommendationCard__line">${urlHtml}</p>
+                  ${notas ? `<p class="recommendationCard__notes">Notas: ${notas}</p>` : ''}
                 </div>
               `;
             })
             .join('')
-        : '<p>No se recibieron resultados estructurados.</p>';
+        : '<p class="recommendationPanel__empty">No se recibieron resultados estructurados.</p>';
 
       return `
-        <div style="text-align:left; max-height:380px; overflow:auto;">
-          <p><strong>Resumen:</strong> ${resumen}</p>
-          <hr />
+        <div class="recommendationPanel">
+          <p class="recommendationPanel__title"><strong>Resumen</strong></p>
+          <div class="recommendationSummary">${resumenHtml}</div>
+          <hr class="recommendationPanel__divider" />
           ${resultadosHtml}
         </div>
       `;
     } catch {
-      const plain = analysisText
-        .replace(/\n/g, '<br/>')
-        .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
-
-      return `
-        <div style="text-align:left; max-height:380px; overflow:auto; white-space:normal;">
-          ${plain}
-        </div>
-      `;
+      return renderRawRecommendationHtml(normalizedText, 'Respuesta OpenAI (formato libre)');
     }
   };
 
@@ -339,11 +379,28 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
 
       const metrics = (trainResponse.data.metrics || {}) as { mae?: number; rmse?: number; r2?: number };
       const resumenMetricas = `MAE: ${toSafeNumber(metrics.mae, 0).toFixed(2)} | RMSE: ${toSafeNumber(metrics.rmse, 0).toFixed(2)} | R2: ${toSafeNumber(metrics.r2, 0).toFixed(4)}`;
+      const comparativoHtml = comparativo
+        .map((linea, index) => {
+          const contenido = escapeHtml(linea);
+          return `
+            <div class="mlRecommendationItem">
+              <strong>#${index + 1}</strong> ${contenido}
+            </div>
+          `;
+        })
+        .join('');
 
       await Swal.fire({
         icon: 'info',
         title: 'Recomendación ML (Random Forest)',
-        html: `<div style="text-align:left; max-height: 340px; overflow:auto;"><p><strong>Modelo:</strong> ${modelId}</p><p><strong>Métricas:</strong> ${resumenMetricas}</p><hr/><pre style="white-space:pre-wrap; font-size:12px;">${comparativo.join('\n')}</pre></div>`,
+        html: `
+          <div class="recommendationPanel">
+            <p class="recommendationPanel__line"><strong>Modelo:</strong> ${escapeHtml(modelId)}</p>
+            <p class="recommendationPanel__line"><strong>Métricas:</strong> ${escapeHtml(resumenMetricas)}</p>
+            <hr class="recommendationPanel__divider" />
+            ${comparativoHtml || '<p class="recommendationPanel__empty">No se recibieron predicciones para mostrar.</p>'}
+          </div>
+        `,
         width: 800,
         confirmButtonText: 'OK',
       });
