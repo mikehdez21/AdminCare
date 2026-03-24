@@ -23,7 +23,7 @@ class OpenAIController extends Controller
 			$apiKey = (string) config('services.openai.api_key');
 			$model = (string) config('services.openai.model', 'gpt-5');
 			$fallbackModel = (string) config('services.openai.fallback_model', 'gpt-5');
-			$timeout = (int) config('services.openai.timeout', 30);
+			$timeout = (int) (env('OPENAI_TIMEOUT', config('services.openai.timeout', 120)));
 			$webSearchEnabled = (bool) config('services.openai.web_search_enabled', true);
 
 			if ($apiKey === '') {
@@ -52,7 +52,7 @@ class OpenAIController extends Controller
 				$activosPrompt .= "\nActivo #" . ($idx + 1) . ":\n- Nombre: {$nombre}\n- Marca: {$marca}\n- Modelo: {$modelo}\n- Precio unitario: {$precio}";
 			}
 
-			$userPrompt = "Tengo los siguientes activos para compra:{$activosPrompt}\n\nRealiza una búsqueda web solo en Amazon, MercadoLibre y Walmart para encontrar productos iguales o comparables. Devuelve un JSON con:\n- resumen_general: breve análisis de si el precio es competitivo.\n- resultados: [ { activo, precio_actual, opcion_mas_barata, precio_referencia, ahorro_estimado, url, notas } ]\nSi no puedes validar la URL o el precio, indícalo en notas y no inventes enlaces.";
+			$userPrompt = "Tengo los siguientes activos para compra:{$activosPrompt}\n\nRealiza una búsqueda web solo en Amazon, MercadoLibre y Walmart para encontrar productos iguales o comparables. Devuelve un JSON con:\n- resumen_general: breve análisis de si el precio es competitivo.\n- resultados: máximo 3 opciones, cada una con { activo, precio_actual, opcion_mas_barata, precio_referencia, ahorro_estimado, url, notas }\nSi no puedes validar la URL o el precio, indícalo en notas y no inventes enlaces. No incluyas más de 3 resultados por activo.";
 
 			$requestPayload = [
 				'input' => [
