@@ -160,10 +160,31 @@ class OpenAIController extends Controller
 			}
 
 			$responsePayload = $openAIResponse->json() ?? [];
+
 			$outputText = $this->extractOutputText($responsePayload);
 			$webSearchSources = $this->extractWebSearchSources($responsePayload);
 			$webSearchUsed = !empty($webSearchSources) || $this->responseIncludesWebSearchCall($responsePayload);
 
+			// Si no hay outputText, intenta extraer del campo 'text' o 'output' directamente
+			if ($outputText === '') {
+				if (isset($responsePayload['text']) && is_string($responsePayload['text']) && trim($responsePayload['text']) !== '') {
+					$outputText = $responsePayload['text'];
+				} elseif (isset($responsePayload['output']) && is_array($responsePayload['output'])) {
+					// Busca el primer bloque de texto en output
+					foreach ($responsePayload['output'] as $item) {
+						if (isset($item['content']) && is_array($item['content'])) {
+							foreach ($item['content'] as $content) {
+								if (isset($content['text']) && is_string($content['text']) && trim($content['text']) !== '') {
+									$outputText = $content['text'];
+									break 2;
+								}
+							}
+						}
+					}
+				}
+			}
+
+			// Si sigue vacío, devuelve el JSON crudo para depuración
 			if ($outputText === '') {
 				$outputText = json_encode($responsePayload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) ?: '';
 			}
