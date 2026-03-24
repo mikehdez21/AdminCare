@@ -38,17 +38,21 @@ class OpenAIController extends Controller
 			$algorithm = $validated['algorithm'] ?? null;
 			$inputData = $validated['data'] ?? [];
 
-			$systemPrompt = "Eres un analista de SoftComputing para el sistema AdminCare. "
-				. "Responde únicamente en JSON válido, siguiendo exactamente la estructura solicitada por el usuario en el campo question. "
-				. "No uses markdown. "
-				. "Contexto de tarea: {$modeContext}.";
 
-			$userPrompt = [
-				'mode' => $validated['mode'],
-				'algorithm' => $algorithm,
-				'question' => $validated['prompt'],
-				'dataset' => $inputData,
-			];
+			$systemPrompt = "Eres un analista experto en compras empresariales para el sistema AdminCare. Responde solo en JSON válido, sin markdown. Si no puedes validar una URL o precio, indícalo en notas y no inventes enlaces.";
+
+			// Construir prompt de usuario estructurado para cada activo
+			$activos = isset($inputData['activos']) && is_array($inputData['activos']) ? $inputData['activos'] : [];
+			$activosPrompt = '';
+			foreach ($activos as $idx => $activo) {
+				$nombre = $activo['nombre_af'] ?? '';
+				$marca = $activo['marca_af'] ?? '';
+				$modelo = $activo['modelo_af'] ?? '';
+				$precio = $activo['precio_unitario'] ?? '';
+				$activosPrompt .= "\nActivo #" . ($idx + 1) . ":\n- Nombre: {$nombre}\n- Marca: {$marca}\n- Modelo: {$modelo}\n- Precio unitario: {$precio}";
+			}
+
+			$userPrompt = "Tengo los siguientes activos para compra:{$activosPrompt}\n\nRealiza una búsqueda web solo en Amazon, MercadoLibre y Walmart para encontrar productos iguales o comparables. Devuelve un JSON con:\n- resumen_general: breve análisis de si el precio es competitivo.\n- resultados: [ { activo, precio_actual, opcion_mas_barata, precio_referencia, ahorro_estimado, url, notas } ]\nSi no puedes validar la URL o el precio, indícalo en notas y no inventes enlaces.";
 
 			$requestPayload = [
 				'input' => [
@@ -58,7 +62,7 @@ class OpenAIController extends Controller
 					],
 					[
 						'role' => 'user',
-						'content' => json_encode($userPrompt, JSON_UNESCAPED_UNICODE),
+						'content' => $userPrompt,
 					],
 				],
 			];
@@ -78,7 +82,19 @@ class OpenAIController extends Controller
 
 			if ($webSearchRequested) {
 				$requestPayload['tools'] = [
-					['type' => $webSearchToolType],
+					[
+						'type' => $webSearchToolType,
+						'filters' => [
+							'allowed_domains' => [
+								'amazon.com.mx',
+								'mercadolibre.com.mx',
+								'walmart.com.mx',
+								'amazon.com',
+								'mercadolibre.com',
+								'walmart.com'
+							]
+						]
+					]
 				];
 				$requestPayload['tool_choice'] = 'auto';
 				$requestPayload['include'] = ['web_search_call.action.sources'];
