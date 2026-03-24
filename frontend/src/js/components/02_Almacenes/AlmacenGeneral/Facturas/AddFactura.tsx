@@ -212,7 +212,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
             mode: 'price_prediction',
             algorithm: 'linear_regression',
             prompt:
-              'Analiza si los precios unitarios de los activos y el total de la factura son coherentes con una estimación básica de predicción de precios. Identifica posibles sobreprecios y genera recomendaciones.',
+              'Analiza si los precios unitarios de los activos y el total de la factura son coherentes con una estimación básica de predicción de precios. Identifica posibles sobreprecios, si el análisis es negativo, solo devuelve un NO, de lo contrario, regresa OK.',
             data: {
               numero_factura: numeroFacturaTrim,
               subtotal_factura: toSafeNumber(subTotalFactura, 0),
@@ -235,8 +235,8 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
         } else {
           await Swal.fire({
             icon: 'warning',
-            title: 'Prueba OpenAI no disponible',
-            text: openAITestResult.message || 'No se pudo obtener análisis de OpenAI para esta factura.',
+            title: 'Análisis de Facturas no disponible',
+            text: openAITestResult.message || 'No se pudo obtener análisis de para esta factura.',
             confirmButtonText: 'Continuar',
           });
         }
