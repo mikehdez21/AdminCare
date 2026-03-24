@@ -102,17 +102,48 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
     }));
   };
 
+  const escapeHtml = (value: string) =>
+    value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+
+  const unwrapCodeFence = (text: string): string => {
+    const trimmed = text.trim();
+    const fencedMatch = trimmed.match(/^```(?:json|javascript|js)?\s*([\s\S]*?)\s*```$/i);
+    return fencedMatch ? fencedMatch[1].trim() : trimmed;
+  };
+
+  const renderRawRecommendationHtml = (rawText: string, title: string) => {
+    const safeText = escapeHtml(rawText || 'Sin contenido');
+
+    return `
+      <div style="text-align:left; max-height:420px; overflow:auto; padding:6px;">
+        <p style="margin: 0 0 10px 0;"><strong>${escapeHtml(title)}</strong></p>
+        <pre style="
+          margin:0;
+          padding:12px;
+          border-radius:8px;
+          border:1px solid #e1e1e1;
+          background:#f7f9fb;
+          color:#1f2937;
+          font-size:12px;
+          line-height:1.45;
+          white-space:pre-wrap;
+          word-break:break-word;
+          font-family:Consolas, 'Courier New', monospace;
+        ">${safeText}</pre>
+      </div>
+    `;
+  };
+
   const renderOpenAIRecommendationHtml = (analysisText: string): string => {
-    const escapeHtml = (value: string) =>
-      value
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+    const normalizedText = unwrapCodeFence(analysisText);
 
     try {
-      const parsed = JSON.parse(analysisText) as {
+      const parsed = JSON.parse(normalizedText) as {
         resumen_general?: string;
         resultados?: Array<{
           activo?: string;
@@ -144,13 +175,13 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
                 : '<span>URL no disponible</span>';
 
               return `
-                <div style="padding:8px 0; border-bottom:1px solid #eee;">
-                  <p><strong>${activo}</strong></p>
-                  <p>Precio actual: ${formatPeso(precioActual)}</p>
-                  <p>Opción sugerida: ${opcion}</p>
-                  <p>Precio referencia: ${formatPeso(precioRef)} | Ahorro estimado: ${formatPeso(ahorro)}</p>
-                  <p>${urlHtml}</p>
-                  ${notas ? `<p style="color:#555;">Notas: ${notas}</p>` : ''}
+                <div style="padding:10px 12px; border:1px solid #e8e8e8; border-radius:8px; margin-bottom:10px; background:#fff;">
+                  <p style="margin:0 0 6px 0;"><strong>${activo}</strong></p>
+                  <p style="margin:0 0 4px 0;">Precio actual: ${formatPeso(precioActual)}</p>
+                  <p style="margin:0 0 4px 0;">Opción sugerida: ${opcion}</p>
+                  <p style="margin:0 0 4px 0;">Precio referencia: ${formatPeso(precioRef)} | Ahorro estimado: ${formatPeso(ahorro)}</p>
+                  <p style="margin:0 0 4px 0;">${urlHtml}</p>
+                  ${notas ? `<p style="margin:0; color:#555;">Notas: ${notas}</p>` : ''}
                 </div>
               `;
             })
@@ -158,22 +189,14 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
         : '<p>No se recibieron resultados estructurados.</p>';
 
       return `
-        <div style="text-align:left; max-height:380px; overflow:auto;">
-          <p><strong>Resumen:</strong> ${resumen}</p>
-          <hr />
+        <div style="text-align:left; max-height:420px; overflow:auto; background:#fafafa; border:1px solid #ececec; border-radius:10px; padding:12px;">
+          <p style="margin:0 0 10px 0;"><strong>Resumen:</strong> ${resumen}</p>
+          <hr style="border:none; border-top:1px solid #e5e7eb; margin: 10px 0 12px 0;" />
           ${resultadosHtml}
         </div>
       `;
     } catch {
-      const plain = analysisText
-        .replace(/\n/g, '<br/>')
-        .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
-
-      return `
-        <div style="text-align:left; max-height:380px; overflow:auto; white-space:normal;">
-          ${plain}
-        </div>
-      `;
+      return renderRawRecommendationHtml(normalizedText, 'Respuesta OpenAI (formato libre)');
     }
   };
 
@@ -339,11 +362,37 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
 
       const metrics = (trainResponse.data.metrics || {}) as { mae?: number; rmse?: number; r2?: number };
       const resumenMetricas = `MAE: ${toSafeNumber(metrics.mae, 0).toFixed(2)} | RMSE: ${toSafeNumber(metrics.rmse, 0).toFixed(2)} | R2: ${toSafeNumber(metrics.r2, 0).toFixed(4)}`;
+      const comparativoHtml = comparativo
+        .map((linea, index) => {
+          const contenido = escapeHtml(linea);
+          return `
+            <div style="
+              border:1px solid #e5e7eb;
+              background:#ffffff;
+              border-radius:8px;
+              padding:8px 10px;
+              margin-bottom:8px;
+              font-family:Consolas, 'Courier New', monospace;
+              font-size:12px;
+              line-height:1.4;
+            ">
+              <strong>#${index + 1}</strong> ${contenido}
+            </div>
+          `;
+        })
+        .join('');
 
       await Swal.fire({
         icon: 'info',
         title: 'Recomendación ML (Random Forest)',
-        html: `<div style="text-align:left; max-height: 340px; overflow:auto;"><p><strong>Modelo:</strong> ${modelId}</p><p><strong>Métricas:</strong> ${resumenMetricas}</p><hr/><pre style="white-space:pre-wrap; font-size:12px;">${comparativo.join('\n')}</pre></div>`,
+        html: `
+          <div style="text-align:left; max-height:380px; overflow:auto; background:#fafafa; border:1px solid #ececec; border-radius:10px; padding:12px;">
+            <p style="margin:0 0 8px 0;"><strong>Modelo:</strong> ${escapeHtml(modelId)}</p>
+            <p style="margin:0 0 8px 0;"><strong>Métricas:</strong> ${escapeHtml(resumenMetricas)}</p>
+            <hr style="border:none; border-top:1px solid #e5e7eb; margin: 10px 0 12px 0;" />
+            ${comparativoHtml || '<p>No se recibieron predicciones para mostrar.</p>'}
+          </div>
+        `,
         width: 800,
         confirmButtonText: 'OK',
       });
