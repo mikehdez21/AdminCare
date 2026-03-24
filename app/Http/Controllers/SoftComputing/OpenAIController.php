@@ -21,8 +21,8 @@ class OpenAIController extends Controller
 			]);
 
 			$apiKey = (string) config('services.openai.api_key');
-			$model = (string) config('services.openai.model', 'gpt-5');
-			$fallbackModel = (string) config('services.openai.fallback_model', 'gpt-5');
+			$model = (string) config('services.openai.model', 'gpt-5-search-api');
+			$fallbackModel = (string) config('services.openai.fallback_model', 'gpt-5-search-api');
 			$timeout = (int) (env('OPENAI_TIMEOUT', config('services.openai.timeout', 120)));
 			$webSearchEnabled = (bool) config('services.openai.web_search_enabled', true);
 
@@ -113,7 +113,7 @@ class OpenAIController extends Controller
 				$openAIResponse->failed()
 				&& isset($requestPayload['tools'])
 				&& $this->isToolCompatibilityError($openAIResponse->json() ?? [])
-				&& strtolower($model) !== 'gpt-5'
+				&& strtolower($model) !== 'gpt-5-search-api'
 			) {
 				$payloadWithoutTools = $requestPayload;
 				unset($payloadWithoutTools['tools']);
