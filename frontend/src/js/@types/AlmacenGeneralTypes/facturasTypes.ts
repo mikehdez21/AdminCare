@@ -16,8 +16,7 @@ export interface ActivoFacturaInput {
   marca_af: string;
   modelo_af: string;
   numero_serie_af: string;
-  valor_compra_af: number;
-  fecha_compra_af: string;
+  precio_unitario_af: number;
   af_propio: boolean;
   id_estado_af: number;
   id_clasificacion: number;
@@ -25,7 +24,6 @@ export interface ActivoFacturaInput {
   observaciones_af?: string | null;
 
   // Datos de la relación factura-activo
-  precio_unitario: number;
   cantidad: number;
   observaciones?: string | null;
 
@@ -77,7 +75,6 @@ export interface FacturaDetalle {
   id_facturaactivos: number;
   id_factura: number;
   id_activo_fijo: number;
-  precio_unitarioaf: number;
   observaciones_detalleaf?: string | null;
   created_at?: string;
   updated_at?: string | null;

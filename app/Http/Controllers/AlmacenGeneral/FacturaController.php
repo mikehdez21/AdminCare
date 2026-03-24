@@ -73,8 +73,7 @@ class FacturaController extends Controller
                 'activos.*.marca_af' => 'required_with:activos|string|max:255',
                 'activos.*.modelo_af' => 'required_with:activos|string|max:255',
                 'activos.*.numero_serie_af' => 'required_with:activos|string|max:255',
-                'activos.*.valor_compra_af' => 'required_with:activos|numeric|min:0',
-                'activos.*.fecha_compra_af' => 'required_with:activos|date',
+                'activos.*.precio_unitario_af' => 'required_with:activos|numeric|min:0',
                 'activos.*.af_propio' => 'required_with:activos|boolean',
                 'activos.*.id_estado_af' => 'required_with:activos|integer',
                 'activos.*.fecha_registro_af' => 'required_with:activos|date',
@@ -82,7 +81,6 @@ class FacturaController extends Controller
                 'activos.*.descripcion_af' => 'nullable|string',
                 'activos.*.observaciones_af' => 'nullable|string',
                 // Datos de la relación factura-activo
-                'activos.*.precio_unitario' => 'required_with:activos|numeric|min:0',
                 'activos.*.cantidad' => 'required_with:activos|integer|min:1',
                 'activos.*.observaciones' => 'nullable|string',
                 // Datos opcionales para movimiento/asignación inicial
@@ -130,8 +128,7 @@ class FacturaController extends Controller
                             'marca_af' => $activoData['marca_af'],
                             'modelo_af' => $activoData['modelo_af'],
                             'numero_serie_af' => $activoData['numero_serie_af'],
-                            'valor_compra_af' => $activoData['valor_compra_af'],
-                            'fecha_compra_af' => $activoData['fecha_compra_af'],
+                            'precio_unitario_af' => $activoData['precio_unitario_af'],
                             'af_propio' => $activoData['af_propio'],
                             'id_estado_af' => $activoData['id_estado_af'],
                             'id_clasificacion' => $activoData['id_clasificacion'],
@@ -187,7 +184,6 @@ class FacturaController extends Controller
                         FacturaActivos::create([
                             'id_factura' => $factura->id_factura,
                             'id_activo_fijo' => $nuevoActivo->id_activo_fijo,
-                            'precio_unitarioaf' => $activoData['precio_unitario'],
                             'observaciones_detalleaf' => $activoData['observaciones'] ?? null
                         ]);
 
@@ -256,8 +252,7 @@ class FacturaController extends Controller
                 'activos.*.marca_af' => 'nullable|string|max:255',
                 'activos.*.modelo_af' => 'nullable|string|max:255',
                 'activos.*.numero_serie_af' => 'nullable|string|max:255',
-                'activos.*.valor_compra_af' => 'nullable|numeric|min:0',
-                'activos.*.fecha_compra_af' => 'nullable|date',
+                'activos.*.precio_unitario_af' => 'nullable|numeric|min:0',
                 'activos.*.af_propio' => 'nullable|boolean',
                 'activos.*.id_estado_af' => 'nullable|integer',
                 'activos.*.fecha_registro_af' => 'nullable|date',
@@ -265,7 +260,6 @@ class FacturaController extends Controller
                 'activos.*.descripcion_af' => 'nullable|string',
                 'activos.*.observaciones_af' => 'nullable|string',
                 // Datos de factura-activo
-                'activos.*.precio_unitario' => 'required_with:activos|numeric|min:0',
                 'activos.*.cantidad' => 'required_with:activos|integer|min:1',
                 'activos.*.observaciones' => 'nullable|string',
                 // Datos opcionales de movimiento inicial para nuevos activos
@@ -295,7 +289,6 @@ class FacturaController extends Controller
                         FacturaActivos::create([
                             'id_factura' => $factura->id_factura,
                             'id_activo_fijo' => $activoData['id_activo_fijo'],
-                            'precio_unitarioaf' => $activoData['precio_unitario'],
                             'observaciones_detalleaf' => $activoData['observaciones'] ?? null
                         ]);
 
@@ -308,8 +301,7 @@ class FacturaController extends Controller
                         'marca_af',
                         'modelo_af',
                         'numero_serie_af',
-                        'valor_compra_af',
-                        'fecha_compra_af',
+                        'precio_unitario_af',
                         'af_propio',
                         'id_estado_af',
                         'id_clasificacion',
@@ -334,8 +326,7 @@ class FacturaController extends Controller
                             'marca_af' => $activoData['marca_af'],
                             'modelo_af' => $activoData['modelo_af'],
                             'numero_serie_af' => $activoData['numero_serie_af'],
-                            'valor_compra_af' => $activoData['valor_compra_af'],
-                            'fecha_compra_af' => $activoData['fecha_compra_af'],
+                            'precio_unitario_af' => $activoData['precio_unitario_af'],
                             'af_propio' => $activoData['af_propio'],
                             'id_estado_af' => $activoData['id_estado_af'],
                             'fecha_registro_af' => $activoData['fecha_registro_af'],
@@ -389,7 +380,6 @@ class FacturaController extends Controller
                         FacturaActivos::create([
                             'id_factura' => $factura->id_factura,
                             'id_activo_fijo' => $nuevoActivo->id_activo_fijo,
-                            'precio_unitarioaf' => $activoData['precio_unitario'],
                             'observaciones_detalleaf' => $activoData['observaciones'] ?? null
                         ]);
 

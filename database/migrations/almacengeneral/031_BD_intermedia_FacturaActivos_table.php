@@ -25,9 +25,6 @@ return new class extends Migration {
             // Cantidad de activos fijos en la factura
             // $table->integer('cantidad_activos')->default(1);
 
-            // Precio unitario del activo fijo en la factura
-            $table->decimal('precio_unitarioaf', 21, 2)->nullable();
-
             // Descuento aplicado al activo fijo en la factura
             $table->decimal('descuento_af', 21, 2)->nullable();
 
@@ -39,7 +36,6 @@ return new class extends Migration {
 
             // Campos de timestamps para registrar la fecha de creación y actualización de la factura
             $table->timestamps();
-
         });
     }
 

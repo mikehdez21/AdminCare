@@ -1,0 +1,261 @@
+{
+  "repo_notes": [
+    {
+      "content": ""
+    }
+  ],
+  "pages": [
+    {
+      "title": "AdminCare Overview",
+      "purpose": "High-level introduction to AdminCare: what it is, who uses it, the overall system architecture (Laravel backend on Railway, React/Redux frontend on Vercel, FastAPI SoftComputing microservice), and how the three tiers interact. Links to all major child sections.",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Getting Started & Local Development",
+      "purpose": "Step-by-step guide for setting up the development environment: cloning the repo, installing PHP/Composer dependencies, installing Node/pnpm dependencies, configuring .env files, running migrations and seeders, and starting the Vite dev server with the Laravel backend proxy.",
+      "parent": "AdminCare Overview",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Deployment Architecture",
+      "purpose": "Explains the three-platform deployment topology: Vercel (React SPA), Railway (Laravel API), and Railway (FastAPI SoftComputing microservice). Covers the Vercel reverse-proxy rewrite rules, environment variables, and the .vercelignore / railway.toml configuration files.",
+      "parent": "AdminCare Overview",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Backend Architecture (Laravel)",
+      "purpose": "Overview of the Laravel 11 backend: PSR-4 namespace layout, service container bootstrap, middleware pipeline, route structure (HSS1 prefix), and key design patterns used throughout. Links to child pages for specific subsystems.",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Authentication & Authorization",
+      "purpose": "Deep dive into the Sanctum-based SPA authentication flow: CSRF cookie handshake, login/logout lifecycle, session regeneration, role-based access control via Spatie Permission, and the HandleDatabaseErrors middleware. Covers AuthController methods, User model attributes (estatus_activo, ultimo_acceso), and error-ID tracking.",
+      "parent": "Backend Architecture (Laravel)",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "API Routes & Controllers",
+      "purpose": "Reference for all API endpoints under the /api/HSS1/ prefix: public status routes, auth routes, and the full set of protected routes for AlmacenGeneral, SoftComputing, and Admin modules. Explains the HSS1 namespace convention and how controllers are organized.",
+      "parent": "Backend Architecture (Laravel)",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Database Schema & Migrations",
+      "purpose": "Documents the PostgreSQL schema structure: the main public schema (users, employees, departments, locations, roles) and the almacengeneral schema (fixed assets, invoices, movements, QR codes, responsivas, digital files). Covers the 39 migration files, the vw_movimientosafcompletos view, and seeder data.",
+      "parent": "Backend Architecture (Laravel)",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Middleware & Error Handling",
+      "purpose": "Explains the custom middleware stack: HandleDatabaseErrors (global QueryException interception with UUID error IDs), VerifyCsrfToken (XSRF-TOKEN cookie for SPA), StartSession, EncryptCookies, and ShareErrorsFromSession. Covers the tiered error response strategy (JSON for API, welcome view for browser).",
+      "parent": "Backend Architecture (Laravel)",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "AlmacenGeneral Module",
+      "purpose": "Overview of the General Warehouse (AlmacenGeneral) module — the core business domain of AdminCare. Introduces the main entities (ActivosFijos, Facturas, Proveedores, Movimientos, CodigosQRAF) and links to child pages for each sub-system.",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Fixed Assets (Activos Fijos)",
+      "purpose": "Covers the ActivosFijos model and its lifecycle: auto-generated codigo_unico (AF1, AF2...), lote/batch creation, classification, status tracking (EstatusAF), and the TieneArchivos trait for digital file attachments. Documents the ActivosFijosController CRUD endpoints and the frontend components (ActivosFijosControl, AddActivoFijo, EditActivoFijo, DeleteActivoFijo, ListActivoFijo).",
+      "parent": "AlmacenGeneral Module",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Invoice Management (Facturas)",
+      "purpose": "Documents the full invoice lifecycle: creating a Factura with nested ActivoFactura items, financial calculations (subtotal, IVA at 16%, discounts, freight), the AddFactura/EditFactura/DeleteFactura components, and the FacturasControl routing component. Explains the atomic backend transaction that creates the invoice and all assets simultaneously.",
+      "parent": "AlmacenGeneral Module",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Asset Movements (Movimientos AF)",
+      "purpose": "Explains the MovimientosActivos model and controller: tracking asset transfers between employees, departments, and locations. Covers the vw_movimientosafcompletos database view that joins all movement data, the MovimientosAFControl frontend component, and the movement type reference table.",
+      "parent": "AlmacenGeneral Module",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Suppliers (Proveedores)",
+      "purpose": "Documents the Proveedores model and CRUD operations, the reference catalog controllers (TypesProveedorController) for payment methods, tax regimes, discount types, billing types, and currency types. Covers the ProveedorControl frontend component and the fiscal shared Redux slice.",
+      "parent": "AlmacenGeneral Module",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "QR Codes & Label Printing",
+      "purpose": "Deep dive into the CodigosQRAF system: QR generation lifecycle (Endroid QrCode library, PNG/SVG fallback), scan tracking (intentos_lectura, fecha_ultimo_escaneo), the legacy web redirect route, and the ZebraService for physical label printing. Covers ZPL generation, logo hex-encoding, TCP socket transmission, standard vs. compact label formats, and batch printing.",
+      "parent": "AlmacenGeneral Module",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "SoftComputing & AI Integration",
+      "purpose": "Overview of the two-track AI/ML system embedded in AdminCare: the OpenAI LLM analysis engine and the scikit-learn pricing prediction microservice. Explains how both are triggered from the invoice creation workflow and links to child pages for each track.",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "OpenAI Analysis Engine",
+      "purpose": "Documents the OpenAIController: four operational modes (price_prediction, anomaly_detection, fraud_detection, inventory_optimization), dual-prompt construction, the three-stage resilience strategy (primary → tool retry → fallback model), and the extractOutputText response normalizer. Covers the analyzeSoftComputing Redux thunk and CSRF handling.",
+      "parent": "SoftComputing & AI Integration",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "ML Pricing Microservice (FastAPI)",
+      "purpose": "Documents the FastAPI softcomputing service: TrainRequest/PredictRequest Pydantic models, the three supported algorithms (LinearRegression, RandomForest, KNN), model artifact persistence with joblib, the MODEL_CACHE in-memory layer, and the database connectivity health check. Covers the PricingModelController proxy layer in Laravel and the trainFromDatabase data extraction logic.",
+      "parent": "SoftComputing & AI Integration",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Frontend Architecture (React/Redux)",
+      "purpose": "Overview of the React 18 + Redux Toolkit frontend: project structure under frontend/src/js/, the Vite build pipeline (dual-mode for Vercel vs. Laravel), lazy-loaded route layout system, and the Redux store shape. Links to child pages for specific frontend subsystems.",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Routing & Layouts",
+      "purpose": "Explains the React Router v6 route tree: public routes (login, QR public page, status), and three protected layout tiers (LayoutAdmin, LayoutJefatura, LayoutUsuario). Covers ProtectedRoutes guard, VerifyAuth, and the role-based layout selection pattern.",
+      "parent": "Frontend Architecture (React/Redux)",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Redux Store & State Management",
+      "purpose": "Documents the Redux store configuration: all registered reducers (auth, apiStatus, users, roles, departamentos, empleados, ubicaciones, fiscal, activos, vwMovimientosAF, movimientosAF, clasificacion, facturasaf, proveedor, section), the axiosInstance with withCredentials, and the API_BASE_URL environment-driven configuration.",
+      "parent": "Frontend Architecture (React/Redux)",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Administration Module",
+      "purpose": "Overview of the system administration features: user management, employee records, role/permission assignment, department configuration, and location management. Covers the AdminControllers, their corresponding Eloquent models, and the frontend components in 99_Administrador.",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "User & Role Management",
+      "purpose": "Details the User model (tableUsuarios, estatus_activo, ultimo_acceso, id_empleado, id_departamento), the UserController CRUD plus bajaUsuario endpoint, the Spatie Permission integration for role assignment, and the UsuariosControl frontend with AddRolModal, AddUser, EditUser, DeleteUser, ShowUserRoles components.",
+      "parent": "Administration Module",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Employees, Departments & Locations",
+      "purpose": "Documents the Empleado, Departamento, and Ubicacion models and their controllers. Covers the department type enum (Almacen, General, Medico), the employee-department relationship, the bajaEmpleado soft-delete endpoint, and the corresponding frontend management components.",
+      "parent": "Administration Module",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Infrastructure & DevOps",
+      "purpose": "Covers the operational infrastructure: database configuration (PostgreSQL primary, SQLite fallback), session management, CORS policy, the pnpm workspace monorepo setup, and the Unlighthouse performance audit artifacts. Links to child pages for testing and build tooling.",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Build Tooling & Package Management",
+      "purpose": "Documents the pnpm workspace monorepo structure (root workspace + frontend workspace), the dual Vite build modes (Vercel SPA output vs. Laravel public/build output), TypeScript configuration, ESLint setup, and the Laravel Mix/Vite plugin integration.",
+      "parent": "Infrastructure & DevOps",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Glossary",
+      "purpose": "Definitions of all codebase-specific terms, Spanish domain vocabulary, abbreviations, and architectural concepts that an onboarding engineer needs to know. Each entry includes file/class pointers.",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    }
+  ]
+}

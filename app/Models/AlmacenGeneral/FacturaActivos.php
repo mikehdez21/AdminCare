@@ -16,7 +16,6 @@ class FacturaActivos extends Model
     protected $fillable = [
         'id_factura',
         'id_activo_fijo',
-        'precio_unitarioaf',
         'descuento_af',
         'descuento_porcentajeaf',
         'observaciones_detalleaf',

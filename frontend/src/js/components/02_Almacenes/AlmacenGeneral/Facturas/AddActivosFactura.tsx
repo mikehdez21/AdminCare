@@ -41,45 +41,144 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
 
   // Estados locales
   const [activosAgregados, setActivosSeleccionados] = useState<ActivoFactura[]>([]);
+  const [seriesPorActivo, setSeriesPorActivo] = useState<Record<string, string[]>>({});
   const [isAddActivoFijoOpen, setIsAddActivoFijoOpen] = useState(false);
   const [busquedaSeleccionados, setBusquedaSeleccionados] = useState<string>('');
   const tempSequenceRef = useRef<number>(0);
+
+  const obtenerClaveAgrupacion = (activo: ActivoFactura) => [
+    activo.nombre_af || '',
+    activo.id_clasificacion || 0,
+    Number(activo.precio_unitario_af || 0),
+    (activo.observaciones_af || '').trim(),
+    activo.codigo_lote || '',
+  ].join('|');
+
+  const obtenerClaveActivo = (activo: ActivoFactura) =>
+    activo.codigo_unico || `AF-${activo.id_activo_fijo || activo.nombre_af}`;
+
+  const normalizarCantidad = (valor: number) => {
+    if (!Number.isFinite(valor) || valor < 1) {
+      return 1;
+    }
+
+    return Math.floor(valor);
+  };
+
+  const extraerCodigos = (codigo?: string): string[] => {
+    const limpio = (codigo || '').trim();
+
+    if (!limpio) {
+      return [];
+    }
+
+    if (limpio.startsWith('MÚLTIPLES (') && limpio.endsWith(')')) {
+      const contenido = limpio.slice('MÚLTIPLES ('.length, -1);
+      return contenido
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    return [limpio];
+  };
+
+  const construirCodigoMultiples = (codigoExistente?: string, codigoNuevo?: string) => {
+    const codigos = [...extraerCodigos(codigoExistente), ...extraerCodigos(codigoNuevo)];
+    const unicos = Array.from(new Set(codigos));
+
+    if (unicos.length === 0) {
+      return 'MÚLTIPLES';
+    }
+
+    return `MÚLTIPLES (${unicos.join(', ')})`;
+  };
+
+  const crearSeriesIniciales = (activo: ActivoFactura, cantidad: number) => {
+    const series = Array.from({ length: cantidad }, (_, i) =>
+      i === 0 ? (activo.numero_serie_af || '').trim() : ''
+    );
+
+    return series;
+  };
+
+  const ajustarArregloSeries = (seriesActuales: string[], nuevaCantidad: number) => {
+    const seriesAjustadas = [...seriesActuales].slice(0, nuevaCantidad);
+
+    while (seriesAjustadas.length < nuevaCantidad) {
+      seriesAjustadas.push('');
+    }
+
+    return seriesAjustadas;
+  };
 
   // Store
   useEffect(() => {
     if (isOpen) {
       // Inicializar con los activos existentes de la factura
-      setActivosSeleccionados(agruparActivos(activosExistentes));
+      const { activosAgrupados, seriesPorGrupo } = agruparActivos(activosExistentes);
+      setActivosSeleccionados(activosAgrupados);
+
+      const seriesIniciales: Record<string, string[]> = {};
+
+      activosAgrupados.forEach((activo) => {
+        const cantidad = normalizarCantidad(Number(activo.cantidad || 1));
+        const claveGrupo = obtenerClaveAgrupacion(activo);
+        const seriesDelGrupo = seriesPorGrupo[claveGrupo] || [];
+        seriesIniciales[obtenerClaveActivo(activo)] = ajustarArregloSeries(seriesDelGrupo, cantidad);
+      });
+
+      setSeriesPorActivo(seriesIniciales);
     }
   }, [isOpen, activosExistentes]);
 
   // Función para agrupar activos 
-  const agruparActivos = (activos: ActivoFactura[]): ActivoFactura[] => {
+  const agruparActivos = (activos: ActivoFactura[]): {
+    activosAgrupados: ActivoFactura[];
+    seriesPorGrupo: Record<string, string[]>;
+  } => {
     const mapa = new Map<string, ActivoFactura>();
+    const seriesPorGrupo: Record<string, string[]> = {};
 
     activos.forEach((activo) => {
-      const clave = [
-        activo.nombre_af || '',
-        activo.id_clasificacion || 0,
-        Number(activo.precio_unitario || 0),
-        (activo.observaciones_af || '').trim(),
-      ].join('|');
+      const clave = obtenerClaveAgrupacion(activo);
+      const serie = (activo.numero_serie_af || '').trim();
+
+      if (!seriesPorGrupo[clave]) {
+        seriesPorGrupo[clave] = [];
+      }
+
+      if (serie) {
+        seriesPorGrupo[clave].push(serie);
+      }
 
       const existente = mapa.get(clave);
 
       if (!existente) {
-        mapa.set(clave, { ...activo });
+        mapa.set(clave, {
+          ...activo,
+          cantidad: normalizarCantidad(Number(activo.cantidad || 1)),
+          codigo_unico: activo.codigo_unico || `GRP-${mapa.size + 1}`,
+        });
         return;
       }
 
       mapa.set(clave, {
         ...existente,
         cantidad: Number(existente.cantidad || 0) + Number(activo.cantidad || 0),
-        codigo_unico: 'MÚLTIPLES',
+        codigo_unico: construirCodigoMultiples(existente.codigo_unico, activo.codigo_unico),
       });
     });
 
-    return Array.from(mapa.values());
+    const activosAgrupados = Array.from(mapa.values());
+
+    activosAgrupados.forEach((activo) => {
+      const clave = obtenerClaveAgrupacion(activo);
+      const cantidad = normalizarCantidad(Number(activo.cantidad || 1));
+      seriesPorGrupo[clave] = ajustarArregloSeries(seriesPorGrupo[clave] || [], cantidad);
+    });
+
+    return { activosAgrupados, seriesPorGrupo };
   };
 
   // Generar identificadores temporales únicos para activos nuevos
@@ -113,24 +212,72 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
 
   // Remover activo de la lista seleccionada
   const handleRemoverActivo = (codigoUnico: string) => {
-    setActivosSeleccionados(
-      activosAgregados.filter(activo => activo.codigo_unico !== codigoUnico)
-    );
+    const activoARemover = activosAgregados.find(activo => activo.codigo_unico === codigoUnico);
+
+    setActivosSeleccionados(activosAgregados.filter(activo => activo.codigo_unico !== codigoUnico));
+
+    if (activoARemover) {
+      const clave = obtenerClaveActivo(activoARemover);
+      setSeriesPorActivo((prev) => {
+        const actualizado = { ...prev };
+        delete actualizado[clave];
+        return actualizado;
+      });
+    }
   };
 
   // Actualizar cantidad o precio de activo seleccionado
   const handleActualizarActivo = (
     codigoUnico: string,
-    campo: 'cantidad' | 'precio_unitario',
+    campo: 'cantidad' | 'precio_unitario_af',
     valor: number
   ) => {
+    const activoAActualizar = activosAgregados.find(activo => activo.codigo_unico === codigoUnico);
+
+    if (!activoAActualizar) {
+      return;
+    }
+
+    if (campo === 'cantidad') {
+      const nuevaCantidad = normalizarCantidad(valor);
+      const clave = obtenerClaveActivo(activoAActualizar);
+
+      setSeriesPorActivo((prev) => {
+        const seriesActuales = prev[clave] || crearSeriesIniciales(activoAActualizar, 1);
+
+        return {
+          ...prev,
+          [clave]: ajustarArregloSeries(seriesActuales, nuevaCantidad)
+        };
+      });
+    }
+
     setActivosSeleccionados(
       activosAgregados.map(activo =>
         activo.codigo_unico === codigoUnico
-          ? { ...activo, [campo]: valor }
+          ? {
+            ...activo,
+            [campo]: campo === 'cantidad' ? normalizarCantidad(valor) : Number(valor || 0)
+          }
           : activo
       )
     );
+  };
+
+  const handleSerieChange = (activo: ActivoFactura, index: number, valor: string) => {
+    const clave = obtenerClaveActivo(activo);
+
+    setSeriesPorActivo((prev) => {
+      const cantidad = normalizarCantidad(Number(activo.cantidad || 1));
+      const base = prev[clave] || crearSeriesIniciales(activo, cantidad);
+      const ajustado = ajustarArregloSeries(base, cantidad);
+      ajustado[index] = valor;
+
+      return {
+        ...prev,
+        [clave]: ajustado
+      };
+    });
   };
 
   // Manejar cierre del modal AddActivoFijo
@@ -151,7 +298,7 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
       id_activo_fijo: tempId, // ID temporal para manejo en UI
       codigo_unico: tempCodigoUnico, // Código temporal único para manejo en UI
       cantidad: 1,
-      precio_unitario: ActivoFijoFactura.valor_compra_af || 0,
+      precio_unitario_af: ActivoFijoFactura.precio_unitario_af || 0,
       descuento_af: 0,
       descuento_porcentajeaf: 0,
       id_tipo_movimiento: 0,
@@ -162,7 +309,12 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
       id_ubicacion_anterior: 0,
       id_ubicacion_actual: ActivoFijoFactura.id_ubicacion_actual || 0,
     };
+
     setActivosSeleccionados(prev => [...prev, nuevoActivoFactura]);
+    setSeriesPorActivo((prev) => ({
+      ...prev,
+      [obtenerClaveActivo(nuevoActivoFactura)]: crearSeriesIniciales(nuevoActivoFactura, 1)
+    }));
   };
 
 
@@ -181,12 +333,46 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
       return;
     }
 
+    const erroresSeries: string[] = [];
+
+    // Expandir cada línea por cantidad para crear activos individuales con serie propia
+    const activosCopia = activosAgregados.flatMap((activo) => {
+      const cantidad = normalizarCantidad(Number(activo.cantidad || 1));
+      const clave = obtenerClaveActivo(activo);
+      const seriesCapturadas = ajustarArregloSeries(seriesPorActivo[clave] || [], cantidad)
+        .map((serie) => (serie || '').trim());
+
+      const seriesLlenas = seriesCapturadas.filter((serie) => !!serie);
+      const seriesUnicas = new Set(seriesLlenas);
+
+      if (seriesLlenas.length !== cantidad) {
+        erroresSeries.push(`Completa ${cantidad} serie(s) para "${activo.nombre_af}".`);
+      }
+
+      if (seriesUnicas.size !== seriesLlenas.length) {
+        erroresSeries.push(`Las series de "${activo.nombre_af}" no pueden repetirse.`);
+      }
+
+      return Array.from({ length: cantidad }, (_, index) => ({
+        ...activo,
+        cantidad: 1,
+        numero_serie_af: seriesCapturadas[index] || activo.numero_serie_af || ''
+      }));
+    });
+
+    if (erroresSeries.length > 0) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Series incompletas o duplicadas',
+        html: `<div style="text-align: left;">${erroresSeries.map((err) => `<p>• ${err}</p>`).join('')}</div>`,
+        confirmButtonText: 'Revisar'
+      });
+      return;
+    }
+
     // Calcular total de unidades físicas
     const totalUnidades = activosAgregados.reduce((total, activo) => total + activo.cantidad, 0);
-
-    // Guardar copia de los activos antes de cerrar el modal
-    const activosCopia = [...activosAgregados];
-    const cantidadTipos = activosCopia.length;
+    const cantidadTipos = activosAgregados.length;
 
     console.log('ActivosCopia', activosCopia)
 
@@ -239,14 +425,26 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
   // Limpiar al cerrar sin confirmar
   const handleClose = () => {
     // Restaurar al estado original si se cancela
-    setActivosSeleccionados(agruparActivos(activosExistentes));
+    const { activosAgrupados, seriesPorGrupo } = agruparActivos(activosExistentes);
+    setActivosSeleccionados(activosAgrupados);
+
+    const seriesIniciales: Record<string, string[]> = {};
+
+    activosAgrupados.forEach((activo) => {
+      const cantidad = normalizarCantidad(Number(activo.cantidad || 1));
+      const claveGrupo = obtenerClaveAgrupacion(activo);
+      const seriesDelGrupo = seriesPorGrupo[claveGrupo] || [];
+      seriesIniciales[obtenerClaveActivo(activo)] = ajustarArregloSeries(seriesDelGrupo, cantidad);
+    });
+
+    setSeriesPorActivo(seriesIniciales);
     setBusquedaSeleccionados('');
     onClose();
   };
 
   // Calcular total
   const totalSeleccionados = activosAgregados.reduce(
-    (total, activo) => total + (activo.cantidad * activo.precio_unitario),
+    (total, activo) => total + (activo.cantidad * activo.precio_unitario_af),
     0
   );
 
@@ -254,63 +452,100 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
     <Modal
       isOpen={isOpen}
       onRequestClose={handleClose}
-      className="modalComponent_AlmacenAddActivosFactura"
+      className="modalComponent_AddActivosFactura"
     >
       <div className="modalAddActivosFactura">
 
-        {/* Header */}
-        <div className="divHeader">
+        <header className="modalHeader">
           <h2><MdInventory className="headerIcon" /> Agregar Activos a la Factura</h2>
           <button className="closeButton" onClick={handleClose}>×</button>
-        </div>
+        </header>
 
-        {/* Contenido de las dos columnas */}
-        <div className="divColumns">
+        <section className="divActivosFactura">
 
-          {/* COLUMNA 1: Activos Agregados a la Factura */}
-          <div className="column columnAFSeleccionados columnWide">
-
-            <div className="columnHeader">
-              <h3><FaList className="columnIcon" /> Activos en Factura</h3>
-              <span className="contadorBadge">{activosAgregados.length}</span>
-            </div>
+          <div className="columnHeader">
+            <h3><FaList className="columnIcon" /> Activos en Factura  <span className="contadorBadge">{activosAgregados.length}</span> </h3>
 
             <div className="divSearch">
               <input
                 type="text"
-                placeholder="Buscar en factura..."
+                placeholder="Buscar activos de la factura..."
                 value={busquedaSeleccionados}
                 onChange={(e) => setBusquedaSeleccionados(e.target.value)}
                 className="inputSearch"
               />
             </div>
 
-            <div className="divActivosList">
-              {activosSeleccionadosFiltrados.length > 0 ? (
-                activosSeleccionadosFiltrados.map((activo) => {
-                  const esActivoTemporal = activo.id_activo_fijo && activo.id_activo_fijo < 0;
-                  return (
-                    <div key={activo.codigo_unico} className="activoItem seleccionado">
-                      <div className="activoInfo">
-                        <h4>
-                          {activo.nombre_af}
-                          <p className="codigo">
-                            {esActivoTemporal ? '🆕 Pendiente de crear' : activo.codigo_unico}
+            <button
+              className="buttonCrearActivo"
+              onClick={() => setIsAddActivoFijoOpen(true)}
+            >
+              <FaPlus /> Crear Nuevo Activo Fijo
+            </button>
+
+          </div>
+
+          <div className="divActivosList">
+            {activosSeleccionadosFiltrados.length > 0 ? (
+              activosSeleccionadosFiltrados.map((activo) => {
+                const esActivoTemporal = activo.id_activo_fijo && activo.id_activo_fijo < 0;
+                const esActivoExistente = activo.id_activo_fijo && activo.id_activo_fijo > 0;
+                const claveActivo = obtenerClaveActivo(activo);
+                const cantidad = normalizarCantidad(Number(activo.cantidad || 1));
+                const series = ajustarArregloSeries(seriesPorActivo[claveActivo] || [], cantidad);
+
+                return (
+                  <div key={activo.codigo_unico} className="activoItem">
+
+                    <div className="activoInfo">
+
+                      <header className='activoHeader'>
+
+                        <section className='nameActivo'>
+                          <p>
+                            {activo.nombre_af}
                           </p>
-                          <p className="codigo">
+
+                          <button
+                            className="buttonRemover"
+                            onClick={() => handleRemoverActivo(activo.codigo_unico!)}
+                            title="Remover de factura"
+                          >
+                            <FaTrash />
+                          </button>
+
+                        </section>
+
+
+                        <section className="datosActivo">
+                          <p >
+                            {esActivoTemporal ? '🆕 Pendiente de crear' : activo.codigo_unico}
+
+                          </p>
+
+                          <p>
                             {activo.codigo_lote
-                              ? `Lote: ${activo.codigo_lote} (${activo.lote_afconsecutivo || '-'} / ${activo.lote_total || '-'})`
+                              ? `Lote: ${activo.codigo_lote}`
                               : 'Lote: Pendiente'}
                           </p>
-                        </h4>
 
-                        <div className="activoControls">
+
+
+
+                        </section>
+
+                      </header>
+
+                      <section className="activoControls">
+
+                        <div className="divCantidadPrecio">
                           <label>
                             Cantidad:
                             <input
                               type="number"
                               min="1"
                               value={activo.cantidad}
+                              disabled={!!esActivoExistente}
                               onChange={(e) => handleActualizarActivo(
                                 activo.codigo_unico!,
                                 'cantidad',
@@ -326,10 +561,10 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
                               type="number"
                               min="0"
                               step="0.01"
-                              value={activo.precio_unitario}
+                              value={activo.precio_unitario_af}
                               onChange={(e) => handleActualizarActivo(
                                 activo.codigo_unico!,
-                                'precio_unitario',
+                                'precio_unitario_af',
                                 Number(e.target.value)
                               )}
                               className="precioInput"
@@ -337,72 +572,50 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
                           </label>
                         </div>
 
-                        <div className="subtotalInfo">
-                          <p className="subTotal">
-                            <strong>Subtotal: {formatPeso(activo.cantidad * activo.precio_unitario)}</strong>
-                          </p>
+                        <div className="divNoSerie">
+                          <label>
+                            Números de Serie ({cantidad}):
+                            {series.map((serie, index) => (
+                              <input
+                                key={`${claveActivo}-${index}`}
+                                type="text"
+                                placeholder={`Serie #${index + 1}`}
+                                value={serie}
+                                onChange={(e) => handleSerieChange(activo, index, e.target.value)}
+                                className="noSerieInput"
+                              />
+                            ))}
+                          </label>
                         </div>
-                      </div>
 
-                      <button
-                        className="buttonRemover"
-                        onClick={() => handleRemoverActivo(activo.codigo_unico!)}
-                        title="Remover de factura"
-                      >
-                        <FaTrash />
-                      </button>
+                      </section>
+
+                      <section className="subtotal">
+                        <p className="subTotal">
+                          <strong>Subtotal: {formatPeso(activo.cantidad * activo.precio_unitario_af)}</strong>
+                        </p>
+                      </section>
+
                     </div>
-                  );
-                })
-              ) : (
-                <div className="noItems">
-                  <p>No hay activos en la factura</p>
-                  <p className="helper">Crea nuevos activos usando el botón de la derecha →</p>
-                </div>
-              )}
-            </div>
 
-            {/* Total */}
-            {activosAgregados.length > 0 && (
-              <div className="divTotal">
-                <div className="totalDetalle">
-                  <h4 className="totalFinal">Total: {formatPeso(totalSeleccionados)}</h4>
-                  <p className="totalInfo">({activosAgregados.length} activos, {activosAgregados.reduce((t, a) => t + a.cantidad, 0)} unidades totales)</p>
-                </div>
+
+                  </div>
+                );
+              })
+            ) : (
+              <div className="noItems">
+                <p>No hay activos en la factura</p>
+                <p className="helper">Crea nuevos activos usando el botón de la derecha →</p>
               </div>
             )}
           </div>
 
-          {/* COLUMNA 2: Crear Nuevo Activo */}
-          <div className="column columnAFNuevo">
-            <div className="columnHeader">
-              <h3><FaPlus className="columnIcon" /> Crear Nuevo Activo</h3>
-            </div>
+        </section>
 
-            <div className="divCrearActivo">
-
-              <div className="ayudaInstrucciones">
-                <h4>📋 Instrucciones:</h4>
-                <ul>
-                  <li>✏️ Crea nuevos activos haciendo clic en el botón</li>
-                  <li>📝 Los activos se guardan temporalmente en la factura</li>
-                  <li>🔢 Ajusta cantidades y precios según necesites</li>
-                  <li>✅ Al confirmar, los activos serán creados en la BD junto con la factura</li>
-                </ul>
-              </div>
-
-              <p className="descripcion">
-                ⚠️ <strong>Importante:</strong> Los activos se crearán en la base de datos cuando guardes la factura completa. Cada cantidad genera unidades físicas independientes con su propio código QR.
-              </p>
-
-              <button
-                className="buttonCrearActivo"
-                onClick={() => setIsAddActivoFijoOpen(true)}
-              >
-                <FaPlus /> Crear Nuevo Activo Fijo
-              </button>
-
-            </div>
+        <div className="divTotal">
+          <div className="totalDetalle">
+            <h4 className="totalFinal">Total: {formatPeso(totalSeleccionados)}</h4>
+            <p className="totalInfo">({activosAgregados.length} activos, {activosAgregados.reduce((t, a) => t + a.cantidad, 0)} unidades totales)</p>
           </div>
         </div>
 
@@ -424,21 +637,23 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
             }
           ]}
         />
-      </div>
+      </div >
 
       {/* Modal para crear nuevo activo fijo (modo solo datos, sin crear en BD) */}
-      {isAddActivoFijoOpen && (
-        <AddActivoFijo
-          isOpen={isAddActivoFijoOpen}
-          onClose={handleAddActivoFijoClose}
-          soloDatos={true}
-          onAddAFToFactura={handleAFToFactura}
-          onAddSinFactura={() => { }}
+      {
+        isAddActivoFijoOpen && (
+          <AddActivoFijo
+            isOpen={isAddActivoFijoOpen}
+            onClose={handleAddActivoFijoClose}
+            soloDatos={true}
+            onAddAFToFactura={handleAFToFactura}
+            onAddSinFactura={() => { }}
 
-        />
-      )}
+          />
+        )
+      }
 
-    </Modal>
+    </Modal >
   );
 };
 

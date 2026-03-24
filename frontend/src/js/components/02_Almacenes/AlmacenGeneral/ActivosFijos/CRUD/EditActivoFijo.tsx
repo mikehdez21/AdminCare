@@ -41,8 +41,7 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
   const [modeloAF, setModeloAF] = useState<string>('');
   const [marcaAF, setMarcaAF] = useState<string>('');
   const [noSerieAF, setNoSerieAF] = useState<string>('');
-  const [valorCompraAF, setValorCompraAF] = useState<number>(0);
-  const [fechaCompraAF, setFechaCompraAF] = useState('');
+  const [precioUnitarioAF, setPrecioUnitarioAF] = useState<number>(0.00);
   const [afPropio, setAfPropio] = useState<boolean>(true);
   const [tipoEstatusAF, setTipoEstatusAF] = useState<number>(0);
   const [tipoClasificacionAF, setTipoClasificacionAF] = useState<number>(0);
@@ -99,9 +98,8 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
       setModeloAF(activoFijoToEdit.modelo_af);
       setMarcaAF(activoFijoToEdit.marca_af);
       setNoSerieAF(activoFijoToEdit.numero_serie_af);
-      setValorCompraAF(activoFijoToEdit.valor_compra_af);
+      setPrecioUnitarioAF(activoFijoToEdit.precio_unitario_af);
 
-      setFechaCompraAF(formatDateHorasToInputs(activoFijoToEdit.fecha_compra_af) || '');
 
       setAfPropio(activoFijoToEdit.af_propio || true);
       setTipoEstatusAF(activoFijoToEdit.id_estado_af || 0);
@@ -140,8 +138,7 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
       setModeloAF('');
       setMarcaAF('');
       setNoSerieAF('');
-      setValorCompraAF(0);
-      setFechaCompraAF('');
+      setPrecioUnitarioAF(0.00);
       setAfPropio(true);
       setTipoEstatusAF(0);
       setTipoClasificacionAF(0);
@@ -166,8 +163,7 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
         modelo_af: modeloAF,
         marca_af: marcaAF,
         numero_serie_af: noSerieAF,
-        valor_compra_af: valorCompraAF,
-        fecha_compra_af: fechaCompraAF,
+        precio_unitario_af: precioUnitarioAF,
         af_propio: afPropio,
         id_estado_af: tipoEstatusAF,
         id_clasificacion: tipoClasificacionAF,
@@ -184,8 +180,7 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
       formData.append('modelo_af', modeloAF);
       formData.append('marca_af', marcaAF);
       formData.append('numero_serie_af', noSerieAF);
-      formData.append('valor_compra_af', valorCompraAF.toString());
-      formData.append('fecha_compra_af', fechaCompraAF);
+      formData.append('precio_unitario_af', precioUnitarioAF.toString());
       formData.append('af_propio', afPropio ? '1' : '0');
       formData.append('id_estado_af', tipoEstatusAF.toString());
       formData.append('id_clasificacion', tipoClasificacionAF.toString());
@@ -209,8 +204,7 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
           setModeloAF('');
           setMarcaAF('');
           setNoSerieAF('');
-          setValorCompraAF(0);
-          setFechaCompraAF('');
+          setPrecioUnitarioAF(0.00);
           setAfPropio(true);
           setTipoEstatusAF(0);
           setTipoClasificacionAF(0);
@@ -326,32 +320,24 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
                   </label>
 
                   <label>
-                    *Valor de Compra:
+                    *Precio Unitario:
                     <input
                       type="number"
-                      value={valorCompraAF}
+                      step="0.01"
+                      value={precioUnitarioAF}
                       onChange={(e) => {
                         const valor = e.target.value;
                         if (valor === '' || valor === '0') {
-                          setValorCompraAF(0);
+                          setPrecioUnitarioAF(0.00);
                         } else {
-                          setValorCompraAF(parseFloat(valor) || 0);
+                          setPrecioUnitarioAF(parseFloat(valor) || 0);
                         }
                       }}
                       onFocus={(e) => {
-                        if (valorCompraAF === 0) {
+                        if (precioUnitarioAF === 0) {
                           e.target.select();
                         }
                       }} />
-                  </label>
-
-                  <label>
-                    *Fecha de Compra:
-                    <input
-                      type="datetime-local"
-                      value={fechaCompraAF}
-                      onChange={(e) => setFechaCompraAF(e.target.value)}
-                    />
                   </label>
 
                   <label htmlFor="">

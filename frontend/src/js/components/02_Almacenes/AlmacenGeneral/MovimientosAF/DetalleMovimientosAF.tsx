@@ -48,8 +48,7 @@ const ModalAFDetails: React.FC<DetalleActivoModalProps> = ({ isOpen, onClose, ac
                   <li><strong>Modelo:</strong> {activoDetalle.modelo_af}</li>
                   <li><strong>Marca:</strong> {activoDetalle.marca_af}</li>
                   <li><strong>No. Serie:</strong> {activoDetalle.numero_serie_af}</li>
-                  <li><strong>Valor Compra:</strong> ${activoDetalle.valor_compra_af.toLocaleString()}</li>
-                  <li><strong>Fecha Compra: </strong>{activoDetalle.fecha_compra_af}</li>
+                  <li><strong>Precio Unitario:</strong> ${activoDetalle.precio_unitario_af.toLocaleString()}</li>
                   <li id='li_estatusAF'><strong>Estado:</strong>
                     {estatusActivoFijo.map((estatusAF) => {
                       if (activoDetalle.estado_actual !== estatusAF.descripcion_estatusaf) return null;

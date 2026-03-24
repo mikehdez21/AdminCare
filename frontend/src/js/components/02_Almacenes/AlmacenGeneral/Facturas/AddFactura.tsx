@@ -3,12 +3,18 @@ import { AppDispatch, RootState } from '@/store/store'; // Asegúrate de importa
 import { useDispatch, useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
 
-import { addFactura, getFacturas } from '@/store/almacenGeneral/Facturas/facturasActions';
+// Facturas
+import { addFactura, getFacturas, getTiposFacturas } from '@/store/almacenGeneral/Facturas/facturasActions';
 import { setFacturas } from '@/store/almacenGeneral/Facturas/facturasReducer';
+import AddActivosFactura from './AddActivosFactura';
+import { ActivoFactura } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
+import { FacturasAF, ActivoFacturaInput } from '@/@types/AlmacenGeneralTypes/facturasTypes';
+
+// SoftComputing
 import { analyzeSoftComputing } from '@/store/softcomputing/openAIActions';
 import { trainPricingModelFromDb, predictPricingModel } from '@/store/softcomputing/pricingModelActions';
 
-// Components
+// Icons
 import { FaCircleInfo, FaBoxesPacking } from 'react-icons/fa6';
 import { FaCalendar, FaCalculator } from 'react-icons/fa';
 import { IoIosCard } from 'react-icons/io';
@@ -16,16 +22,19 @@ import { SiGooglemessages } from 'react-icons/si';
 import { IoAddCircleOutline } from 'react-icons/io5';
 import { AiOutlineNumber } from 'react-icons/ai';
 
-
+// Store
+import { getProveedores } from '@/store/almacenGeneral/Proveedores/proveedoresActions';
+import { getFormasPago, getTiposMoneda } from '@/store/shared/fiscalActions';
+import { getClasificaciones } from '@/store/almacenGeneral/Clasificaciones/clasificacionesActions';
 import { getFechaHoraActual } from '@/utils/dateFormat';
-import AddActivosFactura from './AddActivosFactura';
-import { ActivoFactura } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
-import { FacturasAF, ActivoFacturaInput } from '@/@types/AlmacenGeneralTypes/facturasTypes';
-import ModalButtons from '@/components/00_Utils/ModalButtons';
 import { formatCurrency, formatPeso, toSafeNumber, parseInputNumber } from '@/utils/numbersFormat';
+
+// Components
+import ModalButtons from '@/components/00_Utils/ModalButtons';
 
 // Styles
 import '@styles/02_Almacenes/AlmacenGeneral/Facturas/AddFactura.css';
+
 
 
 interface AddFacturaProps {
@@ -49,8 +58,19 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
   const [fleteFactura, setFleteFactura] = useState<number>(0);
   const [ivaFactura, setIvaFactura] = useState<number>(0.16);
   const [totalFactura, setTotalFactura] = useState<number>(0);
+
+  // SoftComputing - Recomendaciones
   const [loadingOpenAIRecommendation, setLoadingOpenAIRecommendation] = useState(false);
   const [loadingMLRecommendation, setLoadingMLRecommendation] = useState(false);
+
+  // No Series - Modal de edición de series
+  const [isSeriesModalOpen, setIsSeriesModalOpen] = useState(false);
+  const [seriesEditables, setSeriesEditables] = useState<string[]>([]);
+  const [activoSerieEnEdicion, setActivoSerieEnEdicion] = useState<{
+    clave: string;
+    nombre_af: string;
+    indices: number[];
+  } | null>(null);
 
 
   const facturas = useSelector((state: RootState) => state.facturasaf.facturasaf);
@@ -72,9 +92,116 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
 
   // Subtotal, IVA y totales
   const subtotal = activosFactura.reduce(
-    (acc, activo) => acc + toSafeNumber(activo.precio_unitario, 0) * toSafeNumber(activo.cantidad, 0),
+    (acc, activo) => acc + toSafeNumber(activo.precio_unitario_af, 0) * toSafeNumber(activo.cantidad, 0),
     0
   );
+
+  const totalActivosFisicos = activosFactura.reduce(
+    (acc, activo) => acc + toSafeNumber(activo.cantidad, 0),
+    0
+  );
+
+  // Agrupación solo visual para la tabla de resumen
+  const activosFacturaAgrupados = Array.from(
+    activosFactura.reduce((mapa, activo, idx) => {
+      const clave = [
+        activo.nombre_af || '',
+        activo.id_clasificacion || 0,
+        toSafeNumber(activo.precio_unitario_af, 0),
+        (activo.observaciones_af || '').trim(),
+        activo.codigo_lote || '',
+      ].join('|');
+
+      const existente = mapa.get(clave);
+
+      if (!existente) {
+        mapa.set(clave, {
+          ...activo,
+          cantidad: toSafeNumber(activo.cantidad, 0) || 1,
+          _indices: [idx],
+          _clave: clave,
+        });
+        return mapa;
+      }
+
+      mapa.set(clave, {
+        ...existente,
+        cantidad: toSafeNumber(existente.cantidad, 0) + (toSafeNumber(activo.cantidad, 0) || 1),
+        _indices: [...(existente._indices || []), idx],
+      });
+
+      return mapa;
+    }, new Map<string, (ActivoFactura & { _indices?: number[]; _clave?: string })>()).values()
+  );
+
+  const abrirModalSeries = (activoAgrupado: ActivoFactura & { _indices?: number[]; _clave?: string }) => {
+    const indices = activoAgrupado._indices || [];
+    const seriesActuales = indices.map((idx) => activosFactura[idx]?.numero_serie_af || '');
+
+    setActivoSerieEnEdicion({
+      clave: activoAgrupado._clave || `${activoAgrupado.nombre_af}-${Date.now()}`,
+      nombre_af: activoAgrupado.nombre_af,
+      indices,
+    });
+    setSeriesEditables(seriesActuales);
+    setIsSeriesModalOpen(true);
+  };
+
+  const cerrarModalSeries = () => {
+    setIsSeriesModalOpen(false);
+    setSeriesEditables([]);
+    setActivoSerieEnEdicion(null);
+  };
+
+  const guardarSeries = () => {
+    if (!activoSerieEnEdicion) {
+      return;
+    }
+
+    const seriesLimpias = seriesEditables.map((serie) => serie.trim());
+    const seriesVacias = seriesLimpias.some((serie) => !serie);
+
+    if (seriesVacias) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Series incompletas',
+        text: 'Todos los números de serie son obligatorios.',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    const seriesUnicas = new Set(seriesLimpias);
+
+    if (seriesUnicas.size !== seriesLimpias.length) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Series duplicadas',
+        text: 'No se permiten números de serie repetidos dentro del mismo activo.',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    setActivosFactura((prev) => {
+      const actualizados = [...prev];
+
+      activoSerieEnEdicion.indices.forEach((indiceActivo, posicionSerie) => {
+        if (!actualizados[indiceActivo]) {
+          return;
+        }
+
+        actualizados[indiceActivo] = {
+          ...actualizados[indiceActivo],
+          numero_serie_af: seriesLimpias[posicionSerie] || ''
+        };
+      });
+
+      return actualizados;
+    });
+
+    cerrarModalSeries();
+  };
 
   const subtotalConDescuento = subtotal - toSafeNumber(descuentoFactura, 0);
   const subtotalConFlete = subtotal + toSafeNumber(fleteFactura, 0);
@@ -90,29 +217,56 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
     setTotalFactura(totalFinal);
   }, [subtotal, ivaCalculado, totalFinal]);
 
+  useEffect(() => {
+    if (!proveedores?.length) dispatch(getProveedores());
+    if (!tiposFactura?.length) dispatch(getTiposFacturas());
+    if (!formasPago?.length) dispatch(getFormasPago());
+    if (!tiposMoneda?.length) dispatch(getTiposMoneda());
+    if (!clasificacionActivoFijo?.length) dispatch(getClasificaciones());
+  }, [dispatch]);
+
   const obtenerResumenActivosActuales = () => {
     return activosFactura.map((activo) => ({
       nombre_af: activo.nombre_af,
       marca_af: activo.marca_af,
       modelo_af: activo.modelo_af,
       cantidad: toSafeNumber(activo.cantidad, 0),
-      precio_unitario: toSafeNumber(activo.precio_unitario, 0),
-      total_linea: toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.precio_unitario, 0),
+      precio_unitario: toSafeNumber(activo.precio_unitario_af, 0),
+      total_linea: toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.precio_unitario_af, 0),
       id_clasificacion: toSafeNumber(activo.id_clasificacion, 0),
     }));
   };
 
+  const escapeHtml = (value: string) =>
+    value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+
+  const unwrapCodeFence = (text: string): string => {
+    const trimmed = text.trim();
+    const fencedMatch = trimmed.match(/^```(?:json|javascript|js)?\s*([\s\S]*?)\s*```$/i);
+    return fencedMatch ? fencedMatch[1].trim() : trimmed;
+  };
+
+  const renderRawRecommendationHtml = (rawText: string, title: string) => {
+    const safeText = escapeHtml(rawText || 'Sin contenido');
+
+    return `
+      <div class="recommendationPanel recommendationPanel--raw">
+        <p class="recommendationPanel__title"><strong>${escapeHtml(title)}</strong></p>
+        <pre class="recommendationPanel__pre">${safeText}</pre>
+      </div>
+    `;
+  };
+
   const renderOpenAIRecommendationHtml = (analysisText: string): string => {
-    const escapeHtml = (value: string) =>
-      value
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+    const normalizedText = unwrapCodeFence(analysisText);
 
     try {
-      const parsed = JSON.parse(analysisText) as {
+      const parsed = JSON.parse(normalizedText) as {
         resumen_general?: string;
         resultados?: Array<{
           activo?: string;
@@ -125,15 +279,42 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
         }>;
       };
 
-      const resumen = escapeHtml(parsed.resumen_general || 'Sin resumen disponible.');
+      const resumenRaw = parsed.resumen_general;
       const resultados = Array.isArray(parsed.resultados) ? parsed.resultados : [];
+
+      const resumenHtml =
+        resumenRaw && typeof resumenRaw === 'object'
+          ? Object.entries(resumenRaw)
+              .map(([key, value]) => {
+                const keyLabel = escapeHtml(key.replace(/_/g, ' '));
+                const valueLabel = escapeHtml(value === null ? 'N/D' : String(value));
+                return `
+                  <div class="recommendationSummary__item">
+                    <span class="recommendationSummary__key">${keyLabel}</span>
+                    <span class="recommendationSummary__value">${valueLabel}</span>
+                  </div>
+                `;
+              })
+              .join('')
+          : `<p class="recommendationSummary__text">${escapeHtml(String(resumenRaw || 'Sin resumen disponible.'))}</p>`;
 
       const resultadosHtml = resultados.length
         ? resultados
             .map((item) => {
-              const activo = escapeHtml(item.activo || 'Activo');
+              const activoRaw = item.activo;
+              const activoObj = activoRaw && typeof activoRaw === 'object' ? activoRaw as Record<string, unknown> : null;
+
+              const nombreActivo = activoObj
+                ? escapeHtml(String(activoObj.nombre ?? activoObj.nombre_af ?? 'Activo'))
+                : escapeHtml(typeof activoRaw === 'string' ? activoRaw : 'Activo');
+
+              const marca = activoObj ? escapeHtml(String(activoObj.marca ?? activoObj.marca_af ?? 'N/D')) : 'N/D';
+              const modelo = activoObj ? escapeHtml(String(activoObj.modelo ?? activoObj.modelo_af ?? 'N/D')) : 'N/D';
+
               const opcion = escapeHtml(item.opcion_mas_barata || 'Sin opción específica');
-              const precioActual = toSafeNumber(item.precio_actual, 0);
+              const precioActual = toSafeNumber(
+                item.precio_actual,
+                0);
               const precioRef = toSafeNumber(item.precio_referencia, 0);
               const ahorro = toSafeNumber(item.ahorro_estimado, 0);
               const notas = escapeHtml(item.notas || '');
@@ -144,36 +325,30 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
                 : '<span>URL no disponible</span>';
 
               return `
-                <div style="padding:8px 0; border-bottom:1px solid #eee;">
-                  <p><strong>${activo}</strong></p>
-                  <p>Precio actual: ${formatPeso(precioActual)}</p>
-                  <p>Opción sugerida: ${opcion}</p>
-                  <p>Precio referencia: ${formatPeso(precioRef)} | Ahorro estimado: ${formatPeso(ahorro)}</p>
-                  <p>${urlHtml}</p>
-                  ${notas ? `<p style="color:#555;">Notas: ${notas}</p>` : ''}
+                <div class="recommendationCard">
+                  <p class="recommendationCard__title"><strong>${nombreActivo}</strong></p>
+                  <p class="recommendationCard__meta">Marca: ${marca} | Modelo: ${modelo}</p>
+                  <p class="recommendationCard__line">Precio actual: ${formatPeso(precioActual)}</p>
+                  <p class="recommendationCard__line">Opción sugerida: ${opcion}</p>
+                  <p class="recommendationCard__line">Precio referencia: ${formatPeso(precioRef)} | Ahorro estimado: ${formatPeso(ahorro)}</p>
+                  <p class="recommendationCard__line">${urlHtml}</p>
+                  ${notas ? `<p class="recommendationCard__notes">Notas: ${notas}</p>` : ''}
                 </div>
               `;
             })
             .join('')
-        : '<p>No se recibieron resultados estructurados.</p>';
+        : '<p class="recommendationPanel__empty">No se recibieron resultados estructurados.</p>';
 
       return `
-        <div style="text-align:left; max-height:380px; overflow:auto;">
-          <p><strong>Resumen:</strong> ${resumen}</p>
-          <hr />
+        <div class="recommendationPanel">
+          <p class="recommendationPanel__title"><strong>Resumen</strong></p>
+          <div class="recommendationSummary">${resumenHtml}</div>
+          <hr class="recommendationPanel__divider" />
           ${resultadosHtml}
         </div>
       `;
     } catch {
-      const plain = analysisText
-        .replace(/\n/g, '<br/>')
-        .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
-
-      return `
-        <div style="text-align:left; max-height:380px; overflow:auto; white-space:normal;">
-          ${plain}
-        </div>
-      `;
+      return renderRawRecommendationHtml(normalizedText, 'Respuesta OpenAI (formato libre)');
     }
   };
 
@@ -289,7 +464,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
 
       const predictRows = activosFactura.map((activo) => {
         const cantidad = toSafeNumber(activo.cantidad, 0);
-        const precioUnitario = toSafeNumber(activo.precio_unitario, 0);
+        const precioUnitario = toSafeNumber(activo.precio_unitario_af, 0);
         const totalLinea = cantidad * precioUnitario;
 
         return {
@@ -326,7 +501,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
         : [];
 
       const comparativo = activosFactura.map((activo, idx) => {
-        const actual = toSafeNumber(activo.precio_unitario, 0);
+        const actual = toSafeNumber(activo.precio_unitario_af, 0);
         const estimado = toSafeNumber(predicted[idx], 0);
         const diferenciaPct = estimado > 0 ? ((actual - estimado) / estimado) * 100 : 0;
 
@@ -339,11 +514,28 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
 
       const metrics = (trainResponse.data.metrics || {}) as { mae?: number; rmse?: number; r2?: number };
       const resumenMetricas = `MAE: ${toSafeNumber(metrics.mae, 0).toFixed(2)} | RMSE: ${toSafeNumber(metrics.rmse, 0).toFixed(2)} | R2: ${toSafeNumber(metrics.r2, 0).toFixed(4)}`;
+      const comparativoHtml = comparativo
+        .map((linea, index) => {
+          const contenido = escapeHtml(linea);
+          return `
+            <div class="mlRecommendationItem">
+              <strong>#${index + 1}</strong> ${contenido}
+            </div>
+          `;
+        })
+        .join('');
 
       await Swal.fire({
         icon: 'info',
         title: 'Recomendación ML (Random Forest)',
-        html: `<div style="text-align:left; max-height: 340px; overflow:auto;"><p><strong>Modelo:</strong> ${modelId}</p><p><strong>Métricas:</strong> ${resumenMetricas}</p><hr/><pre style="white-space:pre-wrap; font-size:12px;">${comparativo.join('\n')}</pre></div>`,
+        html: `
+          <div class="recommendationPanel">
+            <p class="recommendationPanel__line"><strong>Modelo:</strong> ${escapeHtml(modelId)}</p>
+            <p class="recommendationPanel__line"><strong>Métricas:</strong> ${escapeHtml(resumenMetricas)}</p>
+            <hr class="recommendationPanel__divider" />
+            ${comparativoHtml || '<p class="recommendationPanel__empty">No se recibieron predicciones para mostrar.</p>'}
+          </div>
+        `,
         width: 800,
         confirmButtonText: 'OK',
       });
@@ -432,8 +624,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
           marca_af: activo.marca_af,
           modelo_af: activo.modelo_af,
           numero_serie_af: activo.numero_serie_af,
-          valor_compra_af: activo.valor_compra_af,
-          fecha_compra_af: activo.fecha_compra_af,
+          precio_unitario_af: activo.precio_unitario_af,
           af_propio: activo.af_propio,
           fecha_registro_af: activo.fecha_registro_af,
           id_estado_af: activo.id_estado_af,
@@ -442,7 +633,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
           observaciones_af: activo.observaciones_af || null,
 
           // Datos de la relación factura-activo
-          precio_unitario: activo.precio_unitario,
+          precio_unitario: activo.precio_unitario_af,
           cantidad: activo.cantidad,
           observaciones: activo.observaciones_af || null,
 
@@ -660,7 +851,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
 
         <section className='activosFijos_Factura'>
           <div className='title_Container'>
-            <h2> <FaBoxesPacking className='activosFactura' />  Activos Fijos Asociados </h2>
+            <h2> <FaBoxesPacking className='activosFactura' />  Activos Fijos Asociados ({totalActivosFisicos}) </h2>
             <div className='agregarActivos' onClick={openModalAddActivosFactura}>
               <IoAddCircleOutline className='addActivoIcon' /> Agregar Activos
             </div>
@@ -693,15 +884,17 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
                 <tr>
                   <th>Nombre del Activo</th>
                   <th>Lote</th>
-                  <th>Cantidad </th>
+                  <th id='th_NoSerie'>Números de Serie</th>
+                  <th id='th_Cantidad'>Cantidad </th>
                   <th>Clasificación</th>
-                  <th>Precio Unitario</th>
+                  <th id='th_PrecioUnitario'>Precio Unitario</th>
                   <th>Total  </th>
                 </tr>
               </thead>
+
               <tbody>
-                {activosFactura.length > 0 ? (
-                  activosFactura.map((activo, index) => (
+                {activosFacturaAgrupados.length > 0 ? (
+                  activosFacturaAgrupados.map((activo, index) => (
                     <tr key={activo.id_activo_fijo || index}>
                       <td>{activo.nombre_af}</td>
                       <td>
@@ -709,7 +902,19 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
                           ? `${activo.codigo_lote} (${activo.lote_afconsecutivo || '-'} / ${activo.lote_total || '-'})`
                           : 'Pendiente'}
                       </td>
-                      <td>{activo.cantidad}</td>
+                      <td id='td_NoSerie'>
+                        <button
+                          type='button'
+                          className='btnEditNoSeries'
+                          onClick={() => abrirModalSeries(activo)}
+                        >
+                          Editar ({(activo as { _indices?: number[] })._indices?.length || 0})
+                        </button>
+
+
+                      </td>
+
+                      <td id='td_Cantidad'>{activo.cantidad}</td>
 
                       <td id='td_ClasificacionAF'>{clasificacionActivoFijo.map((clasificacionAF) => (
                         <div key={clasificacionAF.id_clasificacion} className='divClasificacionAF'>
@@ -717,22 +922,72 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
                         </div>
                       ))}</td>
 
-                      <td>{formatPeso(activo.precio_unitario)}</td>
-                      <td>{formatPeso(toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.precio_unitario, 0))}</td>
+                      <td id='td_PrecioUnitario'> {formatPeso(activo.precio_unitario_af)}</td>
+                      <td>{formatPeso(toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.precio_unitario_af, 0))}</td>
 
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
+                    <td colSpan={8} className='sinActivosSerie'>
                       No hay activos agregados a la factura
                     </td>
                   </tr>
                 )}
               </tbody>
+
             </table>
           </div>
         </section>
+
+        {isSeriesModalOpen && activoSerieEnEdicion && (
+          <div className='serieModalOverlay'>
+            <div className='serieModal'>
+              <h3 className='serieModalTitle'>Números de Serie</h3>
+              <p className='serieModalSubTitle'>
+                {activoSerieEnEdicion.nombre_af} ({activoSerieEnEdicion.indices.length === 1 ? '1 activo fijo' : `${activoSerieEnEdicion.indices.length} activos fijos`})
+              </p>
+
+              <div className='serieModalGrid'>
+                {seriesEditables.map((serie, idx) => (
+                  <label key={`${activoSerieEnEdicion.clave}-${idx}`} className='serieModalLabel'>
+                    Número de Serie #{idx + 1}
+                    <input
+                      type='text'
+                      value={serie}
+                      onChange={(e) => {
+                        const nuevaLista = [...seriesEditables];
+                        nuevaLista[idx] = e.target.value;
+                        setSeriesEditables(nuevaLista);
+                      }}
+                      placeholder={`Número de serie ${idx + 1}`}
+                      className='serieModalInput'
+                    />
+                  </label>
+                ))}
+              </div>
+
+              <div className='serieModalActions'>
+                <ModalButtons
+                  buttons={[
+                    {
+                      text: 'Guardar',
+                      type: 'submit',
+                      className: 'button_addedit',
+                      onClick: guardarSeries
+                    },
+                    {
+                      text: 'Cancelar',
+                      type: 'button',
+                      className: 'button_close',
+                      onClick: cerrarModalSeries
+                    }
+                  ]}
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         <section className='valoresFactura'>
           <div className='title_Container'>

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 return new class extends Migration {
     public function up()
     {
-    
+
         // Crear la tabla 'activosfijos'
         Schema::create('almacengeneral.tableAF_ActivosFijos', function (Blueprint $table) {
 
@@ -23,7 +23,7 @@ return new class extends Migration {
 
             // Descripción del activo fijo
             $table->text('descripcion_af')->nullable();
-            
+
             // Modelo del activo fijo
             $table->string('modelo_af')->nullable();
 
@@ -33,11 +33,8 @@ return new class extends Migration {
             // Número de serie del activo fijo
             $table->string('numero_serie_af')->nullable();
 
-            // Valor de Compra del activo fijo
-            $table->decimal('valor_compra_af', 12, 2)->nullable();
-
-            // Fecha de compra del activo fijo
-            $table->dateTime('fecha_compra_af')->nullable();
+            // Precio unitario del activo fijo
+            $table->decimal('precio_unitario_af', 12, 2)->nullable();
 
             // Activo Fijo Propio o Comodato
             $table->boolean('af_propio')->default(true)->notNull();
@@ -52,7 +49,7 @@ return new class extends Migration {
             $table->integer('lote_total')->nullable()->after('lote_afconsecutivo');
 
             $table->string('codigo_etiqueta', 150)->nullable()->after('codigo_unico');
-            
+
             // Estado del activo ('Activo' o 'Baja' o 'En Mantenimiento' o 'Extraviado' etc.)
             $table->foreignId('id_estado_af')->constrained('almacengeneral.tableRef_EstatusAF', 'id_estatusaf')->default(1)->onDelete('restrict');
 
@@ -64,21 +61,18 @@ return new class extends Migration {
 
             // Observaciones adicionales sobre el activo
             $table->text('observaciones_af')->nullable();
-            
+
             // Campos de fecha de creación y actualización con zona horaria
             $table->timestamps();
-            
+
             // Índice único para el código de etiqueta, permitiendo nulos (un activo sin código de etiqueta no compite con otro sin código de etiqueta)
             $table->unique('codigo_etiqueta', 'uk_af_codigo_etiqueta');
 
             // Índices para mejorar el rendimiento de las consultas
             $table->index('nombre_af', 'idx_nombre_af'); // Índice para búsquedas por nombre del activo_fijo
             $table->index('codigo_unico', 'idx_codigo_unico'); // Índice para búsquedas por código único
-            $table->index('fecha_compra_af', 'idx_fecha_compra_af'); // Índice para consultas por fecha de compra
             $table->index('marca_af', 'idx_marca_af'); // Índice para consultas por marca
             $table->index('codigo_lote', 'idx_af_codigo_lote');
-
-
         });
     }
 

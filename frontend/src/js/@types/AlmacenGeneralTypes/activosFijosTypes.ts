@@ -3,6 +3,20 @@
 // ACTIVOS TYPES //
 //
 
+export interface CodigosQRAF {
+  id_qraf?: number;
+  id_activo_fijo: number;
+  codigo_qr: string;
+  url_destino: string;
+  fecha_generacion: string;
+  fecha_ultimo_escaneo?: string | null;
+  activo: boolean;
+  intentos_lectura?: number;
+  observaciones?: string | null;
+  created_at?: string;
+  updated_at?: string | null;
+}
+
 export interface ActivosFijos {
   id_activo_fijo?: number;
   codigo_unico?: string;
@@ -15,13 +29,13 @@ export interface ActivosFijos {
   modelo_af: string;
   marca_af: string;
   numero_serie_af: string;
-  valor_compra_af: number;
-  fecha_compra_af: string | null;
+  precio_unitario_af: number;
   af_propio: boolean;
   id_estado_af: number | null;
   id_clasificacion: number | null;
   fecha_registro_af: string | null;
   observaciones_af: string;
+  codigosQR?: CodigosQRAF[];
   created_at?: string;
   updated_at?: string | null;
 }
@@ -55,8 +69,7 @@ export interface VwMovimientosAF {
   modelo_af: string;
   marca_af: string;
   numero_serie_af: string;
-  valor_compra_af: number;
-  fecha_compra_af: string;
+  precio_unitario_af: number;
   fecha_registro_af: string;
   af_propio: boolean;
   observaciones_af: string;
@@ -101,7 +114,6 @@ export interface TipoMovimientoAF {
 
 export interface ActivoFactura extends ActivosFijos, MovimientosActivosFijos {
   cantidad: number;
-  precio_unitario: number;
   descuento_af: number;
   descuento_porcentajeaf: number;
 
@@ -118,6 +130,7 @@ export interface ActivoEntityResponse {
   lote_total?: number | null;
   cantidad?: number;
   id_clasificacion: number | null;
+  numero_serie_af: string;
   precio_unitario: number;
   descuento_af: number;
   descuento_porcentajeaf: number;

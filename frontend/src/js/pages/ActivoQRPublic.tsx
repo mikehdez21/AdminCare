@@ -6,41 +6,40 @@ import { API_BASE_URL } from '@/variableApi';
 import '@styles/02_Almacenes/AlmacenGeneral/ActivoQR/activoQRPublic.css';
 
 interface ActivoQRData {
-    qraf: {
-        id_qraf: number;
-        id_activo_fijo: number;
-        codigo_qr: string;
-        url_destino: string;
-        fecha_generacion: string;
-        fecha_ultimo_escaneo: string | null;
-        activo: boolean;
-        intentos_lectura: number;
-        observaciones: string | null;
-    };
-    activoVW: {
-        id_activo_fijo: number;
-        codigo_unico: string;
-        nombre_af: string;
-        descripcion_af: string | null;
-        modelo_af: string | null;
-        marca_af: string | null;
-        numero_serie_af: string | null;
-        valor_compra_af: string | null;
-        fecha_compra_af: string | null;
-        fecha_registro_af: string | null;
-        af_propio: boolean;
-        observaciones_af: string | null;
-        estado_actual: string;
-        clasificacion: string;
-        responsable_anterior_completo: string | null;
-        responsable_actual_completo: string | null;
-        departamento_actual: string | null;
-        ubicacion_anterior: string | null;
-        ubicacion_actual: string | null;
-        fecha_ultimo_movimiento: string | null;
-        ultimo_motivo_movimiento: string | null;
-        tipo_movimiento: string | null;
-    };
+  qraf: {
+    id_qraf: number;
+    id_activo_fijo: number;
+    codigo_qr: string;
+    url_destino: string;
+    fecha_generacion: string;
+    fecha_ultimo_escaneo: string | null;
+    activo: boolean;
+    intentos_lectura: number;
+    observaciones: string | null;
+  };
+  activoVW: {
+    id_activo_fijo: number;
+    codigo_unico: string;
+    nombre_af: string;
+    descripcion_af: string | null;
+    modelo_af: string | null;
+    marca_af: string | null;
+    numero_serie_af: string | null;
+    precio_unitario_af: string | null;
+    fecha_registro_af: string | null;
+    af_propio: boolean;
+    observaciones_af: string | null;
+    estado_actual: string;
+    clasificacion: string;
+    responsable_anterior_completo: string | null;
+    responsable_actual_completo: string | null;
+    departamento_actual: string | null;
+    ubicacion_anterior: string | null;
+    ubicacion_actual: string | null;
+    fecha_ultimo_movimiento: string | null;
+    ultimo_motivo_movimiento: string | null;
+    tipo_movimiento: string | null;
+  };
 }
 
 const ActivoQRPublic: React.FC = () => {
@@ -61,8 +60,8 @@ const ActivoQRPublic: React.FC = () => {
           },
           withCredentials: true,
         });
-        console.log('Respuesta del servidor:', response.data); 
-        
+        console.log('Respuesta del servidor:', response.data);
+
         if (response.data.success) {
           setData(response.data.data);
         } else {
@@ -101,7 +100,7 @@ const ActivoQRPublic: React.FC = () => {
           <p>{error || 'No se pudo cargar la información del activo.'}</p>
           <div className="codigo">Código: {codigoQR}</div>
           <p className="error-footer">
-                        Por favor, verifica que el código QR sea válido o contacta al administrador.
+            Por favor, verifica que el código QR sea válido o contacta al administrador.
           </p>
         </div>
       </div>
@@ -135,7 +134,7 @@ const ActivoQRPublic: React.FC = () => {
           <h1>{activoVW.nombre_af}</h1>
           <div className="qr-badge">{activoVW.codigo_unico}</div>
           <div className="scan-count">
-                        📱 Escaneado {qraf.intentos_lectura} {qraf.intentos_lectura === 1 ? 'vez' : 'veces'}
+            📱 Escaneado {qraf.intentos_lectura} {qraf.intentos_lectura === 1 ? 'vez' : 'veces'}
           </div>
         </div>
 
@@ -257,16 +256,10 @@ const ActivoQRPublic: React.FC = () => {
           <div className="qr-section">
             <div className="section-title">Detalles Adicionales</div>
             <div className="info-grid">
-              {activoVW.valor_compra_af !== null && (
+              {activoVW.precio_unitario_af !== null && (
                 <div className="info-item">
-                  <span className="info-label">💰 Valor de Compra</span>
-                  <span className="info-value">{formatCurrency(activoVW.valor_compra_af)}</span>
-                </div>
-              )}
-              {activoVW.fecha_compra_af && (
-                <div className="info-item">
-                  <span className="info-label">📅 Fecha de Compra</span>
-                  <span className="info-value">{formatDate(activoVW.fecha_compra_af)}</span>
+                  <span className="info-label">💰 Precio Unitario</span>
+                  <span className="info-value">{formatCurrency(activoVW.precio_unitario_af)}</span>
                 </div>
               )}
               {activoVW.fecha_registro_af && (

@@ -30,8 +30,8 @@ class PricingModelController extends Controller
 
         $records = DB::table('almacengeneral.tableInter_FacturaActivos as d')
             ->join('almacengeneral.tableAF_Facturas as f', 'f.id_factura', '=', 'd.id_factura')
-            ->whereNotNull('d.precio_unitarioaf')
-            ->where('d.precio_unitarioaf', '>', 0)
+            ->whereNotNull('d.precio_unitario_af')
+            ->where('d.precio_unitario_af', '>', 0)
             ->orderByDesc('f.fecha_fac_recepcion')
             ->limit($limit)
             ->get([
@@ -40,14 +40,14 @@ class PricingModelController extends Controller
                 'f.flete_factura',
                 'f.iva_factura',
                 'f.total_factura',
-                'd.precio_unitarioaf',
+                'd.precio_unitario_af',
                 'd.descuento_af',
                 'd.descuento_porcentajeaf',
             ]);
 
         $rows = [];
         foreach ($records as $record) {
-            $target = (float) ($record->precio_unitarioaf ?? 0);
+            $target = (float) ($record->precio_unitario_af ?? 0);
             if ($target <= 0) {
                 continue;
             }

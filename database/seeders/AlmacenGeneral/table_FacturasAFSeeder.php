@@ -30,7 +30,6 @@ class table_FacturasAFSeeder extends Seeder
         FacturaActivos::create([
             'id_factura' => $factura1->id_factura,
             'id_activo_fijo' => 3, // Computadora HP
-            'precio_unitarioaf' => 15000.00,
             'descuento_af' => 1000.00,
             'descuento_porcentajeaf' => 0.00, // 6.67% de descuento
             'observaciones_detalleaf' => 'Descuento por compra de 2 unidades'
@@ -39,7 +38,6 @@ class table_FacturasAFSeeder extends Seeder
         FacturaActivos::create([
             'id_factura' => $factura1->id_factura,
             'id_activo_fijo' => 4, // Monitor Samsung
-            'precio_unitarioaf' => 3500.00,
             'descuento_af' => 200.00,
             'descuento_porcentajeaf' => 5.71, // 5.71% de descuento
             'observaciones_detalleaf' => 'Descuento por volumen'
@@ -48,7 +46,6 @@ class table_FacturasAFSeeder extends Seeder
         FacturaActivos::create([
             'id_factura' => $factura1->id_factura,
             'id_activo_fijo' => 11, // Servidor Dell
-            'precio_unitarioaf' => 45000.00,
             'descuento_af' => 2000.00,
             'descuento_porcentajeaf' => 4.44, // 4.44% de descuento
             'observaciones_detalleaf' => 'Descuento corporativo'
@@ -74,7 +71,6 @@ class table_FacturasAFSeeder extends Seeder
         FacturaActivos::create([
             'id_factura' => $factura2->id_factura,
             'id_activo_fijo' => 6, // Silla Ergonómica
-            'precio_unitarioaf' => 2800.00,
             'descuento_af' => 140.00,
             'descuento_porcentajeaf' => 5.00, // 5% de descuento
             'observaciones_detalleaf' => 'Descuento por compra múltiple'
@@ -83,7 +79,6 @@ class table_FacturasAFSeeder extends Seeder
         FacturaActivos::create([
             'id_factura' => $factura2->id_factura,
             'id_activo_fijo' => 7, // Escritorio Ejecutivo
-            'precio_unitarioaf' => 5200.00,
             'descuento_af' => 400.00,
             'descuento_porcentajeaf' => 7.69, // 7.69% de descuento
             'observaciones_detalleaf' => 'Descuento especial'
@@ -92,7 +87,6 @@ class table_FacturasAFSeeder extends Seeder
         FacturaActivos::create([
             'id_factura' => $factura2->id_factura,
             'id_activo_fijo' => 13, // Mesa de Juntas
-            'precio_unitarioaf' => 8900.00,
             'descuento_af' => 400.00,
             'descuento_porcentajeaf' => 4.49, // 4.49% de descuento
             'observaciones_detalleaf' => 'Sin descuento adicional'
@@ -118,7 +112,6 @@ class table_FacturasAFSeeder extends Seeder
         FacturaActivos::create([
             'id_factura' => $factura3->id_factura,
             'id_activo_fijo' => 18, // Switch Cisco
-            'precio_unitarioaf' => 15500.00,
             'descuento_af' => 500.00,
             'descuento_porcentajeaf' => 3.23, // 3.23% de descuento
             'observaciones_detalleaf' => 'Descuento por pronto pago'
@@ -127,7 +120,6 @@ class table_FacturasAFSeeder extends Seeder
         FacturaActivos::create([
             'id_factura' => $factura3->id_factura,
             'id_activo_fijo' => 15, // Teléfono IP Cisco
-            'precio_unitarioaf' => 2800.00,
             'descuento_af' => 80.00,
             'descuento_porcentajeaf' => 2.86, // 2.86% de descuento
             'observaciones_detalleaf' => 'Descuento mínimo'
@@ -136,7 +128,6 @@ class table_FacturasAFSeeder extends Seeder
         FacturaActivos::create([
             'id_factura' => $factura3->id_factura,
             'id_activo_fijo' => 17, // Cámara Hikvision
-            'precio_unitarioaf' => 3800.00,
             'descuento_af' => 100.00,
             'descuento_porcentajeaf' => 2.63, // 2.63% de descuento
             'observaciones_detalleaf' => 'Descuento estándar'

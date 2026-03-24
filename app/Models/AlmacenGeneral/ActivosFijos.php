@@ -29,8 +29,7 @@ class ActivosFijos extends Model
         'modelo_af',
         'marca_af',
         'numero_serie_af',
-        'valor_compra_af',
-        'fecha_compra_af',
+        'precio_unitario_af',
         'af_propio',
         'id_estado_af',
         'id_clasificacion',
@@ -55,14 +54,6 @@ class ActivosFijos extends Model
                 $activo->codigo_unico = 'AF' . $siguienteId;
             }
         });
-
-        // Si no viene código de etiqueta, por defecto usar el código único
-        static::created(function ($activo) {
-            if (empty($activo->codigo_etiqueta) && !empty($activo->codigo_unico)) {
-                $activo->codigo_etiqueta = $activo->codigo_unico;
-                $activo->saveQuietly();
-            }
-        });
     }
 
     // === RELACIONES DIRECTAS ===
@@ -77,6 +68,10 @@ class ActivosFijos extends Model
         return $this->belongsTo(Clasificaciones::class, 'id_clasificacion', 'id_clasificacion');
     }
 
+    public function codigosQR(): HasMany
+    {
+        return $this->hasMany(CodigosQRAF::class, 'id_activo_fijo', 'id_activo_fijo');
+    }
 
     // === RELACIONES A TRAVÉS DE MOVIMIENTOS ===
 

@@ -1,30 +1,20 @@
-/* Variables CSS para control dinámico de tamaños */
-
-/* Modal principal */
-
-.modalComponent_AlmacenAddActivosFactura {
-  position: fixed;
+.modalComponent_AddActivosFactura {
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
 
-
   .modalAddActivosFactura {
-    width: var(--modal-width);
-    height: var(--modal-height);
-    max-width: var(--modal-max-width);
-    max-height: var(--modal-max-height);
-    min-width: var(--modal-min-width);
-    min-height: var(--modal-min-height);
-    background-color: #ffffff;
-    border-radius: 20px;
     display: flex;
     flex-direction: column;
+    background-color: #ffffff;
+    border-radius: 20px;
     overflow: hidden;
 
     /* Header */
-    .divHeader {
+    .modalHeader {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -36,7 +26,7 @@
       border-bottom: 1px solid #e0e0e0;
       flex-shrink: 0;
 
-      h2{
+      h2 {
         margin: 0;
         font-size: 1.5rem;
         font-weight: 600;
@@ -71,71 +61,44 @@
       }
     }
 
-    /* Container de las tres columnas */
-    .divColumns {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: var(--columns-gap);
-      background-color: #e0e0e0;
+    .divActivosFactura {
       flex: 1;
-      overflow: hidden;
-      height: 100%;
-      min-height: 0;
-      /* Calcular altura dinámicamente restando el header */
-      height: calc(100% - var(--header-height));
-      
 
-      .column {
-        background: white;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        min-height: 0;
-        overflow: hidden;
+      .columnHeader {
+        display: grid;
+        grid-template-columns: .8fr 3fr 1fr;
+        align-items: center;
+        padding: 8px 20px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e0e0e0;
 
-        .columnHeader {
+        h3 {
+          margin: 0;
+          font-size: 1.1rem;
+          font-weight: 600;
           display: flex;
-          justify-content: space-between;
           align-items: center;
-          padding: 15px 20px;
-          background: #f8f9fa;
-          border-bottom: 1px solid #e0e0e0;
+          gap: 12px;
+          color: #333;
 
-          h3 {
-            margin: 0;
-            font-size: 1.1rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #333;
-
-            .columnIcon {
-              font-size: 1rem;
-              color: #667eea;
-            }
-
-
+          .columnIcon {
+            font-size: 1rem;
+            color: #667eea;
           }
 
           .contadorBadge {
             background: #667eea;
             color: white;
-            padding: 4px 8px;
+            padding: 4px 6px;
             border-radius: 12px;
-            font-size: 0.8rem;
+            font-size: 1rem;
             font-weight: bold;
             min-width: 20px;
             text-align: center;
           }
 
 
-
-
         }
-      }
-
-      .columnAFDisponibles, .columnAFSeleccionados, .columnAFNuevo {
 
         .divSearch {
           display: flex;
@@ -158,367 +121,273 @@
           }
         }
 
-        .divActivosList{
-            flex: 1;
-            overflow-y: auto;
+        .buttonCrearActivo {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border: none;
+          padding: 15px 25px;
+          border-radius: 8px;
+          font-size: 1rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+        }
+
+        .buttonCrearActivo:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+
+
+
+
+
+      }
+
+      .divActivosList {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        height: 100%;
+        overflow-y: auto;
+        padding: 10px;
+
+        .activoItem {
+          display: flex;
+          height: 30vh;
+          justify-content: space-between;
+          align-items: flex-start;
+          border: 1px solid #e0e0e0;
+          border-radius: 8px;
+          background: white;
+          transition: all 0.3s;
+          border: 3px solid #667eea;
+          background: #f8f9ff;
+
+          .activoInfo {
+            display: flex;
+            flex-direction: column;
             padding: 10px;
+            width: 100%;
+            height: 90%;
 
-            .activoItem{
+
+            .activoHeader {
               display: flex;
-              justify-content: space-between;
-              align-items: flex-start;
-              padding: 15px 15px 5px 15px;
-              margin-bottom: 15px;
-              border: 1px solid #e0e0e0;
-              border-radius: 8px;
-              background: white;
-              transition: all 0.3s;
+              flex-direction: column;
+              gap: 6px;
 
-              &.disponible{
-                border-left: 4px solid #28a745;
 
-              }
+              .nameActivo {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
 
-              &.seleccionado{
-                border-left: 4px solid #667eea;
-                background: #f8f9ff;
-              }
-
-              .activoInfo{
-                flex: 1;
-
-                h4 {
-                  margin: 0 0 5px 0;
+                p {
+                  margin: 0 0 2px 0;
                   color: #333;
-                  font-size: 0.95rem;
+                  font-size: 0.9rem;
                   font-weight: 600;
                 }
 
-                p {
-                  margin: 2px 0;
-                  font-size: 0.85rem;
-                  color: #666;
+                .buttonRemover {
+                  padding: 8px 8px;
+                  border: none;
+                  border-radius: 6px;
+                  cursor: pointer;
+                  font-size: 0.6rem;
+                  transition: all 0.3s;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  background: #dc3545;
+                  color: white;
                 }
 
-                .codigo {
+                .buttonRemover:hover {
+                  background: #c82333;
+                  transform: scale(1.05);
+                }
+              }
+
+              .datosActivo {
+                display: grid;
+                grid-template-columns: 3fr 1fr;
+                gap: 8px;
+
+                p {
+                  margin: 2px 0;
+                  font-size: 0.7rem;
+                  color: #666;
                   font-family: monospace;
                   background: #f1f3f4;
                   padding: 2px 6px;
                   border-radius: 4px;
                   display: inline-block;
                 }
-
-                .clasificacion {
-                  color: #667eea;
-                  font-weight: 500;
-                }
-
-                .valor {
-                  color: #28a745;
-                  font-weight: 600;
-                }
-
-                .activoControls{
-                  display: grid;
-                  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                  margin: 0px;
-                  row-gap: 4px;
-                  column-gap: 40px;
-
-
-                  label{
-                    font-size: 14px;
-                    color: #5555559a;
-                  }
-
-                  .cantidadInput, .precioInput, 
-                  .descuentoInput, .descuentoPorcentajeInput {
-                    padding: 6px 8px;
-                    border: 1px solid #ddd;
-                    border-radius: 4px;
-                    font-size: 0.85rem;
-                    width: 100%;
-                  }
-
-                  .cantidadInput:focus,
-                  .precioInput:focus,
-                  .descuentoInput:focus,
-                  .descuentoPorcentajeInput:focus {
-                    outline: none;
-                    border-color: #667eea;
-                  }
-
-                }
-
-                .subtotalInfo{
-                  margin-top: 8px;
-                  font-size: 0.9rem;
-                  font-weight: 600;
-                  color: #333;
-
-                  .subTotalSinDescuento{
-                    display: flex;
-                    justify-content: space-between;
-                    color: #999;
-                    font-weight: 400;
-                    margin-right: 8px;
-
-                    
-                  }
-
-                  .descuentoAplicado{
-                    margin: 0px;
-                    color: #dc3546b7;
-                    font-weight: 500;
-                  }
-
-                  
-                }
-
-                .subTotal {
-                  text-align: left;
-                  color: #28a745;
-                  font-weight: 500;
-                  font-size: 0.9rem;
-                }
-
-
               }
 
-              .buttonAgregar,
-              .buttonRemover {
-                padding: 8px 12px;
-                border: none;
-                border-radius: 6px;
-                cursor: pointer;
-                font-size: 0.9rem;
-                transition: all 0.3s;
+
+
+
+
+            }
+
+            .activoControls {
+              display: flex;
+              justify-content: space-between;
+              min-height: 100px;
+
+              label {
                 display: flex;
-                align-items: center;
-                justify-content: center;
-                min-width: 40px;
-                height: 40px;
+                flex-direction: column;
+                font-size: 0.8rem;
+                color: #5555559a;
               }
 
-              .buttonAgregar {
-                background: #28a745;
-                color: white;
+              input {
+                font-size: 0.7rem;
               }
 
-              .buttonAgregar:hover {
-                background: #218838;
-                transform: scale(1.05);
+              .divCantidadPrecio {
+                display: flex;
+                flex-direction: column;
+
+                .precioInput,
+                .cantidadInput {
+                  text-align: center;
+                  padding: 6px 8px;
+                  border: 1px solid #ddd;
+                  border-radius: 4px;
+
+                }
               }
 
-              
-              .buttonRemover {
-                background: #dc3545;
-                color: white;
+              .divNoSerie {
+                display: flex;
+                flex-direction: column;
+
+                .noSerieInput {
+                  text-align: center;
+                  padding: 6px 8px;
+                  border: 1px solid #ddd;
+                  border-radius: 4px;
+                }
               }
 
-              .buttonRemover:hover {
-                background: #c82333;
-                transform: scale(1.05);
+              .cantidadInput:focus,
+              .precioInput:focus,
+              .noSerieInput:focus {
+                outline: none;
+                border-color: #667eea;
               }
 
-              
-            }
-
-            .activoItem:hover{
-              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-              border-color: #667eea;
-            }
 
 
-
-            .noItems {
-              text-align: center;
-              padding: 40px 20px;
-              color: #999;
-              
-              p{
-                margin: 0;
-                font-style: italic;
-
-              }
 
             }
 
-        }
-
-        .divTotal {
-          padding: 5px 10px;
-          border-top: 1px solid #d1d1d1;
-          background: #f8f9ff;
-
-          .totalDetalle {
-            display: flex;
-            flex-direction: column;
-
-            p {
-              margin: 0;
-              color: #333333b4;
-              font-size: 0.8rem;
-              font-weight: 500;
-            }
-
-            h4 {
-              margin: 0;
+            .subTotal {
+              text-align: left;
               color: #28a745;
-              font-size: 1.2rem;
-              font-weight: 700;
+              font-weight: 500;
+              font-size: 0.9rem;
             }
+
           }
 
-          
+
         }
 
-        .divCrearActivo{
-          padding: 5px 20px;
+        .activoItem:hover {
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          border-color: #667eea;
+        }
+
+        .noItems {
           text-align: center;
+          padding: 40px 20px;
+          color: #999;
 
-          .ayudaInstrucciones{
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: left;
-
-            h4 {
-              margin: 0 0 15px 0;
-              color: #333;
-              font-size: 1rem;
-            }
-
-            ul {
-              margin: 0;
-              padding-left: 20px;
-              color: #666;
-
-              li {
-                margin-bottom: 8px;
-                font-size: 0.9rem;
-                line-height: 1.4;
-              }
-            }
-
-            
+          p {
+            margin: 0;
+            font-style: italic;
 
           }
 
-          .descripcion {
-            color: #666;
-            font-size: 0.9rem;
-            line-height: 1.5;
-            margin-bottom: 20px;
-          }
+        }
 
-          .buttonCrearActivo {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 15px 25px;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-            margin-bottom: 30px;
-          }
+      }
 
-          .buttonCrearActivo:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-          }
+    }
+
+    .divTotal {
+      padding: 5px 10px;
+      border-top: 1px solid #d1d1d1;
+
+      .totalDetalle {
+        display: flex;
+        flex-direction: column;
+
+        p {
+          margin: 0;
+          color: #333333b4;
+          font-size: 0.8rem;
+          font-weight: 500;
+        }
+
+        h4 {
+          margin: 0;
+          color: #28a745;
+          font-size: 1.2rem;
+          font-weight: 700;
         }
       }
+
+
     }
   }
-}
 
 
+  /* Responsive */
+  @media (max-width: 1200px) {
+    .modalAddActivosFactura {
+      width: 98vw;
+      height: 95vh;
+    }
 
 
-
-/* Scrollbar personalizada */
-.divActivosList::-webkit-scrollbar {
-  width: 8px;
-}
-
-.divActivosList::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-.divActivosList::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-}
-
-.divActivosList::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
-/* Responsive */
-@media (max-width: 1200px) {
-  .modalAddActivosFactura {
-    width: 98vw;
-    height: 95vh;
   }
-  
-  .divColumns {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr auto;
+
+  @media (max-width: 768px) {
+    .modalAddActivosFactura {
+      width: 95vw;
+      height: 90vh;
+    }
   }
-  
-  /* La tercera columna ocupará toda la fila inferior */
-  .column:nth-child(3) {
-    grid-column: 1 / -1;
-    max-height: 200px;
-    min-height: 150px;
+
+  /* Control dinámico para diferentes tamaños de pantalla */
+  @media (min-width: 1400px) {
+    .modalAddActivosFactura {
+      width: 90vw;
+      height: 95vh;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .modalAddActivosFactura {
+      width: 100vw;
+      height: 100vh;
+      border-radius: 0;
+      min-width: unset;
+      min-height: unset;
+    }
+
+
   }
 }
-
-@media (max-width: 768px) {
-  .divColumns {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto;
-    gap: 2px;
-  }
-  
-  .column {
-    min-height: 200px;
-    max-height: 250px;
-  }
-  
-  .modalAddActivosFactura {
-    width: 95vw;
-    height: 90vh;
-  }
-}
-
-/* Control dinámico para diferentes tamaños de pantalla */
-@media (min-width: 1400px) {
-  .modalAddActivosFactura {
-    width: 85vw;
-    height: 85vh;
-  }
-}
-
-@media (max-width: 600px) {
-  .modalAddActivosFactura {
-    width: 100vw;
-    height: 100vh;
-    border-radius: 0;
-    min-width: unset;
-    min-height: unset;
-  }
-  
-  .divColumns {
-    gap: 0;
-  }
-}
-

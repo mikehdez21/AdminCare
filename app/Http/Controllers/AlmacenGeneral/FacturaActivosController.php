@@ -17,8 +17,8 @@ class FacturaActivosController extends Controller
 
         try {
             $factura = FacturaAF::findOrFail($idFactura);
-            
-            $activosFactura = $factura->activosFijos()->get()->map(function($activo) {
+
+            $activosFactura = $factura->activosFijos()->get()->map(function ($activo) {
                 return [
                     'id_activo_fijo' => $activo->id_activo_fijo,
                     'nombre_af' => $activo->nombre_af,
@@ -28,11 +28,12 @@ class FacturaActivosController extends Controller
                     'lote_afconsecutivo' => $activo->lote_afconsecutivo,
                     'lote_total' => $activo->lote_total,
                     'id_clasificacion' => $activo->id_clasificacion,
-                    'precio_unitario' => $activo->pivot->precio_unitarioaf,
+                    'numero_serie_af' => $activo->numero_serie_af,
+                    'precio_unitario_af' => $activo->pivot->precio_unitario_af,
                     'descuento_af' => $activo->pivot->descuento_af,
                     'descuento_porcentajeaf' => $activo->pivot->descuento_porcentajeaf,
                     'observaciones' => $activo->pivot->observaciones_detalleaf,
-                    'total' => $activo->pivot->precio_unitarioaf,
+                    'total' => $activo->pivot->precio_unitario_af,
                 ];
             });
 
@@ -56,14 +57,15 @@ class FacturaActivosController extends Controller
                 'id_factura' => 'required|integer',
                 'activos' => 'required|array',
                 'activos.*.id_activo_fijo' => 'required|integer',
-                'activos.*.precio_unitario' => 'required|numeric|min:0',
+                'activos.*.numero_serie_af' => 'required|string',
+                'activos.*.precio_unitario_af' => 'required|numeric|min:0',
                 'activos.*.observaciones' => 'nullable|string'
             ]);
 
             DB::beginTransaction();
 
             $factura = FacturaAF::findOrFail($validatedData['id_factura']);
-            
+
             // Eliminar asociaciones existentes para esta factura
             FacturaActivos::where('id_factura', $validatedData['id_factura'])->delete();
 
@@ -73,7 +75,8 @@ class FacturaActivosController extends Controller
                 $facturaActivo = FacturaActivos::create([
                     'id_factura' => $validatedData['id_factura'],
                     'id_activo_fijo' => $activoData['id_activo_fijo'],
-                    'precio_unitarioaf' => $activoData['precio_unitario'],
+                    'numero_serie_af' => $activoData['numero_serie_af'],
+                    'precio_unitario_af' => $activoData['precio_unitario_af'],
                     'observaciones_detalleaf' => $activoData['observaciones'] ?? null
                 ]);
 
@@ -106,7 +109,8 @@ class FacturaActivosController extends Controller
             $validatedData = $request->validate([
                 'activos' => 'required|array',
                 'activos.*.id_activo_fijo' => 'required|integer',
-                'activos.*.precio_unitario' => 'required|numeric|min:0',
+                'activos.*.numero_serie_af' => 'required|string',
+                'activos.*.precio_unitario_af' => 'required|numeric|min:0',
                 'activos.*.observaciones' => 'nullable|string'
             ]);
 
@@ -114,7 +118,7 @@ class FacturaActivosController extends Controller
 
             // Verificar que la factura existe
             $factura = FacturaAF::findOrFail($idFactura);
-            
+
             // Eliminar asociaciones existentes
             FacturaActivos::where('id_factura', $idFactura)->delete();
 
@@ -124,7 +128,8 @@ class FacturaActivosController extends Controller
                 $facturaActivo = FacturaActivos::create([
                     'id_factura' => $idFactura,
                     'id_activo_fijo' => $activoData['id_activo_fijo'],
-                    'precio_unitarioaf' => $activoData['precio_unitario'],
+                    'numero_serie_af' => $activoData['numero_serie_af'],
+                    'precio_unitario_af' => $activoData['precio_unitario_af'],
                     'observaciones_detalleaf' => $activoData['observaciones'] ?? null
                 ]);
 
@@ -155,11 +160,11 @@ class FacturaActivosController extends Controller
 
         try {
             $facturaActivo = FacturaActivos::where('id_factura', $idFactura)
-                                         ->where('id_activo_fijo', $idActivo)
-                                         ->firstOrFail();
-            
+                ->where('id_activo_fijo', $idActivo)
+                ->firstOrFail();
+
             $facturaActivo->delete();
-            
+
             $response['success'] = true;
             $response['message'] = 'Activo removido de la factura exitosamente.';
         } catch (\Exception $e) {

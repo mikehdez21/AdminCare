@@ -14,13 +14,16 @@ import Paginacion from '@/components/00_Utils/Paginacion';
 import AddActivoFijo from './AddActivoFijo';
 import EditActivoFijo from './EditActivoFijo';
 import DeleteActivoFijo from './DeleteActivoFijo';
-
+import CheckAF from '../CheckAFs';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat';
+
 
 // Icons
 import { IoAddCircleOutline } from 'react-icons/io5';
 import { MdEdit, MdDeleteForever } from 'react-icons/md';
 import { FiAlertTriangle } from 'react-icons/fi';
+import { FaListCheck } from "react-icons/fa6";
+
 
 
 // Styles
@@ -36,7 +39,7 @@ interface ListActivoFijoProps {
 
 const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccionado, UbicacionSeleccionada, ClasificacionSeleccionada, ActivosBajas }) => {
   const dispatch = useDispatch<AppDispatch>();
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const [activosFiltrados, setActivosFiltrados] = useState<ActivosFijos[]>([]);
   const estatusActivoFijo = useSelector((state: RootState) => state.activos.estatusActivoFijo);
@@ -46,13 +49,15 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
   const [isModalEditActivoFijoOpen, setModalEditActivoFijoOpen] = useState(false);
   const [isModalDeleteActivoFijoOpen, setModalDeleteActivoFijoOpen] = useState(false);
 
+  const [isCheckAFOpen, setCheckAFOpen] = useState<boolean>(false);
+  const [isListActivosOpen, setListActivosOpen] = useState<boolean>(true);
+
   const [actualizarActivosFijos, setActualizarActivosFijos] = useState(false);
 
 
   useEffect(() => {
 
     if (DepartamentoSeleccionado) {
-      navigate(`/almacen_general/activos/departamento/${DepartamentoSeleccionado}`);
       const cargarAFporDepartamento = async () => {
         try {
           const resultAction = await dispatch(getActivosFijosPorDepartamento(DepartamentoSeleccionado!)).unwrap();
@@ -162,7 +167,7 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
   const [paginaActual, setPaginaActual] = useState<number>(1);
   const [activosFijosPorPagina, setActivosFijosPorPagina] = useState<number>(5);
 
-  
+
   // Filtrar y ordenar activos fijos basados en la búsqueda
   const activosFijosFiltrados = Array.isArray(activosFiltrados)
     ? activosFiltrados
@@ -196,6 +201,7 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
     setPaginaActual(1); // Reiniciar a la primera página al cambiar el número de activos por página
   };
 
+
   // Añadir ActivoFijo
   const openModalAddActivoFijo = () => {
     setModalAddActivoFijoOpen(true);
@@ -204,23 +210,18 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
     setModalAddActivoFijoOpen(false);
   };
 
+
   // Editar ActivoFijo
   const openModalEditActivoFijo = (activo: ActivosFijos) => {
     setActivoFijoToEdit_Delete(activo); // Establecer el activo fijo seleccionado
     setModalEditActivoFijoOpen(true);
   };
-
   const closeModalEditActivoFijo = () => {
     setActivoFijoToEdit_Delete(null); // Establecer el activo fijo seleccionado
     setModalEditActivoFijoOpen(false);
 
   };
 
-  const handleActualizarActivosEditados = () => {
-    setActivoFijoToEdit_Delete(null); // Limpiar el activo fijo seleccionado
-    setModalEditActivoFijoOpen(false); // Cerrar el modal de edición
-    setActualizarActivosFijos(true); // Indicar que se deben actualizar los activos fijos en el componente padre
-  }
 
   // Eliminar ActivoFijo
   const openAlertDeleteActivoFijo = (activo: ActivosFijos) => {
@@ -233,7 +234,34 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
 
   };
 
-  return (
+
+  const handleActualizarActivosEditados = () => {
+    setActivoFijoToEdit_Delete(null); // Limpiar el activo fijo seleccionado
+    setModalEditActivoFijoOpen(false); // Cerrar el modal de edición
+    setActualizarActivosFijos(true); // Indicar que se deben actualizar los activos fijos en el componente padre
+  }
+
+  // Checar ActivosFijos
+
+  const openCheckAF = () => {
+    setCheckAFOpen(true);
+    setListActivosOpen(false);
+  }
+
+  const closeCheckAF = () => {
+    setCheckAFOpen(false);
+    setListActivosOpen(true);
+  }
+
+  const renderCheckAF = () => (
+
+    <div className='mainDiv_CheckAF'>
+      <CheckAF isOpen={isCheckAFOpen} onClose={closeCheckAF} listActivos={activosFiltrados} />
+    </div>
+
+  );
+
+  const renderListActivosFijos = () => (
     <div className='mainDiv_ListActivosFijos'>
       <div className='searchAdd_ButtonDiv'>
 
@@ -258,6 +286,10 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
 
           <button className='buttonAdd' onClick={openModalAddActivoFijo}>
             <IoAddCircleOutline className='iconAdd' /> Nuevo Activo Fijo
+          </button>
+
+          <button className='checkAF' onClick={openCheckAF}>
+            <FaListCheck className='iconCheck' />
           </button>
         </div>
 
@@ -292,8 +324,7 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
                   <th id='th_Modelo'>Modelo</th>
                   <th id='th_Marca'>Marca</th>
                   <th id='th_NumeroSerie'>Número de Serie</th>
-                  <th id='th_ValorCompra'>Valor de Compra</th>
-                  <th id='th_FechaCompra'>Fecha Compra</th>
+                  <th id='th_PrecioUnitario'>Precio Unitario</th>
                   <th id='th_AFPropio'>Activo Propio</th>
                   <th id='th_EstadoAF'>Estado del Activo</th>
                   <th id='th_ClasificacionAF'>Clasificación</th>
@@ -346,8 +377,7 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
                         {activoFijo.numero_serie_af}
                       </div>
                     </td>
-                    <td id='td_ValorCompra'>$ {activoFijo.valor_compra_af}</td>
-                    <td id='td_FechaCompra'>{formatDateHorasToFrontend(activoFijo.fecha_compra_af)}</td>
+                    <td id='td_PrecioUnitario'>$ {activoFijo.precio_unitario_af}</td>
                     <td id='td_AFPropio'>{activoFijo.af_propio ? 'Sí' : 'No'}</td>
 
                     <td id='td_EstadoAF'>
@@ -426,7 +456,17 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
         <DeleteActivoFijo isOpen={isModalDeleteActivoFijoOpen} onClose={closeAlertDeleteActivoFijo} activoFijoToDelete={activoFijoToEdit_Delete} />
       )}
 
+
     </div>
+  );
+
+  return (
+    <>
+      {isListActivosOpen
+        ? renderListActivosFijos()
+        : renderCheckAF()}
+    </>
+
 
   )
 };

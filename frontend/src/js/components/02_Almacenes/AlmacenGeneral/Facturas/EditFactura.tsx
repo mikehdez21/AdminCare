@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AppDispatch, RootState } from '@/store/store';
 import { useDispatch, useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
@@ -14,7 +14,7 @@ import { SiGooglemessages } from 'react-icons/si';
 import { IoAddCircleOutline } from 'react-icons/io5';
 import { AiOutlineNumber } from 'react-icons/ai';
 
-import '@styles/02_Almacenes/AlmacenGeneral/Facturas/AddFactura.css';
+import '@styles/02_Almacenes/AlmacenGeneral/Facturas/addFactura.css'
 import { getProveedores } from '@/store/almacenGeneral/Proveedores/proveedoresActions';
 import { getFormasPago, getTiposMoneda } from '@/store/shared/fiscalActions';
 import AddActivosFactura from './AddActivosFactura';
@@ -32,6 +32,8 @@ interface EditFacturaProps {
 
 const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToEdit }) => {
   const dispatch = useDispatch<AppDispatch>();
+
+  console.log('Factura a Editar:', facturaToEdit);
 
 
   // Estados para los campos del formulario de EditFactura
@@ -55,52 +57,45 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
   const activosFacturaState = useSelector((state: RootState) => state.facturasaf.activosFactura);
   const clasificacionActivoFijo = useSelector((state: RootState) => state.clasificacion.clasificacionesAF);
 
-
-
-
   const [isModalAddActivosFacturaOpen, setIsModalAddActivosFacturaOpen] = useState(false);
   const [activosFactura, setActivosFactura] = useState<ActivoFactura[]>([]);
 
-  // Vista agrupada (solo UI): mantiene la edición/persistencia con la lista real en `activosFactura`
-  const activosFacturaAgrupados = useMemo(() => {
-    const mapa = new Map<string, ActivoFactura>();
-
-    activosFactura.forEach((activo) => {
-      const claveAgrupacion = [
+  const activosFacturaAgrupados = Array.from(
+    activosFactura.reduce((mapa, activo, idx) => {
+      const clave = [
         activo.nombre_af || '',
         activo.id_clasificacion || 0,
-        toSafeNumber(activo.precio_unitario, 0),
+        toSafeNumber(activo.precio_unitario_af, 0),
         (activo.observaciones_af || '').trim(),
-        activo.codigo_lote || 'SIN-LOTE'
+        activo.codigo_lote || '',
       ].join('|');
 
-      const existente = mapa.get(claveAgrupacion);
+      const existente = mapa.get(clave);
 
       if (!existente) {
-        mapa.set(claveAgrupacion, {
+        mapa.set(clave, {
           ...activo,
-          codigo_unico: activo.cantidad > 1 ? 'MÚLTIPLES' : (activo.codigo_unico || ''),
+          cantidad: toSafeNumber(activo.cantidad, 0) || 1,
+          _indices: [idx],
+          _clave: clave,
         });
-        return;
+        return mapa;
       }
 
-      const cantidadAcumulada = toSafeNumber(existente.cantidad, 0) + toSafeNumber(activo.cantidad, 0);
-      mapa.set(claveAgrupacion, {
+      mapa.set(clave, {
         ...existente,
-        cantidad: cantidadAcumulada,
-        codigo_unico: 'MÚLTIPLES',
+        cantidad: toSafeNumber(existente.cantidad, 0) + (toSafeNumber(activo.cantidad, 0) || 1),
+        _indices: [...(existente._indices || []), idx],
       });
-    });
 
-    return Array.from(mapa.values());
-  }, [activosFactura]);
-
-
+      return mapa;
+    }, new Map<string, (ActivoFactura & { _indices?: number[]; _clave?: string })>()).values()
+  );
 
 
   // Subtotal, IVA y totales
   const subtotal = activosFactura.reduce(
-    (acc, activo) => acc + toSafeNumber(activo.precio_unitario, 0) * toSafeNumber(activo.cantidad, 0),
+    (acc, activo) => acc + toSafeNumber(activo.precio_unitario_af, 0) * toSafeNumber(activo.cantidad, 0),
     0
   );
 
@@ -111,8 +106,18 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
   const subtotalConIVA = baseGravable + ivaCalculado;
   const totalFinal = subtotalConIVA;
 
+  const [isSeriesModalOpen, setIsSeriesModalOpen] = useState(false);
+  const [seriesEditables, setSeriesEditables] = useState<string[]>([]);
+  const [activoSerieEnEdicion, setActivoSerieEnEdicion] = useState<{
+    clave: string;
+    nombre_af: string;
+    indices: number[];
+  } | null>(null);
+
   // Inicializar datos del formulario con la factura a editar
   useEffect(() => {
+
+    // Cargar datos de la Factura
     if (facturaToEdit) {
       setProveedorFactura(facturaToEdit.id_proveedor || 0);
       setNumeroFactura(facturaToEdit.num_factura || '');
@@ -129,10 +134,12 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
       setIvaFactura(facturaToEdit.iva_factura || 0);
       setTotalFactura(facturaToEdit.total_factura || 0);
 
-      // Cargar activos de la factura
+      // Cargar Activos de la factura
       if (facturaToEdit.id_factura) {
         dispatch(getActivosFactura(facturaToEdit.id_factura));
       }
+
+
     }
   }, [facturaToEdit, dispatch]);
 
@@ -150,15 +157,13 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
         descripcion_af: '',
         modelo_af: '',
         marca_af: '',
-        numero_serie_af: '',
-        valor_compra_af: 0,
-        fecha_compra_af: '',
+        numero_serie_af: activo.numero_serie_af || '',
+        precio_unitario_af: 0,
         af_propio: true,
         id_estado_af: null,
         id_clasificacion: activo.id_clasificacion || 0,
         fecha_registro_af: '',
         observaciones_af: activo.observaciones || '',
-        precio_unitario: activo.precio_unitario,
         descuento_af: activo.descuento_af || 0,
         descuento_porcentajeaf: activo.descuento_porcentajeaf || 0,
         cantidad: activo.cantidad ?? 1,
@@ -203,6 +208,27 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
     setActivosFactura(nuevosActivosCreados);
   };
 
+  const abrirModalSeries = (activoAgrupado: ActivoFactura & { _indices?: number[]; _clave?: string }) => {
+    console.log(activoAgrupado)
+    const indices = activoAgrupado._indices || [];
+    const seriesActuales = indices.map((idx) => activosFactura[idx]?.numero_serie_af || '');
+    console.log(seriesActuales)
+
+    setActivoSerieEnEdicion({
+      clave: activoAgrupado._clave || `${activoAgrupado.nombre_af}-${Date.now()}`,
+      nombre_af: activoAgrupado.nombre_af,
+      indices,
+    });
+    setSeriesEditables(seriesActuales);
+    setIsSeriesModalOpen(true);
+  };
+
+  const cerrarModalSeries = () => {
+    setIsSeriesModalOpen(false);
+    setSeriesEditables([]);
+    setActivoSerieEnEdicion(null);
+  };
+
   // Manejar el envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -239,7 +265,16 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
           if (esExistente) {
             return {
               id_activo_fijo: activo.id_activo_fijo,
-              precio_unitario: activo.precio_unitario,
+              nombre_af: activo.nombre_af,
+              marca_af: activo.marca_af,
+              modelo_af: activo.modelo_af,
+              numero_serie_af: activo.numero_serie_af,
+              precio_unitario_af: activo.precio_unitario_af,
+              fecha_compra_af: activo.fecha_registro_af || '',
+              af_propio: !!activo.af_propio,
+              id_estado_af: activo.id_estado_af || 1,
+              id_clasificacion: activo.id_clasificacion || 1,
+              precio_unitario: activo.precio_unitario_af,
               cantidad: activo.cantidad,
               observaciones: activo.observaciones_af || null,
             } as ActivoFacturaInput;
@@ -251,8 +286,7 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
             marca_af: activo.marca_af,
             modelo_af: activo.modelo_af,
             numero_serie_af: activo.numero_serie_af,
-            valor_compra_af: activo.valor_compra_af,
-            fecha_compra_af: activo.fecha_compra_af,
+            precio_unitario_af: activo.precio_unitario_af,
             af_propio: activo.af_propio,
             fecha_registro_af: activo.fecha_registro_af,
             id_estado_af: activo.id_estado_af || 1,
@@ -261,7 +295,7 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
             observaciones_af: activo.observaciones_af || null,
 
             // Datos de la relación factura-activo
-            precio_unitario: activo.precio_unitario,
+            precio_unitario: activo.precio_unitario_af,
             cantidad: activo.cantidad,
             observaciones: activo.observaciones_af || null,
 
@@ -338,6 +372,7 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
   return (
     <div className='AddEditFactura'>
       <form onSubmit={handleSubmit}>
+
         <section className='id_FechaFactura'>
           <div className='idFactura'>
             <h2>ID de Factura</h2>
@@ -461,9 +496,10 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
                 <tr>
                   <th>Nombre del Activo</th>
                   <th>Lote</th>
-                  <th>Cantidad </th>
+                  <th id='th_NoSerie'>Números de Serie</th>
+                  <th id='th_Cantidad'>Cantidad </th>
                   <th>Clasificación</th>
-                  <th>Precio Unitario</th>
+                  <th id='th_PrecioUnitario'>Precio Unitario</th>
                   <th>Total  </th>
                 </tr>
               </thead>
@@ -477,7 +513,20 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
                           ? `${activo.codigo_lote} (${activo.lote_afconsecutivo || '-'} / ${activo.lote_total || '-'})`
                           : '-'}
                       </td>
-                      <td>{activo.cantidad}</td>
+
+                      <td id='td_NoSerie'>
+                        <button
+                          type='button'
+                          className='btnEditNoSeries'
+                          onClick={() => abrirModalSeries(activo)}
+                        >
+                          Editar ({(activo as { _indices?: number[] })._indices?.length || 0})
+                        </button>
+
+
+                      </td>
+
+                      <td id='td_Cantidad'>{activo.cantidad}</td>
 
                       <td id='td_ClasificacionAF'>{clasificacionActivoFijo.map((clasificacionAF) => (
                         <div key={clasificacionAF.id_clasificacion} className='divClasificacionAF'>
@@ -485,14 +534,14 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
                         </div>
                       ))}</td>
 
-                      <td>{formatPeso(activo.precio_unitario)}</td>
-                      <td>{formatPeso(toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.precio_unitario, 0))}</td>
+                      <td id='td_PrecioUnitario'>{formatPeso(activo.precio_unitario_af)}</td>
+                      <td>{formatPeso(toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.precio_unitario_af, 0))}</td>
 
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
+                    <td colSpan={8} className='sinActivosSerie'>
                       No hay activos agregados a la factura
                     </td>
                   </tr>
@@ -501,6 +550,54 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
             </table>
           </div>
         </section>
+
+        {isSeriesModalOpen && activoSerieEnEdicion && (
+          <div className='serieModalOverlay'>
+            <div className='serieModal'>
+              <h3 className='serieModalTitle'>Números de Serie</h3>
+              <p className='serieModalSubTitle'>
+                {activoSerieEnEdicion.nombre_af} ({activoSerieEnEdicion.indices.length === 1 ? '1 activo fijo' : `${activoSerieEnEdicion.indices.length} activos fijos`})
+              </p>
+
+              <div className='serieModalGrid'>
+                {seriesEditables.map((serie, idx) => (
+                  <label key={`${activoSerieEnEdicion.clave}-${idx}`} className='serieModalLabel'>
+                    Número de Serie #{idx + 1}
+                    <input
+                      type='text'
+                      value={serie}
+                      onChange={(e) => {
+                        const nuevaLista = [...seriesEditables];
+                        nuevaLista[idx] = e.target.value;
+                        setSeriesEditables(nuevaLista);
+                      }}
+                      placeholder={`Número de serie ${idx + 1}`}
+                      className='serieModalInput'
+                    />
+                  </label>
+                ))}
+              </div>
+
+              <div className='serieModalActions'>
+                <ModalButtons
+                  buttons={[
+                    {
+                      text: 'Guardar',
+                      type: 'submit',
+                      className: 'button_addedit'
+                    },
+                    {
+                      text: 'Cancelar',
+                      type: 'button',
+                      className: 'button_close',
+                      onClick: cerrarModalSeries
+                    }
+                  ]}
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         <section className='valoresFactura'>
           <div className='title_Container'>

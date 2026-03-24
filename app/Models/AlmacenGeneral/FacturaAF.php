@@ -52,7 +52,7 @@ class FacturaAF extends Model
             'id_activo_fijo',
             'id_factura',
             'id_activo_fijo'
-        )->withPivot('precio_unitarioaf', 'descuento_af', 'descuento_porcentajeaf', 'observaciones_detalleaf')
-         ->withTimestamps();
+        )->withPivot('descuento_af', 'descuento_porcentajeaf', 'observaciones_detalleaf')
+            ->withTimestamps();
     }
 }

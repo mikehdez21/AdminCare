@@ -1,3 +1,121 @@
+.swal2-html-container .recommendationPanel{
+    text-align: left;
+    max-height: 420px;
+    overflow: auto;
+    background: #fafafa;
+    border: 1px solid #ececec;
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.swal2-html-container .recommendationPanel--raw{
+    padding: 6px;
+}
+
+.swal2-html-container .recommendationPanel__title{
+    margin: 0 0 10px 0;
+    color: #1f2937;
+}
+
+.swal2-html-container .recommendationPanel__line{
+    margin: 0 0 8px 0;
+    color: #253041;
+}
+
+.swal2-html-container .recommendationPanel__divider{
+    border: none;
+    border-top: 1px solid #e5e7eb;
+    margin: 10px 0 12px 0;
+}
+
+.swal2-html-container .recommendationPanel__empty{
+    margin: 0;
+    color: #6b7280;
+    font-style: italic;
+}
+
+.swal2-html-container .recommendationPanel__pre{
+    margin: 0;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #e1e1e1;
+    background: #f7f9fb;
+    color: #1f2937;
+    font-size: 12px;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: Consolas, 'Courier New', monospace;
+}
+
+.swal2-html-container .recommendationSummary{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 8px;
+}
+
+.swal2-html-container .recommendationSummary__item{
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 8px 10px;
+}
+
+.swal2-html-container .recommendationSummary__key{
+    font-size: 11px;
+    text-transform: capitalize;
+    color: #6b7280;
+}
+
+.swal2-html-container .recommendationSummary__value{
+    font-size: 13px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.swal2-html-container .recommendationSummary__text{
+    margin: 0;
+    color: #1f2937;
+}
+
+.swal2-html-container .recommendationCard{
+    padding: 10px 12px;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    background: #ffffff;
+}
+
+.swal2-html-container .recommendationCard__title{
+    margin: 0 0 6px 0;
+}
+
+.swal2-html-container .recommendationCard__meta,
+.swal2-html-container .recommendationCard__line{
+    margin: 0 0 4px 0;
+    color: #374151;
+}
+
+.swal2-html-container .recommendationCard__notes{
+    margin: 0;
+    color: #4b5563;
+}
+
+.swal2-html-container .mlRecommendationItem{
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+
 .AddEditFactura{
 
     .recommendationButtonsRow{
@@ -144,23 +262,40 @@
                     margin-bottom: 10px;
                     flex-wrap: nowrap;
 
-                    th, td{
-                        padding: 5px 10px;
+                    th,
+                    td {
+                        padding: 6px 10px;
                         text-align: left;
                         border-bottom: 1px solid #c7bebe;
                     }
 
-                    th{
+                    th {
                         background-color: #f2f2f2;
-                        span{
+
+                        span {
                             font-size: 14px;
                             color: #666;
                         }
 
-                        &:last-child{
+                        &:last-child {
                             display: flex;
                             justify-content: center;
                         }
+                    }
+
+                    td {
+                        &:last-child {
+                            text-align: center;
+                        }
+                    }
+
+                    #th_NoSerie,
+                    #td_NoSerie,
+                    #th_Cantidad,
+                    #td_Cantidad,
+                    #th_PrecioUnitario,
+                    #td_PrecioUnitario {
+                        text-align: center;
                     }
 
                     .btn-remover-activo{
@@ -184,12 +319,26 @@
                         }
                     }
 
-                    td{
-                        &:last-child{
-                            display: flex;
-                            justify-content: center;
-                        }
+                    .btnEditNoSeries {
+                        padding: 4px 10px;
+                        background-color: #007bff;
+                        color: white;
+                        border: none;
+                        border-radius: 5px;
+                        cursor: pointer;
                     }
+
+                    .btnEditNoSeries:hover {
+                        background-color: #0056b3;
+                    }
+
+                    .sinActivosSerie {
+                        text-align: center;
+                        color: #666;
+                        font-style: italic;
+                    }
+
+                   
 
                     
                 }
@@ -216,24 +365,26 @@
                 padding: 10px 20px;
                 background-color: #007bff2a;
 
-                .totalFacturaLabel{
+                .totalFacturaLabel {
                     flex: 1;
                     font-weight: bold;
                     color: #333;
 
-                    #subTotalSinIVA, #subTotalFacturaConDescuento, #subTotalFacturaConFlete{
+                    #subTotalSinIVA,
+                    #subTotalFacturaConDescuento,
+                    #subTotalFacturaConFlete {
                         margin: 0;
                         font-size: 16px;
                         color: #3f7cee;
                     }
 
-                    #totalFacturaFinal{
+                    #totalFacturaFinal {
                         margin: 0;
                         font-size: 24px;
                         color: #13a332;
                     }
 
-                    
+
                 }
 
                 .totalFacturaCalculado{

@@ -1,45 +1,72 @@
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-60px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0px);
+    }
+}
+
+
 .mainDiv_ListActivosFijos {
     display: flex;
     flex-direction: column;
     width: 100%;
     height: 100%;
-    
-    .searchAdd_ButtonDiv{
+
+
+    .searchAdd_ButtonDiv {
         display: flex;
         gap: 60px;
         align-items: center;
         justify-content: center;
-        position: absolute; /* Uso de absolute TEMPORAL - IMPLEMENTAR LIBRERIA DE TABLES */
-        left: 35%; 
+        position: absolute;
+        /* Uso de absolute TEMPORAL - IMPLEMENTAR LIBRERIA DE TABLES */
+        left: 35%;
         top: 135px;
 
-        .text_Div{
+        .text_Div {
             display: flex;
             color: #383838d5;
-            
-            h1{
+
+            h1 {
                 font-size: 25px;
                 margin: 5px;
                 align-self: center;
 
             }
-            
+
 
         }
 
-        .buttons_Div{
+        .buttons_Div {
             display: flex;
             gap: 20px;
             padding: 10px;
 
-            .selectList{
+            .selectList {
                 text-align: center;
                 border-radius: 8px;
                 border-width: 2px;
                 border-style: groove;
             }
 
-            input{
+            input {
                 width: 250px;
                 border-radius: 8px;
                 border-width: 2px;
@@ -48,7 +75,7 @@
                 padding: 10px;
             }
 
-            button{
+            button {
                 display: flex;
                 gap: 5px;
                 background-color: #da29fd;
@@ -62,22 +89,42 @@
                 padding: 5px;
                 cursor: pointer;
 
-                .iconAdd{
+                .iconAdd {
                     font-size: 20px;
                 }
             }
 
-            .buttonAdd:hover{
+            .checkAF {
+                display: flex;
+                gap: 5px;
+                background-color: #da29fd;
+                color: #ffffff;
+                font-weight: 800;
+                font-size: 15px;
+                align-items: center;
+                justify-content: center;
+                width: 40px;
+                border-radius: 8px;
+                padding: 5px;
+                cursor: pointer;
+
+                .iconCheck {
+                    font-size: 20px;
+                }
+            }
+
+            .buttonAdd:hover,
+            .checkAF:hover {
                 background-color: #df67f7 !important;
                 color: #000000;
 
             }
         }
 
-        
+
     }
 
-    .noEntities{
+    .noEntities {
         display: flex;
         background-color: #f7fa52a2;
         justify-self: center;
@@ -88,39 +135,39 @@
         border-radius: 10px;
         font-size: 20px;
         font-weight: 600;
-        border-style:  dashed;
+        border-style: dashed;
         border-color: #00000057;
 
-        p{
+        p {
             margin: 30px 20px;
         }
 
-        
+
     }
 
-    .list_entitiesDiv{
+    .list_entitiesDiv {
         display: flex;
         background-color: #ffffff;
         border-radius: 10px;
         margin: 0px 15px;
         padding: 0px 0px;
-        overflow-x:auto;
+        overflow-x: auto;
 
-        table{
+        table {
             text-align: left;
             width: 100%;
 
             /*Heads Table*/
-            tr{
+            tr {
 
-                th{
+                th {
                     border-width: 1px;
                     border-color: #d8d5d5d5;
                     border-bottom-style: solid;
                     padding: 5px 35px;
                 }
 
-                td{
+                td {
                     font-size: 14px;
                     border-width: 1px;
                     border-color: #d8d5d5d5;
@@ -157,7 +204,7 @@
                     left: 90px;
                     z-index: 2;
 
-                    .CodigoLote{
+                    .CodigoLote {
                         width: 200px;
                         overflow: hidden;
                         text-overflow: ellipsis;
@@ -173,20 +220,20 @@
                     left: 100px;
                     z-index: 2;
 
-                    .NombreAF{
+                    .NombreAF {
                         width: 200px;
                         overflow: hidden;
                         text-overflow: ellipsis;
                     }
                 }
 
-                
+
 
                 #th_Descripcion,
-                #td_Descripcion{
+                #td_Descripcion {
                     text-align: center;
 
-                    .divDescripcionAF{
+                    .divDescripcionAF {
                         width: 500px;
                         overflow: hidden;
                         text-align: start;
@@ -195,10 +242,10 @@
                 }
 
                 #th_Modelo,
-                #td_Modelo{
+                #td_Modelo {
                     text-align: center;
 
-                    .divModeloAF{
+                    .divModeloAF {
                         width: 180px;
                         overflow: hidden;
                         text-overflow: ellipsis;
@@ -206,40 +253,36 @@
                 }
 
                 #th_Marca,
-                #td_Marca{
+                #td_Marca {
                     text-align: center;
-                }   
-                
+                }
+
 
                 #th_NumeroSerie,
-                #td_NumeroSerie{
+                #td_NumeroSerie {
                     text-align: center;
 
-                    .divNumeroSerieAF{
+                    .divNumeroSerieAF {
                         width: 180px;
                         overflow: hidden;
                         text-overflow: ellipsis;
                     }
                 }
 
-                #th_ValorCompra,
-                #td_ValorCompra{
+                #th_PrecioUnitario,
+                #td_PrecioUnitario {
                     text-align: center;
                     white-space: nowrap;
                 }
 
-                #th_FechaCompra,
-                #td_FechaCompra{
-                    text-align: center;
-                }
 
                 #th_AFPropio,
-                #td_AFPropio{
+                #td_AFPropio {
                     text-align: center;
                 }
 
                 #th_EstadoAF,
-                #td_EstadoAF{
+                #td_EstadoAF {
                     text-align: center;
                     white-space: nowrap;
 
@@ -254,23 +297,43 @@
                         display: inline-block;
                     }
 
-                    .estatus-activo { background-color: #22c55e; }      /* Verde */
-                    .estatus-mantenimiento-revision { background-color: #f97316; } /* Naranja */
-                    .estatus-baja-perdido { background-color: #ef4444; }        /* Rojo */
-                    .estatus-prestado { background-color: #3b82f6; }    /* Azul */
-                    .estatus-default { background-color: #6b7280; }     /* Gris */
+                    .estatus-activo {
+                        background-color: #22c55e;
+                    }
+
+                    /* Verde */
+                    .estatus-mantenimiento-revision {
+                        background-color: #f97316;
+                    }
+
+                    /* Naranja */
+                    .estatus-baja-perdido {
+                        background-color: #ef4444;
+                    }
+
+                    /* Rojo */
+                    .estatus-prestado {
+                        background-color: #3b82f6;
+                    }
+
+                    /* Azul */
+                    .estatus-default {
+                        background-color: #6b7280;
+                    }
+
+                    /* Gris */
 
                 }
 
-                
 
-                
+
+
 
                 #th_ClasificacionAF,
-                #td_ClasificacionAF{
+                #td_ClasificacionAF {
                     text-align: center;
 
-                    .divClasificacionAF{
+                    .divClasificacionAF {
                         width: 200px;
                         text-align: start;
                         overflow: hidden;
@@ -279,15 +342,15 @@
                 }
 
                 #th_Ubicacion,
-                #td_Ubicacion{
+                #td_Ubicacion {
                     text-align: center;
                 }
 
                 #th_Responsable,
-                #td_Responsable{
+                #td_Responsable {
                     text-align: center;
 
-                    .divResponsableAF{
+                    .divResponsableAF {
                         width: 200px;
                         overflow: hidden;
                         text-align: start;
@@ -296,20 +359,20 @@
                 }
 
                 #th_Departamento,
-                #td_Departamento{
+                #td_Departamento {
                     text-align: center;
                 }
 
                 #th_FechaRegistro,
-                #td_FechaRegistro{
+                #td_FechaRegistro {
                     text-align: center;
                 }
 
                 #th_Observaciones,
-                #td_Observaciones{
-                    text-align:start;
+                #td_Observaciones {
+                    text-align: start;
 
-                    .divObservacionesAF{
+                    .divObservacionesAF {
                         width: 300px;
                         overflow: hidden;
                         text-align: start;
@@ -318,19 +381,19 @@
                 }
 
                 #th_FechaCreacion,
-                #td_FechaCreacion{
+                #td_FechaCreacion {
                     text-align: center;
                 }
 
                 #th_FechaModificacion,
-                #td_FechaModificacion{
+                #td_FechaModificacion {
                     text-align: center;
                     padding: 10px 35px;
-                    
+
                 }
-                
+
                 #th_Acciones,
-                #td_Acciones{
+                #td_Acciones {
                     border-width: 1px;
                     border-color: #d8d5d5d5;
                     background-color: #ffffff;
@@ -339,12 +402,12 @@
                     position: sticky;
                     right: 0;
                     box-shadow: -1px 0 0 #ccc;
-                    
-                    .divActions{
+
+                    .divActions {
                         display: flex;
                         justify-content: center;
 
-                        .button_editEntity{
+                        .button_editEntity {
                             display: flex;
                             align-items: center;
                             background-color: transparent;
@@ -356,11 +419,11 @@
 
                         }
 
-                        .button_editEntity:hover{
+                        .button_editEntity:hover {
                             color: #00ccff;
                         }
 
-                        .button_deleteEntity{
+                        .button_deleteEntity {
                             display: flex;
                             align-items: center;
                             background-color: transparent;
@@ -371,16 +434,19 @@
 
                         }
 
-                        .button_deleteEntity:hover{
+                        .button_deleteEntity:hover {
                             color: #ff0000;
 
                         }
                     }
                 }
             }
-            
+
         }
     }
-    
+
 }
 
+.mainDiv_CheckAF {
+    animation: fadeInRight 0.4s;
+}
