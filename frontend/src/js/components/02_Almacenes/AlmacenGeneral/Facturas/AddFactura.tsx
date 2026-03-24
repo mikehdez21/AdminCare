@@ -120,21 +120,9 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
     const safeText = escapeHtml(rawText || 'Sin contenido');
 
     return `
-      <div style="text-align:left; max-height:420px; overflow:auto; padding:6px;">
-        <p style="margin: 0 0 10px 0;"><strong>${escapeHtml(title)}</strong></p>
-        <pre style="
-          margin:0;
-          padding:12px;
-          border-radius:8px;
-          border:1px solid #e1e1e1;
-          background:#f7f9fb;
-          color:#1f2937;
-          font-size:12px;
-          line-height:1.45;
-          white-space:pre-wrap;
-          word-break:break-word;
-          font-family:Consolas, 'Courier New', monospace;
-        ">${safeText}</pre>
+      <div class="recommendationPanel recommendationPanel--raw">
+        <p class="recommendationPanel__title"><strong>${escapeHtml(title)}</strong></p>
+        <pre class="recommendationPanel__pre">${safeText}</pre>
       </div>
     `;
   };
@@ -156,15 +144,42 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
         }>;
       };
 
-      const resumen = escapeHtml(parsed.resumen_general || 'Sin resumen disponible.');
+      const resumenRaw = parsed.resumen_general;
       const resultados = Array.isArray(parsed.resultados) ? parsed.resultados : [];
+
+      const resumenHtml =
+        resumenRaw && typeof resumenRaw === 'object'
+          ? Object.entries(resumenRaw)
+              .map(([key, value]) => {
+                const keyLabel = escapeHtml(key.replace(/_/g, ' '));
+                const valueLabel = escapeHtml(value === null ? 'N/D' : String(value));
+                return `
+                  <div class="recommendationSummary__item">
+                    <span class="recommendationSummary__key">${keyLabel}</span>
+                    <span class="recommendationSummary__value">${valueLabel}</span>
+                  </div>
+                `;
+              })
+              .join('')
+          : `<p class="recommendationSummary__text">${escapeHtml(String(resumenRaw || 'Sin resumen disponible.'))}</p>`;
 
       const resultadosHtml = resultados.length
         ? resultados
             .map((item) => {
-              const activo = escapeHtml(item.activo || 'Activo');
+              const activoRaw = item.activo;
+              const activoObj = activoRaw && typeof activoRaw === 'object' ? activoRaw as Record<string, unknown> : null;
+
+              const nombreActivo = activoObj
+                ? escapeHtml(String(activoObj.nombre ?? activoObj.nombre_af ?? 'Activo'))
+                : escapeHtml(typeof activoRaw === 'string' ? activoRaw : 'Activo');
+
+              const marca = activoObj ? escapeHtml(String(activoObj.marca ?? activoObj.marca_af ?? 'N/D')) : 'N/D';
+              const modelo = activoObj ? escapeHtml(String(activoObj.modelo ?? activoObj.modelo_af ?? 'N/D')) : 'N/D';
+
               const opcion = escapeHtml(item.opcion_mas_barata || 'Sin opción específica');
-              const precioActual = toSafeNumber(item.precio_actual, 0);
+              const precioActual = toSafeNumber(
+                item.precio_actual,
+                0);
               const precioRef = toSafeNumber(item.precio_referencia, 0);
               const ahorro = toSafeNumber(item.ahorro_estimado, 0);
               const notas = escapeHtml(item.notas || '');
@@ -175,23 +190,25 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
                 : '<span>URL no disponible</span>';
 
               return `
-                <div style="padding:10px 12px; border:1px solid #e8e8e8; border-radius:8px; margin-bottom:10px; background:#fff;">
-                  <p style="margin:0 0 6px 0;"><strong>${activo}</strong></p>
-                  <p style="margin:0 0 4px 0;">Precio actual: ${formatPeso(precioActual)}</p>
-                  <p style="margin:0 0 4px 0;">Opción sugerida: ${opcion}</p>
-                  <p style="margin:0 0 4px 0;">Precio referencia: ${formatPeso(precioRef)} | Ahorro estimado: ${formatPeso(ahorro)}</p>
-                  <p style="margin:0 0 4px 0;">${urlHtml}</p>
-                  ${notas ? `<p style="margin:0; color:#555;">Notas: ${notas}</p>` : ''}
+                <div class="recommendationCard">
+                  <p class="recommendationCard__title"><strong>${nombreActivo}</strong></p>
+                  <p class="recommendationCard__meta">Marca: ${marca} | Modelo: ${modelo}</p>
+                  <p class="recommendationCard__line">Precio actual: ${formatPeso(precioActual)}</p>
+                  <p class="recommendationCard__line">Opción sugerida: ${opcion}</p>
+                  <p class="recommendationCard__line">Precio referencia: ${formatPeso(precioRef)} | Ahorro estimado: ${formatPeso(ahorro)}</p>
+                  <p class="recommendationCard__line">${urlHtml}</p>
+                  ${notas ? `<p class="recommendationCard__notes">Notas: ${notas}</p>` : ''}
                 </div>
               `;
             })
             .join('')
-        : '<p>No se recibieron resultados estructurados.</p>';
+        : '<p class="recommendationPanel__empty">No se recibieron resultados estructurados.</p>';
 
       return `
-        <div style="text-align:left; max-height:420px; overflow:auto; background:#fafafa; border:1px solid #ececec; border-radius:10px; padding:12px;">
-          <p style="margin:0 0 10px 0;"><strong>Resumen:</strong> ${resumen}</p>
-          <hr style="border:none; border-top:1px solid #e5e7eb; margin: 10px 0 12px 0;" />
+        <div class="recommendationPanel">
+          <p class="recommendationPanel__title"><strong>Resumen</strong></p>
+          <div class="recommendationSummary">${resumenHtml}</div>
+          <hr class="recommendationPanel__divider" />
           ${resultadosHtml}
         </div>
       `;
@@ -366,16 +383,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
         .map((linea, index) => {
           const contenido = escapeHtml(linea);
           return `
-            <div style="
-              border:1px solid #e5e7eb;
-              background:#ffffff;
-              border-radius:8px;
-              padding:8px 10px;
-              margin-bottom:8px;
-              font-family:Consolas, 'Courier New', monospace;
-              font-size:12px;
-              line-height:1.4;
-            ">
+            <div class="mlRecommendationItem">
               <strong>#${index + 1}</strong> ${contenido}
             </div>
           `;
@@ -386,11 +394,11 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
         icon: 'info',
         title: 'Recomendación ML (Random Forest)',
         html: `
-          <div style="text-align:left; max-height:380px; overflow:auto; background:#fafafa; border:1px solid #ececec; border-radius:10px; padding:12px;">
-            <p style="margin:0 0 8px 0;"><strong>Modelo:</strong> ${escapeHtml(modelId)}</p>
-            <p style="margin:0 0 8px 0;"><strong>Métricas:</strong> ${escapeHtml(resumenMetricas)}</p>
-            <hr style="border:none; border-top:1px solid #e5e7eb; margin: 10px 0 12px 0;" />
-            ${comparativoHtml || '<p>No se recibieron predicciones para mostrar.</p>'}
+          <div class="recommendationPanel">
+            <p class="recommendationPanel__line"><strong>Modelo:</strong> ${escapeHtml(modelId)}</p>
+            <p class="recommendationPanel__line"><strong>Métricas:</strong> ${escapeHtml(resumenMetricas)}</p>
+            <hr class="recommendationPanel__divider" />
+            ${comparativoHtml || '<p class="recommendationPanel__empty">No se recibieron predicciones para mostrar.</p>'}
           </div>
         `,
         width: 800,
