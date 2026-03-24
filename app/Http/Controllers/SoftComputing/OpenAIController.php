@@ -17,11 +17,14 @@ class OpenAIController extends Controller
 				'algorithm' => 'nullable|string|in:linear_regression,random_forest,knn,naive_bayes,logistic_regression,mlp,backpropagation,kmeans',
 				'prompt' => 'required|string|max:8000',
 				'data' => 'nullable|array',
+				'use_web_search' => 'nullable|boolean',
 			]);
 
 			$apiKey = (string) config('services.openai.api_key');
 			$model = (string) config('services.openai.model', 'gpt-4o-mini');
+			$fallbackModel = (string) config('services.openai.fallback_model', 'gpt-4o-mini');
 			$timeout = (int) config('services.openai.timeout', 30);
+			$webSearchEnabled = (bool) config('services.openai.web_search_enabled', true);
 
 			if ($apiKey === '') {
 				return response()->json([
@@ -36,7 +39,7 @@ class OpenAIController extends Controller
 			$inputData = $validated['data'] ?? [];
 
 			$systemPrompt = "Eres un analista de SoftComputing para el sistema AdminCare. "
-				. "Responde únicamente en JSON válido con las llaves: summary, score, risks, recommendations. "
+				. "Responde únicamente en JSON válido, siguiendo exactamente la estructura solicitada por el usuario en el campo question. "
 				. "No uses markdown. "
 				. "Contexto de tarea: {$modeContext}.";
 
@@ -47,22 +50,68 @@ class OpenAIController extends Controller
 				'dataset' => $inputData,
 			];
 
+			$requestPayload = [
+				'input' => [
+					[
+						'role' => 'system',
+						'content' => $systemPrompt,
+					],
+					[
+						'role' => 'user',
+						'content' => json_encode($userPrompt, JSON_UNESCAPED_UNICODE),
+					],
+				],
+				'temperature' => 0.2,
+			];
+
+			$useWebSearch = array_key_exists('use_web_search', $validated)
+				? (bool) $validated['use_web_search']
+				: true;
+
+			if ($webSearchEnabled && $useWebSearch) {
+				$requestPayload['tools'] = [
+					['type' => 'web_search_preview'],
+				];
+			}
+
 			$openAIResponse = Http::timeout($timeout)
 				->withToken($apiKey)
-				->post('https://api.openai.com/v1/responses', [
+				->post('https://api.openai.com/v1/responses', array_merge($requestPayload, [
 					'model' => $model,
-					'input' => [
-						[
-							'role' => 'system',
-							'content' => $systemPrompt,
-						],
-						[
-							'role' => 'user',
-							'content' => json_encode($userPrompt, JSON_UNESCAPED_UNICODE),
-						],
-					],
-					'temperature' => 0.2,
-				]);
+				]));
+
+			if (
+				$openAIResponse->failed()
+				&& isset($requestPayload['tools'])
+				&& $this->isToolCompatibilityError($openAIResponse->json() ?? [])
+			) {
+				$payloadWithoutTools = $requestPayload;
+				unset($payloadWithoutTools['tools']);
+
+				$openAIResponse = Http::timeout($timeout)
+					->withToken($apiKey)
+					->post('https://api.openai.com/v1/responses', array_merge($payloadWithoutTools, [
+						'model' => $model,
+					]));
+			}
+
+			$modelUsed = $model;
+			if ($openAIResponse->failed() && $fallbackModel !== '' && $fallbackModel !== $model) {
+				$fallbackPayload = $requestPayload;
+				if (isset($fallbackPayload['tools']) && $this->isToolCompatibilityError($openAIResponse->json() ?? [])) {
+					unset($fallbackPayload['tools']);
+				}
+
+				$openAIResponse = Http::timeout($timeout)
+					->withToken($apiKey)
+					->post('https://api.openai.com/v1/responses', array_merge($fallbackPayload, [
+						'model' => $fallbackModel,
+					]));
+
+				if ($openAIResponse->successful()) {
+					$modelUsed = $fallbackModel;
+				}
+			}
 
 			if ($openAIResponse->failed()) {
 				return response()->json([
@@ -70,13 +119,19 @@ class OpenAIController extends Controller
 					'message' => 'Error al consultar OpenAI.',
 					'data' => [
 						'status' => $openAIResponse->status(),
+						'model' => $modelUsed,
+						'fallback_model' => $fallbackModel,
 						'error' => $openAIResponse->json(),
 					],
 				], 502);
 			}
 
-			$responsePayload = $openAIResponse->json();
+			$responsePayload = $openAIResponse->json() ?? [];
 			$outputText = $this->extractOutputText($responsePayload);
+
+			if ($outputText === '') {
+				$outputText = json_encode($responsePayload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) ?: '';
+			}
 
 			return response()->json([
 				'success' => true,
@@ -84,7 +139,7 @@ class OpenAIController extends Controller
 				'data' => [
 					'mode' => $validated['mode'],
 					'algorithm' => $algorithm,
-					'model_used' => $model,
+					'model_used' => $modelUsed,
 					'analysis_text' => $outputText,
 					'raw_response' => $responsePayload,
 				],
@@ -98,6 +153,27 @@ class OpenAIController extends Controller
 				],
 			], 500);
 		}
+	}
+
+	private function isToolCompatibilityError(array $errorPayload): bool
+	{
+		$error = data_get($errorPayload, 'error');
+		$message = '';
+
+		if (is_array($error)) {
+			$message = strtolower((string) ($error['message'] ?? ''));
+		} elseif (is_string($error)) {
+			$message = strtolower($error);
+		}
+
+		if ($message === '') {
+			$message = strtolower((string) json_encode($errorPayload));
+		}
+
+		return str_contains($message, 'tool')
+			|| str_contains($message, 'web_search')
+			|| str_contains($message, 'unsupported')
+			|| str_contains($message, 'not available');
 	}
 
 	private function buildModeContext(string $mode): string
@@ -118,6 +194,16 @@ class OpenAIController extends Controller
 			return $outputText;
 		}
 
+		if (is_array($outputText)) {
+			$chunks = array_values(array_filter(array_map(function ($item) {
+				return is_string($item) ? trim($item) : '';
+			}, $outputText)));
+
+			if (!empty($chunks)) {
+				return trim(implode("\n", $chunks));
+			}
+		}
+
 		$output = data_get($responsePayload, 'output', []);
 		if (!is_array($output)) {
 			return '';
@@ -134,6 +220,18 @@ class OpenAIController extends Controller
 				$text = $content['text'] ?? null;
 				if (is_string($text) && trim($text) !== '') {
 					$chunks[] = $text;
+					continue;
+				}
+
+				$jsonPayload = $content['json'] ?? null;
+				if (is_array($jsonPayload)) {
+					$chunks[] = json_encode($jsonPayload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+					continue;
+				}
+
+				$rawContent = $content['content'] ?? null;
+				if (is_string($rawContent) && trim($rawContent) !== '') {
+					$chunks[] = $rawContent;
 				}
 			}
 		}

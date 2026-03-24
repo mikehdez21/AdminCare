@@ -37,11 +37,15 @@ return [
 
     'softcomputing' => [
         'url' => env('ML_SERVICE_URL'),
+        'public_url' => env('ML_SERVICE_PUBLIC_URL'),
+        'timeout' => env('ML_SERVICE_TIMEOUT', 120),
     ],
 
     'openai' => [
         'api_key' => env('OPENAI_API_KEY'),
         'model' => env('OPENAI_MODEL', 'gpt-4o-mini'),
+        'fallback_model' => env('OPENAI_FALLBACK_MODEL', 'gpt-4o-mini'),
         'timeout' => env('OPENAI_TIMEOUT', 30),
+        'web_search_enabled' => env('OPENAI_WEB_SEARCH_ENABLED', true),
     ],
 ];

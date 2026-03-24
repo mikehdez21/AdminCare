@@ -17,7 +17,7 @@
       "handle": "filesystem"
     },
     {
-      "src": "/(.*)",
+      "src": "/((?!api/|sanctum/|assets/).*)",
       "dest": "/index.html"
     }
   ]

@@ -3,9 +3,10 @@ import { AppDispatch, RootState } from '@/store/store'; // Asegúrate de importa
 import { useDispatch, useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
 
-import { getTiposFacturas, addFactura, getFacturas } from '@/store/almacenGeneral/Facturas/facturasActions';
+import { addFactura, getFacturas } from '@/store/almacenGeneral/Facturas/facturasActions';
 import { setFacturas } from '@/store/almacenGeneral/Facturas/facturasReducer';
 import { analyzeSoftComputing } from '@/store/softcomputing/openAIActions';
+import { trainPricingModelFromDb, predictPricingModel } from '@/store/softcomputing/pricingModelActions';
 
 // Components
 import { FaCircleInfo, FaBoxesPacking } from 'react-icons/fa6';
@@ -17,9 +18,6 @@ import { AiOutlineNumber } from 'react-icons/ai';
 
 
 import { getFechaHoraActual } from '@/utils/dateFormat';
-import { getProveedores } from '@/store/almacenGeneral/Proveedores/proveedoresActions';
-import { getFormasPago, getTiposMoneda } from '@/store/shared/fiscalActions';
-import { getClasificaciones } from '@/store/almacenGeneral/Clasificaciones/clasificacionesActions';
 import AddActivosFactura from './AddActivosFactura';
 import { ActivoFactura } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 import { FacturasAF, ActivoFacturaInput } from '@/@types/AlmacenGeneralTypes/facturasTypes';
@@ -51,6 +49,8 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
   const [fleteFactura, setFleteFactura] = useState<number>(0);
   const [ivaFactura, setIvaFactura] = useState<number>(0.16);
   const [totalFactura, setTotalFactura] = useState<number>(0);
+  const [loadingOpenAIRecommendation, setLoadingOpenAIRecommendation] = useState(false);
+  const [loadingMLRecommendation, setLoadingMLRecommendation] = useState(false);
 
 
   const facturas = useSelector((state: RootState) => state.facturasaf.facturasaf);
@@ -90,13 +90,275 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
     setTotalFactura(totalFinal);
   }, [subtotal, ivaCalculado, totalFinal]);
 
-  useEffect(() => {
-    if (!proveedores?.length) dispatch(getProveedores());
-    if (!tiposFactura?.length) dispatch(getTiposFacturas());
-    if (!formasPago?.length) dispatch(getFormasPago());
-    if (!tiposMoneda?.length) dispatch(getTiposMoneda());
-    if (!clasificacionActivoFijo?.length) dispatch(getClasificaciones());
-  }, [dispatch]);
+  const obtenerResumenActivosActuales = () => {
+    return activosFactura.map((activo) => ({
+      nombre_af: activo.nombre_af,
+      marca_af: activo.marca_af,
+      modelo_af: activo.modelo_af,
+      cantidad: toSafeNumber(activo.cantidad, 0),
+      precio_unitario: toSafeNumber(activo.precio_unitario, 0),
+      total_linea: toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.precio_unitario, 0),
+      id_clasificacion: toSafeNumber(activo.id_clasificacion, 0),
+    }));
+  };
+
+  const renderOpenAIRecommendationHtml = (analysisText: string): string => {
+    const escapeHtml = (value: string) =>
+      value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+
+    try {
+      const parsed = JSON.parse(analysisText) as {
+        resumen_general?: string;
+        resultados?: Array<{
+          activo?: string;
+          precio_actual?: number;
+          opcion_mas_barata?: string;
+          precio_referencia?: number;
+          ahorro_estimado?: number;
+          url?: string;
+          notas?: string;
+        }>;
+      };
+
+      const resumen = escapeHtml(parsed.resumen_general || 'Sin resumen disponible.');
+      const resultados = Array.isArray(parsed.resultados) ? parsed.resultados : [];
+
+      const resultadosHtml = resultados.length
+        ? resultados
+            .map((item) => {
+              const activo = escapeHtml(item.activo || 'Activo');
+              const opcion = escapeHtml(item.opcion_mas_barata || 'Sin opción específica');
+              const precioActual = toSafeNumber(item.precio_actual, 0);
+              const precioRef = toSafeNumber(item.precio_referencia, 0);
+              const ahorro = toSafeNumber(item.ahorro_estimado, 0);
+              const notas = escapeHtml(item.notas || '');
+              const rawUrl = (item.url || '').trim();
+              const safeUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : '';
+              const urlHtml = safeUrl
+                ? `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">Ver opción</a>`
+                : '<span>URL no disponible</span>';
+
+              return `
+                <div style="padding:8px 0; border-bottom:1px solid #eee;">
+                  <p><strong>${activo}</strong></p>
+                  <p>Precio actual: ${formatPeso(precioActual)}</p>
+                  <p>Opción sugerida: ${opcion}</p>
+                  <p>Precio referencia: ${formatPeso(precioRef)} | Ahorro estimado: ${formatPeso(ahorro)}</p>
+                  <p>${urlHtml}</p>
+                  ${notas ? `<p style="color:#555;">Notas: ${notas}</p>` : ''}
+                </div>
+              `;
+            })
+            .join('')
+        : '<p>No se recibieron resultados estructurados.</p>';
+
+      return `
+        <div style="text-align:left; max-height:380px; overflow:auto;">
+          <p><strong>Resumen:</strong> ${resumen}</p>
+          <hr />
+          ${resultadosHtml}
+        </div>
+      `;
+    } catch {
+      const plain = analysisText
+        .replace(/\n/g, '<br/>')
+        .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+
+      return `
+        <div style="text-align:left; max-height:380px; overflow:auto; white-space:normal;">
+          ${plain}
+        </div>
+      `;
+    }
+  };
+
+  const handleOpenAIRecommendation = async () => {
+    if (activosFactura.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Activos requeridos',
+        text: 'Agrega activos para obtener una recomendación OpenAI.',
+        confirmButtonText: 'OK',
+      });
+      return;
+    }
+
+    try {
+      setLoadingOpenAIRecommendation(true);
+      const resumenActivos = obtenerResumenActivosActuales();
+
+      const openAITestResult = await dispatch(
+        analyzeSoftComputing({
+          mode: 'price_prediction',
+          algorithm: 'linear_regression',
+          prompt:
+            'Con base en nombre, marca, modelo y precio unitario de cada activo, realiza una búsqueda sencilla tipo Google Shopping para identificar la misma opción (o alternativa comparable) más barata. Responde en JSON con llaves: resumen_general y resultados[]. Cada resultado debe incluir: activo, precio_actual, opcion_mas_barata, precio_referencia, ahorro_estimado, url, notas. Si no hay navegación en tiempo real o no puedes validar la URL, indícalo explícitamente en notas y no inventes enlaces.',
+          data: {
+            numero_factura: numeroFactura.trim() || 'PENDIENTE',
+            subtotal_factura: toSafeNumber(subTotalFactura, 0),
+            descuento_factura: toSafeNumber(descuentoFactura, 0),
+            flete_factura: toSafeNumber(fleteFactura, 0),
+            iva_factura: toSafeNumber(ivaFactura, 0),
+            total_factura: toSafeNumber(totalFactura, 0),
+            activos: resumenActivos,
+          },
+        })
+      ).unwrap();
+
+      if (openAITestResult.success && openAITestResult.data) {
+        const analysisText = openAITestResult.data.analysis_text
+          || JSON.stringify(openAITestResult.data.raw_response || {}, null, 2);
+
+        if (!analysisText || analysisText.trim() === '') {
+          await Swal.fire({
+            icon: 'warning',
+            title: 'Recomendación OpenAI vacía',
+            text: 'OpenAI respondió sin contenido interpretable para mostrar.',
+            confirmButtonText: 'OK',
+          });
+          return;
+        }
+
+        await Swal.fire({
+          icon: 'info',
+          title: 'Recomendación OpenAI',
+          html: renderOpenAIRecommendationHtml(analysisText),
+          width: 860,
+          confirmButtonText: 'OK',
+        });
+      } else {
+        await Swal.fire({
+          icon: 'warning',
+          title: 'Recomendación OpenAI no disponible',
+          text: openAITestResult.message || 'No se pudo obtener respuesta de OpenAI.',
+          confirmButtonText: 'OK',
+        });
+      }
+    } catch (error) {
+      console.error('Error en recomendación OpenAI:', error);
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error OpenAI',
+        text: 'No fue posible obtener la recomendación OpenAI.',
+        confirmButtonText: 'OK',
+      });
+    } finally {
+      setLoadingOpenAIRecommendation(false);
+    }
+  };
+
+  const handleMLRecommendation = async () => {
+    if (activosFactura.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Activos requeridos',
+        text: 'Agrega activos para obtener una recomendación ML.',
+        confirmButtonText: 'OK',
+      });
+      return;
+    }
+
+    try {
+      setLoadingMLRecommendation(true);
+      const trainResponse = await dispatch(
+        trainPricingModelFromDb({
+          algorithm: 'random_forest',
+          test_size: 0.25,
+          random_state: 42,
+          n_estimators: 300,
+          limit: 1000,
+        })
+      ).unwrap();
+
+      if (!trainResponse.success || !trainResponse.data?.model_id) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Entrenamiento ML fallido',
+          text: trainResponse.message || 'No fue posible entrenar el modelo ML.',
+          confirmButtonText: 'OK',
+        });
+        return;
+      }
+
+      const modelId = String(trainResponse.data.model_id);
+
+      const predictRows = activosFactura.map((activo) => {
+        const cantidad = toSafeNumber(activo.cantidad, 0);
+        const precioUnitario = toSafeNumber(activo.precio_unitario, 0);
+        const totalLinea = cantidad * precioUnitario;
+
+        return {
+          features: {
+            subtotal_factura: toSafeNumber(subTotalFactura, 0),
+            descuento_factura: toSafeNumber(descuentoFactura, 0),
+            flete_factura: toSafeNumber(fleteFactura, 0),
+            iva_factura: toSafeNumber(ivaFactura, 0),
+            total_factura: toSafeNumber(totalFactura, 0),
+            total_linea: toSafeNumber(totalLinea, precioUnitario),
+          },
+        };
+      });
+
+      const predictResponse = await dispatch(
+        predictPricingModel({
+          model_id: modelId,
+          rows: predictRows,
+        })
+      ).unwrap();
+
+      if (!predictResponse.success || !predictResponse.data?.predictions) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Predicción ML fallida',
+          text: predictResponse.message || 'No fue posible predecir precios unitarios.',
+          confirmButtonText: 'OK',
+        });
+        return;
+      }
+
+      const predicted = Array.isArray(predictResponse.data.predictions)
+        ? (predictResponse.data.predictions as number[])
+        : [];
+
+      const comparativo = activosFactura.map((activo, idx) => {
+        const actual = toSafeNumber(activo.precio_unitario, 0);
+        const estimado = toSafeNumber(predicted[idx], 0);
+        const diferenciaPct = estimado > 0 ? ((actual - estimado) / estimado) * 100 : 0;
+
+        let estatus = 'OK';
+        if (diferenciaPct > 15) estatus = 'Sobreprecio probable';
+        if (diferenciaPct < -15) estatus = 'Debajo de referencia';
+
+        return `${activo.nombre_af}: actual ${formatPeso(actual)} | ML ${formatPeso(estimado)} | ${diferenciaPct.toFixed(2)}% (${estatus})`;
+      });
+
+      const metrics = (trainResponse.data.metrics || {}) as { mae?: number; rmse?: number; r2?: number };
+      const resumenMetricas = `MAE: ${toSafeNumber(metrics.mae, 0).toFixed(2)} | RMSE: ${toSafeNumber(metrics.rmse, 0).toFixed(2)} | R2: ${toSafeNumber(metrics.r2, 0).toFixed(4)}`;
+
+      await Swal.fire({
+        icon: 'info',
+        title: 'Recomendación ML (Random Forest)',
+        html: `<div style="text-align:left; max-height: 340px; overflow:auto;"><p><strong>Modelo:</strong> ${modelId}</p><p><strong>Métricas:</strong> ${resumenMetricas}</p><hr/><pre style="white-space:pre-wrap; font-size:12px;">${comparativo.join('\n')}</pre></div>`,
+        width: 800,
+        confirmButtonText: 'OK',
+      });
+    } catch (error) {
+      console.error('Error en recomendación ML:', error);
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error ML',
+        text: 'No fue posible obtener la recomendación ML.',
+        confirmButtonText: 'OK',
+      });
+    } finally {
+      setLoadingMLRecommendation(false);
+    }
+  };
 
   const openModalAddActivosFactura = () => {
     setIsModalAddActivosFacturaOpen(true);
@@ -445,6 +707,26 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
             <div className='agregarActivos' onClick={openModalAddActivosFactura}>
               <IoAddCircleOutline className='addActivoIcon' /> Agregar Activos
             </div>
+          </div>
+
+          <div className='inputs_Container recommendationButtonsRow'>
+            <button
+              type='button'
+              className='recommendationButton recommendationButton--openai'
+              onClick={handleOpenAIRecommendation}
+              disabled={loadingOpenAIRecommendation || loadingMLRecommendation || activosFactura.length === 0}
+            >
+              {loadingOpenAIRecommendation ? 'Generando...' : 'Recomendación OpenAI'}
+            </button>
+
+            <button
+              type='button'
+              className='recommendationButton recommendationButton--ml'
+              onClick={handleMLRecommendation}
+              disabled={loadingMLRecommendation || loadingOpenAIRecommendation || activosFactura.length === 0}
+            >
+              {loadingMLRecommendation ? 'Entrenando / Prediciendo...' : 'Recomendación ML'}
+            </button>
           </div>
 
 

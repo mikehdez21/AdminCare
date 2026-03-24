@@ -1,5 +1,41 @@
 .AddEditFactura{
 
+    .recommendationButtonsRow{
+        justify-content: flex-start !important;
+        gap: 10px !important;
+        margin-bottom: 10px;
+    }
+
+    .recommendationButton{
+        border: 1px solid #c8cdd4;
+        background: #f8f9fb;
+        color: #253041;
+        border-radius: 8px;
+        padding: 7px 12px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all .15s ease;
+    }
+
+    .recommendationButton:hover:not(:disabled){
+        background: #eef2f6;
+        border-color: #b7c0cb;
+    }
+
+    .recommendationButton:disabled{
+        opacity: .55;
+        cursor: not-allowed;
+    }
+
+    .recommendationButton--openai{
+        color: #1f4f8a;
+    }
+
+    .recommendationButton--ml{
+        color: #155f3c;
+    }
+
     form{
         display: flex;
         flex-direction: column;
