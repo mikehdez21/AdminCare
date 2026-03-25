@@ -312,8 +312,27 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
     `;
   };
 
-  const renderOpenAIRecommendationHtml = (analysisText: string): string => {
+  // Extrae y muestra annotations (url_citation) si existen en el JSON de OpenAI
+  const renderOpenAIRecommendationHtml = (analysisText: string, rawResponse?: any): string => {
     const normalizedText = unwrapCodeFence(analysisText);
+
+    let annotations: Array<{ url: string; title?: string }> = [];
+    // Buscar annotations en el rawResponse si está disponible
+    if (rawResponse && Array.isArray(rawResponse.output)) {
+      for (const item of rawResponse.output) {
+        if (item.type === 'message' && Array.isArray(item.content)) {
+          for (const content of item.content) {
+            if (Array.isArray(content.annotations)) {
+              for (const ann of content.annotations) {
+                if (ann.type === 'url_citation' && ann.url) {
+                  annotations.push({ url: ann.url, title: ann.title });
+                }
+              }
+            }
+          }
+        }
+      }
+    }
 
     try {
       const parsed = JSON.parse(normalizedText) as {
@@ -389,12 +408,26 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
           .join('')
         : '<p class="recommendationPanel__empty">No se recibieron resultados estructurados.</p>';
 
+      const annotationsHtml = annotations.length
+        ? `
+          <hr class="recommendationPanel__divider" />
+          <p class="recommendationPanel__title"><strong>Fuentes citadas</strong></p>
+          ${annotations
+            .map(
+              (ann) =>
+                `<p class="recommendationPanel__line"><a href="${escapeHtml(ann.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(ann.title || ann.url)}</a></p>`
+            )
+            .join('')}
+        `
+        : '';
+
       return `
         <div class="recommendationPanel">
           <p class="recommendationPanel__title"><strong>Resumen</strong></p>
           <div class="recommendationSummary">${resumenHtml}</div>
           <hr class="recommendationPanel__divider" />
           ${resultadosHtml}
+          ${annotationsHtml}
         </div>
       `;
     } catch {
@@ -455,7 +488,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
           title: 'Recomendación OpenAI',
           html: `
             ${renderWebSearchMetaHtml(openAITestResult.data.web_search, openAITestResult.data.model_used)}
-            ${renderOpenAIRecommendationHtml(analysisText)}
+            ${renderOpenAIRecommendationHtml(analysisText, openAITestResult.data.raw_response)}
           `,
           width: 860,
           confirmButtonText: 'OK',

@@ -23,7 +23,8 @@ class OpenAIController extends Controller
 			$apiKey = (string) config('services.openai.api_key');
 			// Siempre tomar modelo y fallback_model de variables de entorno, con fallback a config/services.php
 			$model = env('OPENAI_MODEL', config('services.openai.model', 'gpt-5-search-api'));
-			$fallbackModel = env('OPENAI_FALLBACK_MODEL', config('services.openai.fallback_model', $model));
+			// Fallback fijo a gpt-4o-mini para máxima compatibilidad
+			$fallbackModel = 'gpt-4o-mini';
 			$timeout = (int) env('OPENAI_TIMEOUT', config('services.openai.timeout', 120));
 			$webSearchEnabled = (bool) env('OPENAI_WEB_SEARCH_ENABLED', config('services.openai.web_search_enabled', true));
 
@@ -71,17 +72,16 @@ class OpenAIController extends Controller
 			$useWebSearch = array_key_exists('use_web_search', $validated)
 				? (bool) $validated['use_web_search']
 				: true;
-			$webSearchRequested = $webSearchEnabled && $useWebSearch;
-			// Para gpt-5 y modelos compatibles, usar 'web_search' como tipo de herramienta
+			// Solo usar tools/filters si el modelo es gpt-5-search-api
 			$webSearchToolType = 'web_search';
 			$webSearchStatus = [
-				'requested' => $webSearchRequested,
+				'requested' => $webSearchEnabled && $useWebSearch,
 				'attempted' => false,
 				'tool_type' => null,
 				'disabled_reason' => null,
 			];
 
-			if ($webSearchRequested) {
+			if ($webSearchEnabled && $useWebSearch && strtolower($model) === 'gpt-5-search-api') {
 				$requestPayload['tools'] = [
 					[
 						'type' => $webSearchToolType,
@@ -109,12 +109,11 @@ class OpenAIController extends Controller
 					'model' => $model,
 				]));
 
-			// Si hay error de compatibilidad de herramienta, intentar sin web_search solo si el modelo no es gpt-5
+			// Si hay error de compatibilidad de herramienta, hacer fallback a gpt-4o-mini sin tools/filters
 			if (
 				$openAIResponse->failed()
 				&& isset($requestPayload['tools'])
 				&& $this->isToolCompatibilityError($openAIResponse->json() ?? [])
-				&& strtolower($model) !== 'gpt-5'
 			) {
 				$payloadWithoutTools = $requestPayload;
 				unset($payloadWithoutTools['tools']);
@@ -125,27 +124,13 @@ class OpenAIController extends Controller
 				$openAIResponse = Http::timeout($timeout)
 					->withToken($apiKey)
 					->post('https://api.openai.com/v1/responses', array_merge($payloadWithoutTools, [
-						'model' => $model,
-					]));
-			}
-
-			$modelUsed = $model;
-			if ($openAIResponse->failed() && $fallbackModel !== '' && $fallbackModel !== $model) {
-				$fallbackPayload = $requestPayload;
-				if (isset($fallbackPayload['tools']) && $this->isToolCompatibilityError($openAIResponse->json() ?? [])) {
-					unset($fallbackPayload['tools']);
-				}
-
-				$openAIResponse = Http::timeout($timeout)
-					->withToken($apiKey)
-					->post('https://api.openai.com/v1/responses', array_merge($fallbackPayload, [
 						'model' => $fallbackModel,
 					]));
-
-				if ($openAIResponse->successful()) {
-					$modelUsed = $fallbackModel;
-				}
+				$modelUsed = $fallbackModel;
 			}
+
+			// Ya no es necesario fallback adicional, ya que el fallback se maneja arriba
+			$modelUsed = $modelUsed ?? $model;
 
 			if ($openAIResponse->failed()) {
 				return response()->json([
