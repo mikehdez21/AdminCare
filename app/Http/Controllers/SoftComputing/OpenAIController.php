@@ -90,7 +90,7 @@ class OpenAIController extends Controller
 						[ 'role' => 'user', 'content' => $userPrompt ],
 					],
 					'web_search_options' => [
-						'enabled' => true,
+						'mode' => 'enabled',
 						'allowed_domains' => [
 							'amazon.com.mx',
 							'mercadolibre.com.mx',
@@ -109,15 +109,45 @@ class OpenAIController extends Controller
 					->post('https://api.openai.com/v1/chat/completions', $chatPayload);
 
 				if ($openAIResponse->failed()) {
-					return response()->json([
-						'success' => false,
-						'message' => 'Error al consultar OpenAI (chat/completions).',
-						'data' => [
-							'status' => $openAIResponse->status(),
-							'model' => $model,
-							'error' => $openAIResponse->json(),
+					// Fallback automático a gpt-4o-mini usando /v1/responses
+					$fallbackPayload = [
+						'input' => [
+							[ 'role' => 'system', 'content' => $systemPrompt ],
+							[ 'role' => 'user', 'content' => $userPrompt ],
 						],
-					], 502);
+						'model' => $fallbackModel,
+					];
+					$fallbackResponse = Http::timeout($timeout)
+						->withToken($apiKey)
+						->post('https://api.openai.com/v1/responses', $fallbackPayload);
+
+					if ($fallbackResponse->failed()) {
+						return response()->json([
+							'success' => false,
+							'message' => 'Error al consultar OpenAI (chat/completions y fallback).',
+							'data' => [
+								'status' => $openAIResponse->status(),
+								'model' => $model,
+								'error' => $openAIResponse->json(),
+								'fallback_error' => $fallbackResponse->json(),
+							],
+						], 502);
+					}
+
+					$responsePayload = $fallbackResponse->json() ?? [];
+					$outputText = $this->extractOutputText($responsePayload);
+
+					return response()->json([
+						'success' => true,
+						'message' => 'Análisis de SoftComputing generado exitosamente (fallback gpt-4o-mini).',
+						'data' => [
+							'mode' => $validated['mode'],
+							'algorithm' => $algorithm,
+							'model_used' => $fallbackModel,
+							'analysis_text' => $outputText,
+							'raw_response' => $responsePayload,
+						],
+					], 200);
 				}
 
 				$responsePayload = $openAIResponse->json() ?? [];
