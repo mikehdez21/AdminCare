@@ -81,26 +81,68 @@ class OpenAIController extends Controller
 				'disabled_reason' => null,
 			];
 
-			if ($webSearchEnabled && $useWebSearch && strtolower($model) === 'gpt-5-search-api') {
-				$requestPayload['tools'] = [
-					[
-						'type' => $webSearchToolType,
-						'filters' => [
-							'allowed_domains' => [
-								'amazon.com.mx',
-								'mercadolibre.com.mx',
-								'walmart.com.mx',
-								'amazon.com',
-								'mercadolibre.com',
-								'walmart.com'
-							]
+			// Si el modelo es gpt-5-search-api, usar /v1/chat/completions con web_search_options
+			if (strtolower($model) === 'gpt-5-search-api') {
+				$chatPayload = [
+					'model' => $model,
+					'messages' => [
+						[ 'role' => 'system', 'content' => $systemPrompt ],
+						[ 'role' => 'user', 'content' => $userPrompt ],
+					],
+					'web_search_options' => [
+						'enabled' => true,
+						'allowed_domains' => [
+							'amazon.com.mx',
+							'mercadolibre.com.mx',
+							'walmart.com.mx',
+							'amazon.com',
+							'mercadolibre.com',
+							'walmart.com'
 						]
-					]
+					],
+					'temperature' => 0.2,
+					'max_tokens' => 1024,
 				];
-				$requestPayload['tool_choice'] = 'auto';
-				$requestPayload['include'] = ['web_search_call.action.sources'];
-				$webSearchStatus['attempted'] = true;
-				$webSearchStatus['tool_type'] = $webSearchToolType;
+
+				$openAIResponse = Http::timeout($timeout)
+					->withToken($apiKey)
+					->post('https://api.openai.com/v1/chat/completions', $chatPayload);
+
+				if ($openAIResponse->failed()) {
+					return response()->json([
+						'success' => false,
+						'message' => 'Error al consultar OpenAI (chat/completions).',
+						'data' => [
+							'status' => $openAIResponse->status(),
+							'model' => $model,
+							'error' => $openAIResponse->json(),
+						],
+					], 502);
+				}
+
+				$responsePayload = $openAIResponse->json() ?? [];
+				$outputText = '';
+				$citations = [];
+				// Extraer el texto principal y las citas si existen
+				if (isset($responsePayload['choices'][0]['message']['content'])) {
+					$outputText = $responsePayload['choices'][0]['message']['content'];
+				}
+				if (isset($responsePayload['choices'][0]['message']['citations']) && is_array($responsePayload['choices'][0]['message']['citations'])) {
+					$citations = $responsePayload['choices'][0]['message']['citations'];
+				}
+
+				return response()->json([
+					'success' => true,
+					'message' => 'Análisis de SoftComputing generado exitosamente (gpt-5-search-api).',
+					'data' => [
+						'mode' => $validated['mode'],
+						'algorithm' => $algorithm,
+						'model_used' => $model,
+						'analysis_text' => $outputText,
+						'citations' => $citations,
+						'raw_response' => $responsePayload,
+					],
+				], 200);
 			}
 
 			$openAIResponse = Http::timeout($timeout)

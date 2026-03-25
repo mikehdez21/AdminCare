@@ -48,11 +48,6 @@
     font-family: Consolas, 'Courier New', monospace;
 }
 
-.swal2-html-container .recommendationSummary{
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 8px;
-}
 
 .swal2-html-container .recommendationSummary__item{
     display: flex;
