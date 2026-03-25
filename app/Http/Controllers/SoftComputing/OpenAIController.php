@@ -73,6 +73,7 @@ class OpenAIController extends Controller
 				: true;
 			$webSearchRequested = $webSearchEnabled && $useWebSearch;
 			// Para gpt-5 y modelos compatibles, usar 'web_search' como tipo de herramienta
+			$webSearchToolType = 'web_search';
 			$webSearchStatus = [
 				'requested' => $webSearchRequested,
 				'attempted' => false,
@@ -83,6 +84,7 @@ class OpenAIController extends Controller
 			if ($webSearchRequested) {
 				$requestPayload['tools'] = [
 					[
+						'type' => $webSearchToolType,
 						'filters' => [
 							'allowed_domains' => [
 								'amazon.com.mx',
@@ -98,6 +100,7 @@ class OpenAIController extends Controller
 				$requestPayload['tool_choice'] = 'auto';
 				$requestPayload['include'] = ['web_search_call.action.sources'];
 				$webSearchStatus['attempted'] = true;
+				$webSearchStatus['tool_type'] = $webSearchToolType;
 			}
 
 			$openAIResponse = Http::timeout($timeout)
