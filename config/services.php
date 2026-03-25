@@ -43,9 +43,8 @@ return [
 
     'openai' => [
         'api_key' => env('OPENAI_API_KEY'),
-        // Solo referencia a variables de entorno, la lógica de fallback está en el controlador
-        'model' => env('OPENAI_MODEL'),
-        'fallback_model' => env('OPENAI_FALLBACK_MODEL'),
+        'model' => env('OPENAI_MODEL', 'gpt-4o-mini'),
+        'fallback_model' => env('OPENAI_FALLBACK_MODEL', 'gpt-4o-mini'),
         'timeout' => env('OPENAI_TIMEOUT', 30),
         'web_search_enabled' => env('OPENAI_WEB_SEARCH_ENABLED', true),
     ],
