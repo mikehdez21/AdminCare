@@ -1,5 +1,4 @@
 .modalComponent_AddActivosFactura {
-  width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
@@ -13,30 +12,83 @@
     border-radius: 20px;
     overflow: hidden;
 
-    /* Header */
     .modalHeader {
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: .8fr 3fr 1.2fr;
       align-items: center;
-      padding: 0px 25px;
-      height: var(--header-height);
-      min-height: var(--header-height);
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
+      padding: 8px 20px;
+      background: #f8f9fa;
       border-bottom: 1px solid #e0e0e0;
-      flex-shrink: 0;
 
-      h2 {
+
+      h3 {
         margin: 0;
-        font-size: 1.5rem;
+        font-size: 1.1rem;
         font-weight: 600;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
+        color: #333;
 
-        .headerIcon {
-          font-size: 1.4rem;
+        .columnIcon {
+          font-size: 1rem;
+          color: #667eea;
         }
+
+        .contadorBadge {
+          background: #667eea;
+          color: white;
+          padding: 4px 6px;
+          border-radius: 12px;
+          font-size: 1rem;
+          font-weight: bold;
+          min-width: 20px;
+          text-align: center;
+        }
+
+
+      }
+
+      .divSearch {
+        display: flex;
+        padding: 10px 15px;
+        border-bottom: 1px solid #f0f0f0;
+
+        .inputSearch {
+          width: 100%;
+          padding: 10px 12px;
+          border: 1px solid #ddd;
+          border-radius: 6px;
+          font-size: 0.9rem;
+          transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .inputSearch:focus {
+          outline: none;
+          border-color: #667eea;
+          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+      }
+
+      .buttonCrearActivo {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 15px 25px;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .buttonCrearActivo:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
       }
 
       .closeButton {
@@ -59,123 +111,40 @@
         background-color: rgba(255, 255, 255, 0.2);
         transform: rotate(90deg);
       }
+
+
     }
 
     .divActivosFactura {
+      overflow-y: auto;
       flex: 1;
-
-      .columnHeader {
-        display: grid;
-        grid-template-columns: .8fr 3fr 1fr;
-        align-items: center;
-        padding: 8px 20px;
-        background: #f8f9fa;
-        border-bottom: 1px solid #e0e0e0;
-
-        h3 {
-          margin: 0;
-          font-size: 1.1rem;
-          font-weight: 600;
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          color: #333;
-
-          .columnIcon {
-            font-size: 1rem;
-            color: #667eea;
-          }
-
-          .contadorBadge {
-            background: #667eea;
-            color: white;
-            padding: 4px 6px;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: bold;
-            min-width: 20px;
-            text-align: center;
-          }
-
-
-        }
-
-        .divSearch {
-          display: flex;
-          padding: 10px 15px;
-          border-bottom: 1px solid #f0f0f0;
-
-          .inputSearch {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            transition: border-color 0.3s, box-shadow 0.3s;
-          }
-
-          .inputSearch:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-          }
-        }
-
-        .buttonCrearActivo {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          border: none;
-          padding: 15px 25px;
-          border-radius: 8px;
-          font-size: 1rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.3s;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
-        }
-
-        .buttonCrearActivo:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-        }
-
-
-
-
-
-
-      }
 
       .divActivosList {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 15px;
-        height: 100%;
-        overflow-y: auto;
+        grid-template-columns: repeat(auto-fill, minmax(30vw, 30vh));
+        justify-content: center;
+        gap: 4px;
         padding: 10px;
+
 
         .activoItem {
           display: flex;
-          height: 30vh;
           justify-content: space-between;
           align-items: flex-start;
           border: 1px solid #e0e0e0;
           border-radius: 8px;
           background: white;
           transition: all 0.3s;
-          border: 3px solid #667eea;
+          border: 3px solid #667eea91;
           background: #f8f9ff;
+          max-width: 35vw;
+          padding: 10px;
 
           .activoInfo {
             display: flex;
             flex-direction: column;
-            padding: 10px;
             width: 100%;
-            height: 90%;
-
+            height: 100%;
 
             .activoHeader {
               display: flex;
@@ -241,13 +210,18 @@
             .activoControls {
               display: flex;
               justify-content: space-between;
-              min-height: 100px;
+              overflow: auto;
+              max-height: 15vh;
+              height: 100%;
+              gap: 20px;
+              margin-top: 2px;
 
               label {
                 display: flex;
                 flex-direction: column;
                 font-size: 0.8rem;
                 color: #5555559a;
+                gap: 2px;
               }
 
               input {
@@ -269,15 +243,27 @@
               }
 
               .divNoSerie {
-                display: flex;
-                flex-direction: column;
+                width: 100%;
+                gap: 10px;
 
-                .noSerieInput {
+                label {
                   text-align: center;
-                  padding: 6px 8px;
-                  border: 1px solid #ddd;
-                  border-radius: 4px;
+
+                  .noSerieInput {
+                    padding: 6px 4px;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                  }
+
+                  .seriesContainer {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                    gap: 6px;
+                    padding: 4px;
+                  }
                 }
+
+
               }
 
               .cantidadInput:focus,
@@ -287,13 +273,11 @@
                 border-color: #667eea;
               }
 
-
-
-
             }
 
             .subTotal {
-              text-align: left;
+              display: flex;
+              margin: 10px 0px 0px 0px;
               color: #28a745;
               font-weight: 500;
               font-size: 0.9rem;
@@ -311,8 +295,11 @@
 
         .noItems {
           text-align: center;
-          padding: 40px 20px;
           color: #999;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
 
           p {
             margin: 0;
@@ -327,7 +314,7 @@
     }
 
     .divTotal {
-      padding: 5px 10px;
+      padding: 5px 20px 0px 20px;
       border-top: 1px solid #d1d1d1;
 
       .totalDetalle {
@@ -374,7 +361,7 @@
   /* Control dinámico para diferentes tamaños de pantalla */
   @media (min-width: 1400px) {
     .modalAddActivosFactura {
-      width: 90vw;
+      width: 95vw;
       height: 95vh;
     }
   }

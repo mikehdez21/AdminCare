@@ -457,33 +457,28 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
       <div className="modalAddActivosFactura">
 
         <header className="modalHeader">
-          <h2><MdInventory className="headerIcon" /> Agregar Activos a la Factura</h2>
-          <button className="closeButton" onClick={handleClose}>×</button>
+          <h3><FaList className="columnIcon" /> Activos en Factura  <span className="contadorBadge">{activosAgregados.length}</span> </h3>
+
+          <div className="divSearch">
+            <input
+              type="text"
+              placeholder="Buscar activos de la factura..."
+              value={busquedaSeleccionados}
+              onChange={(e) => setBusquedaSeleccionados(e.target.value)}
+              className="inputSearch"
+            />
+          </div>
+
+          <button
+            className="buttonCrearActivo"
+            onClick={() => setIsAddActivoFijoOpen(true)}
+          >
+            <FaPlus /> Crear Nuevo Activo Fijo
+          </button>
+
         </header>
 
         <section className="divActivosFactura">
-
-          <div className="columnHeader">
-            <h3><FaList className="columnIcon" /> Activos en Factura  <span className="contadorBadge">{activosAgregados.length}</span> </h3>
-
-            <div className="divSearch">
-              <input
-                type="text"
-                placeholder="Buscar activos de la factura..."
-                value={busquedaSeleccionados}
-                onChange={(e) => setBusquedaSeleccionados(e.target.value)}
-                className="inputSearch"
-              />
-            </div>
-
-            <button
-              className="buttonCrearActivo"
-              onClick={() => setIsAddActivoFijoOpen(true)}
-            >
-              <FaPlus /> Crear Nuevo Activo Fijo
-            </button>
-
-          </div>
 
           <div className="divActivosList">
             {activosSeleccionadosFiltrados.length > 0 ? (
@@ -575,16 +570,19 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
                         <div className="divNoSerie">
                           <label>
                             Números de Serie ({cantidad}):
-                            {series.map((serie, index) => (
-                              <input
-                                key={`${claveActivo}-${index}`}
-                                type="text"
-                                placeholder={`Serie #${index + 1}`}
-                                value={serie}
-                                onChange={(e) => handleSerieChange(activo, index, e.target.value)}
-                                className="noSerieInput"
-                              />
-                            ))}
+                            <div className="seriesContainer">
+                              {series.map((serie, index) => (
+                                <input
+                                  key={`${claveActivo}-${index}`}
+                                  type="text"
+                                  placeholder={`Serie #${index + 1}`}
+                                  value={serie}
+                                  onChange={(e) => handleSerieChange(activo, index, e.target.value)}
+                                  className="noSerieInput"
+                                />
+                              ))}
+                            </div>
+
                           </label>
                         </div>
 
@@ -605,7 +603,6 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
             ) : (
               <div className="noItems">
                 <p>No hay activos en la factura</p>
-                <p className="helper">Crea nuevos activos usando el botón de la derecha →</p>
               </div>
             )}
           </div>

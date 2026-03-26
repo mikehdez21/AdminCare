@@ -159,6 +159,25 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
 
   }, [DepartamentoSeleccionado, UbicacionSeleccionada, ClasificacionSeleccionada, actualizarActivosFijos, dispatch]);
 
+const infoDepartamento = useSelector((state: RootState) => {
+    if (DepartamentoSeleccionado) {
+      const nombreDepartamento = state.departamentos.departamentos.find(depto => depto.id_departamento === DepartamentoSeleccionado)?.nombre_departamento;
+      return { ...state.departamentos.departamentos.find(depto => depto.id_departamento === DepartamentoSeleccionado), nombre_departamento: nombreDepartamento };
+    } else {
+      return undefined;
+    }
+  });
+
+  const infoUbicacion = useSelector((state: RootState) => {
+    if (UbicacionSeleccionada) {
+      const nombreUbicacion = state.ubicaciones.ubicaciones.find(ubic => ubic.id_ubicacion === UbicacionSeleccionada)?.nombre_ubicacion;
+      return { ...state.ubicaciones.ubicaciones.find(ubic => ubic.id_ubicacion === UbicacionSeleccionada), nombre_ubicacion: nombreUbicacion };
+    } else {
+      return undefined;
+    }
+  });
+
+
 
   const totalActivosFijos = activosFiltrados.length;
   const [activoFijoToEdit_Delete, setActivoFijoToEdit_Delete] = useState<ActivosFijos | null>(null);
@@ -256,7 +275,7 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
   const renderCheckAF = () => (
 
     <div className='mainDiv_CheckAF'>
-      <CheckAF isOpen={isCheckAFOpen} onClose={closeCheckAF} listActivos={activosFiltrados} />
+      <CheckAF isOpen={isCheckAFOpen} onClose={closeCheckAF} listActivos={activosFiltrados} infoLugar={infoDepartamento?.nombre_departamento || infoUbicacion?.nombre_ubicacion} />
     </div>
 
   );

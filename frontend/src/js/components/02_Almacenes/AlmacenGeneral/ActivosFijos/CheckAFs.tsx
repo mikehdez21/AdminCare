@@ -1,5 +1,6 @@
 import { ActivosFijos } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 import React, { useState, useRef, useEffect } from 'react';
+import Modal from 'react-modal';
 import Swal from 'sweetalert2';
 
 // Icons
@@ -8,10 +9,15 @@ import { FiCheckCircle, FiAlertCircle, FiX } from 'react-icons/fi';
 // Styles
 import '@styles/02_Almacenes/AlmacenGeneral/ActivosFijos/checkAF.css';
 
+// PDF
+import { PDFViewer } from '@react-pdf/renderer';
+import { MyDocument } from '@/reactPDF/pdfScaneoActivos';
+
 interface CheckAFsProps {
     isOpen: boolean;
     onClose: () => void;
     listActivos: ActivosFijos[];
+    infoLugar: string | undefined;
 }
 
 interface ActivoEscaneado extends ActivosFijos {
@@ -19,8 +25,16 @@ interface ActivoEscaneado extends ActivosFijos {
     qrCapturado: string;
 }
 
-const CheckAF: React.FC<CheckAFsProps> = ({ isOpen, listActivos }) => {
+const CheckAF: React.FC<CheckAFsProps> = ({ isOpen, listActivos, infoLugar }) => {
     const [activosEscaneados, setActivosEscaneados] = useState<ActivoEscaneado[]>([]);
+
+    // Calcula los activos pendientes en base a los escaneados y la lista total
+    const activosPendientes = listActivos.filter(
+        (activo) => !activosEscaneados.some((a) => a.id_activo_fijo === activo.id_activo_fijo)
+    );
+
+    // Procesar infoLugar
+
     const [qrInput, setQrInput] = useState('');
     const [ultimoError, setUltimoError] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -28,6 +42,8 @@ const CheckAF: React.FC<CheckAFsProps> = ({ isOpen, listActivos }) => {
     const ultimaTeclaRef = useRef<number | null>(null);
     const bufferCapturaRef = useRef('');
     const alertaCompletadoMostradaRef = useRef(false);
+
+    const [showPDF, setShowPDF] = useState(false);
 
     const normalizarCodigoQRAF = (valor: string): string | null => {
         const valorNormalizado = valor.trim().toUpperCase();
@@ -246,7 +262,6 @@ const CheckAF: React.FC<CheckAFsProps> = ({ isOpen, listActivos }) => {
     };
 
 
-
     const removerActivoEscaneado = (id: number) => {
         setActivosEscaneados((prev) =>
             prev.filter((a) => a.id_activo_fijo !== id)
@@ -262,161 +277,190 @@ const CheckAF: React.FC<CheckAFsProps> = ({ isOpen, listActivos }) => {
         forzarFocoInput();
     };
 
+
     const porcentajeEscaneados = listActivos.length
         ? Math.round((activosEscaneados.length / listActivos.length) * 100)
         : 0;
 
     return (
-        <div className="mainDiv_CheckAF">
-            <div className="headerCheckAF">
-                <h2>Revisar Activos Fijos con Zebra DS22</h2>
-                <div className="estadisticas">
-                    <span>{activosEscaneados.length} / {listActivos.length} escaneados</span>
-                    <div className="progressBar">
-                        <div
-                            className="progress"
-                            style={{ width: `${porcentajeEscaneados}%` }}
-                        ></div>
+        <>
+            <div className="mainDiv_CheckAF">
+                <div className="headerCheckAF">
+                    <h2>
+                        Revisar Activos Fijos con Zebra DS22
+
+                        <button onClick={() => setShowPDF(true)}>Ver PDF</button>
+
+
+                    </h2>
+                    <div className="estadisticas">
+                        <span>{activosEscaneados.length} / {listActivos.length} escaneados</span>
+                        <div className="progressBar">
+                            <div
+                                className="progress"
+                                style={{ width: `${porcentajeEscaneados}%` }}
+                            ></div>
+                        </div>
                     </div>
+
                 </div>
 
-            </div>
+                <div className="scannearActivos">
+                    {/* Columna Izquierda - Lista de Activos */}
+                    <section className="listaActivos">
+                        <div className="sectionHeader">
+                            <h3>Activos Disponibles ({listActivos.length})</h3>
+                        </div>
+                        <div className="activosList">
+                            {listActivos && listActivos.length > 0 ? (
+                                listActivos.map((activo) => {
+                                    const yaEscaneado = activosEscaneados.some(
+                                        (a) => a.id_activo_fijo === activo.id_activo_fijo
+                                    );
+                                    return (
+                                        <div
+                                            key={activo.id_activo_fijo}
+                                            className={`activoRow ${yaEscaneado ? 'escaneado' : ''}`}
+                                        >
+                                            <div className="activoContent">
+                                                <div className="activoHeader">
+                                                    <span className="activoId">
+                                                        {activo.codigo_etiqueta}
+                                                    </span>
+                                                    {yaEscaneado && (
+                                                        <FiCheckCircle className="iconEscaneado" />
+                                                    )}
+                                                </div>
+                                                <p className="descripcion">
+                                                    {activo.descripcion_af}
+                                                </p>
 
-            <div className="scannearActivos">
-                {/* Columna Izquierda - Lista de Activos */}
-                <section className="listaActivos">
-                    <div className="sectionHeader">
-                        <h3>Activos Disponibles ({listActivos.length})</h3>
-                    </div>
-                    <div className="activosList">
-                        {listActivos && listActivos.length > 0 ? (
-                            listActivos.map((activo) => {
-                                const yaEscaneado = activosEscaneados.some(
-                                    (a) => a.id_activo_fijo === activo.id_activo_fijo
-                                );
-                                return (
-                                    <div
-                                        key={activo.id_activo_fijo}
-                                        className={`activoRow ${yaEscaneado ? 'escaneado' : ''}`}
-                                    >
-                                        <div className="activoContent">
-                                            <div className="activoHeader">
-                                                <span className="activoId">
-                                                    {activo.codigo_etiqueta}
-                                                </span>
-                                                {yaEscaneado && (
-                                                    <FiCheckCircle className="iconEscaneado" />
-                                                )}
+                                                <div className="detalles">
+                                                    <span className="modelo">
+                                                        {activo.modelo_af}
+                                                    </span>
+                                                    <span className="marca">
+                                                        {activo.marca_af}
+                                                    </span>
+                                                </div>
                                             </div>
+                                        </div>
+                                    );
+                                })
+                            ) : (
+                                <div className="noActivos">
+                                    No hay activos disponibles
+                                </div>
+                            )}
+                        </div>
+                    </section>
+
+                    {/* Columna Derecha - Registro de Escaneos */}
+                    <section className="registroEscaneos">
+                        <div className="sectionHeader">
+                            <h3>Registro de Escaneos ({activosEscaneados.length})</h3>
+
+                            <div className="inputQRContainer">
+                                <input
+                                    ref={inputRef}
+                                    type="text"
+                                    value=""
+                                    onKeyDown={handleKeyDown}
+                                    onPaste={(e) => e.preventDefault()}
+                                    onBlur={forzarFocoInput}
+                                    placeholder="Escanea QR aquí"
+                                    className="inputQR"
+                                    readOnly
+                                    autoFocus
+                                />
+                            </div>
+
+                            {activosEscaneados.length > 0 && (
+                                <button className="btnLimpiar" onClick={limpiarTodo}>
+                                    <FiX /> Limpiar
+                                </button>
+                            )}
+
+
+                        </div>
+
+
+
+                        {ultimoError && (
+                            <div className="alertaError">
+                                <FiAlertCircle />
+                                <span>{ultimoError}</span>
+                            </div>
+                        )}
+
+                        <div className="escaneosList">
+                            {activosEscaneados.length > 0 ? (
+                                activosEscaneados.map((activo, index) => (
+                                    <div
+                                        key={`${activo.id_activo_fijo}-${index}`}
+                                        className="escaneoRow"
+                                    >
+                                        <div className="escaneoNumber">
+                                            {index + 1}
+                                        </div>
+                                        <div className="escaneoContent">
+                                            <p className="qrCapturado">
+                                                {activo.qrCapturado}
+                                            </p>
                                             <p className="descripcion">
                                                 {activo.descripcion_af}
                                             </p>
-
-                                            <div className="detalles">
-                                                <span className="modelo">
-                                                    {activo.modelo_af}
-                                                </span>
-                                                <span className="marca">
-                                                    {activo.marca_af}
-                                                </span>
-                                            </div>
+                                            <p className="timestamp">
+                                                {activo.timestamp.toLocaleTimeString(
+                                                    'es-CO'
+                                                )}
+                                            </p>
                                         </div>
+                                        <button
+                                            className="btnRemover"
+                                            onClick={() =>
+                                                removerActivoEscaneado(
+                                                    activo.id_activo_fijo!
+                                                )
+                                            }
+                                            title="Remover escaneo"
+                                        >
+                                            <FiX />
+                                        </button>
                                     </div>
-                                );
-                            })
-                        ) : (
-                            <div className="noActivos">
-                                No hay activos disponibles
-                            </div>
-                        )}
-                    </div>
-                </section>
-
-                {/* Columna Derecha - Registro de Escaneos */}
-                <section className="registroEscaneos">
-                    <div className="sectionHeader">
-                        <h3>Registro de Escaneos ({activosEscaneados.length})</h3>
-
-                        <div className="inputQRContainer">
-                            <input
-                                ref={inputRef}
-                                type="text"
-                                value=""
-                                onKeyDown={handleKeyDown}
-                                onPaste={(e) => e.preventDefault()}
-                                onBlur={forzarFocoInput}
-                                placeholder="Escanea QR aquí"
-                                className="inputQR"
-                                readOnly
-                                autoFocus
-                            />
-                        </div>
-
-                        {activosEscaneados.length > 0 && (
-                            <button className="btnLimpiar" onClick={limpiarTodo}>
-                                <FiX /> Limpiar
-                            </button>
-                        )}
-
-
-                    </div>
-
-
-
-                    {ultimoError && (
-                        <div className="alertaError">
-                            <FiAlertCircle />
-                            <span>{ultimoError}</span>
-                        </div>
-                    )}
-
-                    <div className="escaneosList">
-                        {activosEscaneados.length > 0 ? (
-                            activosEscaneados.map((activo, index) => (
-                                <div
-                                    key={`${activo.id_activo_fijo}-${index}`}
-                                    className="escaneoRow"
-                                >
-                                    <div className="escaneoNumber">
-                                        {index + 1}
-                                    </div>
-                                    <div className="escaneoContent">
-                                        <p className="qrCapturado">
-                                            {activo.qrCapturado}
-                                        </p>
-                                        <p className="descripcion">
-                                            {activo.descripcion_af}
-                                        </p>
-                                        <p className="timestamp">
-                                            {activo.timestamp.toLocaleTimeString(
-                                                'es-CO'
-                                            )}
-                                        </p>
-                                    </div>
-                                    <button
-                                        className="btnRemover"
-                                        onClick={() =>
-                                            removerActivoEscaneado(
-                                                activo.id_activo_fijo!
-                                            )
-                                        }
-                                        title="Remover escaneo"
-                                    >
-                                        <FiX />
-                                    </button>
+                                ))
+                            ) : (
+                                <div className="noEscaneos">
+                                    <FiAlertCircle />
+                                    <p>Escanea un QR para comenzar</p>
                                 </div>
-                            ))
-                        ) : (
-                            <div className="noEscaneos">
-                                <FiAlertCircle />
-                                <p>Escanea un QR para comenzar</p>
-                            </div>
-                        )}
-                    </div>
-                </section>
+                            )}
+                        </div>
+                    </section>
+                </div>
+
+
+
             </div>
-        </div>
+
+            <Modal
+                isOpen={showPDF}
+                onRequestClose={() => setShowPDF(false)}
+                className='viewPDF'
+                contentLabel='Vista previa PDF'
+                ariaHideApp={false}
+            >
+                <div style={{ height: '90vh' }}>
+                    <PDFViewer width="100%" height="100%">
+                        <MyDocument activos={activosEscaneados} activosPendientes={activosPendientes} infoLugar={infoLugar} />
+                    </PDFViewer>
+                    <button onClick={() => setShowPDF(false)}>Cerrar PDF</button>
+                </div>
+            </Modal>
+        </>
     );
+
+
 };
 
 export default CheckAF;
