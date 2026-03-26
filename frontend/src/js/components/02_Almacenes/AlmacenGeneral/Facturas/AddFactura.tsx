@@ -720,7 +720,6 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
           observaciones_af: activo.observaciones_af || null,
 
           // Datos de la relación factura-activo
-          precio_unitario: activo.precio_unitario_af,
           cantidad: activo.cantidad,
           observaciones: activo.observaciones_af || null,
 
@@ -738,49 +737,6 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
       console.log('Resultado de addFactura:', resultAction);
 
       if (resultAction.success) {
-
-        // Prueba básica de OpenAI: analizar precios unitarios y total de la factura.
-        const resumenActivos = activosFactura.map((activo) => ({
-          nombre_af: activo.nombre_af,
-          cantidad: toSafeNumber(activo.cantidad, 0),
-          precio_unitario: toSafeNumber(activo.precio_unitario_af, 0),
-          total_linea: toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.precio_unitario_af, 0),
-        }));
-
-        const openAITestResult = await dispatch(
-          analyzeSoftComputing({
-            mode: 'price_prediction',
-            algorithm: 'linear_regression',
-            use_web_search: false,
-            prompt:
-              'Analiza si los precios unitarios de los activos y el total de la factura son coherentes con una estimación básica de predicción de precios. Identifica posibles sobreprecios, si el análisis es negativo, solo devuelve un NO, de lo contrario, regresa OK.',
-            data: {
-              numero_factura: numeroFacturaTrim,
-              subtotal_factura: toSafeNumber(subTotalFactura, 0),
-              iva_factura: toSafeNumber(ivaFactura, 0),
-              total_factura: toSafeNumber(totalFactura, 0),
-              activos: resumenActivos,
-            },
-          })
-        ).unwrap();
-
-        if (openAITestResult.success && openAITestResult.data?.analysis_text) {
-          const analysisText = openAITestResult.data.analysis_text;
-
-          await Swal.fire({
-            icon: 'info',
-            title: 'Prueba OpenAI - Análisis de Precios',
-            text: analysisText.length > 1000 ? `${analysisText.slice(0, 1000)}...` : analysisText,
-            confirmButtonText: 'Continuar',
-          });
-        } else {
-          await Swal.fire({
-            icon: 'warning',
-            title: 'Análisis de Facturas no disponible',
-            text: openAITestResult.message || 'No se pudo obtener análisis de para esta factura.',
-            confirmButtonText: 'Continuar',
-          });
-        }
 
         // Actualizar la lista de facturas
         const facturasActualizadas = await dispatch(getFacturas()).unwrap();

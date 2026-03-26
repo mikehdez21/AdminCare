@@ -50,7 +50,7 @@ class OpenAIController extends Controller
 				$nombre = $activo['nombre_af'] ?? '';
 				$marca = $activo['marca_af'] ?? '';
 				$modelo = $activo['modelo_af'] ?? '';
-				$precio = $activo['precio_unitario'] ?? '';
+				$precio = $activo['precio_unitario_af'] ?? '';
 				$activosPrompt .= "\nActivo #" . ($idx + 1) . ":\n- Nombre: {$nombre}\n- Marca: {$marca}\n- Modelo: {$modelo}\n- Precio unitario: {$precio}";
 			}
 
