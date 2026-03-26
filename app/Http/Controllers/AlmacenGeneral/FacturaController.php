@@ -12,6 +12,15 @@ use Illuminate\Support\Facades\DB;
 
 class FacturaController extends Controller
 {
+    private function buildResponseStatusCode(array $response, int $successCode = 200, int $validationCode = 422): int
+    {
+        if ($response['success']) {
+            return $successCode;
+        }
+
+        return !empty($response['data']) ? $validationCode : 500;
+    }
+
     private function normalizarNumeroFactura(string $numeroFactura): string
     {
         $valor = strtoupper(trim($numeroFactura));
@@ -103,7 +112,7 @@ class FacturaController extends Controller
                 'fecha_fac_recepcion' => $validatedData['fecha_fac_recepcion'],
                 'id_forma_pago' => $validatedData['id_forma_pago'],
                 'id_tipo_moneda' => $validatedData['id_tipo_moneda'],
-                'observaciones_factura' => $validatedData['observaciones_factura'],
+                'observaciones_factura' => $validatedData['observaciones_factura'] ?? null,
                 'subtotal_factura' => $validatedData['subtotal_factura'],
                 'descuento_factura' => $validatedData['descuento_factura'] ?? 0,
                 'flete_factura' => $validatedData['flete_factura'] ?? 0,
@@ -222,7 +231,7 @@ class FacturaController extends Controller
             $response['message'] = 'Error al crear la factura: ' . $e->getMessage();
         }
 
-        return response()->json($response, $response['success'] ? 201 : 500);
+        return response()->json($response, $this->buildResponseStatusCode($response, 201));
     }
 
     // Actualizar una factura
@@ -410,6 +419,7 @@ class FacturaController extends Controller
             $response['data'] = $factura->load('facturaActivos.activoFijo');
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             $response['message'] = 'Factura no encontrada.';
+            return response()->json($response, 404);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $response['message'] = 'Errores de validación.';
             $response['data'] = $e->errors();
@@ -417,7 +427,7 @@ class FacturaController extends Controller
             $response['message'] = 'Error al actualizar la factura: ' . $e->getMessage();
         }
 
-        return response()->json($response, $response['success'] ? 200 : 500);
+        return response()->json($response, $this->buildResponseStatusCode($response));
     }
 
     // Eliminar una factura

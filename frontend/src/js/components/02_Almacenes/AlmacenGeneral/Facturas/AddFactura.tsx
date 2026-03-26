@@ -44,6 +44,7 @@ interface AddFacturaProps {
 
 const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
   const dispatch = useDispatch<AppDispatch>();
+  const numeroFacturaPattern = /^(\d{1,12}|NOF-\d{4}-\d{1,12})$/i;
 
   // Estados para los campos del formulario de AddFactura
   const [proveedorFactura, setProveedorFactura] = useState<number>(0);
@@ -333,7 +334,6 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
         }
       }
     }
-
     try {
       const parsed = JSON.parse(normalizedText) as {
         resumen_general?: string;
@@ -688,7 +688,56 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
 
 
 
+    if (!numeroFacturaPattern.test(numeroFacturaTrim)) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Formato de factura no valido',
+        text: 'El backend solo acepta un consecutivo numerico o el formato NOF-AAAA-consecutivo.',
+        confirmButtonText: 'OK',
+      });
+      return;
+    }
+
     try {
+      const activosPayload: ActivoFacturaInput[] | undefined = activosFactura.length > 0
+        ? activosFactura.map((activo) => {
+          const responsableActual =
+            activo.id_responsable_actual && activo.id_responsable_actual > 0
+              ? activo.id_responsable_actual
+              : null;
+          const ubicacionActual =
+            activo.id_ubicacion_actual && activo.id_ubicacion_actual > 0
+              ? activo.id_ubicacion_actual
+              : null;
+          const tipoMovimiento =
+            activo.id_tipo_movimiento && activo.id_tipo_movimiento > 0
+              ? activo.id_tipo_movimiento
+              : null;
+          const requiereMovimiento = responsableActual !== null || ubicacionActual !== null;
+
+          return {
+            nombre_af: activo.nombre_af.trim(),
+            marca_af: activo.marca_af.trim(),
+            modelo_af: activo.modelo_af.trim(),
+            numero_serie_af: activo.numero_serie_af.trim(),
+            precio_unitario_af: toSafeNumber(activo.precio_unitario_af, 0),
+            af_propio: Boolean(activo.af_propio),
+            fecha_registro_af: activo.fecha_registro_af,
+            id_estado_af: toSafeNumber(activo.id_estado_af, 0),
+            id_clasificacion: toSafeNumber(activo.id_clasificacion, 0),
+            descripcion_af: activo.descripcion_af?.trim() || null,
+            observaciones_af: activo.observaciones_af?.trim() || null,
+            cantidad: toSafeNumber(activo.cantidad, 0),
+            observaciones: activo.observaciones_af?.trim() || null,
+            fecha_movimiento: requiereMovimiento ? (activo.fecha_movimiento || null) : null,
+            id_responsable_actual: responsableActual,
+            id_ubicacion_actual: ubicacionActual,
+            id_tipo_movimiento: requiereMovimiento ? tipoMovimiento : null,
+            motivo_asignacion: requiereMovimiento ? (activo.motivo_movimiento?.trim() || null) : null
+          } as ActivoFacturaInput;
+        })
+        : undefined;
+
       // Preparar los datos de la factura
       const nuevaFactura: FacturasAF = {
         id_proveedor: proveedorFactura,
@@ -697,40 +746,14 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
         fecha_fac_recepcion: fechaRecepcion,
         id_forma_pago: formaPago,
         id_tipo_moneda: tipoMoneda,
-        observaciones_factura: observaciones,
+        observaciones_factura: observaciones.trim() || null,
         subtotal_factura: subTotalFactura,
         descuento_factura: descuentoFactura || 0,
         flete_factura: fleteFactura || 0,
         iva_factura: ivaFactura,
         total_factura: totalFactura,
 
-        // Incluir activos en el objeto de factura con todos los datos necesarios
-        activos: activosFactura.length > 0 ? activosFactura.map(activo => ({
-          // Datos del activo fijo completos
-          nombre_af: activo.nombre_af,
-          marca_af: activo.marca_af,
-          modelo_af: activo.modelo_af,
-          numero_serie_af: activo.numero_serie_af,
-          precio_unitario_af: activo.precio_unitario_af,
-          af_propio: activo.af_propio,
-          fecha_registro_af: activo.fecha_registro_af,
-          id_estado_af: activo.id_estado_af,
-          id_clasificacion: activo.id_clasificacion!,
-          descripcion_af: activo.descripcion_af || null,
-          observaciones_af: activo.observaciones_af || null,
-
-          // Datos de la relación factura-activo
-          precio_unitario: activo.precio_unitario_af,
-          cantidad: activo.cantidad,
-          observaciones: activo.observaciones_af || null,
-
-          // Datos opcionales de asignación inicial (si están presentes en el activo)
-          fecha_movimiento: activo.fecha_movimiento || '',
-          id_responsable_actual: activo.id_responsable_actual || null,
-          id_ubicacion_actual: activo.id_ubicacion_actual || null,
-          id_tipo_movimiento: activo.id_tipo_movimiento || null,
-          motivo_asignacion: activo.motivo_movimiento || null
-        } as ActivoFacturaInput)) : undefined
+        activos: activosPayload
       };
 
       console.log('FacturaADD: ', nuevaFactura)
