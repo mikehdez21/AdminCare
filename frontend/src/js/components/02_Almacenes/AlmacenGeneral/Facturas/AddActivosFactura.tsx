@@ -300,7 +300,7 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
       precio_unitario_af: ActivoFijoFactura.precio_unitario_af || 0,
       descuento_af: 0,
       descuento_porcentajeaf: 0,
-      id_tipo_movimiento: 0,
+      id_tipo_movimiento: ActivoFijoFactura.id_tipo_movimiento || 0,
       motivo_movimiento: ActivoFijoFactura.motivo_movimiento || 'Creación desde factura',
       fecha_movimiento: ActivoFijoFactura.fecha_movimiento || '',
       id_responsable_anterior: 0,
