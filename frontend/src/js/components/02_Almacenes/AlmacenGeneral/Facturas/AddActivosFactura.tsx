@@ -14,7 +14,6 @@ import { formatPeso } from '@/utils/numbersFormat';
 
 // Icons
 import { FaList, FaPlus, FaTrash } from 'react-icons/fa';
-import { MdInventory } from 'react-icons/md';
 
 // Styles
 import '@styles/02_Almacenes/AlmacenGeneral/Facturas/modalAddActivosFactura.css';
