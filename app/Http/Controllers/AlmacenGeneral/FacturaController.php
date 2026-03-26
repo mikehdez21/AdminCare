@@ -98,7 +98,7 @@ class FacturaController extends Controller
 
             $validatedData = $request->validate([
                 'id_proveedor' => 'required|integer',
-                'num_factura' => ['required', 'string', 'max:255', "regex:/^(\\\\d{1,12}|NOF-\\\\d{4}-\\\\d{1,12})$/"],
+                'num_factura' => ['required', 'string', 'max:255', "regex:/^(\\d{1,12}|NOF-\\d{4}-\\d{1,12})$/"],
                 'id_tipo_factura' => 'required|integer',
                 'fecha_fac_recepcion' => 'required|date',
                 'id_forma_pago' => 'required|integer',
@@ -448,7 +448,7 @@ class FacturaController extends Controller
 
             $validatedData = $request->validate([
                 'id_proveedor' => 'required|integer',
-                'num_factura' => ['nullable', 'string', 'max:255', 'regex:/^(\d{1,12}|NOF-\d{4}-\d{1,12})$/'],
+                'num_factura' => ['required', 'string', 'max:255', "regex:/^(\\d{1,12}|NOF-\\d{4}-\\d{1,12})$/"],
                 'id_tipo_factura' => 'required|integer',
                 'fecha_fac_recepcion' => 'required|date',
                 'id_forma_pago' => 'required|integer',
