@@ -720,6 +720,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
           observaciones_af: activo.observaciones_af || null,
 
           // Datos de la relación factura-activo
+          precio_unitario: activo.precio_unitario_af,
           cantidad: activo.cantidad,
           observaciones: activo.observaciones_af || null,
 
