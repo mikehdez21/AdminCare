@@ -22,6 +22,31 @@ class FacturaController extends Controller
         return !empty($response['data']) ? $validationCode : 500;
     }
 
+    private function appendDebugException(array &$response, \Throwable $e): void
+    {
+        if (!config('app.debug')) {
+            return;
+        }
+
+        $response['error_detail'] = [
+            'type' => get_class($e),
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => collect($e->getTrace())
+                ->take(10)
+                ->map(function ($item) {
+                    return [
+                        'file' => $item['file'] ?? null,
+                        'line' => $item['line'] ?? null,
+                        'function' => $item['function'] ?? null,
+                        'class' => $item['class'] ?? null,
+                    ];
+                })
+                ->values(),
+        ];
+    }
+
     private function normalizarNumeroFactura(string $numeroFactura): string
     {
         $valor = strtoupper(trim($numeroFactura));
@@ -234,6 +259,7 @@ class FacturaController extends Controller
                 'request' => $request->all(),
                 'trace' => $e->getTraceAsString(),
             ]);
+            $this->appendDebugException($response, $e);
             $response['message'] = 'Error al crear la factura: ' . $e->getMessage();
         }
 
@@ -436,6 +462,7 @@ class FacturaController extends Controller
                 'request' => $request->all(),
                 'trace' => $e->getTraceAsString(),
             ]);
+            $this->appendDebugException($response, $e);
             $response['message'] = 'Error al actualizar la factura: ' . $e->getMessage();
         }
 
