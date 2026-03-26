@@ -87,11 +87,18 @@ class FacturaController extends Controller
     public function store(Request $request)
     {
         $response = ["success" => false, "message" => "", "data" => []];
+        $storeStartTime = microtime(true);
 
         try {
+            Log::info('FacturaController::store() iniciado', [
+                'ip' => $request->ip(),
+                'activos_count' => count($request->input('activos', [])),
+                'num_factura' => $request->input('num_factura'),
+            ]);
+
             $validatedData = $request->validate([
                 'id_proveedor' => 'required|integer',
-                'num_factura' => ['required', 'string', 'max:255', "regex:/^(\\d{1,12}|NOF-\\d{4}-\\d{1,12})$/"],
+                'num_factura' => ['required', 'string', 'max:255', "regex:/^(\\\\d{1,12}|NOF-\\\\d{4}-\\\\d{1,12})$/"],
                 'id_tipo_factura' => 'required|integer',
                 'fecha_fac_recepcion' => 'required|date',
                 'id_forma_pago' => 'required|integer',
@@ -126,6 +133,14 @@ class FacturaController extends Controller
                 'activos.*.motivo_asignacion' => 'nullable|string'
             ]);
 
+            Log::info('FacturaController::store() validación exitosa', [
+                'num_factura' => $validatedData['num_factura'],
+                'id_proveedor' => $validatedData['id_proveedor'],
+                'lineas_activos' => count($validatedData['activos'] ?? []),
+                'total_activos_a_crear' => array_sum(array_column($validatedData['activos'] ?? [], 'cantidad')),
+                'elapsed_ms' => round((microtime(true) - $storeStartTime) * 1000),
+            ]);
+
             DB::beginTransaction();
 
             $numeroFacturaFormateado = $this->normalizarNumeroFactura($validatedData['num_factura']);
@@ -146,17 +161,58 @@ class FacturaController extends Controller
                 'total_factura' => $validatedData['total_factura']
             ]);
 
+            Log::info('FacturaController::store() factura creada en BD', [
+                'id_factura' => $factura->id_factura,
+                'num_factura' => $factura->num_factura,
+                'elapsed_ms' => round((microtime(true) - $storeStartTime) * 1000),
+            ]);
 
             // Asociar activos si existen
             if (isset($validatedData['activos']) && !empty($validatedData['activos'])) {
+                $totalLineas = count($validatedData['activos']);
+                $totalActivosACrear = array_sum(array_column($validatedData['activos'], 'cantidad'));
+
+                Log::info('FacturaController::store() iniciando creación de activos', [
+                    'id_factura' => $factura->id_factura,
+                    'total_lineas' => $totalLineas,
+                    'total_activos_a_crear' => $totalActivosACrear,
+                ]);
+
+                $activosCreados = 0;
+
                 foreach ($validatedData['activos'] as $lineaIndex => $activoData) {
                     $cantidad = $activoData['cantidad'];
                     preg_match('/^NOF-(\\d{4})-(\\d{1,12})$/', (string) $factura->num_factura, $matchNumeroFactura);
+
                     $numeroFacturaConsecutivo = $matchNumeroFactura[2] ?? '';
                     $codigoLote = 'LT' . ($lineaIndex + 1) . '- F' . ($numeroFacturaConsecutivo ?: $factura->id_factura);
 
+                    Log::info('FacturaController::store() procesando línea de activo', [
+                        'id_factura' => $factura->id_factura,
+                        'linea_index' => $lineaIndex,
+                        'nombre_af' => $activoData['nombre_af'],
+                        'cantidad' => $cantidad,
+                        'codigo_lote' => $codigoLote,
+                        'elapsed_ms' => round((microtime(true) - $storeStartTime) * 1000),
+                    ]);
+
                     // Crear N activos individuales por la cantidad especificada
                     for ($i = 0; $i < $cantidad; $i++) {
+                        $activosCreados++;
+
+                        // Advertir si nos acercamos al límite de tiempo de ejecución (>80% de max_execution_time)
+                        $maxExecTime = (int) ini_get('max_execution_time');
+                        $elapsedSeconds = microtime(true) - $storeStartTime;
+                        if ($maxExecTime > 0 && $elapsedSeconds > ($maxExecTime * 0.8)) {
+                            Log::warning('FacturaController::store() advertencia de tiempo de ejecución', [
+                                'id_factura' => $factura->id_factura,
+                                'elapsed_seconds' => round($elapsedSeconds, 2),
+                                'max_execution_time' => $maxExecTime,
+                                'activos_creados' => $activosCreados,
+                                'activos_pendientes' => $totalActivosACrear - $activosCreados,
+                            ]);
+                        }
+
                         // Preparar datos del activo (sin campos de factura/movimiento)
                         $datosActivo = [
                             'nombre_af' => $activoData['nombre_af'],
@@ -175,18 +231,46 @@ class FacturaController extends Controller
                             'fecha_registro_af' => $activoData['fecha_registro_af'],
                         ];
 
-                        // Crear activo con QR
+                        Log::debug('FacturaController::store() creando activo individual', [
+                            'id_factura' => $factura->id_factura,
+                            'linea_index' => $lineaIndex,
+                            'consecutivo' => $i + 1,
+                            'de_total' => $cantidad,
+                            'activos_creados_global' => $activosCreados,
+                            'elapsed_ms' => round((microtime(true) - $storeStartTime) * 1000),
+                        ]);
+
+                        // Crear activo sin QR (el QR final se genera después de asignar codigo_etiqueta)
                         $resultadoActivo = ActivosFijos::crearConQR($datosActivo, false);
 
                         if (!$resultadoActivo['success']) {
-                            throw new \Exception('Error al crear activo: ' . $resultadoActivo['message']);
+                            Log::error('FacturaController::store() fallo al crear activo', [
+                                'id_factura' => $factura->id_factura,
+                                'linea_index' => $lineaIndex,
+                                'consecutivo' => $i + 1,
+                                'error' => $resultadoActivo['message'],
+                                'datos_activo' => $datosActivo,
+                            ]);
+                            throw new \Exception('Error al crear activo (línea ' . ($lineaIndex + 1) . ', unidad ' . ($i + 1) . '): ' . $resultadoActivo['message']);
                         }
 
                         $nuevoActivo = $resultadoActivo['data'] ?? null;
 
                         if (!$nuevoActivo || !isset($nuevoActivo->id_activo_fijo)) {
-                            throw new \Exception('Error al crear activo: respuesta inválida al crear activo fijo.');
+                            Log::error('FacturaController::store() respuesta inválida al crear activo', [
+                                'id_factura' => $factura->id_factura,
+                                'linea_index' => $lineaIndex,
+                                'consecutivo' => $i + 1,
+                                'resultado' => $resultadoActivo,
+                            ]);
+                            throw new \Exception('Error al crear activo (línea ' . ($lineaIndex + 1) . ', unidad ' . ($i + 1) . '): respuesta inválida al crear activo fijo.');
                         }
+
+                        Log::debug('FacturaController::store() activo creado, asignando código de etiqueta', [
+                            'id_factura' => $factura->id_factura,
+                            'id_activo_fijo' => $nuevoActivo->id_activo_fijo,
+                            'codigo_unico' => $nuevoActivo->codigo_unico,
+                        ]);
 
                         // Código de etiqueta persistido: 
                         // AFx- (ID único del activo)
@@ -205,15 +289,59 @@ class FacturaController extends Controller
                         );
                         $nuevoActivo->save();
 
+                        Log::debug('FacturaController::store() generando QR final para activo', [
+                            'id_factura' => $factura->id_factura,
+                            'id_activo_fijo' => $nuevoActivo->id_activo_fijo,
+                            'codigo_etiqueta' => $nuevoActivo->codigo_etiqueta,
+                            'elapsed_ms' => round((microtime(true) - $storeStartTime) * 1000),
+                        ]);
+
                         // Generar QR con etiqueta final (forzando nuevo)
-                        $resultadoQRFinal = \App\Models\AlmacenGeneral\CodigosQRAF::generarParaActivo(
-                            $nuevoActivo->id_activo_fijo,
-                            true
-                        );
+                        try {
+                            $resultadoQRFinal = \App\Models\AlmacenGeneral\CodigosQRAF::generarParaActivo(
+                                $nuevoActivo->id_activo_fijo,
+                                true
+                            );
+                        } catch (\Throwable $qrException) {
+                            Log::error('FacturaController::store() excepción al generar QR', [
+                                'id_factura' => $factura->id_factura,
+                                'id_activo_fijo' => $nuevoActivo->id_activo_fijo,
+                                'codigo_etiqueta' => $nuevoActivo->codigo_etiqueta,
+                                'error_type' => get_class($qrException),
+                                'error' => $qrException->getMessage(),
+                                'file' => $qrException->getFile(),
+                                'line' => $qrException->getLine(),
+                                'elapsed_ms' => round((microtime(true) - $storeStartTime) * 1000),
+                            ]);
+                            throw new \Exception(
+                                'Excepción al generar QR para activo ' . $nuevoActivo->codigo_etiqueta .
+                                ' (línea ' . ($lineaIndex + 1) . ', unidad ' . ($i + 1) . '): ' .
+                                $qrException->getMessage(),
+                                0,
+                                $qrException
+                            );
+                        }
 
                         if (!$resultadoQRFinal['success']) {
-                            throw new \Exception('Error al generar QR final: ' . ($resultadoQRFinal['message'] ?? 'Error desconocido'));
+                            Log::error('FacturaController::store() fallo al generar QR final', [
+                                'id_factura' => $factura->id_factura,
+                                'id_activo_fijo' => $nuevoActivo->id_activo_fijo,
+                                'codigo_etiqueta' => $nuevoActivo->codigo_etiqueta,
+                                'error' => $resultadoQRFinal['message'] ?? 'Error desconocido',
+                                'elapsed_ms' => round((microtime(true) - $storeStartTime) * 1000),
+                            ]);
+                            throw new \Exception(
+                                'Error al generar QR para activo ' . $nuevoActivo->codigo_etiqueta .
+                                ' (línea ' . ($lineaIndex + 1) . ', unidad ' . ($i + 1) . '): ' .
+                                ($resultadoQRFinal['message'] ?? 'Error desconocido')
+                            );
                         }
+
+                        Log::debug('FacturaController::store() QR generado, asociando activo a factura', [
+                            'id_factura' => $factura->id_factura,
+                            'id_activo_fijo' => $nuevoActivo->id_activo_fijo,
+                            'elapsed_ms' => round((microtime(true) - $storeStartTime) * 1000),
+                        ]);
 
                         // Asociar el activo con la factura (cantidad=1 porque cada registro es individual)
                         FacturaActivos::create([
@@ -224,6 +352,13 @@ class FacturaController extends Controller
 
                         // Si se proporcionan datos de movimiento/asignación, crear el movimiento inicial
                         if (isset($activoData['id_responsable_actual']) || isset($activoData['id_ubicacion_actual'])) {
+                            Log::debug('FacturaController::store() creando movimiento inicial para activo', [
+                                'id_factura' => $factura->id_factura,
+                                'id_activo_fijo' => $nuevoActivo->id_activo_fijo,
+                                'id_responsable_actual' => $activoData['id_responsable_actual'] ?? null,
+                                'id_ubicacion_actual' => $activoData['id_ubicacion_actual'] ?? null,
+                            ]);
+
                             MovimientosActivos::create([
                                 'id_activo_fijo' => $nuevoActivo->id_activo_fijo,
                                 'id_tipo_movimiento' => $activoData['id_tipo_movimiento'] ?? 1, // 1 = asignación inicial
@@ -236,10 +371,31 @@ class FacturaController extends Controller
                             ]);
                         }
                     }
+
+                    Log::info('FacturaController::store() línea de activo completada', [
+                        'id_factura' => $factura->id_factura,
+                        'linea_index' => $lineaIndex,
+                        'activos_creados_en_linea' => $cantidad,
+                        'activos_creados_total' => $activosCreados,
+                        'elapsed_ms' => round((microtime(true) - $storeStartTime) * 1000),
+                    ]);
                 }
+
+                Log::info('FacturaController::store() todos los activos creados', [
+                    'id_factura' => $factura->id_factura,
+                    'total_activos_creados' => $activosCreados,
+                    'elapsed_ms' => round((microtime(true) - $storeStartTime) * 1000),
+                ]);
             }
 
             DB::commit();
+
+            $totalElapsedMs = round((microtime(true) - $storeStartTime) * 1000);
+            Log::info('FacturaController::store() completado exitosamente', [
+                'id_factura' => $factura->id_factura,
+                'num_factura' => $factura->num_factura,
+                'elapsed_ms' => $totalElapsedMs,
+            ]);
 
             $response['success'] = true;
             $response['message'] = 'Factura creada exitosamente.';
@@ -250,13 +406,25 @@ class FacturaController extends Controller
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
+            Log::warning('FacturaController::store() error de validación', [
+                'errors' => $e->errors(),
+                'elapsed_ms' => round((microtime(true) - $storeStartTime) * 1000),
+            ]);
             $response['message'] = 'Errores de validación.' . $e->getMessage();;
             $response['data'] = $e->errors();
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error al crear factura', [
+            Log::error('FacturaController::store() error fatal', [
+                'error_type' => get_class($e),
                 'message' => $e->getMessage(),
-                'request' => $request->all(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'elapsed_ms' => round((microtime(true) - $storeStartTime) * 1000),
+                'request_summary' => [
+                    'num_factura' => $request->input('num_factura'),
+                    'id_proveedor' => $request->input('id_proveedor'),
+                    'activos_count' => count($request->input('activos', [])),
+                ],
                 'trace' => $e->getTraceAsString(),
             ]);
             $this->appendDebugException($response, $e);
@@ -266,12 +434,14 @@ class FacturaController extends Controller
         return response()->json($response, $this->buildResponseStatusCode($response, 201));
     }
 
+
     // Actualizar una factura
     public function update(Request $request, $id)
     {
         $response = ["success" => false, "message" => "", "data" => []];
 
         try {
+
             $factura = FacturaAF::findOrFail($id);
 
             DB::beginTransaction();
