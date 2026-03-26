@@ -450,11 +450,10 @@ const CheckAF: React.FC<CheckAFsProps> = ({ isOpen, listActivos, infoLugar }) =>
                 contentLabel='Vista previa PDF'
                 ariaHideApp={false}
             >
-                <div style={{ height: '90vh' }}>
+                <div style={{ height: '94vh' }}>
                     <PDFViewer width="100%" height="100%">
                         <MyDocument activos={activosEscaneados} activosPendientes={activosPendientes} infoLugar={infoLugar} />
                     </PDFViewer>
-                    <button onClick={() => setShowPDF(false)}>Cerrar PDF</button>
                 </div>
             </Modal>
         </>
