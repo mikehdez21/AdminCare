@@ -63,7 +63,7 @@ export const addFactura = createAsyncThunk<{ success: boolean; message: string; 
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
       const response = await axios.post(
-        `${API_BASE_URL}/api/HSS1/almacenGeneral/facturas`,
+        `${API_BASE_URL}/api/HSS1/almacengeneral/facturas`,
         nuevaFactura,
         {
           headers: {

@@ -208,7 +208,11 @@ class FacturaController extends Controller
 
             $response['success'] = true;
             $response['message'] = 'Factura creada exitosamente.';
-            $response['data'] = $factura->load('facturaActivos.activoFijo');
+            $response['data'] = [
+                'id_factura' => $factura->id_factura,
+                'factura' => $factura->load('facturaActivos.activoFijo')
+            ];
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
             $response['message'] = 'Errores de validación.' . $e->getMessage();;
