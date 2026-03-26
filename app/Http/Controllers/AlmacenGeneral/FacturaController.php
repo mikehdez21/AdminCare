@@ -9,6 +9,7 @@ use App\Models\AlmacenGeneral\FacturaActivos;
 use App\Models\AlmacenGeneral\ActivosFijos;
 use App\Models\AlmacenGeneral\MovimientosActivos;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class FacturaController extends Controller
 {
@@ -228,6 +229,11 @@ class FacturaController extends Controller
             $response['data'] = $e->errors();
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Error al crear factura', [
+                'message' => $e->getMessage(),
+                'request' => $request->all(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             $response['message'] = 'Error al crear la factura: ' . $e->getMessage();
         }
 
@@ -424,6 +430,12 @@ class FacturaController extends Controller
             $response['message'] = 'Errores de validación.';
             $response['data'] = $e->errors();
         } catch (\Exception $e) {
+            Log::error('Error al actualizar factura', [
+                'factura_id' => $id,
+                'message' => $e->getMessage(),
+                'request' => $request->all(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             $response['message'] = 'Error al actualizar la factura: ' . $e->getMessage();
         }
 

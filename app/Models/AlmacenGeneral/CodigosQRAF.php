@@ -108,11 +108,24 @@ class CodigosQRAF extends Model
             $imagenBase64 = $qraf->generarImagenQR(300, $label);
 
             // Guardar en storage
-            $rutaGuardada = $qraf->guardarImagenQR('qr_codes/activos');
+            $rutaGuardada = null;
+            $warning = null;
+
+            try {
+                $rutaGuardada = $qraf->guardarImagenQR('qr_codes/activos');
+            } catch (\Exception $storageException) {
+                $warning = 'QR generado, pero no se pudo guardar el archivo en storage.';
+
+                Log::warning($warning, [
+                    'id_activo_fijo' => $idActivo,
+                    'codigo_qr' => $codigoQR,
+                    'message' => $storageException->getMessage(),
+                ]);
+            }
 
             return [
                 'success' => true,
-                'message' => 'Código QR generado exitosamente.',
+                'message' => $warning ?: 'Código QR generado exitosamente.',
                 'data' => [
                     'qraf' => $qraf,
                     'imagen_base64' => $imagenBase64,
