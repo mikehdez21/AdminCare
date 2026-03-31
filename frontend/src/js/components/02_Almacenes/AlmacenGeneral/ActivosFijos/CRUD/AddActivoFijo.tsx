@@ -16,7 +16,7 @@ import { setListMovimientosAF } from '@/store/almacengeneral/Activos/Movimientos
 import ModalButtons from '@/components/00_Utils/ModalButtons';
 import { getFechaHoraActual } from '@/utils/dateFormat';
 
-import '@styles/02_Almacenes/almacenGeneral/ActivosFijos/modalActivosFijos.css';
+import '@styles/02_Almacenes/AlmacenGeneral/ActivosFijos/modalActivosFijos.css';
 
 interface AddActivoFijoProps {
   isOpen: boolean;
