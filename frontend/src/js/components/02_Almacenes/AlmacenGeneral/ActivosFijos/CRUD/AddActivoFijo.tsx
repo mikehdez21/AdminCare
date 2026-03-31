@@ -16,7 +16,7 @@ import { setListMovimientosAF } from '@/store/almacengeneral/Activos/Movimientos
 import ModalButtons from '@/components/00_Utils/ModalButtons';
 import { getFechaHoraActual } from '@/utils/dateFormat';
 
-import '@styles/02_Almacenes/AlmacenGeneral/ActivosFijos/modalActivosFijos.css';
+import '@styles/02_Almacenes/almacenGeneral/ActivosFijos/modalActivosFijos.css';
 
 interface AddActivoFijoProps {
   isOpen: boolean;
@@ -66,14 +66,14 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
   const tiposEstatusAF = useSelector((state: RootState) => state.activos.estatusActivoFijo);
   const tipoMovimientoAF = useSelector((state: RootState) => state.movimientosAF.tipoMovimientoAF);
 
+
   useEffect(() => {
-    // Solo se hace fetch si los arrays están vacíos
     if (!tiposEstatusAF?.length) dispatch(getEstatusActivosFijos());
     if (!tiposClasificacionAF?.length) dispatch(getClasificaciones());
     if (!empleados?.length) dispatch(getEmpleados());
     if (!ubicaciones?.length) dispatch(getUbicaciones());
     if (!tipoMovimientoAF?.length) dispatch(getTipoMovimientosActivosFijos());
-  }, [dispatch]);
+  }, [dispatch, tiposEstatusAF, tiposClasificacionAF, empleados, ubicaciones, tipoMovimientoAF]);
 
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -239,6 +239,37 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
 
 
 
+  // Memoized options for selects
+  const opcionesEstatusAF = React.useMemo(() => Array.isArray(tiposEstatusAF) ? tiposEstatusAF.map((tipoEstatusAF) => (
+    <option key={tipoEstatusAF.id_estatusaf} value={tipoEstatusAF.id_estatusaf}>
+      {tipoEstatusAF.descripcion_estatusaf}
+    </option>
+  )) : null, [tiposEstatusAF]);
+
+  const opcionesClasificacionAF = React.useMemo(() => Array.isArray(tiposClasificacionAF) ? tiposClasificacionAF.map((tipoClasificacionAF) => (
+    <option key={tipoClasificacionAF.id_clasificacion} value={tipoClasificacionAF.id_clasificacion}>
+      {tipoClasificacionAF.nombre_clasificacion}
+    </option>
+  )) : null, [tiposClasificacionAF]);
+
+  const opcionesTipoMovimiento = React.useMemo(() => Array.isArray(tipoMovimientoAF) ? tipoMovimientoAF.map((tipomovimiento) => (
+    <option key={tipomovimiento.id_tipomovimientoaf} value={tipomovimiento.id_tipomovimientoaf}>
+      {tipomovimiento.nombre_tipomovimientoaf}
+    </option>
+  )) : null, [tipoMovimientoAF]);
+
+  const opcionesEmpleados = React.useMemo(() => Array.isArray(empleados) ? empleados.map((empleado) => (
+    <option key={empleado.id_empleado} value={empleado.id_empleado}>
+      {empleado.nombre_empleado} {empleado.apellido_paterno} {empleado.apellido_materno}
+    </option>
+  )) : null, [empleados]);
+
+  const opcionesUbicaciones = React.useMemo(() => Array.isArray(ubicaciones) ? ubicaciones.map((ubicacion) => (
+    <option key={ubicacion.id_ubicacion} value={ubicacion.id_ubicacion}>
+      {ubicacion.nombre_ubicacion}
+    </option>
+  )) : null, [ubicaciones]);
+
   return (
     <Modal
       isOpen={isOpen}
@@ -353,11 +384,7 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
                       onChange={(e) => setTipoEstatusAF(Number(e.target.value))}
                     >
                       <option value="" disabled>Seleccione una opción</option>
-                      {Array.isArray(tiposEstatusAF) && tiposEstatusAF.map((tipoEstatusAF) => (
-                        <option key={tipoEstatusAF.id_estatusaf} value={tipoEstatusAF.id_estatusaf}>
-                          {tipoEstatusAF.descripcion_estatusaf}
-                        </option>
-                      ))}
+                      {opcionesEstatusAF}
                     </select>
                   </label>
 
@@ -369,11 +396,7 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
                       onChange={(e) => setTipoClasificacionAF(Number(e.target.value))}
                     >
                       <option value="" disabled>Seleccione una opción</option>
-                      {Array.isArray(tiposClasificacionAF) && tiposClasificacionAF.map((tipoClasificacionAF) => (
-                        <option key={tipoClasificacionAF.id_clasificacion} value={tipoClasificacionAF.id_clasificacion}>
-                          {tipoClasificacionAF.nombre_clasificacion}
-                        </option>
-                      ))}
+                      {opcionesClasificacionAF}
                     </select>
                   </label>
 
@@ -414,11 +437,7 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
                       required
                     >
                       <option value="" disabled>Seleccione un tipo de movimiento</option>
-                      {Array.isArray(tipoMovimientoAF) && tipoMovimientoAF.map((tipomovimiento) => (
-                        <option key={tipomovimiento.id_tipomovimientoaf} value={tipomovimiento.id_tipomovimientoaf}>
-                          {tipomovimiento.nombre_tipomovimientoaf}
-                        </option>
-                      ))}
+                      {opcionesTipoMovimiento}
                     </select>
                   </label>
 
@@ -429,11 +448,7 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
                       onChange={(e) => setResponsableActual(Number(e.target.value))}
                     >
                       <option value="" disabled>Seleccione un responsable</option>
-                      {Array.isArray(empleados) && empleados.map((empleado) => (
-                        <option key={empleado.id_empleado} value={empleado.id_empleado}>
-                          {empleado.nombre_empleado} {empleado.apellido_paterno} {empleado.apellido_materno}
-                        </option>
-                      ))}
+                      {opcionesEmpleados}
                     </select>
                   </label>
 
@@ -444,11 +459,7 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
                       onChange={(e) => setUbicacionActual(Number(e.target.value))}
                     >
                       <option value="" disabled>Seleccione una ubicación</option>
-                      {Array.isArray(ubicaciones) && ubicaciones.map((ubicacion) => (
-                        <option key={ubicacion.id_ubicacion} value={ubicacion.id_ubicacion}>
-                          {ubicacion.nombre_ubicacion}
-                        </option>
-                      ))}
+                      {opcionesUbicaciones}
                     </select>
                   </label>
 

@@ -1,5 +1,5 @@
 // Bibliotecas
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppDispatch, RootState } from '@/store/store'; // Asegúrate de importar AppDispatch
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -43,7 +43,6 @@ const AlmacenGeneral_Facturas: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const location = useLocation();
-  
   const facturas = useSelector((state: RootState) => state.facturasaf.facturasaf);
   const proveedores = useSelector((state: RootState) => state.proveedor.proveedores);
 
@@ -56,7 +55,6 @@ const AlmacenGeneral_Facturas: React.FC = () => {
   const tiposFacturas = useSelector((state: RootState) => state.facturasaf.tiposFacturas);
   const formasPago = useSelector((state: RootState) => state.fiscal.formasPago);
   const tiposMoneda = useSelector((state: RootState) => state.fiscal.tiposMoneda);
-  const clasificacionesAF = useSelector((state: RootState) => state.clasificacion.clasificacionesAF);
 
   const [busqueda, setBusqueda] = useState<string>('');
   const [paginaActual, setPaginaActual] = useState<number>(1);
@@ -66,25 +64,28 @@ const AlmacenGeneral_Facturas: React.FC = () => {
   const [showEditFacturaForm, setShowEditFacturaForm] = useState<boolean>(false);
   const [showImpresionFactura, setShowImpresionFactura] = useState<boolean>(false);
   const [facturaCreadaId, setFacturaCreadaId] = useState<number | null>(null);
-  const didLoadInitialDataRef = useRef(false);
   /*const [isModalDeleteFacturaOpen, setModalDeleteFacturaOpen] = useState<boolean>(false);*/
 
-  // Filtrar y ordenar facturas basados en la búsqueda
-  const facturasFiltradas = Array.isArray(facturas)
-    ? facturas
+
+  // Filtrar y ordenar facturas basados en la búsqueda (memorizado)
+  const facturasFiltradas = React.useMemo(() => {
+    if (!Array.isArray(facturas)) return [];
+    return facturas
       .filter(factura =>
         factura.id_factura?.toString().includes(busqueda)
       )
-      .sort((a, b) => a.id_factura! - b.id_factura!)
-    : [];
+      .sort((a, b) => a.id_factura! - b.id_factura!);
+  }, [facturas, busqueda]);
 
-  // Obtener las facturas para la página actual
-  const indexUltimaFactura = paginaActual * facturasPorPagina;
-  const indexPrimerFactura = indexUltimaFactura - facturasPorPagina;
-  const facturasPaginaActual = facturasFiltradas.slice(indexPrimerFactura, indexUltimaFactura);
+  // Obtener las facturas para la página actual (memorizado)
+  const facturasPaginaActual = React.useMemo(() => {
+    const indexUltimaFactura = paginaActual * facturasPorPagina;
+    const indexPrimerFactura = indexUltimaFactura - facturasPorPagina;
+    return facturasFiltradas.slice(indexPrimerFactura, indexUltimaFactura);
+  }, [facturasFiltradas, paginaActual, facturasPorPagina]);
 
   // Calcular el número total de páginas
-  const numeroTotalPaginas = Math.ceil(facturasFiltradas.length / facturasPorPagina);
+  const numeroTotalPaginas = React.useMemo(() => Math.ceil(facturasFiltradas.length / facturasPorPagina), [facturasFiltradas.length, facturasPorPagina]);
 
   // Manejar cambio de búsqueda
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -198,56 +199,105 @@ const AlmacenGeneral_Facturas: React.FC = () => {
   }, [location.pathname]);
 
   useEffect(() => {
-    // Evita doble llamada en desarrollo por React.StrictMode.
-    if (didLoadInitialDataRef.current) {
-      return;
-    }
-
-    didLoadInitialDataRef.current = true;
-
-    const cargarDatosIniciales = async () => {
+    const cargarFacturas = async () => {
       try {
-        if (!facturas?.length) {
-          const resultFacturas = await dispatch(getFacturas()).unwrap();
-          if (resultFacturas.success) {
-            dispatch(setFacturas(resultFacturas.facturas || []));
-          }
+        const resultAction = await dispatch(getFacturas()).unwrap();
+        console.log('Facturas cargadas:', facturas);
+        if (resultAction.success) {
+          dispatch(setFacturas(resultAction.facturas!));
+        } else {
+          console.log('Error', resultAction.message)
         }
 
-        if (!proveedores?.length) {
-          const resultProveedores = await dispatch(getProveedores()).unwrap();
-          if (resultProveedores.success) {
-            dispatch(setListProveedor(resultProveedores.proveedor || []));
-          }
-        }
-
-        if (!clasificacionesAF?.length) {
-          const resultClasificaciones = await dispatch(getClasificaciones()).unwrap();
-          if (resultClasificaciones.success) {
-            dispatch(setListClasificacion(resultClasificaciones.clasificacion || []));
-          }
-        }
-
-        if (!tiposFacturas?.length) {
-          await dispatch(getTiposFacturas()).unwrap();
-        }
-
-        if (!formasPago?.length) {
-          await dispatch(getFormasPago()).unwrap();
-        }
-
-        if (!tiposMoneda?.length) {
-          await dispatch(getTiposMoneda()).unwrap();
-        }
-
-        
       } catch (error) {
-        console.error('Error al cargar datos iniciales de facturas:', error);
+        console.error('Error al cargar las facturas:', error);
       }
     };
+    cargarFacturas();
 
-    cargarDatosIniciales();
-  }, [dispatch, facturas?.length, proveedores?.length, tiposFacturas?.length, formasPago?.length, tiposMoneda?.length, clasificacionesAF?.length])
+    const cargarProveedores = async () => {
+      try {
+        const resultAction = await dispatch(getProveedores()).unwrap();
+        console.log('Proveedores cargados:', resultAction);
+
+        if (resultAction.success) {
+          dispatch(setListProveedor(resultAction.proveedor!)); // Establece el proveedor en el estado
+
+        } else {
+          console.log('Error', resultAction.message)
+        }
+
+
+      } catch (error) {
+        console.error('Error al cargar proveedores:', error);
+      }
+    };
+    cargarProveedores();
+
+    const cargarTiposFacturas = async () => {
+      try {
+        const resultAction = await dispatch(getTiposFacturas()).unwrap();
+        console.log('Tipos de facturas cargados:', resultAction);
+
+        if (resultAction.success) {
+          console.log('Tipos de facturas establecidos en el estado:', resultAction.tiposFacturas);
+        } else {
+          console.log('Error', resultAction.message);
+        }
+      } catch (error) {
+        console.error('Error al cargar tipos de facturas:', error);
+      }
+    };
+    cargarTiposFacturas();
+
+    const cargarFormasPago = async () => {
+      try {
+        const resultAction = await dispatch(getFormasPago()).unwrap();
+        if (resultAction.success) {
+          // Aquí puedes manejar las formas de pago obtenidas
+          console.log('Formas de pago cargadas:', resultAction.formasPago);
+        } else {
+          console.log('Error al cargar formas de pago:', resultAction.message);
+        }
+      } catch (error) {
+        console.error('Error al cargar formas de pago:', error);
+      }
+    };
+    cargarFormasPago();
+
+    const cargarTiposMoneda = async () => {
+      try {
+        const resultAction = await dispatch(getTiposMoneda()).unwrap();
+        if (resultAction.success) {
+          // Aquí puedes manejar los tipos de moneda obtenidos
+          console.log('Tipos de moneda cargados:', resultAction.tiposMoneda);
+        } else {
+          console.log('Error al cargar tipos de moneda:', resultAction.message);
+        }
+      } catch (error) {
+        console.error('Error al cargar tipos de moneda:', error);
+      }
+    };
+    cargarTiposMoneda();
+
+    const cargarClasificaciones = async () => {
+      try {
+        const resultAction = await dispatch(getClasificaciones()).unwrap();
+
+        if (resultAction.success) {
+          dispatch(setListClasificacion(resultAction.clasificacion!)); // Establece el clasificacion en el estado
+        } else {
+          console.log('Error', resultAction.message)
+        }
+
+
+      } catch (error) {
+        console.error('Error al cargar clasificaciones:', error);
+      }
+    };
+    cargarClasificaciones();
+
+  }, [dispatch])
 
   // Vista de listado de facturas
   const renderListaFacturas = () => (
@@ -314,32 +364,36 @@ const AlmacenGeneral_Facturas: React.FC = () => {
                   <tr key={factura.id_factura}>
                     <td id='td_ID'>{factura.id_factura}</td>
 
-                    <td id='td_ProveedorFactura'>{proveedores.map((proveedor) => (
-                      <div key={proveedor.id_proveedor} className='divProveedorFactura'>
-                        {factura.id_proveedor === proveedor.id_proveedor ? proveedor.razon_social : ''}
-                      </div>
-                    ))}</td>
+                    <td id='td_ProveedorFactura'>
+                      {(() => {
+                        const proveedor = proveedores.find(p => p.id_proveedor === factura.id_proveedor);
+                        return proveedor ? proveedor.razon_social : '';
+                      })()}
+                    </td>
 
                     <td id='td_NumFactura'>{factura.num_factura}</td>
                     <td id='td_FechaRecepcion'>{formatDateHorasToFrontend(factura.fecha_fac_recepcion)}</td>
 
-                    <td id='td_TiposFactura'>{tiposFacturas.map((tipoFactura) => (
-                      <div key={tipoFactura.id_tipofacturaaf} className='divTipoFactura'>
-                        {factura.id_tipo_factura === tipoFactura.id_tipofacturaaf ? tipoFactura.nombre_tipofactura : ''}
-                      </div>
-                    ))}</td>
+                    <td id='td_TiposFactura'>
+                      {(() => {
+                        const tipoFactura = tiposFacturas.find(t => t.id_tipofacturaaf === factura.id_tipo_factura);
+                        return tipoFactura ? tipoFactura.nombre_tipofactura : '';
+                      })()}
+                    </td>
 
-                    <td id='td_FormaPago'>{formasPago.map((formaPago) => (
-                      <div key={formaPago.id_formapago} className='divTipoFormaPago'>
-                        {factura.id_forma_pago === formaPago.id_formapago ? formaPago.descripcion_formaspago : ''}
-                      </div>
-                    ))}</td>
+                    <td id='td_FormaPago'>
+                      {(() => {
+                        const formaPago = formasPago.find(f => f.id_formapago === factura.id_forma_pago);
+                        return formaPago ? formaPago.descripcion_formaspago : '';
+                      })()}
+                    </td>
 
-                    <td id='td_TiposMoneda'>{tiposMoneda.map((tipoMoneda) => (
-                      <div key={tipoMoneda.id_tipomoneda} className='divTipoMoneda'>
-                        {factura.id_tipo_moneda === tipoMoneda.id_tipomoneda ? tipoMoneda.descripcion_tipomoneda : ''}
-                      </div>
-                    ))}</td>
+                    <td id='td_TiposMoneda'>
+                      {(() => {
+                        const tipoMoneda = tiposMoneda.find(m => m.id_tipomoneda === factura.id_tipo_moneda);
+                        return tipoMoneda ? tipoMoneda.descripcion_tipomoneda : '';
+                      })()}
+                    </td>
 
                     <td id='td_ObservacionesFactura' onClick={() => {
                       setObsSeleccionada(factura.observaciones_factura || '');

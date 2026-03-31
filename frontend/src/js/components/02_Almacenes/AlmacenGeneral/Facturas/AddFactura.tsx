@@ -83,27 +83,29 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
 
   const [isModalAddActivosFacturaOpen, setIsModalAddActivosFacturaOpen] = useState(false);
 
-  const ultimoId = facturas.length > 0
-    ? Math.max(...facturas.map(factura => Number(factura.id_factura)))
-    : 0;
+  const ultimoId = React.useMemo(() => (
+    facturas.length > 0
+      ? Math.max(...facturas.map(factura => Number(factura.id_factura)))
+      : 0
+  ), [facturas]);
   const nuevoId = ultimoId + 1;
 
   // Activos asociados a la factura
   const [activosFactura, setActivosFactura] = useState<ActivoFactura[]>([]);
 
-  // Subtotal, IVA y totales
-  const subtotal = activosFactura.reduce(
+   // Subtotal, IVA y totales (memorizados)
+  const subtotal = React.useMemo(() => activosFactura.reduce(
     (acc, activo) => acc + toSafeNumber(activo.precio_unitario_af, 0) * toSafeNumber(activo.cantidad, 0),
     0
-  );
+  ), [activosFactura]);
 
-  const totalActivosFisicos = activosFactura.reduce(
+  const totalActivosFisicos = React.useMemo(() => activosFactura.reduce(
     (acc, activo) => acc + toSafeNumber(activo.cantidad, 0),
     0
-  );
+  ), [activosFactura]);
 
-  // Agrupación solo visual para la tabla de resumen
-  const activosFacturaAgrupados = Array.from(
+  // Agrupación solo visual para la tabla de resumen (memorizada)
+  const activosFacturaAgrupados = React.useMemo(() => Array.from(
     activosFactura.reduce((mapa, activo, idx) => {
       const clave = [
         activo.nombre_af || '',
@@ -133,7 +135,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
 
       return mapa;
     }, new Map<string, (ActivoFactura & { _indices?: number[]; _clave?: string })>()).values()
-  );
+  ), [activosFactura]);
 
   const abrirModalSeries = (activoAgrupado: ActivoFactura & { _indices?: number[]; _clave?: string }) => {
     const indices = activoAgrupado._indices || [];
@@ -1027,11 +1029,12 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
 
                       <td id='td_Cantidad'>{activo.cantidad}</td>
 
-                      <td id='td_ClasificacionAF'>{clasificacionActivoFijo.map((clasificacionAF) => (
-                        <div key={clasificacionAF.id_clasificacion} className='divClasificacionAF'>
-                          {activo.id_clasificacion === clasificacionAF.id_clasificacion ? clasificacionAF.nombre_clasificacion : ''}
-                        </div>
-                      ))}</td>
+                      <td id='td_ClasificacionAF'>
+                        {(() => {
+                          const clasificacion = clasificacionActivoFijo.find(c => c.id_clasificacion === activo.id_clasificacion);
+                          return clasificacion ? clasificacion.nombre_clasificacion : '';
+                        })()}
+                      </td>
 
                       <td id='td_PrecioUnitario'> {formatPeso(activo.precio_unitario_af)}</td>
                       <td>{formatPeso(toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.precio_unitario_af, 0))}</td>

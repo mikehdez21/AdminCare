@@ -61,7 +61,8 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
   const [isModalAddActivosFacturaOpen, setIsModalAddActivosFacturaOpen] = useState(false);
   const [activosFactura, setActivosFactura] = useState<ActivoFactura[]>([]);
 
-  const activosFacturaAgrupados = Array.from(
+  // Agrupación solo visual para la tabla de resumen (memorizada)
+  const activosFacturaAgrupados = React.useMemo(() => Array.from(
     activosFactura.reduce((mapa, activo, idx) => {
       const clave = [
         activo.nombre_af || '',
@@ -91,14 +92,14 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
 
       return mapa;
     }, new Map<string, (ActivoFactura & { _indices?: number[]; _clave?: string })>()).values()
-  );
+  ), [activosFactura]);
 
 
-  // Subtotal, IVA y totales
-  const subtotal = activosFactura.reduce(
+  // Subtotal, IVA y totales (memorizados)
+  const subtotal = React.useMemo(() => activosFactura.reduce(
     (acc, activo) => acc + toSafeNumber(activo.precio_unitario_af, 0) * toSafeNumber(activo.cantidad, 0),
     0
-  );
+  ), [activosFactura]);
 
   const subtotalConDescuento = subtotal - toSafeNumber(descuentoFactura, 0);
   const subtotalConFlete = subtotal + toSafeNumber(fleteFactura, 0);
@@ -529,11 +530,12 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
 
                       <td id='td_Cantidad'>{activo.cantidad}</td>
 
-                      <td id='td_ClasificacionAF'>{clasificacionActivoFijo.map((clasificacionAF) => (
-                        <div key={clasificacionAF.id_clasificacion} className='divClasificacionAF'>
-                          {activo.id_clasificacion === clasificacionAF.id_clasificacion ? clasificacionAF.nombre_clasificacion : ''}
-                        </div>
-                      ))}</td>
+                      <td id='td_ClasificacionAF'>
+                        {(() => {
+                          const clasificacion = clasificacionActivoFijo.find(c => c.id_clasificacion === activo.id_clasificacion);
+                          return clasificacion ? clasificacion.nombre_clasificacion : '';
+                        })()}
+                      </td>
 
                       <td id='td_PrecioUnitario'>{formatPeso(activo.precio_unitario_af)}</td>
                       <td>{formatPeso(toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.precio_unitario_af, 0))}</td>

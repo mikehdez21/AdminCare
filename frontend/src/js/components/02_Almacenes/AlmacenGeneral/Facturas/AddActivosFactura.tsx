@@ -199,15 +199,15 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
     return { tempId, tempCodigoUnico };
   };
 
-  // Filtros de búsqueda
-  const activosSeleccionadosFiltrados = activosAgregados.filter(activo => {
+  // Filtros de búsqueda (memorizado)
+  const activosSeleccionadosFiltrados = React.useMemo(() => activosAgregados.filter(activo => {
     if (!activo || !activo.nombre_af) return false;
     const searchTerm = busquedaSeleccionados.toLowerCase();
     return activo.nombre_af.toLowerCase().includes(searchTerm) ||
       (activo.codigo_unico && activo.codigo_unico.toLowerCase().includes(searchTerm)) ||
       (activo.marca_af && activo.marca_af.toLowerCase().includes(searchTerm)) ||
       (activo.modelo_af && activo.modelo_af.toLowerCase().includes(searchTerm));
-  });
+  }), [activosAgregados, busquedaSeleccionados]);
 
   // Remover activo de la lista seleccionada
   const handleRemoverActivo = (codigoUnico: string) => {
@@ -441,11 +441,11 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
     onClose();
   };
 
-  // Calcular total
-  const totalSeleccionados = activosAgregados.reduce(
+  // Calcular total (memorizado)
+  const totalSeleccionados = React.useMemo(() => activosAgregados.reduce(
     (total, activo) => total + (activo.cantidad * activo.precio_unitario_af),
     0
-  );
+  ), [activosAgregados]);
 
   return (
     <Modal
