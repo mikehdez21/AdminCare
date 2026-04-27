@@ -28,7 +28,7 @@ import Paginacion from '@/components/00_Utils/Paginacion';
 import AddFactura from './AddFactura';
 import EditFactura from './EditFactura';
 import ImpresionFactura from '../Etiquetas/ImpresionFactura';
-import ResponsivasAF from './ResponsivaAF';
+import ResponsivasAF from './ResponsivasAF';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 // import DeleteFactura from './DeleteFactura';
 
