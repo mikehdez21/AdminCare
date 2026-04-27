@@ -1,0 +1,207 @@
+.admin-dashboard {
+    padding: 2rem;
+    background:
+        radial-gradient(circle at 0% 0%, #ffffff 0%, rgba(255, 255, 255, 0) 42%),
+        linear-gradient(135deg, #eef2ff 0%, #e0e7ff 38%, #dbeafe 100%);
+    min-height: 100vh;
+}
+
+
+
+.loading-message {
+    text-align: center;
+    font-size: 1rem;
+    color: #6b7280;
+    padding: 2rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.admin-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.admin-kpi-card {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #f8fafc;
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+    border: 1px solid #334155;
+    box-shadow: 0 8px 24px rgba(30, 41, 59, 0.12);
+}
+
+.admin-kpi-card h4 {
+    margin: 0;
+    font-size: 0.86rem;
+    font-weight: 600;
+    opacity: 0.92;
+    text-align: center;
+}
+
+.admin-kpi-card p {
+    text-align: center;
+    margin: 0.35rem 0 0;
+    font-size: 1.45rem;
+    font-weight: 700;
+}
+
+.charts-container {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.chart-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-top: 4px solid #cbd5e1;
+    display: flex;
+    flex-direction: column;
+    min-height: 420px;
+}
+
+.chart-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.chart-card--bar {
+    grid-column: span 8;
+    border-top-color: #4f46e5;
+    min-height: 520px;
+}
+
+.chart-card--empleados {
+    grid-column: span 4;
+    border-top-color: #16a34a;
+}
+
+.chart-card--usuarios {
+    grid-column: span 4;
+    border-top-color: #2563eb;
+}
+
+.chart-card--ubicaciones {
+    grid-column: span 4;
+    border-top-color: #7c3aed;
+}
+
+.chart-card h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin: 0 0 1rem 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #374151;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e5e7eb;
+    letter-spacing: 0.5px;
+}
+
+.chart-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.chart-card--bar .chart-icon {
+    color: #4f46e5;
+}
+
+.chart-card--empleados .chart-icon {
+    color: #16a34a;
+}
+
+.chart-card--usuarios .chart-icon {
+    color: #2563eb;
+}
+
+.chart-card--ubicaciones .chart-icon {
+    color: #7c3aed;
+}
+
+.chart-card p {
+    margin: 0 0 0.9rem 0;
+    font-size: 0.9rem;
+    color: #475569;
+    line-height: 1.5;
+    font-weight: 600;
+}
+
+.chart-summary {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.5rem 0.7rem;
+}
+
+.chart-canvas {
+    margin-top: auto;
+    min-height: 250px;
+}
+
+.chart-card--bar .chart-canvas {
+    min-height: 360px;
+}
+
+canvas {
+    max-height: 400px;
+}
+
+@media (max-width: 1024px) {
+
+
+    .admin-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .charts-container {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .chart-card--bar,
+    .chart-card--empleados,
+    .chart-card--usuarios,
+    .chart-card--ubicaciones {
+        grid-column: span 2;
+        grid-row: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-dashboard {
+        padding: 1rem;
+    }
+
+    .admin-kpi-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .charts-container {
+        grid-template-columns: 1fr;
+    }
+
+    .chart-card--bar,
+    .chart-card--empleados,
+    .chart-card--usuarios,
+    .chart-card--ubicaciones {
+        grid-column: span 1;
+    }
+
+    .chart-card {
+        padding: 1rem;
+        min-height: 380px;
+    }
+
+    .chart-card--bar {
+        min-height: 440px;
+    }
+}
