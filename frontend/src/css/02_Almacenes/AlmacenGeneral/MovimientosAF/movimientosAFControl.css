@@ -1,48 +1,25 @@
-.mainDiv_MovimientosAFControl {
+.mainDiv_MovimientosAF {
+    animation: fadeInLeft 0.4s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 100dvh;
+    min-height: 0;
 
-    .searchAdd_ButtonDiv{
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 0px;        
-        
-        .text_Div{
+    header {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        width: 100%;
+
+        .returnButton {
             display: flex;
-            color: #383838d5;
-            flex: 1;
-            justify-content: space-between;
-            
-            h1{
-                font-size: 25px;
-                margin: 5px;
-                align-self: center;
+            justify-content: flex-start;
+            padding: 13px;
 
-            }
-            
-
-        }
-
-        .buttons_Div{
-            display: flex;
-            gap: 20px;
-            padding: 10px;
-
-            .selectList{
-                text-align: center;
-                border-radius: 8px;
-                border-width: 2px;
-                border-style: groove;
-            }
-
-            input{
-                width: 250px;
-                border-radius: 8px;
-                border-width: 2px;
-                border-style: groove;
-
-                padding: 10px;
-            }
-
-            button{
+            button {
                 display: flex;
                 gap: 5px;
                 background-color: #da29fd;
@@ -51,250 +28,142 @@
                 font-size: 15px;
                 align-items: center;
                 justify-content: center;
-                width: 250px;
                 border-radius: 8px;
-                padding: 5px;
+                padding: 5px 10px;
                 cursor: pointer;
+            }
 
-                .iconAdd{
-                    font-size: 20px;
+            p {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+
+                .iconReturn {
+                    font-size: 18px;
+
                 }
             }
 
-            .buttonAdd:hover{
+
+
+            button:hover {
                 background-color: #df67f7 !important;
                 color: #000000;
 
             }
         }
 
-        
-    }
+        h1 {
+            color: #383838d5;
+            font-size: 25px;
+            margin: 13px;
 
-    .noEntities{
-        display: flex;
-        background-color: #f7fa52a2;
-        justify-self: center;
-        align-items: center;
-        text-align: center;
-        margin-top: 30px;
-        padding: 0px 30px;
-        border-radius: 10px;
-        font-size: 20px;
-        font-weight: 600;
-        border-style:  dashed;
-        border-color: #00000057;
-
-        p{
-            margin: 30px 20px;
         }
 
-        
+
     }
 
-    .list_entitiesDiv{
-        display: flex;
-        max-height: 70%;
-        background-color: #ffffff;
-        border-radius: 10px;
-        margin: 10px 15px;
-        padding: 10px 0px;
-        overflow-x:auto;
+    hr {
+        width: 100%;
 
-        table{
-            text-align: left;
-            width: 100%;
+    }
 
-            /*Heads Table*/
-            tr{
+    section {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 20px;
+        width: 100%;
+        max-width: 1200px;
 
-                th{
-                    border-width: 1px;
-                    border-color: #d8d5d5d5;
-                    border-bottom-style: solid;
-                    padding: 5px 35px;
-                }
+        .divOption {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            border: none;
+            padding: 30px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all .3s ease;
+            text-align: center;
+            box-shadow: 0 5px 15px #667eea4d;
+            font-size: 18px;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
 
-                td{
-                    font-size: 14px;
-                    border-width: 1px;
-                    border-color: #d8d5d5d5;
-                    border-bottom-style: solid;
-                    padding: 5px 35px;
-                }
+            .iconFiltro {
+                font-size: 48px;
+                margin-bottom: 15px;
+                opacity: 0.95;
+                z-index: 1;
+                transition: transform 0.3s ease;
 
-                #th_ID,
-                #td_ID {
-                    padding: 0px 5px;
-                    position: sticky;
-                    left: 0;
-                    text-align: center;
-                    z-index: 2;
-                    background: white;
-                }
-
-                #th_CodigoUnico,
-                #td_CodigoUnico {
-                    text-align: center;
-                    padding: 0px 20px;
-                    position: sticky;
-                    background: #ffffff;
-                    left: 25px;
-                    z-index: 2;
-                }
-
-                #th_NombreAF,
-                #td_NombreAF {
-                    text-align: start;
-                    position: sticky;
-                    background: #ffffff;
-                    box-shadow: 2px 0 0 #ccc;
-                    left: 105px;
-                    z-index: 2;
-
-                    .divNombreAF{
-                        width: 200px;
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                    }
-                }
-
-
-                #th_EstadoAF,
-                #td_EstadoAF{
-                    text-align: center;
-                    white-space: nowrap;
-
-                    .estatus-badge {
-                        padding: 4px 8px;
-                        border-radius: 8px;
-                        font-size: 11px;
-                        font-weight: 600;
-                        text-align: center;
-                        color: white;
-                        min-width: 70px;
-                        display: inline-block;
-                    }
-
-                    .estatus-activo { background-color: #22c55e; }      /* Verde */
-                    .estatus-mantenimiento-revision { background-color: #f97316; } /* Naranja */
-                    .estatus-baja-perdido { background-color: #ef4444; }        /* Rojo */
-                    .estatus-prestado { background-color: #3b82f6; }    /* Azul */
-                    .estatus-default { background-color: #6b7280; }     /* Gris */
-
-                }
-
-                #th_TipoMovimiento,
-                #td_TipoMovimiento{
-                    text-align: center;
-                }
-
-                
-                #th_ResponsableActual,
-                #td_ResponsableActual{
-                    text-align: center;
-
-                    .divResponsableAF{
-                        width: 250px;
-                        overflow: hidden;
-                        text-align: start;
-                        text-overflow: ellipsis;
-                    }
-                }
-
-                #th_DepartamentoResponsable,
-                #td_DepartamentoResponsable{
-                    text-align: center;
-                }
-
-                #th_UbicacionActual,
-                #td_UbicacionActual{
-                    background-color: #e99d5e34;
-                    text-align: center;
-                }
-
-                #th_FechaUltimoMovimiento,
-                #td_FechaUltimoMovimiento{
-                    text-align: center;
-                }
-
-                #th_UltimoMotivoMovimiento,
-                #td_UltimoMotivoMovimiento{
-                    text-align:start;
-
-                    .divMotivoMovimiento{
-                        width: 300px;
-                        overflow: hidden;
-                        text-align: start;
-                        text-overflow: ellipsis;
-                    }
-                }
-
-                #th_FechaCreacion,
-                #td_FechaCreacion{
-                    text-align: center;
-                }
-
-                #th_FechaModificacion,
-                #td_FechaModificacion{
-                    text-align: center;
-                    padding: 10px 35px;
-                    
-                }
-                
-                #th_Acciones,
-                #td_Acciones{
-                    border-width: 1px;
-                    border-color: #d8d5d5d5;
-                    background-color: #ffffff;
-                    border-left-style: solid;
-                    text-align: center;
-                    position: sticky;
-                    right: 0;
-                    box-shadow: -1px 0 0 #ccc;
-                    
-                    .divActions{
-                        display: flex;
-                        justify-content: center;
-
-                        .button_editEntity{
-                            display: flex;
-                            align-items: center;
-                            background-color: transparent;
-                            border: transparent;
-                            color: #007bff;
-                            cursor: pointer;
-                            font-size: 20px;
-
-
-                        }
-
-                        .button_editEntity:hover{
-                            color: #00ccff;
-                        }
-
-                        .button_viewDetails {
-                            display: flex;
-                            align-items: center;
-                            background-color: transparent;
-                            border: transparent;
-                            cursor: pointer;
-                            font-size: 20px;
-
-                        }
-
-                        .button_viewDetails:hover {
-                            color: #00ccff;
-
-                        }
-                    }
-                }
             }
-            
+
+
+
+            &:hover .iconFiltro {
+                transform: scale(1.3);
+            }
+
+            &:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+            }
+
+            &::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+                transition: left 0.5s ease;
+            }
+
+            &:hover::before {
+                left: 100%;
+            }
+
+            h2 {
+                font-size: 22px;
+                font-weight: 700;
+                margin-bottom: 6px;
+                color: #fff;
+                text-align: center;
+                z-index: 1;
+            }
+
+            p {
+                font-size: 14px;
+                color: rgba(255, 255, 255, 0.9);
+                text-align: center;
+                margin-bottom: 0;
+                line-height: 1.5;
+                z-index: 1;
+            }
+
+
         }
+
     }
 
-
-    
 }
 
+.mainDiv_MovimientosIndividual,
+.mainDiv_MovimientosMasivo {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    align-self: stretch;
+
+    .noEntities {
+        align-self: center;
+    }
+}

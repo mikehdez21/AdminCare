@@ -1,23 +1,25 @@
 @keyframes fadeInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-60px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+    from {
+        opacity: 0;
+        transform: translateX(-60px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 @keyframes fadeInRight {
-  from {
-    opacity: 0;
-    transform: translateX(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0px);
-  }
+    from {
+        opacity: 0;
+        transform: translateX(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0px);
+    }
 }
 
 .mainDiv_ActivosControl {
@@ -26,22 +28,22 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 100%;  
+    width: 100%;
     min-height: 100dvh;
     min-height: 0;
 
-     header{
+    header {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
         width: 100%;
 
 
-        .returnButton{
+        .returnButton {
             display: flex;
             justify-content: flex-start;
             padding: 13px;
 
-            button{
+            button {
                 display: flex;
                 gap: 5px;
                 background-color: #da29fd;
@@ -54,28 +56,28 @@
                 padding: 5px 10px;
                 cursor: pointer;
             }
-            
-            p{
+
+            p {
                 display: flex;
                 align-items: center;
                 gap: 5px;
 
-                .iconReturn{
+                .iconReturn {
                     font-size: 18px;
-                    
+
                 }
             }
 
-            
 
-            button:hover{
+
+            button:hover {
                 background-color: #df67f7 !important;
                 color: #000000;
 
             }
         }
 
-        h1{
+        h1 {
             text-align: center;
             color: #383838d5;
             font-size: 25px;
@@ -83,12 +85,12 @@
 
         }
 
-        .verTodosAF{
+        .verTodosAF {
             display: flex;
             justify-content: flex-end;
             padding: 0px 20px;
-            
-            p{
+
+            p {
                 display: flex;
                 gap: 5px;
                 color: #38383857;
@@ -100,13 +102,13 @@
                 padding: 5px 10px;
                 cursor: pointer;
 
-                .iconList{
+                .iconList {
                     font-size: 16px;
-                    
+
                 }
             }
 
-            p:hover{
+            p:hover {
                 background: linear-gradient(135deg, #667eea, #764ba2);
                 transition: all .3s ease;
                 color: #ffffff;
@@ -116,22 +118,20 @@
 
     }
 
-    hr{
+    hr {
         width: 100%;
-        margin-bottom: 20px;
 
     }
 
-    section{
+    section {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        grid-template-rows: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(1, 1fr);
         gap: 20px;
         width: 100%;
         max-width: 1200px;
 
-        .divAFDepartamento, .divAFUbicacion,
-        .divAFClasificacion, .divAFBajas{
+        .divOption {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -150,7 +150,7 @@
             position: relative;
             overflow: hidden;
 
-            .iconFiltro{
+            .iconFiltro {
                 font-size: 48px;
                 margin-bottom: 15px;
                 opacity: 0.95;
@@ -159,18 +159,18 @@
 
             }
 
-            
 
-            &:hover .iconFiltro{
+
+            &:hover .iconFiltro {
                 transform: scale(1.3);
             }
 
-            &:hover{
+            &:hover {
                 transform: translateY(-8px);
                 box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
             }
 
-            &::before{
+            &::before {
                 content: '';
                 position: absolute;
                 top: 0;
@@ -181,11 +181,11 @@
                 transition: left 0.5s ease;
             }
 
-            &:hover::before{
+            &:hover::before {
                 left: 100%;
             }
 
-            h2{
+            h2 {
                 font-size: 22px;
                 font-weight: 700;
                 margin-bottom: 6px;
@@ -194,7 +194,7 @@
                 z-index: 1;
             }
 
-            p{
+            p {
                 font-size: 14px;
                 color: rgba(255, 255, 255, 0.9);
                 text-align: center;
@@ -203,43 +203,32 @@
                 z-index: 1;
             }
 
-            
+
         }
 
     }
 
-    .mainDiv_AFDepartamentos, .mainDiv_AFUbicaciones,
-    .mainDiv_AFClasificaciones, .mainDiv_AF, .mainDiv_ListActivosFijos{
+    .mainDiv_AFDepartamentos,
+    .mainDiv_AFUbicaciones,
+    .mainDiv_AFClasificaciones,
+    .mainDiv_AFBajas,
+    .mainDiv_AF,
+    .mainDiv_ListActivosFijos {
         display: flex;
         flex-direction: column;
-        flex: 1 1 auto;  
-        min-height: 0;    
+        flex: 1 1 auto;
+        min-height: 0;
         align-self: stretch;
 
-        .noEntities{
+        .noEntities {
             align-self: center;
         }
 
     }
 
-    
 
-    
-    
-    
+
+
+
+
 }
-
-.mainDiv_AF{
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
-    width: 100%;
-    min-height: 0;
-    padding: 18px;
-    box-sizing: border-box;
-
-    
-}
-
-
-

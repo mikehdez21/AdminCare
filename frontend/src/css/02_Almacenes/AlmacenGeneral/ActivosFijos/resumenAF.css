@@ -1,0 +1,231 @@
+.resumen-af-container {
+    width: 100%;
+    max-width: 92vw;
+    margin: 0 auto;
+    padding: 1rem;
+    color: #0f172a;
+}
+
+.resumen-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.9rem;
+}
+
+.resumen-header h1 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-left: 30px;
+}
+
+.resumen-af-container .buttonDelete {
+    background: #3f5fee;
+    color: #f8fafc;
+    display: flex;
+    gap: 5px;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.18s ease, background-color 0.18s ease;
+}
+
+.resumen-af-container .buttonDelete:hover {
+    background: #163377;
+    transform: translateY(-1px);
+}
+
+.total-general {
+    display: flex;
+    background: linear-gradient(135deg, #163377 0%, #753ad4 100%);
+    color: #f8fafc;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 0.8rem 0.95rem;
+
+    section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-direction: column;
+        gap: 0.25rem;
+
+        .label {
+            font-size: 0.86rem;
+            opacity: 0.9;
+            font-weight: 600;
+        }
+
+        .valor {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+    }
+}
+
+.graficos-section {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-top: 0.9rem;
+}
+
+.grafico-container {
+    background: #ffffff;
+    border: 1px solid #dbeafe;
+    border-top: 4px solid #3b82f6;
+    border-radius: 10px;
+    padding: 0.75rem;
+    box-shadow: 0 8px 24px rgba(30, 41, 59, 0.08);
+}
+
+.graficos-section .grafico-container:nth-child(1) {
+    grid-column: span 7;
+}
+
+.graficos-section .grafico-container:nth-child(2) {
+    grid-column: span 5;
+}
+
+.grafico-container h3 {
+    margin: 0 0 0.65rem;
+    font-size: 0.96rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.tabla-section {
+    margin-top: 0.9rem;
+    background: #ffffff;
+    border: 1px solid #dbeafe;
+    border-top: 4px solid #3b82f6;
+    border-radius: 10px;
+    padding: 0.75rem;
+    box-shadow: 0 8px 24px rgba(30, 41, 59, 0.08);
+}
+
+.tabla-section h3 {
+    margin: 0 0 0.65rem;
+    font-size: 0.96rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.tabla-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.tabla-activos {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+}
+
+.tabla-activos th,
+.tabla-activos td {
+    text-align: left;
+    padding: 0.55rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.tabla-activos th {
+    background: #f8fafc;
+    color: #2f5994;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.tabla-activos td {
+    background: #ffffff;
+    color: #334155;
+}
+
+.tabla-activos .numero {
+    font-variant-numeric: tabular-nums;
+}
+
+.tabla-activos .total {
+    color: #0f172a;
+    font-weight: 700;
+}
+
+.fila-total td {
+    background: #f8fafc;
+    border-top: 2px solid #cbd5e1;
+}
+
+.noEntities {
+    background: #ffffff;
+    border: 1px dashed #94a3b8;
+    border-radius: 10px;
+    padding: 1.2rem;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    font-weight: 600;
+}
+
+@media (max-width: 1200px) {
+
+    .graficos-section .grafico-container:nth-child(1),
+    .graficos-section .grafico-container:nth-child(2) {
+        grid-column: span 12;
+    }
+}
+
+@media (max-width: 900px) {
+    .resumen-af-container {
+        max-width: 100%;
+        padding: 0.7rem;
+    }
+
+    .resumen-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .total-general {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .tabla-activos {
+        font-size: 0.82rem;
+    }
+}
+
+/* Animaciones */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}

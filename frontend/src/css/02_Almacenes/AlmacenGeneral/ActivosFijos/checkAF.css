@@ -8,49 +8,85 @@
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 
     .headerCheckAF {
+        display: flex;
+        flex-direction: column;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         padding: 20px 24px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        display: flex;
-        flex-direction: column;
 
-        h2 {
+
+        .infoCheck {
             display: flex;
-            gap: 20px;
-            margin: 0 0 16px 0;
-            font-size: 24px;
-            font-weight: 600;
-            letter-spacing: -0.5px;
+            justify-content: space-between;
 
-            button {
+
+            h2 {
+                margin: 0px;
+                font-size: 24px;
+                font-weight: 700;
+                letter-spacing: -0.5px;
+
+            }
+
+            .buttonsHeader {
                 display: flex;
-                align-items: center;
-                gap: 8px;
-                padding: 8px 16px;
-                background-color: #c55022;
-                color: white;
-                border: none;
-                border-radius: 6px;
-                cursor: pointer;
-                font-size: 14px;
-                font-weight: 500;
-                transition: all 0.2s ease;
+                gap: 12px;
 
-                &:hover {
-                    background-color: #ac380bd5;
-                    transform: translateY(-2px);
-                    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+                .buttonPDF {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    padding: 8px 16px;
+                    background-color: #c55022;
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    font-weight: 500;
+                    transition: all 0.2s ease;
+
+                    &:hover {
+                        background-color: #ac380bd5;
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+                    }
+
+                    svg {
+                        width: 16px;
+                        height: 16px;
+                    }
                 }
 
-                svg {
-                    width: 16px;
-                    height: 16px;
+                .buttonRegresar {
+                    display: flex;
+                    align-items: center;
+                    background: #3f5fee;
+                    color: #f8fafc;
+                    gap: 5px;
+                    border: 1px solid #334155;
+                    border-radius: 8px;
+                    font-size: 0.85rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: transform 0.18s ease, background-color 0.18s ease;
+
+                    &:hover {
+                        background: #163377;
+                        transform: translateY(-1px);
+                    }
                 }
             }
+
         }
 
-
+        h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 500;
+            opacity: 0.9;
+        }
 
         .estadisticas {
             display: flex;
