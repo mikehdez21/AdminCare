@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Departamento;
 use App\Models\Ubicacion;
 use App\Models\AlmacenGeneral\Clasificaciones;
+use App\Models\Empleado;
 
 
 class ActivosFijosController extends Controller
@@ -215,6 +216,53 @@ class ActivosFijosController extends Controller
         }
     }
 
+    // Por Empleado
+    public function getActivosPorResponsable($idEmpleado)
+    {
+        try {
+            $empleado = Empleado::find($idEmpleado);
+            $activosPorEmpleado = ActivosFijos::porResponsable($idEmpleado)
+                ->get()
+                ->map(function (ActivosFijos $activo) {
+                    return [
+                        'id_activo_fijo' => $activo->id_activo_fijo,
+                        'codigo_unico' => $activo->codigo_unico,
+                        'codigo_etiqueta' => $activo->codigo_etiqueta,
+                        'codigo_lote' => $activo->codigo_lote,
+                        'lote_afconsecutivo' => $activo->lote_afconsecutivo,
+                        'lote_total' => $activo->lote_total,
+                        'nombre_af' => $activo->nombre_af,
+                        'descripcion_af' => $activo->descripcion_af,
+                        'modelo_af' => $activo->modelo_af,
+                        'marca_af' => $activo->marca_af,
+                        'numero_serie_af' => $activo->numero_serie_af,
+                        'precio_unitario_af' => $activo->precio_unitario_af,
+                        'af_propio' => $activo->af_propio,
+                        'id_estado_af' => $activo->id_estado_af,
+                        'id_clasificacion' => $activo->id_clasificacion,
+                        'fecha_registro_af' => $activo->fecha_registro_af,
+                        'observaciones_af' => $activo->observaciones_af,
+                        'ubicacion_actual' => $activo->ubicacion_actual,
+                        'fecha_ultimo_movimiento' => $activo->fecha_ultimo_movimiento,
+                        'created_at' => $activo->created_at,
+                        'updated_at' => $activo->updated_at,
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'empleado' => $empleado?->nombre_empleado . ' ' . $empleado?->apellido_paterno . ' ' . $empleado?->apellido_materno,
+                'data' => $activosPorEmpleado,
+                'message' => 'Activos fijos por empleado obtenidos exitosamente.'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener activos fijos por empleado: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     // Activos Fijos Dados de Baja
     public function getActivosDadosDeBaja()
     {
@@ -230,6 +278,25 @@ class ActivosFijosController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener activos fijos dados de baja: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // Activos Fijos No Propios
+    public function getActivosNoPropios()
+    {
+        try {
+            $activosNoPropios = ActivosFijos::noPropios()->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $activosNoPropios,
+                'message' => 'Activos fijos no propios obtenidos exitosamente.'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener activos fijos no propios: ' . $e->getMessage()
             ], 500);
         }
     }

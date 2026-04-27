@@ -17,6 +17,9 @@ class ActivosFijos extends Model
 
     protected $table = 'almacengeneral.tableAF_ActivosFijos';
     protected $primaryKey = 'id_activo_fijo';
+    protected $appends = [
+        'ubicacion_actual',
+    ];
 
     protected $fillable = [
         'codigo_unico',
@@ -145,7 +148,10 @@ class ActivosFijos extends Model
 
     public function scopePorResponsable($query, $empleadoId)
     {
-        return $query->whereHas('ultimoMovimiento', function ($q) use ($empleadoId) {
+        return $query->with([
+            'ultimoMovimiento.ubicacionActual',
+            'ultimoMovimiento.responsableActual',
+        ])->whereHas('ultimoMovimiento', function ($q) use ($empleadoId) {
             $q->where('id_responsable_actual', $empleadoId);
         });
     }
@@ -156,6 +162,12 @@ class ActivosFijos extends Model
         return $query->whereHas('estado', function ($q) {
             $q->where('descripcion_estatusaf', 'Dado de Baja');
         });
+    }
+
+    // Obtener los activos marcados como no propios
+    public function scopeNoPropios($query)
+    {
+        return $query->where('af_propio', false);
     }
 
 
