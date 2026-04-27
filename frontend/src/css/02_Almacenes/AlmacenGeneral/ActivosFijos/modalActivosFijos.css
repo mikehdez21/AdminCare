@@ -1,207 +1,231 @@
-.modalComponent_AlmacenAF {
+.resumen-af-container {
     width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    max-width: 92vw;
+    margin: 0 auto;
+    padding: 1rem;
+    color: #0f172a;
+}
+
+.resumen-header {
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.9rem;
+}
 
-    h2{
-        justify-self: center;
-        margin: 0 0 10px 0;
-    }
+.resumen-header h1 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-left: 30px;
+}
 
-    .modalActivosFijos{
-        background-color: #ffffff;
-        border-radius: 15px;
-        padding: 15px;
+.resumen-af-container .buttonDelete {
+    background: #3f5fee;
+    color: #f8fafc;
+    display: flex;
+    gap: 5px;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.18s ease, background-color 0.18s ease;
+}
 
-        .titleCódigoÚnicoAF{
-            margin: 0;
-            color: #666;
+.resumen-af-container .buttonDelete:hover {
+    background: #163377;
+    transform: translateY(-1px);
+}
+
+.total-general {
+    display: flex;
+    background: linear-gradient(135deg, #163377 0%, #753ad4 100%);
+    color: #f8fafc;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 0.8rem 0.95rem;
+
+    section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-direction: column;
+        gap: 0.25rem;
+
+        .label {
+            font-size: 0.86rem;
+            opacity: 0.9;
             font-weight: 600;
-            text-align: center;
-
-            .textCódigoUnico{
-                margin: 0;
-                font-size: 20px;
-                color: #a412dd;
-                font-weight: 700;
-            }
         }
 
-        .divInputs_AddEdit_ActivoFijo{
-
-            .form_AddEdit_ActivoFijo{
-
-                label{
-                display: flex;
-                flex-direction: column;
-                font-size: 13px;
-                text-align: left;
-                margin-top: 10px;
-                font-weight: bold;
-
-                .emailInput{
-                    display: flex;
-                    gap: 5px;
-                    align-items: center;
-                    
-                    input{
-                        flex: 1;
-                    }
-                    
-                }
-                }
-
-                input, select{
-                    padding: 8px;
-                    margin-top: 5px;
-                    border: 1px solid #ccc;
-                    border-radius: 4px;
-                    font-size: 14px;
-                    text-align: center;
-                }
-
-                .dataInputs_ActivoFijo{
-                    display: flex;
-                    gap: 10px;
-
-
-                    .addActivoFijo_FirstColumn{
-                        background-color: #80808046;
-                        padding: 10px;
-                        border-radius: 10px;
-                        gap: 15px;
-                        
-                        .inputs_addActivoFijo {
-                            display: grid;
-                            grid-template-columns: repeat(3, 1fr);
-                            gap: 10px;
-                        }
-                        
-
-                        
-
-                        
-                    }
-
-                    .asignacionAF_SecondColumn{
-                        
-                        background-color: #80808046;
-                        padding: 10px;
-                        border-radius: 10px;
-                        gap: 15px;
-                        position: relative;
-
-                        .divInfoAsignación{
-                            display: none; /* Oculto por defecto */
-                            position: absolute;
-                            top: 50%;
-                            left: 50%;
-                            
-                            transform: translate(-50%, -50%);
-                            width: 260px;
-                            height: 330px;
-                            z-index: 10;
-                            background-color: #f8f9fa;
-                            border: 2px solid #e9ecef; 
-                            border-radius: 8px;
-                            padding: 15px;
-                            border-left-color: #17a2b8;
-                            border-left-width: 4px;
-                            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-                            transition: all 0.3s ease;
-
-                            div{
-                                display: block;
-                                color: #495057;
-                                font-size: 20px;
-                                font-weight: 500;
-
-                                span{
-                                    font-size: 18px; 
-                                    margin-right: 8px;
-                                    color: #17a2b8;
-                                }
-
-                                p{
-                                    margin: 20px 0 0 5px; 
-                                    color: #6c757d;
-                                    font-size: 18px;
-                                    line-height: 1.4;
-
-                                    strong{
-                                        color: #17a2b8;
-                                    }
-                                }
-                            }
-
-                            
-                            
-                        }
-
-                        /* Mostrar el div de información al hacer hover */
-                        &:hover .divInfoAsignación {
-                            display: block;
-                        }
-
-                        .inputs_asignacionAF{
-                            .textarea_motivoMovimientoAF{
-                                font-family: system-ui;
-                                height: 80px;
-                                padding: 8px;
-                                border: 1px solid #ccc;
-                                border-radius: 4px;
-                                font-size: 14px;
-                            }
-                        }
-                        
-
-                    }
-
-                    
-                }
-            }
-            
+        .valor {
+            font-size: 1rem;
+            font-weight: 700;
         }
 
-        .divDeleteActivoFijo{
-            display: flex;
-            flex-direction: column;
-            padding: 15px;
-            background-color: #ececec;
-            border: 2px solid #b31500;
-            border-radius: 10px;
-            align-items: center;
-            gap: 20px;
+    }
+}
 
+.graficos-section {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-top: 0.9rem;
+}
 
-            p{
-                text-align: center;
+.grafico-container {
+    background: #ffffff;
+    border: 1px solid #dbeafe;
+    border-top: 4px solid #3b82f6;
+    border-radius: 10px;
+    padding: 0.75rem;
+    box-shadow: 0 8px 24px rgba(30, 41, 59, 0.08);
+}
 
-                small{
-                    font-size: 15px;
-                    font-weight: 500;
-                    color: #b31500;
-                }
+.graficos-section .grafico-container:nth-child(1) {
+    grid-column: span 7;
+}
 
-            }
+.graficos-section .grafico-container:nth-child(2) {
+    grid-column: span 5;
+}
 
-            ul{
-                margin: 0px;
-                padding: 0px;
-                list-style: none;
-                
-            }
+.grafico-container h3 {
+    margin: 0 0 0.65rem;
+    font-size: 0.96rem;
+    font-weight: 700;
+    color: #0f172a;
+}
 
+.tabla-section {
+    margin-top: 0.9rem;
+    background: #ffffff;
+    border: 1px solid #dbeafe;
+    border-top: 4px solid #3b82f6;
+    border-radius: 10px;
+    padding: 0.75rem;
+    box-shadow: 0 8px 24px rgba(30, 41, 59, 0.08);
+}
 
-                
-        }
+.tabla-section h3 {
+    margin: 0 0 0.65rem;
+    font-size: 0.96rem;
+    font-weight: 700;
+    color: #0f172a;
+}
 
-        
+.tabla-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
 
-        
+.tabla-activos {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+}
+
+.tabla-activos th,
+.tabla-activos td {
+    text-align: left;
+    padding: 0.55rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.tabla-activos th {
+    background: #f8fafc;
+    color: #2f5994;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.tabla-activos td {
+    background: #ffffff;
+    color: #334155;
+}
+
+.tabla-activos .numero {
+    font-variant-numeric: tabular-nums;
+}
+
+.tabla-activos .total {
+    color: #0f172a;
+    font-weight: 700;
+}
+
+.fila-total td {
+    background: #f8fafc;
+    border-top: 2px solid #cbd5e1;
+}
+
+.noEntities {
+    background: #ffffff;
+    border: 1px dashed #94a3b8;
+    border-radius: 10px;
+    padding: 1.2rem;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    font-weight: 600;
+}
+
+@media (max-width: 1200px) {
+
+    .graficos-section .grafico-container:nth-child(1),
+    .graficos-section .grafico-container:nth-child(2) {
+        grid-column: span 12;
+    }
+}
+
+@media (max-width: 900px) {
+    .resumen-af-container {
+        max-width: 100%;
+        padding: 0.7rem;
     }
 
+    .resumen-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .total-general {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .tabla-activos {
+        font-size: 0.82rem;
+    }
+}
+
+/* Animaciones */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }

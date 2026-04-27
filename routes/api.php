@@ -109,8 +109,10 @@ Route::prefix('HSS1')->group(function () {
         Route::get('/almacengeneral/activosfijos/departamento/{idDepartamento}', [ActivosFijosController::class, 'getActivosPorDepartamento']);
         Route::get('/almacengeneral/activosfijos/ubicacion/{idUbicacion}', [ActivosFijosController::class, 'getActivosPorUbicacion']);
         Route::get('/almacengeneral/activosfijos/clasificacion/{idClasificacion}', [ActivosFijosController::class, 'getActivosPorClasificacion']);
+        Route::get('/almacengeneral/activosfijos/responsable/{idEmpleado}', [ActivosFijosController::class, 'getActivosPorResponsable']);
         Route::get('/almacengeneral/activosfijos-bajas', [ActivosFijosController::class, 'getActivosDadosDeBaja']);
-        
+        Route::get('/almacengeneral/activosfijos-nopropios', [ActivosFijosController::class, 'getActivosNoPropios']);
+
         // ACTIVOS FIJOS - MOVIMIENTOS 
         Route::apiResource('/almacengeneral/movimientos-activosfijos', MovimientosActivosFijosController::class);
         Route::get('/almacengeneral/tipos-estatusaf', [ActivosFijosController::class, 'getEstatusActivosFijos']);
