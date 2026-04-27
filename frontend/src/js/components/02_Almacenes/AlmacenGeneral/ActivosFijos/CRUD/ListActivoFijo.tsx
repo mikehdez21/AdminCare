@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 
 // Activos Fijos
 import { ActivosFijos } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
-import { getActivosFijos, getActivosFijosPorClasificacion, getActivosFijosPorDepartamento, getActivosFijosPorUbicacion, getActivosFijosDadosDeBaja } from '@/store/almacengeneral/Activos/activosActions';
+import { getActivosFijos, getActivosFijosDadosDeBaja, getActivosFijosNoPropios, getActivosFijosPorClasificacion, getActivosFijosPorDepartamento, getActivosFijosPorResponsable, getActivosFijosPorUbicacion } from '@/store/almacengeneral/Activos/activosActions';
 
 // Componentes
 import Paginacion from '@/components/00_Utils/Paginacion';
@@ -15,6 +15,7 @@ import AddActivoFijo from './AddActivoFijo';
 import EditActivoFijo from './EditActivoFijo';
 import DeleteActivoFijo from './DeleteActivoFijo';
 import CheckAF from '../CheckAFs';
+import ResumenAF from '../ResumenAF';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 
 
@@ -23,6 +24,7 @@ import { IoAddCircleOutline } from 'react-icons/io5';
 import { MdEdit, MdDeleteForever } from 'react-icons/md';
 import { FiAlertTriangle } from 'react-icons/fi';
 import { FaListCheck } from "react-icons/fa6";
+import { FaChartBar } from "react-icons/fa";
 
 
 
@@ -33,11 +35,13 @@ interface ListActivoFijoProps {
   DepartamentoSeleccionado?: number;
   UbicacionSeleccionada?: number;
   ClasificacionSeleccionada?: number;
+  EmpleadoSeleccionado?: number;
   ActivosBajas?: boolean;
+  ActivosNoPropios?: boolean;
 }
 
 
-const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccionado, UbicacionSeleccionada, ClasificacionSeleccionada, ActivosBajas }) => {
+const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccionado, UbicacionSeleccionada, ClasificacionSeleccionada, EmpleadoSeleccionado, ActivosBajas, ActivosNoPropios }) => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
 
@@ -50,6 +54,7 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
   const [isModalDeleteActivoFijoOpen, setModalDeleteActivoFijoOpen] = useState(false);
 
   const [isCheckAFOpen, setCheckAFOpen] = useState<boolean>(false);
+  const [isResumenAFOpen, setResumenAFOpen] = useState<boolean>(false);
   const [isListActivosOpen, setListActivosOpen] = useState<boolean>(true);
 
   const [actualizarActivosFijos, setActualizarActivosFijos] = useState(false);
@@ -60,6 +65,7 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
     if (DepartamentoSeleccionado) {
       const cargarAFporDepartamento = async () => {
         try {
+
           const resultAction = await dispatch(getActivosFijosPorDepartamento(DepartamentoSeleccionado!)).unwrap();
           console.log('Activos Fijos por Departamento cargados:', resultAction.activosFijos);
           if (resultAction.success && resultAction.activosFijos) {
@@ -71,6 +77,8 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
         } catch (error) {
           console.error('Error al cargar los activos fijos por departamento:', error);
         }
+
+
       };
       cargarAFporDepartamento();
 
@@ -106,6 +114,21 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
       };
       cargarAFporClasificacion();
 
+    } else if (EmpleadoSeleccionado) {
+      const cargarAFporEmpleado = async () => {
+        try {
+          const resultAction = await dispatch(getActivosFijosPorResponsable(EmpleadoSeleccionado!)).unwrap();
+          console.log('Activos Fijos por Empleado cargados:', resultAction.activosFijos);
+          if (resultAction.success && resultAction.activosFijos) {
+            setActivosFiltrados(resultAction.activosFijos);
+          } else {
+            setActivosFiltrados([]);
+          }
+        } catch (error) {
+          console.error('Error al cargar los activos fijos por empleado:', error);
+        }
+      };
+      cargarAFporEmpleado();
     } else if (ActivosBajas) {
       navigate('/almacen_general/activosfijos-bajas');
       const cargarAFBajas = async () => {
@@ -123,7 +146,22 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
       };
       cargarAFBajas();
 
-    } else if (!DepartamentoSeleccionado && !UbicacionSeleccionada && !ClasificacionSeleccionada) {
+    } else if (ActivosNoPropios) {
+      const cargarAFNoPropios = async () => {
+        try {
+          const resultAction = await dispatch(getActivosFijosNoPropios()).unwrap();
+          console.log('Activos Fijos no propios cargados:', resultAction.activosFijos);
+          if (resultAction.success && resultAction.activosFijos) {
+            setActivosFiltrados(resultAction.activosFijos);
+          } else {
+            setActivosFiltrados([]);
+          }
+        } catch (error) {
+          console.error('Error al cargar los activos fijos no propios:', error);
+        }
+      };
+      cargarAFNoPropios();
+    } else if (!DepartamentoSeleccionado && !UbicacionSeleccionada && !ClasificacionSeleccionada && !EmpleadoSeleccionado && !ActivosBajas && !ActivosNoPropios) {
       const cargarActivosFijos = async () => {
         navigate('/almacen_general/activosfijos');
         try {
@@ -157,9 +195,19 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
       cargarActivosFijos();
     }
 
-  }, [DepartamentoSeleccionado, UbicacionSeleccionada, ClasificacionSeleccionada, actualizarActivosFijos, dispatch]);
+  }, [
+    DepartamentoSeleccionado,
+    UbicacionSeleccionada,
+    ClasificacionSeleccionada,
+    EmpleadoSeleccionado,
+    ActivosBajas,
+    ActivosNoPropios,
+    actualizarActivosFijos,
+    dispatch,
+    navigate,
+  ]);
 
-const infoDepartamento = useSelector((state: RootState) => {
+  const infoDepartamento = useSelector((state: RootState) => {
     if (DepartamentoSeleccionado) {
       const nombreDepartamento = state.departamentos.departamentos.find(depto => depto.id_departamento === DepartamentoSeleccionado)?.nombre_departamento;
       return { ...state.departamentos.departamentos.find(depto => depto.id_departamento === DepartamentoSeleccionado), nombre_departamento: nombreDepartamento };
@@ -177,6 +225,33 @@ const infoDepartamento = useSelector((state: RootState) => {
     }
   });
 
+  const infoClasificacion = useSelector((state: RootState) => {
+    if (ClasificacionSeleccionada) {
+      const nombreClasificacion = state.clasificacion.clasificacionesAF.find(clasif => clasif.id_clasificacion === ClasificacionSeleccionada)?.nombre_clasificacion;
+      return { ...state.clasificacion.clasificacionesAF.find(clasif => clasif.id_clasificacion === ClasificacionSeleccionada), nombre_clasificacion: nombreClasificacion };
+    } else {
+      return undefined;
+    }
+  });
+
+  const infoLugarSeleccionado = () => {
+    if (DepartamentoSeleccionado && infoDepartamento) {
+      return 'Activos del Departamento: ' + infoDepartamento.nombre_departamento;
+    }
+    if (UbicacionSeleccionada && infoUbicacion) {
+      return 'Activos de la Ubicación: ' + infoUbicacion.nombre_ubicacion;
+    }
+    if (ClasificacionSeleccionada && infoClasificacion) {
+      return 'Activos de la Clasificación: ' + infoClasificacion.nombre_clasificacion;
+    }
+    if (ActivosBajas) {
+      return 'Activos Dados de Baja';
+    }
+    if (ActivosNoPropios) {
+      return 'Activos que No son Propios';
+    }
+    return 'Todos los Activos';
+  };
 
 
   const totalActivosFijos = activosFiltrados.length;
@@ -261,9 +336,9 @@ const infoDepartamento = useSelector((state: RootState) => {
   }
 
   // Checar ActivosFijos
-
   const openCheckAF = () => {
     setCheckAFOpen(true);
+    setResumenAFOpen(false);
     setListActivosOpen(false);
   }
 
@@ -275,20 +350,49 @@ const infoDepartamento = useSelector((state: RootState) => {
   const renderCheckAF = () => (
 
     <div className='mainDiv_CheckAF'>
-      <CheckAF isOpen={isCheckAFOpen} onClose={closeCheckAF} listActivos={activosFiltrados} infoLugar={infoDepartamento?.nombre_departamento || infoUbicacion?.nombre_ubicacion} />
+      <CheckAF
+        isOpen={isCheckAFOpen}
+        onClose={closeCheckAF}
+        listActivos={activosFiltrados}
+        infoLugar={infoLugarSeleccionado()}
+      />
     </div>
 
   );
 
+
+  // Resumen de Activos
+  const openResumenAF = () => {
+    setResumenAFOpen(true);
+    setCheckAFOpen(false);
+    setListActivosOpen(false);
+  }
+
+  const closeResumenAF = () => {
+    setResumenAFOpen(false);
+    setListActivosOpen(true);
+  }
+
+  const renderResumenAF = () => (
+    <div className='mainDiv_ResumenAF'>
+      <ResumenAF isOpen={isResumenAFOpen} onClose={closeResumenAF} listActivos={activosFiltrados} infoLugar={infoLugarSeleccionado()} />
+    </div>
+  );
+
+
   const renderListActivosFijos = () => (
     <div className='mainDiv_ListActivosFijos'>
+
       <div className='searchAdd_ButtonDiv'>
 
-        <div className='text_Div'>
+        <div>
           <p>Mostrando {activosFijosPaginaActual.length} de {totalActivosFijos} activos fijos</p>
+
         </div>
 
-        <div className='buttons_Div'>
+
+        <div className='search_Div'>
+
           <select className='selectList' value={activosFijosPorPagina} onChange={handleChangeActivosFijosPorPagina}>
             <option value={5}>5</option>
             <option value={10}>10</option>
@@ -303,12 +407,24 @@ const infoDepartamento = useSelector((state: RootState) => {
             onChange={handleSearch}
           />
 
-          <button className='buttonAdd' onClick={openModalAddActivoFijo}>
-            <IoAddCircleOutline className='iconAdd' /> Nuevo Activo Fijo
-          </button>
+        </div>
+
+        <div className='buttons_Div'>
+
+
+          {/* Mostrar solo cuando es ver todos los activos */}
+          {(!DepartamentoSeleccionado && !UbicacionSeleccionada && !ClasificacionSeleccionada && !EmpleadoSeleccionado && !ActivosBajas && !ActivosNoPropios) && (
+            <button className='buttonAdd' onClick={openModalAddActivoFijo}>
+              <IoAddCircleOutline className='iconAdd' /> <p>  Nuevo Activo Fijo </p>
+            </button>
+          )}
 
           <button className='checkAF' onClick={openCheckAF}>
-            <FaListCheck className='iconCheck' />
+            <FaListCheck className='iconCheck' /> <p> Inventario </p>
+          </button>
+
+          <button className='resumenAF' onClick={openResumenAF}>
+            <FaChartBar className='iconResumen' /> <p> Resumen </p>
           </button>
         </div>
 
@@ -483,7 +599,9 @@ const infoDepartamento = useSelector((state: RootState) => {
     <>
       {isListActivosOpen
         ? renderListActivosFijos()
-        : renderCheckAF()}
+        : isCheckAFOpen
+          ? renderCheckAF()
+          : renderResumenAF()}
     </>
 
 
