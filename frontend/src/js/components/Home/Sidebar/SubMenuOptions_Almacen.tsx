@@ -2,20 +2,19 @@
 // Bibliotecas
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux'; 
-import { setSelectedSection } from '@/store/sectionReducer'; 
+import { useDispatch } from 'react-redux';
+import { setSelectedSection } from '@/store/sectionReducer';
 
 // Icons
 import { MdInventory, MdWarehouse, MdCleanHands, MdOutlineKeyboardArrowUp } from 'react-icons/md';
-import { FaPills } from 'react-icons/fa6';
 
 
 
 interface MenuOptions_ParentProps {
-    selectedSection: string;
-    role: string;
-    departamento: string;
-  }
+  selectedSection: string;
+  role: string;
+  departamento: string;
+}
 
 const SubMenuOptions_Almacen: React.FC<MenuOptions_ParentProps> = ({ selectedSection, role, departamento }) => {
   const navigate = useNavigate();
@@ -47,12 +46,12 @@ const SubMenuOptions_Almacen: React.FC<MenuOptions_ParentProps> = ({ selectedSec
 
         <div
           className={
-            ['AlmacenGeneral', 'ServiciosGenerales', 'FarmaciaInterna'].includes(selectedSection)
+            ['Almacen', 'ServiciosGenerales', 'FarmaciaInterna'].includes(selectedSection)
               ? 'SubMenu_IconTitle sidebar_SectionSelected'
               : 'SubMenu_IconTitle'
           }
         >
-          <MdInventory className='iconOption_Sidebar'/> 
+          <MdInventory className='iconOption_Sidebar' />
           <span>Almacenes </span>
           <MdOutlineKeyboardArrowUp className={`IconSubMenuArrow ${isAlmacenRotated ? 'rotate' : ''}`} />
         </div>
@@ -65,17 +64,17 @@ const SubMenuOptions_Almacen: React.FC<MenuOptions_ParentProps> = ({ selectedSec
             <ul>
 
 
-              {(role === 'Admin' || departamento === 'AlmacenGeneral') && (
+              {(role === 'Admin' || role === 'JAlmacenGeneral') && (
                 <li
-                  onClick={() => handleSelectSection('AlmacenGeneral', '/almacen_general')}
+                  onClick={() => handleSelectSection('Almacen', '/almacen_general')}
                   id='SubMenu_Option'
-                  className={`subMenuOption delayOption1 ${selectedSection === 'AlmacenGeneral' ? 'sidebar_Section_SubMenuSelected' : ''}`}
+                  className={`subMenuOption delayOption1 ${selectedSection === 'Almacen' ? 'sidebar_Section_SubMenuSelected' : ''}`}
                 >
-                  
-                  <MdWarehouse /> <p>Almacen General</p> 
+
+                  <MdWarehouse /> <p>Almacen General</p>
                 </li>
               )}
-                    
+
 
               {(role === 'Admin' || departamento === 'ServiciosGenerales') && (
                 <li
@@ -83,27 +82,15 @@ const SubMenuOptions_Almacen: React.FC<MenuOptions_ParentProps> = ({ selectedSec
                   id='SubMenu_Option'
                   className={`subMenuOption delayOption2 ${selectedSection === 'ServiciosGenerales' ? 'sidebar_Section_SubMenuSelected' : ''}`}
                 >
-                  
+
                   <MdCleanHands /> <p>Servicios Generales</p>
-                </li>
-              )}
-
-              {(role === 'Admin' || departamento === 'FarmaciaInterna') && (
-
-                <li
-                  onClick={() => handleSelectSection('FarmaciaInterna', '/farmacia_interna')}
-                  id='SubMenu_Option'
-                  className={`subMenuOption delayOption3 ${selectedSection === 'FarmaciaInterna' ? 'sidebar_Section_SubMenuSelected' : ''}`}
-                >
-                  
-                  <FaPills /> <p>Farmacia Interna</p>
                 </li>
               )}
 
 
             </ul>
           )}
-          
+
         </div>
       </div>
     </div>
