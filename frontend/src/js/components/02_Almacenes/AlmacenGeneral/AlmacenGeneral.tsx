@@ -9,6 +9,7 @@ import AlmacenGeneral_Activos from './ActivosFijos/ActivosFijosControl';
 import AlmacenGeneral_MovimientosAF from './MovimientosAF/MovimientosAFControl';
 import AlmacenGeneral_ControlProveedor from './Proveedores/ProveedorControl';
 import AlmacenGeneral_ControlClasificacion from './Parametros/Clasificaciones/ClasificacionControl';
+import AlmacenGeneralCharts from './AlmacenGeneralCharts';
 
 // Icons
 import { MdOutlineKeyboardArrowUp } from 'react-icons/md';
@@ -43,7 +44,7 @@ const Main_AlmacenGeneral: React.FC = () => {
     navigate(url); // Cambia la ruta en lugar de cambiar el estado
 
   };
-  
+
 
   return (
     <div className='divMain_AlmacenGeneral'>
@@ -52,13 +53,21 @@ const Main_AlmacenGeneral: React.FC = () => {
         <ul>
 
           <li
+            onClick={() => handleSelectSection('/almacen_general')}
+            className={location.pathname === '/almacen_general' ? 'selectedNavbarAlmacen' : ''}
+          >
+            <p>Inicio</p>
+
+          </li>
+
+          <li
             onClick={() => handleSelectSection('/almacen_general/facturas')}
             className={location.pathname.startsWith('/almacen_general/facturas') ? 'selectedNavbarAlmacen' : ''}
           >
             <p>Facturas</p>
           </li>
 
-            
+
           <li
             onClick={() => handleSelectSection('/almacen_general/activos')}
             className={location.pathname.startsWith('/almacen_general/activos') ? 'selectedNavbarAlmacen' : ''}
@@ -73,7 +82,7 @@ const Main_AlmacenGeneral: React.FC = () => {
             <p>Movimientos de Activos</p>
           </li>
 
-            
+
           <li
             onClick={() => handleSelectSection('/almacen_general/etiquetas')}
             className={location.pathname.startsWith('/almacen_general/etiquetas') ? 'selectedNavbarAlmacen' : ''}
@@ -81,9 +90,9 @@ const Main_AlmacenGeneral: React.FC = () => {
             <p>Etiquetas</p>
           </li>
 
-          <li 
+          <li
             onClick={() => handleSelectSection('/almacen_general/proveedores')}
-            
+
             className={location.pathname.startsWith('/almacen_general/proveedores') ? 'selectedNavbarAlmacen' : ''}
           >
             <p>Proveedores</p>
@@ -103,7 +112,7 @@ const Main_AlmacenGeneral: React.FC = () => {
             </div>
 
             <div className='subMenu_Params'>
-                
+
               {isSubMenuOpen && (
                 <ul>
                   <li
@@ -111,12 +120,12 @@ const Main_AlmacenGeneral: React.FC = () => {
                     className={location.pathname.startsWith('/almacen_general/params/regClasificacion') ? 'selectedNavbarAlmacen_subMenu' : ''}
                     onClick={() => handleSelectSection('/almacen_general/params/regClasificacion')}
                   >
-                      Clasificación AF
+                    Clasificación AF
                   </li>
-                  
 
-                  
-       
+
+
+
 
                 </ul>
               )}
@@ -128,23 +137,24 @@ const Main_AlmacenGeneral: React.FC = () => {
         </ul>
       </nav>
 
-      { !isKnownSection ? 
+      {!isKnownSection ?
         <div className='noLocationSelected'>
-          <p>  Selecciona una opción del submenú superior </p> 
+          {location.pathname.startsWith('/almacen_general') && <AlmacenGeneralCharts />}
+
         </div>
 
         :
 
         <div className='div_Content'>
           {location.pathname.startsWith('/almacen_general/facturas') && <AlmacenGeneral_Facturas />}
-          {location.pathname.startsWith('/almacen_general/activos') && <AlmacenGeneral_Activos />}          
+          {location.pathname.startsWith('/almacen_general/activos') && <AlmacenGeneral_Activos />}
           {location.pathname.startsWith('/almacen_general/movimientos_activos') && <AlmacenGeneral_MovimientosAF />}
-          {location.pathname.startsWith('/almacen_general/etiquetas') && <AlmacenGeneral_Etiquetas />}          
-          {location.pathname.startsWith('/almacen_general/proveedores') && <AlmacenGeneral_ControlProveedor />}          
-          {location.pathname.startsWith('/almacen_general/params/regClasificacion') && <AlmacenGeneral_ControlClasificacion />}          
+          {location.pathname.startsWith('/almacen_general/etiquetas') && <AlmacenGeneral_Etiquetas />}
+          {location.pathname.startsWith('/almacen_general/proveedores') && <AlmacenGeneral_ControlProveedor />}
+          {location.pathname.startsWith('/almacen_general/params/regClasificacion') && <AlmacenGeneral_ControlClasificacion />}
 
         </div>
-      }  
+      }
 
     </div>
   );
