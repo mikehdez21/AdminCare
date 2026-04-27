@@ -1,11 +1,10 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '@/store/store'; 
+import { RootState } from '@/store/store';
 import { setSelectedSection } from '@/store/sectionReducer'; // Importar la acción para actualizar la sección
 
 // Components
 import AdminDashboard from '@/components/01_HomeDashboard/AdminDashboard';
-import JefaturaDashboard from '@/components/01_HomeDashboard/JefaturaDashboard';
 import HomeUsuario from '@/components/01_HomeDashboard/HomeUsuario';
 
 // AlmacenGeneral
@@ -42,10 +41,8 @@ const MainContent: React.FC<MainContentProps> = ({ currentUser }) => {
 
       if (rolSinComillas === 'Admin') {
         defaultSection = 'AdminDashboard';
-      } else if (rolSinComillas === 'JAlmacenGeneral' || rolSinComillas === 'JSistemas') {
-        defaultSection = 'JefaturaDashboard';
-      } else if (rolSinComillas === 'Usuario'){
-        defaultSection = 'HomeUsuario'
+      } else if (rolSinComillas === 'JAlmacenGeneral') {
+        defaultSection = 'Home'
       }
 
       // Actualizar la sección seleccionada basada en el rol
@@ -62,11 +59,10 @@ const MainContent: React.FC<MainContentProps> = ({ currentUser }) => {
       <div className='div_SectionSelected'>
         {/* Renderizado del contenido basado en la sección seleccionada */}
         {sectionSelected_FromSidebar === 'AdminDashboard' && <AdminDashboard />}
-        {sectionSelected_FromSidebar === 'JefaturaDashboard' && <JefaturaDashboard />}
-        {sectionSelected_FromSidebar === 'HomeUsuario' && <HomeUsuario />}
+        {sectionSelected_FromSidebar === 'Home' && <HomeUsuario />}
 
         {/* AlmacenGeneral */}
-        {sectionSelected_FromSidebar === 'AlmacenGeneral' && <Main_AlmacenGeneral />}
+        {sectionSelected_FromSidebar === 'Almacen' && <Main_AlmacenGeneral />}
 
         {/* Administrador */}
         {sectionSelected_FromSidebar === 'GestionUsuarios' && <Main_UsuariosControl />}

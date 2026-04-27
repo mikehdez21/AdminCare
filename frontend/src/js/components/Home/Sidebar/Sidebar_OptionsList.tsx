@@ -12,9 +12,9 @@
 // Bibliotecas
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux'; 
-import { RootState } from '@/store/store'; 
-import { setSelectedSection } from '@/store/sectionReducer'; 
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
+import { setSelectedSection } from '@/store/sectionReducer';
 
 // Icons
 import { RiDashboardLine } from 'react-icons/ri';
@@ -49,41 +49,26 @@ const Sidebar_OptionsList: React.FC<Sidebar_OptionsListProps> = ({ role, departa
   return (
 
     <ul className='Sidebar_Options'>
-      
-      <li
-        className={selectedSection === 'AdminDashboard' ? 'sidebar_SectionSelected' : ''}
-      >
-        {/* AdminDashboard */}
-        {role === 'Admin' && (
-          <div onClick={() => handleSelectSection('AdminDashboard', '/admin')} 
+
+      {/* AdminDashboard */}
+      {role === 'Admin' && (
+        <li
+          className={selectedSection === 'AdminDashboard' ? 'sidebar_SectionSelected' : ''}
+        >
+
+          <div onClick={() => handleSelectSection('AdminDashboard', '/admin')}
             className="divOption_IconTitle" >
-            <RiDashboardLine className='iconOption_Sidebar'/> <span>Admin - Dashboard</span>
+            <RiDashboardLine className='iconOption_Sidebar' /> <span>Admin Dashboard</span>
           </div>
-        )}
-      </li>
-
+        </li>
+      )}
 
       <li
-        className={selectedSection === 'JefaturaDashboard' ? 'sidebar_SectionSelected' : ''}
+        className={selectedSection === 'Home' ? 'sidebar_SectionSelected' : ''}
       >
-        {/* JefaturaDashboard */}
-        {(role === 'Admin' || role === 'JSistemas' || role === 'JAlmacenGeneral') && (
-          <div onClick={() => handleSelectSection('JefaturaDashboard', '/dashboard')} className="divOption_IconTitle">
-            <RiDashboardLine className='iconOption_Sidebar' /> <span>Jefatura - Dashboard</span>
-          </div>
-        )}
-      </li>
-
-
-      <li
-        className={selectedSection === 'HomeUsuario' ? 'sidebar_SectionSelected' : ''}
-      >
-        {/* HomeUsuario */}
-        {(role === 'Admin' || role === 'Usuario') && (
-          <div onClick={() => handleSelectSection('HomeUsuario', '/home')} className="divOption_IconTitle">
-            <RiDashboardLine className='iconOption_Sidebar' /> <span>Home - Dashboard</span>
-          </div>
-        )}
+        <div onClick={() => handleSelectSection('Home', '/home')} className="divOption_IconTitle">
+          <RiDashboardLine className='iconOption_Sidebar' /> <span>Home</span>
+        </div>
       </li>
 
 
@@ -93,35 +78,39 @@ const Sidebar_OptionsList: React.FC<Sidebar_OptionsListProps> = ({ role, departa
         {/* Helpdesk */}
         <div className="divOption_IconTitle">
           <BiSupport className='iconOption_Sidebar' /> <span>Helpdesk</span>
-        
+
         </div>
       </li>
 
 
-      <li>
-        {/* Almacenes */}
-        <div className="divOption_IconTitle">
-          {(role === 'Admin' || role === 'JSistemas' || role === 'JAlmacenGeneral' || role === 'Usuario') && (
-            <SubMenuOptions_Almacen selectedSection = {selectedSection} role={role} departamento = {departamento} />
-          )}
-        </div>
+      {(role === 'Admin' || role === 'JSistemas' || role === 'JAlmacenGeneral') && (
+        <li>
+          {/* Almacenes */}
+          <div className="divOption_IconTitle">
+            <SubMenuOptions_Almacen selectedSection={selectedSection} role={role} departamento={departamento} />
+          </div>
 
-      </li>
+        </li>
+      )}
 
 
-      <li>
-        {/* Administrador */}
-        <div className="divOption_IconTitle">
-          {(role === 'Admin') && (
-            <SubMenuOptions_Administrador selectedSection = {selectedSection} role={role} departamento = {departamento}/>
-          )}
-        </div>
+      {(role === 'Admin') && (
+        <li>
+          {/* Administrador */}
+          <div className="divOption_IconTitle">
+            <SubMenuOptions_Administrador selectedSection={selectedSection} role={role} departamento={departamento} />
+          </div>
 
-      </li>
+        </li>
+      )}
 
-      
 
-      
+
+
+
+
+
+
 
     </ul>
   );

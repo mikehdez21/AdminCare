@@ -17,7 +17,7 @@ import { User } from '@/@types/mainTypes';
 
 interface SideBarProps {
   currentUser: User;
-  onOpenLogoutModal: () => void;  
+  onOpenLogoutModal: () => void;
 }
 
 const SideBar: React.FC<SideBarProps> = ({ currentUser, onOpenLogoutModal }) => {
@@ -35,25 +35,29 @@ const SideBar: React.FC<SideBarProps> = ({ currentUser, onOpenLogoutModal }) => 
   const handleSelectSection = () => {
     if (rolSinComillas) {
       let defaultSection = ''; // Sección predeterminada
-  
-      if (rolSinComillas === 'Admin') {
-        defaultSection = 'AdminDashboard'
-        navigate('/admin');
-      } else if (rolSinComillas === 'JAlmacenGeneral' || rolSinComillas === 'JSistemas') {
-        defaultSection = 'JefaturaDashboard';
-        navigate('/dashboard');
-      } else if (rolSinComillas === 'Usuario') {
-        defaultSection = 'HomeUsuario';
-        navigate('/home');
+
+      switch (rolSinComillas) {
+        case 'Admin':
+          defaultSection = 'AdminDashboard';
+          navigate('/admin');
+          break;
+        case 'JAlmacenGeneral':
+          defaultSection = 'Home';
+          navigate('/home');
+          break;
+        default:
+          defaultSection = 'Home';
+          navigate('/home');
+          break;
       }
-  
+
       dispatch(setSelectedSection(defaultSection));
       localStorage.setItem('selectedSection', defaultSection); // Actualizar sección en LocalStorage
 
     }
   };
 
-  
+
   return (
     <div className='Sidebar'>
       <div className="Sidebar_Header">
@@ -97,7 +101,7 @@ const SideBar: React.FC<SideBarProps> = ({ currentUser, onOpenLogoutModal }) => 
       </div>
 
       <div className="Sidebar_OptionsList">
-        {currentUser && <Sidebar_OptionsList role={rolSinComillas} departamento={deptoSinComillas}/>}
+        {currentUser && <Sidebar_OptionsList role={rolSinComillas} departamento={deptoSinComillas} />}
       </div>
     </div>
   );

@@ -10,26 +10,14 @@ const redirectByRole = (role: string | null, navigate: NavigateFunction) => {
   }
 
   switch (role) {
-  case '"Admin"':
-    navigate('/admin');
-    break;
-    
-  case '"Usuario"':
-    navigate('/home');
-    break;
+    case '"Admin"':
+      navigate('/admin');
+      break;
 
-  case '"JAlmacenGeneral"':
-    navigate('/dashboard');
-    break;
+    default:
+      navigate('/home'); // Ruta predeterminada si el rol no coincide
+      break;
 
-  case '"JSistemas"':
-    navigate('/dashboard');
-    break;
-    
-  default:
-    console.log('ErrorRedirect - Rol no coincidente')
-    navigate('/'); // Ruta predeterminada si el rol no coincide
-    break;
   }
 };
 
