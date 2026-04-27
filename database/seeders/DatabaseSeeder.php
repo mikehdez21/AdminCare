@@ -13,7 +13,6 @@ use Database\Seeders\table_EmpleadosSeeder;
 // Seeders AlmacenGeneral
 use Database\Seeders\AlmacenGeneral\table_ProveedoresSeeder;
 use Database\Seeders\AlmacenGeneral\table_ActivosFijosConFacturasSeeder;
-use Database\Seeders\AlmacenGeneral\table_MovimientosActivosSeeder;
 
 
 class DatabaseSeeder extends Seeder
@@ -30,7 +29,6 @@ class DatabaseSeeder extends Seeder
             table_UsersSeeder::class,
             table_ProveedoresSeeder::class,
             table_ActivosFijosConFacturasSeeder::class,
-            table_MovimientosActivosSeeder::class,
         ]);
     }
 }

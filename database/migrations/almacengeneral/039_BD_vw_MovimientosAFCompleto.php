@@ -23,6 +23,7 @@ return new class extends Migration
             af.precio_unitario_af,
             af.fecha_registro_af,
             af.af_propio,
+            af.codigo_etiqueta,
             af.observaciones_af,
             est.descripcion_estatusaf AS estado_actual,
             clas.nombre_clasificacion AS clasificacion,
