@@ -45,7 +45,6 @@ interface AddFacturaProps {
 
 const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
   const dispatch = useDispatch<AppDispatch>();
-  const numeroFacturaPattern = /^(\d{1,12}|NOF-\d{4}-\d{1,12})$/i;
 
   // Estados para los campos del formulario de AddFactura
   const [proveedorFactura, setProveedorFactura] = useState<number>(0);
