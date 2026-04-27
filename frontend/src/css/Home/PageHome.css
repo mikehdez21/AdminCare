@@ -2,12 +2,13 @@
     display: flex;
     height: 100%;
     position: relative;
-    background: linear-gradient(180deg, #1f0166 30%, #0454ca 70%, #538ee6 100%); 
+    background: linear-gradient(180deg, #1f0166 30%, #0454ca 70%, #538ee6 100%);
 
-    .pageHome_Sidebar{
+    .pageHome_Sidebar {
         display: flex;
         position: fixed;
-        transition: all 0.4s ease-in-out; /* Transición suave */
+        transition: all 0.4s ease-in-out;
+        /* Transición suave */
 
         z-index: 3;
         background: linear-gradient(180deg, #1f0166 30%, #a52bf7 80%, #cf9af3 100%);
@@ -15,17 +16,19 @@
         border-right-width: 5px;
         padding: 10px;
         color: #ffffff;
-        height: 100%; 
+        height: 100%;
         width: 2.4vw;
-        overflow-y: auto; /* Agrega un desplazamiento interno si es necesario para contenido dentro del SideBar */
+        overflow-y: auto;
+        /* Agrega un desplazamiento interno si es necesario para contenido dentro del SideBar */
 
-        .Sidebar{
+        .Sidebar {
             max-height: 100vh;
             overflow-x: hidden;
             overflow-y: hidden;
 
-            .Sidebar_Header{
-                transition: all 0.3s ease-in; /* Transición suave */
+            .Sidebar_Header {
+                transition: all 0.3s ease-in;
+                /* Transición suave */
 
                 margin-bottom: 10px;
 
@@ -33,7 +36,7 @@
                     display: flex;
                     justify-content: center;
 
-                    h1{
+                    h1 {
                         cursor: pointer;
                     }
 
@@ -41,16 +44,13 @@
                         width: 30px;
                         cursor: pointer;
                         border: 2px solid transparent;
-                        border-image: linear-gradient(
-                            45deg,
-                            #5bfaff 20%,
-                            #a830ee,
-                            #5bfaff 80%
-
-                        );
+                        border-image: linear-gradient(45deg,
+                                #5bfaff 20%,
+                                #a830ee,
+                                #5bfaff 80%);
                         border-image-slice: 1;
                     }
-            
+
                     .navBarHeader_text {
                         display: none;
                     }
@@ -59,53 +59,57 @@
                 .navBarHeader_Divisor {
                     width: 35px;
                 }
-            
+
                 .navBarHeader_avatarlogout {
 
                     display: none;
 
-                    .avatar{
+                    .avatar {
                         display: flex;
                         flex-direction: column;
                         align-items: center;
-                        border: 2px solid transparent; /* Borde invisible inicialmente */
+                        border: 2px solid transparent;
+                        /* Borde invisible inicialmente */
 
 
-                        p{
+                        p {
                             margin: 0px;
                             font-size: 12px;
                         }
 
                     }
 
-                    .logout{
+                    .logout {
                         display: flex;
                         flex-direction: column;
                         align-items: center;
-                        border: 2px solid transparent; /* Borde invisible inicialmente */
+                        border: 2px solid transparent;
+                        /* Borde invisible inicialmente */
 
-                        p{
+                        p {
                             margin: 0px;
                             font-size: 12px;
-                        }    
+                        }
                     }
                 }
             }
-            
-            .Sidebar_OptionsSearch{
-                transition: all 0.3s ease-in; /* Transición suave */
+
+            .Sidebar_OptionsSearch {
+                transition: all 0.3s ease-in;
+                /* Transición suave */
 
                 .navBar_Search {
                     display: none;
                 }
-                    
+
             }
 
-            .Sidebar_OptionsList{
-                transition: all 0.3s ease-in; /* Transición suave */
-                
-                
-                ul.Sidebar_Options{
+            .Sidebar_OptionsList {
+                transition: all 0.3s ease-in;
+                /* Transición suave */
+
+
+                ul.Sidebar_Options {
                     display: flex;
                     flex-direction: column;
                     align-items: center;
@@ -119,173 +123,175 @@
                     max-height: 100vh;
                     list-style: none;
 
-                    li{
-                        .divOption_IconTitle{
+                    li {
+                        .divOption_IconTitle {
                             display: flex;
                             align-items: center;
                             cursor: pointer;
                             transition: background-color 0.3s ease-in-out;
 
-                            span{
+                            span {
                                 display: none;
                             }
 
-                            #SubMenu_Almacen, #SubMenu_Administrador{
-                                
-                                .divMenu_SubMenus{
-                                    
-                                    .SubMenu_IconTitle{
+                            #SubMenu_Almacen,
+                            #SubMenu_Administrador {
+
+                                .divMenu_SubMenus {
+
+                                    .SubMenu_IconTitle {
                                         display: flex;
 
-                                        span{
+                                        span {
                                             display: none;
                                         }
 
-                                        .IconSubMenuArrow{
+                                        .IconSubMenuArrow {
                                             display: none;
                                         }
-                                        
+
                                     }
-                                    
-                                    .SubMenu_Options{
-                                        display: none; 
 
-                                        ul{
+                                    .SubMenu_Options {
+                                        display: none;
+
+                                        ul {
                                             display: none;
 
-                                            li{
-                                                p{
+                                            li {
+                                                p {
                                                     display: none;
                                                 }
                                             }
-                                            
+
                                         }
                                     }
                                 }
                             }
-                           
+
                         }
 
-                        
+
                     }
 
-                    .sidebar_SectionSelected, .sidebar_Section_SubMenuSelected {
+                    .sidebar_SectionSelected,
+                    .sidebar_Section_SubMenuSelected {
                         color: #5bfaff;
                     }
 
-                    
+
 
                 }
-                    
+
             }
-            
+
         }
     }
 
-    .pageHome_Sidebar:hover{
+    .pageHome_Sidebar:hover {
         display: flex;
         width: 18vw;
         overflow: visible;
-        box-shadow: 15px 0 10px rgba(0, 0, 0, 0.15); /* Sombra más fuerte */
+        box-shadow: 15px 0 10px rgba(0, 0, 0, 0.15);
+        /* Sombra más fuerte */
         z-index: 3;
 
-        
-        .Sidebar{
+
+        .Sidebar {
             display: flex;
             flex-direction: column;
             justify-self: center;
             width: 100vw;
 
-            .Sidebar_Header{
-                
+            .Sidebar_Header {
+
                 .navBarHeader_title {
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    
+
                     .navBarHeader_img {
                         width: 50px;
                         border: 2px solid transparent;
-                        border-image: linear-gradient(
-                            45deg,
-                            #5bfaff 20%,
-                            #a830ee,
-                            #5bfaff 80%
-                            
-                            );
+                        border-image: linear-gradient(45deg,
+                                #5bfaff 20%,
+                                #a830ee,
+                                #5bfaff 80%);
                         border-image-slice: 1;
-                        
+
                     }
-            
+
                     .navBarHeader_text {
 
                         display: flex;
                         font-weight: 700;
                         font-size: 16px;
                         margin: 5px 0px 0px 0px;
-                        
+
                     }
-                    
+
                 }
-                
+
                 .navBarHeader_Divisor {
                     width: 190px;
                     margin-bottom: 10px;
                 }
-            
+
                 .navBarHeader_avatarlogout {
                     display: flex;
                     justify-content: center;
                     gap: 30px;
                     font-size: 30px;
 
-                    .avatar{
+                    .avatar {
                         padding: 4px;
                         cursor: pointer;
-                        .navBarHeader_avatar{
+
+                        .navBarHeader_avatar {
                             padding: 2px;
                         }
 
                     }
 
-                    .avatar:hover{
+                    .avatar:hover {
                         background: #7a25dbe8 !important;
                         border-color: #ffffff;
                         border-style: solid;
                         border-width: 2px;
                         border-radius: 10px;
-                        
+
                     }
 
-                    .logout{
+                    .logout {
                         padding: 4px;
                         cursor: pointer;
-                        .navBarHeader_logout{
+
+                        .navBarHeader_logout {
                             padding: 2px;
 
                         }
 
                     }
 
-                    .logout:hover{
+                    .logout:hover {
                         background: #7a25dbe8 !important;
                         border-color: #ffffff;
                         border-style: solid;
-                        border-width: 2px;    
+                        border-width: 2px;
                         border-radius: 10px;
 
                     }
-                                        
+
                 }
-                
-                
+
+
             }
 
-            .Sidebar_OptionsSearch{
+            .Sidebar_OptionsSearch {
                 display: flex;
                 margin-bottom: 20px;
-                
-                
+
+
                 .navBar_Search {
                     display: flex;
                     flex: 1;
@@ -293,32 +299,32 @@
                     border-top-right-radius: 15px;
                     border-style: groove;
                     border-width: 1px;
-                    
+
                     .navBarSearch_icon {
                         font-size: 25px;
                         align-items: center;
                         margin-left: 10px;
                         margin-right: 5px;
-                        
+
                     }
-                    
+
                     .navBarSearch_input {
-                        width: 100%;    
+                        width: 100%;
                         color: #ffffff;
                         font-size: 15px;
                         background: transparent;
                         border-top-right-radius: 15px;
                     }
                 }
-            
+
             }
-            
-            .Sidebar_OptionsList{
+
+            .Sidebar_OptionsList {
                 border-style: solid;
                 border-width: 1px;
                 user-select: none;
-                
-                ul.Sidebar_Options{
+
+                ul.Sidebar_Options {
                     background-color: #a0a5aa77;
                     align-items: initial;
                     gap: 0px;
@@ -328,41 +334,42 @@
                     overflow-y: auto;
                     max-height: 68vh;
 
-                    li{
+                    li {
                         padding: 5px 0px;
 
-                        .divOption_IconTitle{
+                        .divOption_IconTitle {
                             display: flex;
                             align-items: center;
                             gap: 10px;
 
-                            .iconOption_Sidebar{
+                            .iconOption_Sidebar {
                                 margin-left: 5px;
                             }
-                            
-                            span{
+
+                            span {
                                 display: flex;
                                 font-size: 15px;
                                 font-weight: 500;
                             }
 
-                            #SubMenu_Almacen, #SubMenu_Administrador{
+                            #SubMenu_Almacen,
+                            #SubMenu_Administrador {
                                 width: 100%;
-                                
-                                .divMenu_SubMenus{
-                                    .SubMenu_IconTitle{
+
+                                .divMenu_SubMenus {
+                                    .SubMenu_IconTitle {
                                         display: flex;
                                         align-items: center;
                                         gap: 10px;
                                         flex: 1;
-                                        
-                                        span{
+
+                                        span {
                                             display: flex;
                                             font-size: 15px;
                                             font-weight: 500;
                                         }
 
-                                        .IconSubMenuArrow{
+                                        .IconSubMenuArrow {
                                             display: flex;
                                             margin-left: auto;
                                             margin-right: 5px;
@@ -372,22 +379,23 @@
                                         }
 
                                         .IconSubMenuArrow.rotate {
-                                          transform: rotate(180deg); /* Gira el icono cuando se añade la clase .rotate */
+                                            transform: rotate(180deg);
+                                            /* Gira el icono cuando se añade la clase .rotate */
                                         }
                                     }
 
-                                    .SubMenu_Options{
+                                    .SubMenu_Options {
                                         display: flex;
-                                        
-                                        ul{
+
+                                        ul {
                                             cursor: default;
                                             display: flex;
                                             flex-direction: column;
                                             padding: 10px;
                                             width: 100%;
                                             gap: 10px;
-                                            
-                                            li{
+
+                                            li {
                                                 display: flex;
                                                 align-items: center;
                                                 border-style: groove;
@@ -397,8 +405,8 @@
                                                 gap: 10px;
                                                 font-size: 20px;
                                                 cursor: pointer;
-                                                
-                                                p{
+
+                                                p {
                                                     display: flex;
                                                     font-size: 16px;
                                                     margin: 0px;
@@ -406,7 +414,7 @@
                                                 }
                                             }
 
-                                            li:hover{
+                                            li:hover {
                                                 background: #8648cee8;
                                                 border-color: #ffffff;
                                                 border-style: solid;
@@ -421,7 +429,7 @@
 
                     }
 
-                    li:hover{
+                    li:hover {
                         background: #7424cfe8;
                         border-color: #ffffff;
                         border-style: solid;
@@ -430,47 +438,48 @@
                 }
 
                 .sidebar_Options::-webkit-scrollbar {
-                    width: 12px; /* Ancho de la barra de desplazamiento */
+                    width: 12px;
+                    /* Ancho de la barra de desplazamiento */
                 }
-                
+
                 .sidebar_Options::-webkit-scrollbar-track {
-                    background: transparent; 
+                    background: transparent;
                     border-left-style: solid;
                     border-color: aliceblue;
                     border-width: 2px;
                 }
-                
+
                 .sidebar_Options::-webkit-scrollbar-thumb {
                     background-color: #99a5b8;
-                    border-radius: 6px; 
+                    border-radius: 6px;
                     border-style: solid;
                     border-color: #911a91;
                 }
-                
+
                 .sidebar_Options::-webkit-scrollbar-thumb:hover {
                     background-color: #aebdd4;
                 }
 
-                
-            
+
+
             }
 
-            
-            
+
+
         }
     }
 
 
-    .pageHome_MainContent{
+    .pageHome_MainContent {
         display: flex;
         z-index: 1;
         background-color: #aebdd4;
-        flex-direction: column;   
+        flex-direction: column;
         padding: 10px 10px;
         flex: 1;
         min-width: 0;
 
-        .div_MainContent{
+        .div_MainContent {
             display: flex;
             flex-direction: column;
             height: 100%;
@@ -479,7 +488,7 @@
             max-width: 95vw;
             min-width: 0;
 
-            .div_infoHeader{
+            .div_infoHeader {
                 background: linear-gradient(180deg, #1f0166 30%, #a52bf7 80%, #af36ffe3 95%);
                 color: #ffffff;
                 height: 25px;
@@ -488,13 +497,13 @@
                 border-top-left-radius: 15px;
                 border-top-right-radius: 15px;
 
-                p{
+                p {
                     margin: 0px;
                 }
             }
 
-            .div_SectionSelected{
-                background-color:#ffffff7a;
+            .div_SectionSelected {
+                background-color: #ffffff7a;
                 flex: 1;
                 border-bottom-style: groove;
                 border-color: #1f0166;
@@ -518,6 +527,7 @@
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);

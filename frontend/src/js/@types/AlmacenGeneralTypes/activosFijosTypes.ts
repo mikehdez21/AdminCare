@@ -35,6 +35,7 @@ export interface ActivosFijos {
   id_clasificacion: number | null;
   fecha_registro_af: string | null;
   observaciones_af: string;
+  ubicacion_actual?: string | null;
   codigosQR?: CodigosQRAF[];
   created_at?: string;
   updated_at?: string | null;
@@ -72,6 +73,7 @@ export interface VwMovimientosAF {
   precio_unitario_af: number;
   fecha_registro_af: string;
   af_propio: boolean;
+  codigo_etiqueta: string | null;
   observaciones_af: string;
   estado_actual: string | null;
   clasificacion: string | null;
@@ -138,6 +140,13 @@ export interface ActivoEntityResponse {
   observaciones?: string | null;
   total: number;
 
+}
+
+// Tipo para activos agrupados por clave y nombre (para asignaciones)
+export interface ActivoAgrupado {
+  clave: string;
+  nombre_af: string;
+  indices: number[]; // Índices de los activos originales en el array de activos
 }
 
 
