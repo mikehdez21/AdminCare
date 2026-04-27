@@ -283,58 +283,37 @@
                         }
                     }
 
-                    #th_NoSerie,
-                    #td_NoSerie,
+                    #th_Asignaciones,
+                    #td_Asignaciones,
                     #th_Cantidad,
                     #td_Cantidad,
                     #th_PrecioUnitario,
                     #td_PrecioUnitario {
                         text-align: center;
-                    }
 
-                    .btn-remover-activo{
-                        background: #dc3545;
-                        color: white;
-                        border: none;
-                        border-radius: 50%;
-                        width: 30px;
-                        height: 30px;
-                        cursor: pointer;
-                        font-size: 14px;
-                        font-weight: bold;
-                        transition: all 0.3s ease;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-
-                        &:hover{
-                            background: #c82333;
-                            transform: scale(1.1);
+                        .buttonAsignaciones {
+                            padding: 4px 20px;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 0.8rem;
+                            transition: all 0.3s;
+                            background-color: #007bff;
+                            color: #ffffff;
                         }
+
+                        .buttonAsignaciones:hover {
+                            background-color: #0056b3;
+                        }
+
+                        .buttonAsignaciones.disabled {
+                            background: #c9c9c9;
+                            cursor: not-allowed;
+                        }
+
+
                     }
 
-                    .btnEditNoSeries {
-                        padding: 4px 10px;
-                        background-color: #007bff;
-                        color: white;
-                        border: none;
-                        border-radius: 5px;
-                        cursor: pointer;
-                    }
-
-                    .btnEditNoSeries:hover {
-                        background-color: #0056b3;
-                    }
-
-                    .sinActivosSerie {
-                        text-align: center;
-                        color: #666;
-                        font-style: italic;
-                    }
-
-                   
-
-                    
                 }
 
                 textarea{

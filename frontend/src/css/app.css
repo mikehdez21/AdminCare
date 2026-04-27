@@ -1,4 +1,4 @@
-@view-transition{
+@view-transition {
     navigation: auto;
 }
 
@@ -11,8 +11,9 @@ html {
 #root {
     display: flex;
     flex-direction: column;
-    flex-grow: 1; /* Permite que #root crezca para ocupar todo el espacio disponible */
-    
+    flex-grow: 1;
+    /* Permite que #root crezca para ocupar todo el espacio disponible */
+
 }
 
 body {
@@ -22,6 +23,7 @@ body {
     display: flex;
     flex-direction: column;
     width: 100%;
+
 }
 
 
@@ -42,11 +44,13 @@ body {
 
 /* Agrega esto a tu CSS global */
 .ReactModal__Overlay {
-  z-index: 1000 !important;
-  background: #0000002e !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    z-index: 1000 !important;
+    background: #0000002e !important;
+
+    .ReactModal__Content {
+        animation: fadeInRight 0.4s;
+    }
+
 }
 
 .ReactModal__Body--open {
@@ -64,4 +68,3 @@ body {
     height: 0;
     display: none;
 }
-

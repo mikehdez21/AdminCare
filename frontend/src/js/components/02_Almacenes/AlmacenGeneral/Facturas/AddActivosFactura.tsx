@@ -56,6 +56,10 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
   const obtenerClaveActivo = (activo: ActivoFactura) =>
     activo.codigo_unico || `AF-${activo.id_activo_fijo || activo.nombre_af}`;
 
+  type ActivoFacturaAgrupado = ActivoFactura & {
+    items?: ActivoFactura[];
+  };
+
   const normalizarCantidad = (valor: number) => {
     if (!Number.isFinite(valor) || valor < 1) {
       return 1;
@@ -133,10 +137,10 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
 
   // Función para agrupar activos 
   const agruparActivos = (activos: ActivoFactura[]): {
-    activosAgrupados: ActivoFactura[];
+    activosAgrupados: ActivoFacturaAgrupado[];
     seriesPorGrupo: Record<string, string[]>;
   } => {
-    const mapa = new Map<string, ActivoFactura>();
+    const mapa = new Map<string, ActivoFacturaAgrupado>();
     const seriesPorGrupo: Record<string, string[]> = {};
 
     activos.forEach((activo) => {
@@ -158,6 +162,7 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
           ...activo,
           cantidad: normalizarCantidad(Number(activo.cantidad || 1)),
           codigo_unico: activo.codigo_unico || `GRP-${mapa.size + 1}`,
+          items: [{ ...activo }],
         });
         return;
       }
@@ -166,6 +171,7 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
         ...existente,
         cantidad: Number(existente.cantidad || 0) + Number(activo.cantidad || 0),
         codigo_unico: construirCodigoMultiples(existente.codigo_unico, activo.codigo_unico),
+        items: [...(existente.items || []), { ...activo }],
       });
     });
 
@@ -336,10 +342,21 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
 
     // Expandir cada línea por cantidad para crear activos individuales con serie propia
     const activosCopia = activosAgregados.flatMap((activo) => {
+      const activoAgrupado = activo as ActivoFacturaAgrupado;
       const cantidad = normalizarCantidad(Number(activo.cantidad || 1));
       const clave = obtenerClaveActivo(activo);
       const seriesCapturadas = ajustarArregloSeries(seriesPorActivo[clave] || [], cantidad)
         .map((serie) => (serie || '').trim());
+
+      const itemsBase = (activoAgrupado.items || []).slice(0, cantidad);
+      const itemsNormalizados = [...itemsBase];
+
+      while (itemsNormalizados.length < cantidad) {
+        itemsNormalizados.push({
+          ...activo,
+          cantidad: 1,
+        });
+      }
 
       const seriesLlenas = seriesCapturadas.filter((serie) => !!serie);
       const seriesUnicas = new Set(seriesLlenas);
@@ -352,10 +369,10 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
         erroresSeries.push(`Las series de "${activo.nombre_af}" no pueden repetirse.`);
       }
 
-      return Array.from({ length: cantidad }, (_, index) => ({
-        ...activo,
+      return itemsNormalizados.map((itemBase, index) => ({
+        ...itemBase,
         cantidad: 1,
-        numero_serie_af: seriesCapturadas[index] || activo.numero_serie_af || ''
+        numero_serie_af: seriesCapturadas[index] || itemBase.numero_serie_af || '',
       }));
     });
 
@@ -450,7 +467,6 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
   return (
     <Modal
       isOpen={isOpen}
-      onRequestClose={handleClose}
       className="modalComponent_AddActivosFactura"
     >
       <div className="modalAddActivosFactura">
@@ -471,6 +487,7 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
           <button
             className="buttonCrearActivo"
             onClick={() => setIsAddActivoFijoOpen(true)}
+            disabled={activosExistentes?.length > 0}
           >
             <FaPlus /> Crear Nuevo Activo Fijo
           </button>
@@ -501,9 +518,10 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
                           </p>
 
                           <button
-                            className="buttonRemover"
+                            className="buttonRemover disabled"
                             onClick={() => handleRemoverActivo(activo.codigo_unico!)}
                             title="Remover de factura"
+                            disabled={!!esActivoExistente}
                           >
                             <FaTrash />
                           </button>
@@ -522,8 +540,6 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
                               ? `Lote: ${activo.codigo_lote}`
                               : 'Lote: Pendiente'}
                           </p>
-
-
 
 
                         </section>
@@ -556,6 +572,7 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
                               min="0"
                               step="0.01"
                               value={activo.precio_unitario_af}
+                              disabled={!!esActivoExistente}
                               onChange={(e) => handleActualizarActivo(
                                 activo.codigo_unico!,
                                 'precio_unitario_af',
@@ -578,6 +595,7 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
                                   value={serie}
                                   onChange={(e) => handleSerieChange(activo, index, e.target.value)}
                                   className="noSerieInput"
+                                  disabled={!!esActivoExistente}
                                 />
                               ))}
                             </div>
@@ -587,7 +605,7 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
 
                       </section>
 
-                      <section className="subtotal">
+                      <section className="activoSubTotal">
                         <p className="subTotal">
                           <strong>Subtotal: {formatPeso(activo.cantidad * activo.precio_unitario_af)}</strong>
                         </p>
@@ -623,7 +641,7 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
               type: 'button',
               className: 'button_addedit',
               onClick: handleConfirmar,
-              disabled: activosAgregados.length === 0
+              disabled: activosAgregados.length === 0 || activosExistentes?.length > 0
             },
             {
               text: 'Cancelar',
@@ -648,6 +666,8 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
           />
         )
       }
+
+
 
     </Modal >
   );

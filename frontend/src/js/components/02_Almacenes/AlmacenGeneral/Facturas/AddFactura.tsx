@@ -7,7 +7,7 @@ import Swal from 'sweetalert2';
 import { addFactura, getFacturas, getTiposFacturas } from '@/store/almacengeneral/Facturas/facturasActions';
 import { setFacturas } from '@/store/almacengeneral/Facturas/facturasReducer';
 import AddActivosFactura from './AddActivosFactura';
-import { ActivoFactura } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
+import { ActivoFactura, ActivoAgrupado } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 import { FacturasAF, ActivoFacturaInput } from '@/@types/AlmacenGeneralTypes/facturasTypes';
 
 // SoftComputing
@@ -22,15 +22,16 @@ import { SiGooglemessages } from 'react-icons/si';
 import { IoAddCircleOutline } from 'react-icons/io5';
 import { AiOutlineNumber } from 'react-icons/ai';
 
+// Components
+import AsignacionesAF from './AsignacionesAF';
+import { getFechaHoraActual } from '@/utils/dateFormat';
+import { formatCurrency, formatPeso, toSafeNumber, parseInputNumber } from '@/utils/numbersFormat';
+import ModalButtons from '@/components/00_Utils/ModalButtons';
+
 // Store
 import { getProveedores } from '@/store/almacengeneral/Proveedores/proveedoresActions';
 import { getFormasPago, getTiposMoneda } from '@/store/shared/fiscalActions';
 import { getClasificaciones } from '@/store/almacengeneral/Clasificaciones/clasificacionesActions';
-import { getFechaHoraActual } from '@/utils/dateFormat';
-import { formatCurrency, formatPeso, toSafeNumber, parseInputNumber } from '@/utils/numbersFormat';
-
-// Components
-import ModalButtons from '@/components/00_Utils/ModalButtons';
 
 // Styles
 import '@styles/02_Almacenes/AlmacenGeneral/Facturas/AddFactura.css';
@@ -63,16 +64,12 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
   // SoftComputing - Recomendaciones
   const [loadingOpenAIRecommendation, setLoadingOpenAIRecommendation] = useState(false);
   const [loadingMLRecommendation, setLoadingMLRecommendation] = useState(false);
+  
+  const [isAsignacionesOpen, setIsAsignacionesOpen] = useState(false);
+  const [isModalAddActivosFacturaOpen, setIsModalAddActivosFacturaOpen] = useState(false);
 
-  // No Series - Modal de edición de series
-  const [isSeriesModalOpen, setIsSeriesModalOpen] = useState(false);
-  const [seriesEditables, setSeriesEditables] = useState<string[]>([]);
-  const [activoSerieEnEdicion, setActivoSerieEnEdicion] = useState<{
-    clave: string;
-    nombre_af: string;
-    indices: number[];
-  } | null>(null);
-
+  const [activosEditables, setActivosEditables] = useState<ActivoFactura[]>([]);
+  const [activoSerieEnEdicion, setActivoSerieEnEdicion] = useState<ActivoAgrupado | null>(null);
 
   const facturas = useSelector((state: RootState) => state.facturasaf.facturasaf);
   const proveedores = useSelector((state: RootState) => state.proveedor.proveedores);
@@ -81,7 +78,6 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
   const tiposMoneda = useSelector((state: RootState) => state.fiscal.tiposMoneda);
   const clasificacionActivoFijo = useSelector((state: RootState) => state.clasificacion.clasificacionesAF);
 
-  const [isModalAddActivosFacturaOpen, setIsModalAddActivosFacturaOpen] = useState(false);
 
   const ultimoId = React.useMemo(() => (
     facturas.length > 0
@@ -137,22 +133,24 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
     }, new Map<string, (ActivoFactura & { _indices?: number[]; _clave?: string })>()).values()
   ), [activosFactura]);
 
-  const abrirModalSeries = (activoAgrupado: ActivoFactura & { _indices?: number[]; _clave?: string }) => {
+  const abrirModalAsignacionSeries = (activoAgrupado: ActivoFactura & { _indices?: number[]; _clave?: string }) => {
     const indices = activoAgrupado._indices || [];
-    const seriesActuales = indices.map((idx) => activosFactura[idx]?.numero_serie_af || '');
+    const activosIndividuales = indices
+      .map(indice => activosFactura[indice])
+      .filter((activo): activo is ActivoFactura => !!activo);
 
     setActivoSerieEnEdicion({
       clave: activoAgrupado._clave || `${activoAgrupado.nombre_af}-${Date.now()}`,
       nombre_af: activoAgrupado.nombre_af,
       indices,
     });
-    setSeriesEditables(seriesActuales);
-    setIsSeriesModalOpen(true);
+    setActivosEditables(activosIndividuales);
+    setIsAsignacionesOpen(true);
   };
 
-  const cerrarModalSeries = () => {
-    setIsSeriesModalOpen(false);
-    setSeriesEditables([]);
+  const cerrarModalAsignacionSeries = () => {
+    setIsAsignacionesOpen(false);
+    setActivosEditables([]);
     setActivoSerieEnEdicion(null);
   };
 
@@ -161,7 +159,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
       return;
     }
 
-    const seriesLimpias = seriesEditables.map((serie) => serie.trim());
+    const seriesLimpias = activosEditables.map((activo) => (activo.numero_serie_af || '').trim());
     const seriesVacias = seriesLimpias.some((serie) => !serie);
 
     if (seriesVacias) {
@@ -186,6 +184,40 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
       return;
     }
 
+    const responsablesVacios = activosEditables.some((activo) => !toSafeNumber(activo.id_responsable_actual, 0));
+    const ubicacionesVacias = activosEditables.some((activo) => !toSafeNumber(activo.id_ubicacion_actual, 0));
+    const tiposMovimientoVacios = activosEditables.some((activo) => !toSafeNumber(activo.id_tipo_movimiento, 0));
+
+    if (responsablesVacios) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Asignaciones incompletas',
+        text: 'Debes asignar un responsable a cada activo por número de serie.',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    if (ubicacionesVacias) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Ubicaciones incompletas',
+        text: 'Debes asignar una ubicación actual a cada activo por número de serie.',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    if (tiposMovimientoVacios) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Tipos de movimiento incompletos',
+        text: 'Debes asignar un tipo de movimiento a cada activo por número de serie.',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
     setActivosFactura((prev) => {
       const actualizados = [...prev];
 
@@ -196,14 +228,17 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
 
         actualizados[indiceActivo] = {
           ...actualizados[indiceActivo],
-          numero_serie_af: seriesLimpias[posicionSerie] || ''
+          numero_serie_af: seriesLimpias[posicionSerie] || '',
+          id_responsable_actual: activosEditables[posicionSerie]?.id_responsable_actual || null,
+          id_ubicacion_actual: activosEditables[posicionSerie]?.id_ubicacion_actual || null,
+          id_tipo_movimiento: activosEditables[posicionSerie]?.id_tipo_movimiento || null,
         };
       });
 
       return actualizados;
     });
 
-    cerrarModalSeries();
+    cerrarModalAsignacionSeries();
   };
 
   const subtotalConDescuento = subtotal - toSafeNumber(descuentoFactura, 0);
@@ -688,57 +723,47 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
       return;
     }
 
-
-
-    if (!numeroFacturaPattern.test(numeroFacturaTrim)) {
+    if (activosFactura.some(activo => !activo.numero_serie_af || !activo.numero_serie_af.trim())) {
       Swal.fire({
         icon: 'warning',
-        title: 'Formato de factura no valido',
-        text: 'El backend solo acepta un consecutivo numerico o el formato NOF-AAAA-consecutivo.',
+        title: 'Número de serie requerido',
+        text: 'Todos los activos deben tener un número de serie válido.',
+        confirmButtonText: 'OK',
+      });
+      return;
+    }
+
+    if (activosFactura.some(activo => !activo.id_responsable_actual)) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Responsable requerido',
+        text: 'Todos los activos deben tener un responsable válido.',
+        confirmButtonText: 'OK',
+      });
+      return;
+    }
+
+    if (activosFactura.some(activo => !activo.id_ubicacion_actual)) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Ubicación requerida',
+        text: 'Todos los activos deben tener una ubicación válida.',
+        confirmButtonText: 'OK',
+      });
+      return;
+    }
+
+     if (activosFactura.some(activo => !activo.id_tipo_movimiento)) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Tipo de movimiento requerido',
+        text: 'Todos los activos deben tener un tipo de movimiento válido.',
         confirmButtonText: 'OK',
       });
       return;
     }
 
     try {
-      const activosPayload: ActivoFacturaInput[] | undefined = activosFactura.length > 0
-        ? activosFactura.map((activo) => {
-          const responsableActual =
-            activo.id_responsable_actual && activo.id_responsable_actual > 0
-              ? activo.id_responsable_actual
-              : null;
-          const ubicacionActual =
-            activo.id_ubicacion_actual && activo.id_ubicacion_actual > 0
-              ? activo.id_ubicacion_actual
-              : null;
-          const tipoMovimiento =
-            activo.id_tipo_movimiento && activo.id_tipo_movimiento > 0
-              ? activo.id_tipo_movimiento
-              : null;
-          const requiereMovimiento = responsableActual !== null || ubicacionActual !== null;
-
-          return {
-            nombre_af: activo.nombre_af.trim(),
-            marca_af: activo.marca_af.trim(),
-            modelo_af: activo.modelo_af.trim(),
-            numero_serie_af: activo.numero_serie_af.trim(),
-            precio_unitario_af: toSafeNumber(activo.precio_unitario_af, 0),
-            af_propio: Boolean(activo.af_propio),
-            fecha_registro_af: activo.fecha_registro_af,
-            id_estado_af: toSafeNumber(activo.id_estado_af, 0),
-            id_clasificacion: toSafeNumber(activo.id_clasificacion, 0),
-            descripcion_af: activo.descripcion_af?.trim() || null,
-            observaciones_af: activo.observaciones_af?.trim() || null,
-            cantidad: toSafeNumber(activo.cantidad, 0),
-            observaciones: activo.observaciones_af?.trim() || null,
-            fecha_movimiento: requiereMovimiento ? (activo.fecha_movimiento || null) : null,
-            id_responsable_actual: responsableActual,
-            id_ubicacion_actual: ubicacionActual,
-            id_tipo_movimiento: requiereMovimiento ? tipoMovimiento : null,
-            motivo_asignacion: requiereMovimiento ? (activo.motivo_movimiento?.trim() || null) : null
-          } as ActivoFacturaInput;
-        })
-        : undefined;
 
       // Preparar los datos de la factura
       const nuevaFactura: FacturasAF = {
@@ -748,14 +773,40 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
         fecha_fac_recepcion: fechaRecepcion,
         id_forma_pago: formaPago,
         id_tipo_moneda: tipoMoneda,
-        observaciones_factura: observaciones.trim() || null,
+        observaciones_factura: observaciones,
         subtotal_factura: subTotalFactura,
         descuento_factura: descuentoFactura || 0,
         flete_factura: fleteFactura || 0,
         iva_factura: ivaFactura,
         total_factura: totalFactura,
 
-        activos: activosPayload
+        // Incluir activos en el objeto de factura con todos los datos necesarios
+        activos: activosFactura.length > 0 ? activosFactura.map(activo => ({
+          // Datos del activo fijo completos
+          nombre_af: activo.nombre_af,
+          marca_af: activo.marca_af,
+          modelo_af: activo.modelo_af,
+          numero_serie_af: activo.numero_serie_af,
+          precio_unitario_af: activo.precio_unitario_af,
+          af_propio: activo.af_propio,
+          fecha_registro_af: activo.fecha_registro_af,
+          id_estado_af: activo.id_estado_af,
+          id_clasificacion: activo.id_clasificacion!,
+          descripcion_af: activo.descripcion_af || null,
+          observaciones_af: activo.observaciones_af || null,
+
+          // Datos de la relación factura-activo
+          precio_unitario: activo.precio_unitario_af,
+          cantidad: activo.cantidad,
+          observaciones: activo.observaciones_af || null,
+
+          // Datos opcionales de asignación inicial (si están presentes en el activo)
+          fecha_movimiento: activo.fecha_movimiento || '',
+          id_responsable_actual: activo.id_responsable_actual || null,
+          id_ubicacion_actual: activo.id_ubicacion_actual || null,
+          id_tipo_movimiento: activo.id_tipo_movimiento || null,
+          motivo_asignacion: activo.motivo_movimiento || null
+        } as ActivoFacturaInput)) : undefined
       };
 
       console.log('FacturaADD: ', nuevaFactura)
@@ -966,7 +1017,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
           <div className='title_Container'>
             <h2> <FaBoxesPacking className='activosFactura' />  Activos Fijos Asociados ({totalActivosFisicos}) </h2>
             <div className='agregarActivos' onClick={openModalAddActivosFactura}>
-              <IoAddCircleOutline className='addActivoIcon' /> Agregar Activos
+              <IoAddCircleOutline className='addActivoIcon' />{activosFacturaAgrupados.length > 0 ? 'Editar Activos' : 'Agregar Activos'}
             </div>
           </div>
 
@@ -997,7 +1048,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
                 <tr>
                   <th>Nombre del Activo</th>
                   <th>Lote</th>
-                  <th id='th_NoSerie'>Números de Serie</th>
+                  <th id='th_Asignaciones'>Asignaciones</th>
                   <th id='th_Cantidad'>Cantidad </th>
                   <th>Clasificación</th>
                   <th id='th_PrecioUnitario'>Precio Unitario</th>
@@ -1015,15 +1066,16 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
                           ? `${activo.codigo_lote} (${activo.lote_afconsecutivo || '-'} / ${activo.lote_total || '-'})`
                           : 'Pendiente'}
                       </td>
-                      <td id='td_NoSerie'>
-                        <button
-                          type='button'
-                          className='btnEditNoSeries'
-                          onClick={() => abrirModalSeries(activo)}
-                        >
-                          Editar ({(activo as { _indices?: number[] })._indices?.length || 0})
-                        </button>
 
+                      <td id='td_Asignaciones'>
+                        <button
+                          className='buttonAsignaciones'
+                          type='button'
+                          onClick={() => abrirModalAsignacionSeries(activo)}
+
+                        >
+                          Editar ({(activo as { _indices?: number[] })._indices?.length || 0} activos)
+                        </button>
 
                       </td>
 
@@ -1053,55 +1105,6 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
             </table>
           </div>
         </section>
-
-        {isSeriesModalOpen && activoSerieEnEdicion && (
-          <div className='serieModalOverlay'>
-            <div className='serieModal'>
-              <h3 className='serieModalTitle'>Números de Serie</h3>
-              <p className='serieModalSubTitle'>
-                {activoSerieEnEdicion.nombre_af} ({activoSerieEnEdicion.indices.length === 1 ? '1 activo fijo' : `${activoSerieEnEdicion.indices.length} activos fijos`})
-              </p>
-
-              <div className='serieModalGrid'>
-                {seriesEditables.map((serie, idx) => (
-                  <label key={`${activoSerieEnEdicion.clave}-${idx}`} className='serieModalLabel'>
-                    Número de Serie #{idx + 1}
-                    <input
-                      type='text'
-                      value={serie}
-                      onChange={(e) => {
-                        const nuevaLista = [...seriesEditables];
-                        nuevaLista[idx] = e.target.value;
-                        setSeriesEditables(nuevaLista);
-                      }}
-                      placeholder={`Número de serie ${idx + 1}`}
-                      className='serieModalInput'
-                    />
-                  </label>
-                ))}
-              </div>
-
-              <div className='serieModalActions'>
-                <ModalButtons
-                  buttons={[
-                    {
-                      text: 'Guardar',
-                      type: 'submit',
-                      className: 'button_addedit',
-                      onClick: guardarSeries
-                    },
-                    {
-                      text: 'Cancelar',
-                      type: 'button',
-                      className: 'button_close',
-                      onClick: cerrarModalSeries
-                    }
-                  ]}
-                />
-              </div>
-            </div>
-          </div>
-        )}
 
         <section className='valoresFactura'>
           <div className='title_Container'>
@@ -1228,6 +1231,18 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
           activosExistentes={activosFactura}
         />
       )}
+
+      {/* Modal para manejar las asignaciones de activos fijos según cantidad y el número de serie */}
+      {isAsignacionesOpen && (
+        <AsignacionesAF
+          isOpen={isAsignacionesOpen}
+          onClose={cerrarModalAsignacionSeries}
+          onGuardar={guardarSeries}
+          onActivosCreados={activosEditables}
+          onActivosChange={setActivosEditables}
+        />
+      )
+      }
 
     </div>
   );

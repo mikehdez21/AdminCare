@@ -1,0 +1,145 @@
+.modalComponent_AlmacenAF {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 12px;
+
+    .modalAsignacionesAF {
+        background-color: #ffffff;
+        border-radius: 16px;
+        padding: 16px;
+        width: min(96vw, 1200px);
+        box-shadow: 0 18px 42px rgba(0, 0, 0, 0.24);
+
+        h2 {
+            margin: 0 0 12px;
+            color: #2f3a48;
+            font-size: 1.2rem;
+        }
+
+        .sectionActivosCreados {
+            .divActivosCreados {
+                max-height: 72vh;
+                overflow-y: auto;
+                overflow-x: hidden;
+                padding-right: 4px;
+
+                .divActivoItem {
+                    display: grid;
+                    grid-template-columns: 0.7fr 1fr 1fr 1fr;
+                    gap: 20px;
+                    padding: 12px;
+                    margin-bottom: 14px;
+                    border: 1px solid #646566;
+                    border-radius: 10px;
+                    align-items: end;
+                    background-color: rgb(241, 241, 253);
+
+                    p {
+                        font-size: 0.82rem;
+                        margin: 0 0 6px;
+                        font-weight: 600;
+                        color: #4a5565;
+                    }
+
+                    .divSeries {
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: flex-end;
+                        align-items: stretch;
+
+                        .labelSerie {
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                            font-size: 0.8rem;
+
+                            input {
+                                width: 100%;
+                                padding: 8px 10px;
+                                border: 1px solid #cfd7e3;
+                                border-radius: 8px;
+                                text-align: left;
+                                background: #fff;
+                                transition: border-color 0.2s, box-shadow 0.2s;
+                            }
+
+                            input:focus {
+                                border-color: #3a7bd5;
+                                box-shadow: 0 0 0 3px rgba(58, 123, 213, 0.14);
+                                outline: none;
+                            }
+                        }
+                    }
+
+                    .divAsignacion {
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: flex-end;
+                        align-items: stretch;
+                        flex: 1;
+
+                        select {
+                            padding: 8px 10px;
+                            border: 1px solid #cfd7e3;
+                            border-radius: 8px;
+                            width: 100%;
+                            text-align: left;
+                            background: #fff;
+                            transition: border-color 0.2s, box-shadow 0.2s;
+
+                            &:focus {
+                                border-color: #3a7bd5;
+                                box-shadow: 0 0 0 3px rgba(58, 123, 213, 0.14);
+                                outline: none;
+                            }
+
+                            option {
+                                padding: 4px;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: 1100px) {
+    .modalComponent_AlmacenAF {
+        .modalAsignacionesAF {
+            .sectionActivosCreados {
+                .divActivosCreados {
+                    .divActivoItem {
+                        grid-template-columns: 1fr 1fr;
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: 680px) {
+    .modalComponent_AlmacenAF {
+        .modalAsignacionesAF {
+            padding: 12px;
+
+            h2 {
+                font-size: 1.05rem;
+            }
+
+            .sectionActivosCreados {
+                .divActivosCreados {
+                    .divActivoItem {
+                        grid-template-columns: 1fr;
+                        gap: 10px;
+                        padding: 10px;
+                    }
+                }
+            }
+        }
+    }
+}

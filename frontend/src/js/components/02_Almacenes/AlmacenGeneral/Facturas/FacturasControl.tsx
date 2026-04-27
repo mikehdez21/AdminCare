@@ -15,6 +15,10 @@ import { setFacturas } from '@/store/almacengeneral/Facturas/facturasReducer';
 import { getProveedores } from '@/store/almacengeneral/Proveedores/proveedoresActions';
 import { setListProveedor } from '@/store/almacengeneral/Proveedores/proveedoresReducer';
 
+// Clasificaciones
+import { getClasificaciones } from '@/store/almacengeneral/Clasificaciones/clasificacionesActions';
+import { setListClasificacion } from '@/store/almacengeneral/Clasificaciones/clasificacionesReducer';
+
 // Types
 import { getFormasPago, getTiposMoneda } from '@/store/shared/fiscalActions';
 import { getTiposFacturas } from '@/store/almacengeneral/Facturas/facturasActions';
@@ -24,20 +28,22 @@ import Paginacion from '@/components/00_Utils/Paginacion';
 import AddFactura from './AddFactura';
 import EditFactura from './EditFactura';
 import ImpresionFactura from '../Etiquetas/ImpresionFactura';
+import ResponsivasAF from './ResponsivaAF';
+import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 // import DeleteFactura from './DeleteFactura';
 
 // Icons
 import { FaArrowCircleRight } from 'react-icons/fa';
 import { FiAlertTriangle } from 'react-icons/fi';
 import { MdEdit } from 'react-icons/md';
+import { FaFilePdf } from "react-icons/fa6";
+
 
 Modal.setAppElement('#root');
 
 // Styles
 import '@styles/02_Almacenes/AlmacenGeneral/Facturas/facturasControl.css'
-import { getClasificaciones } from '@/store/almacengeneral/Clasificaciones/clasificacionesActions';
-import { setListClasificacion } from '@/store/almacengeneral/Clasificaciones/clasificacionesReducer';
-import { formatDateHorasToFrontend } from '@/utils/dateFormat';
+
 
 const AlmacenGeneral_Facturas: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -63,6 +69,7 @@ const AlmacenGeneral_Facturas: React.FC = () => {
   const [showAddFacturaForm, setShowAddFacturaForm] = useState<boolean>(false);
   const [showEditFacturaForm, setShowEditFacturaForm] = useState<boolean>(false);
   const [showImpresionFactura, setShowImpresionFactura] = useState<boolean>(false);
+  const [showResponsivasAF, setShowResponsivasAF] = useState<boolean>(false);
   const [facturaCreadaId, setFacturaCreadaId] = useState<number | null>(null);
   /*const [isModalDeleteFacturaOpen, setModalDeleteFacturaOpen] = useState<boolean>(false);*/
 
@@ -139,6 +146,7 @@ const AlmacenGeneral_Facturas: React.FC = () => {
         setShowAddFacturaForm(false);
         setShowEditFacturaForm(false);
         setShowImpresionFactura(false);
+        setShowResponsivasAF(false);
         setFacturaCreadaId(null);
         navigate('/almacen_general/facturas');
       }
@@ -167,12 +175,27 @@ const AlmacenGeneral_Facturas: React.FC = () => {
 
   }
 
+  const handleRegresarDesdeResponsivas = () => {
+    setShowResponsivasAF(false);
+    setFacturaCreadaId(null);
+    navigate('/almacen_general/facturas');
+  }
+
   const handleImpresionCompletadaDesdeFactura = () => {
     setShowImpresionFactura(false);
     setFacturaCreadaId(null);
     setShowAddFacturaForm(false);
     setShowEditFacturaForm(false);
     navigate('/almacen_general/facturas');
+  }
+
+  const handleImprimirResponsivas = (factura: FacturasAF) => {
+    navigate(`/almacen_general/facturas/impresionResponsivas/${factura.id_factura}`);
+    setFacturaToEdit_Delete(factura);
+    setShowAddFacturaForm(false);
+    setShowEditFacturaForm(false);
+    setShowImpresionFactura(false);
+    setShowResponsivasAF(true);
   }
 
 
@@ -416,7 +439,9 @@ const AlmacenGeneral_Facturas: React.FC = () => {
                     <td id='td_Acciones'>
                       <div className='divActions'>
                         <button className='button_editEntity' onClick={() => handleEditarFactura(factura)}> <MdEdit /> </button>
-                        {/*<button className='button_deleteEntity' disabled onClick={() => openAlertDeleteFactura(factura)}><MdDeleteForever/> </button>*/}                      </div>
+                        <button className='button_pdfResponsivas' onClick={() => handleImprimirResponsivas(factura)}> <FaFilePdf /> </button>
+                        {/*<button className='button_deleteEntity' disabled onClick={() => openAlertDeleteFactura(factura)}><MdDeleteForever/> </button>*/}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -487,6 +512,7 @@ const AlmacenGeneral_Facturas: React.FC = () => {
     </div>
   )
 
+  // Vista de impresión de etiquetas al crear una factura
   const renderImpresionFactura = () => (
     <div className='mainDiv_EditFactura'>
       <div className='returnButton'>
@@ -509,6 +535,28 @@ const AlmacenGeneral_Facturas: React.FC = () => {
     </div>
   )
 
+  // Vista de impresión de Responsivas AF
+  const renderResponsivasAF = () => (
+    <div className='mainDiv_EditFactura'>
+      <div className='returnButton'>
+        <button className='buttonAdd' onClick={handleRegresarDesdeResponsivas}>
+          <FaArrowCircleRight className='iconAdd' style={{ transform: 'rotate(180deg)' }} /> Facturas
+        </button>
+
+        <h2>Impresión de Responsivas por Factura</h2>
+      </div>
+
+      <hr />
+
+      <div className='mainDiv_EtiquetasControl'>
+        <ResponsivasAF
+          facturaToPDF={facturaToEdit_Delete}
+        />
+      </div>
+
+    </div>
+  )
+
   // Renderizar según el estado del formulario, ya sea para agregar o listar facturas
   return (
     <div className='mainDiv_FacturasControl'>
@@ -518,7 +566,10 @@ const AlmacenGeneral_Facturas: React.FC = () => {
           ? renderEditFactura()
           : showImpresionFactura
             ? renderImpresionFactura()
-            : renderListaFacturas()}
+            : showResponsivasAF
+              ? renderResponsivasAF()
+              : renderListaFacturas()
+      }
 
       <Modal
         isOpen={showObsModal}
