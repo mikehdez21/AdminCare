@@ -1,0 +1,180 @@
+.agc-wrapper {
+    width: 100%;
+    max-width: 90vw;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.agc-loading {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #334155;
+    margin: 1rem;
+}
+
+.agc-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 15px;
+}
+
+.agc-kpi-card {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #f8fafc;
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+    border: 1px solid #334155;
+}
+
+.agc-kpi-card h4 {
+    margin: 0;
+    font-size: 0.86rem;
+    font-weight: 600;
+    opacity: 0.92;
+    text-align: center;
+
+}
+
+.agc-kpi-card p {
+    text-align: center;
+    margin: 0.35rem 0 0;
+    font-size: 1.45rem;
+    font-weight: 700;
+}
+
+.agc-main-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.agc-card {
+    background: #ffffff;
+    border: 1px solid #dbeafe;
+    border-top: 4px solid #3b82f6;
+    border-radius: 10px;
+    padding: 0.75rem;
+    min-height: 280px;
+    box-shadow: 0 8px 24px rgba(30, 41, 59, 0.08);
+}
+
+.agc-card h3 {
+    margin: 0 0 0.65rem;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.agc-card--clasificacion {
+    grid-column: span 7;
+}
+
+.agc-card--facturas {
+    grid-column: span 5;
+}
+
+.agc-card--departamento,
+.agc-card--ubicacion,
+.agc-card--empleado {
+    grid-column: span 4;
+}
+
+.agc-card--ultimos {
+    grid-column: span 12;
+    min-height: 0;
+}
+
+.agc-scroll-chart {
+    max-height: 360px;
+    overflow: auto;
+    padding-right: 0.3rem;
+}
+
+.agc-scroll-chart::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.agc-scroll-chart::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+}
+
+.agc-last-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.agc-last-table-wrap table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.agc-last-table-wrap th,
+.agc-last-table-wrap td {
+    text-align: left;
+    padding: 0.55rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.agc-last-table-wrap th {
+    background: #f8fafc;
+    color: #2f5994;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+}
+
+
+.agc-last-table-wrap td {
+    background: #f8fafc;
+    color: #334155;
+    font-size: 0.8rem;
+}
+
+.agc-movimientos-grid {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 0.9rem;
+    align-items: start;
+}
+
+.agc-mov-chart {
+    max-width: 300px;
+}
+
+@media (max-width: 1200px) {
+
+    .agc-card--clasificacion,
+    .agc-card--facturas {
+        grid-column: span 12;
+    }
+
+    .agc-card--departamento,
+    .agc-card--ubicacion,
+    .agc-card--empleado {
+        grid-column: span 6;
+    }
+}
+
+@media (max-width: 900px) {
+    .agc-kpi-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .agc-card--departamento,
+    .agc-card--ubicacion,
+    .agc-card--empleado,
+    .agc-card--ultimos {
+        grid-column: span 12;
+    }
+
+    .agc-movimientos-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .agc-mov-chart {
+        max-width: 100%;
+    }
+}
