@@ -10,6 +10,18 @@ export default defineConfig(({ mode }) => {
   const isVercel = process.env.VERCEL === '1';
   const isLaravelBuild = !isVercel;
 
+  const manualChunks = (id: string) => {
+    if (!id.includes('node_modules')) return;
+
+    if (id.includes('react-dom') || id.includes('react/')) return 'vendor-react';
+    if (id.includes('react-router')) return 'vendor-router';
+    if (id.includes('@reduxjs/toolkit') || id.includes('react-redux')) return 'vendor-redux';
+    if (id.includes('@react-pdf/renderer') || id.includes('pdfjs-dist') || id.includes('fontkit')) return 'vendor-pdf';
+    if (id.includes('react-icons')) return 'vendor-icons';
+
+    return 'vendor-misc';
+  };
+
   return {
     plugins: [
       react(),
@@ -27,6 +39,11 @@ export default defineConfig(({ mode }) => {
       ? {
           outDir: 'dist',
           emptyOutDir: true,
+          rollupOptions: {
+            output: {
+              manualChunks,
+            },
+          },
         }
       : {
           outDir: '../public/build',
@@ -34,6 +51,9 @@ export default defineConfig(({ mode }) => {
           manifest: true,
           rollupOptions: {
             input: path.resolve(__dirname, 'src/js/App.tsx'),
+            output: {
+              manualChunks,
+            },
           },
         },
     resolve: {
