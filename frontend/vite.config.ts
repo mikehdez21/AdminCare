@@ -13,13 +13,28 @@ export default defineConfig(({ mode }) => {
   const manualChunks = (id: string) => {
     if (!id.includes('node_modules')) return;
 
-    if (id.includes('react-dom') || id.includes('react/')) return 'vendor-react';
+    // Core React libraries
+    if (id.includes('@vitejs') || id.includes('react/jsx-runtime')) return;
+    if (id.includes('react-dom/client') || id.includes('react-dom')) return 'vendor-react';
+    if (id.includes('react/') || id.match(/node_modules\/react\b/)) return 'vendor-react';
+
+    // Router and state management
     if (id.includes('react-router')) return 'vendor-router';
-    if (id.includes('@reduxjs/toolkit') || id.includes('react-redux')) return 'vendor-redux';
-    if (id.includes('@react-pdf/renderer') || id.includes('pdfjs-dist') || id.includes('fontkit')) return 'vendor-pdf';
+    if (id.includes('@reduxjs') || id.includes('react-redux') || id.includes('redux-thunk')) return 'vendor-redux';
+
+    // PDF and large renderers (but avoid circular refs)
+    if (id.includes('pdfjs-dist')) return 'vendor-pdf-core';
+    if (id.includes('@react-pdf/renderer')) return 'vendor-pdf';
+
+    // Icons library
     if (id.includes('react-icons')) return 'vendor-icons';
 
-    return 'vendor-misc';
+    // UI and forms
+    if (id.includes('react-modal') || id.includes('modal')) return 'vendor-ui';
+    if (id.includes('axios')) return 'vendor-http';
+
+    // Don't return catch-all to avoid circular dependencies
+    return;
   };
 
   return {
@@ -39,6 +54,7 @@ export default defineConfig(({ mode }) => {
       ? {
           outDir: 'dist',
           emptyOutDir: true,
+          chunkSizeWarningLimit: 1500,
           rollupOptions: {
             output: {
               manualChunks,
@@ -49,6 +65,7 @@ export default defineConfig(({ mode }) => {
           outDir: '../public/build',
           emptyOutDir: true,
           manifest: true,
+          chunkSizeWarningLimit: 1500,
           rollupOptions: {
             input: path.resolve(__dirname, 'src/js/App.tsx'),
             output: {
