@@ -42,7 +42,7 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
   const [marcaAF, setMarcaAF] = useState<string>('');
   const [noSerieAF, setNoSerieAF] = useState<string>('');
   const [precioUnitarioAF, setPrecioUnitarioAF] = useState<number>(0.00);
-  const [afPropio, setAfPropio] = useState<boolean>(true);
+  const [afPropio, setAFPropio] = useState<boolean>(true);
   const [tipoEstatusAF, setTipoEstatusAF] = useState<number>(0);
   const [tipoClasificacionAF, setTipoClasificacionAF] = useState<number>(0);
   const [fechaRegistroAF, setFechaRegistroAF] = useState('');
@@ -101,7 +101,7 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
       setPrecioUnitarioAF(activoFijoToEdit.precio_unitario_af);
 
 
-      setAfPropio(activoFijoToEdit.af_propio || true);
+      setAFPropio(activoFijoToEdit.af_propio);
       setTipoEstatusAF(activoFijoToEdit.id_estado_af || 0);
       setTipoClasificacionAF(activoFijoToEdit.id_clasificacion || 0);
 
@@ -139,7 +139,7 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
       setMarcaAF('');
       setNoSerieAF('');
       setPrecioUnitarioAF(0.00);
-      setAfPropio(true);
+      setAFPropio(true);
       setTipoEstatusAF(0);
       setTipoClasificacionAF(0);
       setFechaRegistroAF('');
@@ -205,7 +205,7 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
           setMarcaAF('');
           setNoSerieAF('');
           setPrecioUnitarioAF(0.00);
-          setAfPropio(true);
+          setAFPropio(true);
           setTipoEstatusAF(0);
           setTipoClasificacionAF(0);
           setFechaRegistroAF('');
@@ -319,16 +319,37 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
                     />
                   </label>
 
+                  <label htmlFor="">
+                    *Activo Propio:
+                    <select
+                      required
+                      value={afPropio ? '1' : '0'}
+                      onChange={(e) => {
+                        const esPropio = e.target.value === '1';
+                        setAFPropio(esPropio);
+                        if (!esPropio) {
+                          setPrecioUnitarioAF(0);
+                        }
+                      }}
+                    >
+                      <option value="" disabled>Seleccione una opción</option>
+                      <option value="1">Sí</option>
+                      <option value="0">No</option>
+                    </select>
+                  </label>
+
                   <label>
-                    *Precio Unitario:
+                    *Precio Unitario{afPropio ? '' : ' (COMODATO)'}:
                     <input
                       type="number"
-                      step="0.01"
+                      min={'0'}
+                      placeholder='0.00'
                       value={precioUnitarioAF}
+                      disabled={!afPropio}
                       onChange={(e) => {
                         const valor = e.target.value;
-                        if (valor === '' || valor === '0') {
-                          setPrecioUnitarioAF(0.00);
+                        if (valor === '') {
+                          setPrecioUnitarioAF(0);
                         } else {
                           setPrecioUnitarioAF(parseFloat(valor) || 0);
                         }
@@ -338,19 +359,6 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
                           e.target.select();
                         }
                       }} />
-                  </label>
-
-                  <label htmlFor="">
-                    *Activo Propio:
-                    <select
-                      required
-                      value={afPropio ? '1' : '0'}
-                      onChange={(e) => setAfPropio(e.target.value === '1')}
-                    >
-                      <option value="" disabled>Seleccione una opción</option>
-                      <option value="1">Sí</option>
-                      <option value="0">No</option>
-                    </select>
                   </label>
 
                   <label>

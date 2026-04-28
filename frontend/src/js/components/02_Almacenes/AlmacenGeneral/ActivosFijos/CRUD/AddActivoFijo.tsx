@@ -75,6 +75,12 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
     if (!tipoMovimientoAF?.length) dispatch(getTipoMovimientosActivosFijos());
   }, [dispatch, tiposEstatusAF, tiposClasificacionAF, empleados, ubicaciones, tipoMovimientoAF]);
 
+  useEffect(() => {
+    if (!afPropio && precioUnitarioAF !== 0) {
+      setPrecioUnitarioAF(0);
+    }
+  }, [afPropio, precioUnitarioAF]);
+
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -87,7 +93,7 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
         modelo_af: modeloAF,
         marca_af: marcaAF,
         numero_serie_af: noSerieAF,
-        precio_unitario_af: precioUnitarioAF,
+        precio_unitario_af: afPropio ? precioUnitarioAF : 0,
         af_propio: afPropio,
         id_estado_af: tipoEstatusAF,
         id_clasificacion: tipoClasificacionAF,
@@ -341,16 +347,36 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
                     />
                   </label>
 
+                  <label htmlFor="">
+                    *Activo Propio:
+                    <select
+                      required
+                      value={afPropio ? '1' : '0'}
+                      onChange={(e) => {
+                        const esPropio = e.target.value === '1';
+                        setAFPropio(esPropio);
+                        if (!esPropio) {
+                          setPrecioUnitarioAF(0);
+                        }
+                      }}
+                    >
+                      <option value="" disabled>Seleccione una opción</option>
+                      <option value="1">Sí</option>
+                      <option value="0">No</option>
+                    </select>
+                  </label>
+
                   <label>
-                    *Precio Unitario:
+                    *Precio Unitario{afPropio ? '' : ' (COMODATO)'}:
                     <input
                       type="number"
                       min={'0'}
                       placeholder='0.00'
                       value={precioUnitarioAF}
+                      disabled={!afPropio}
                       onChange={(e) => {
                         const valor = e.target.value;
-                        if (valor === '' || valor === '0') {
+                        if (valor === '') {
                           setPrecioUnitarioAF(0);
                         } else {
                           setPrecioUnitarioAF(parseFloat(valor) || 0);
@@ -361,19 +387,6 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
                           e.target.select();
                         }
                       }} />
-                  </label>
-
-                  <label htmlFor="">
-                    *Activo Propio:
-                    <select
-                      required
-                      value={afPropio ? '1' : '0'}
-                      onChange={(e) => setAFPropio(e.target.value === '1')}
-                    >
-                      <option value="" disabled>Seleccione una opción</option>
-                      <option value="1">Sí</option>
-                      <option value="0">No</option>
-                    </select>
                   </label>
 
                   <label>
@@ -424,57 +437,61 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
 
               </div>
 
-              <div className='asignacionAF_SecondColumn'>
-                <h2> Asignación del Activo Fijo </h2>
+              {!soloDatos ? (
+                <div className='asignacionAF_SecondColumn'>
+                  <h2> Asignación del Activo Fijo </h2>
 
-                <section className='inputs_asignacionAF'>
+                  <section className='inputs_asignacionAF'>
 
-                  <label>
-                    *Tipo de Movimiento:
-                    <select
-                      value={tipoMovimiento || ''}
-                      onChange={(e) => setTipoMovimiento(Number(e.target.value))}
-                      required
-                    >
-                      <option value="" disabled>Seleccione un tipo de movimiento</option>
-                      {opcionesTipoMovimiento}
-                    </select>
-                  </label>
+                    <label>
+                      *Tipo de Movimiento:
+                      <select
+                        value={tipoMovimiento || ''}
+                        onChange={(e) => setTipoMovimiento(Number(e.target.value))}
+                        required
+                      >
+                        <option value="" disabled>Seleccione un tipo de movimiento</option>
+                        {opcionesTipoMovimiento}
+                      </select>
+                    </label>
 
-                  <label>
-                    *Responsable Actual:
-                    <select
-                      value={responsableActual || ''}
-                      onChange={(e) => setResponsableActual(Number(e.target.value))}
-                    >
-                      <option value="" disabled>Seleccione un responsable</option>
-                      {opcionesEmpleados}
-                    </select>
-                  </label>
+                    <label>
+                      *Responsable Actual:
+                      <select
+                        value={responsableActual || ''}
+                        onChange={(e) => setResponsableActual(Number(e.target.value))}
+                      >
+                        <option value="" disabled>Seleccione un responsable</option>
+                        {opcionesEmpleados}
+                      </select>
+                    </label>
 
-                  <label>
-                    *Ubicación Actual:
-                    <select
-                      value={ubicacionActual || ''}
-                      onChange={(e) => setUbicacionActual(Number(e.target.value))}
-                    >
-                      <option value="" disabled>Seleccione una ubicación</option>
-                      {opcionesUbicaciones}
-                    </select>
-                  </label>
+                    <label>
+                      *Ubicación Actual:
+                      <select
+                        value={ubicacionActual || ''}
+                        onChange={(e) => setUbicacionActual(Number(e.target.value))}
+                      >
+                        <option value="" disabled>Seleccione una ubicación</option>
+                        {opcionesUbicaciones}
+                      </select>
+                    </label>
 
-                  <label>
-                    Motivo de movimiento:
-                    <textarea
-                      value={motivoMovimiento}
-                      className='textarea_motivoMovimientoAF'
-                      onChange={(e) => setMotivoMovimiento(e.target.value)}
-                      placeholder="Ej: Movimiento de ubicación, reasignación, etc."
-                    />
-                  </label>
-                </section>
+                    <label>
+                      Motivo de movimiento:
+                      <textarea
+                        value={motivoMovimiento}
+                        className='textarea_motivoMovimientoAF'
+                        onChange={(e) => setMotivoMovimiento(e.target.value)}
+                        placeholder="Ej: Movimiento de ubicación, reasignación, etc."
+                      />
+                    </label>
+                  </section>
 
-              </div>
+                </div>
+              ) : null}
+
+
 
             </div>
 
