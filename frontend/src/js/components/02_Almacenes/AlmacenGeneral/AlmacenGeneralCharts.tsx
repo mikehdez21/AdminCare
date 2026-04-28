@@ -25,7 +25,7 @@ import { setFacturas } from '@/store/almacengeneral/Facturas/facturasReducer';
 import { getClasificaciones } from '@/store/almacengeneral/Clasificaciones/clasificacionesActions';
 import { setListClasificacion } from '@/store/almacengeneral/Clasificaciones/clasificacionesReducer';
 import { getVWmovimientosActivosFijos } from '@/store/almacengeneral/Activos/MovimientosActivos/movimientosAFActions';
-import { setListvwMovimientosAF } from '@/store/almacengeneral/Activos/MovimientosActivos/movimientosAFReducer';
+import { setListvwMovimientosAF } from '@/store/almacengeneral/Activos/vwMovimientosAFReducer';
 import '@styles/02_Almacenes/AlmacenGeneralCharts.css';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend);
