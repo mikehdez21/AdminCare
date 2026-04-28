@@ -33,7 +33,6 @@ export default defineConfig(({ mode }) => {
     if (id.includes('react-modal') || id.includes('modal')) return 'vendor-ui';
     if (id.includes('axios')) return 'vendor-http';
 
-    // Don't return catch-all to avoid circular dependencies
     return;
   };
 

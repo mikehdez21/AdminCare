@@ -124,6 +124,15 @@ interface ScaneoActivosProps {
     infoResponsable: Empleados | null;
 }
 
+const normalizeUbicacion = (ubicacion: any): string => {
+    if (!ubicacion) return 'Sin ubicación';
+    if (typeof ubicacion === 'string') return ubicacion;
+    if (typeof ubicacion === 'object' && ubicacion.nombre_ubicacion) {
+        return ubicacion.nombre_ubicacion;
+    }
+    return 'Sin ubicación';
+};
+
 export const MyDocument = ({ activosResponsable, infoResponsable }: ScaneoActivosProps) => (
     <Document>
         <Page size="LETTER" style={styles.page}>
@@ -162,7 +171,7 @@ export const MyDocument = ({ activosResponsable, infoResponsable }: ScaneoActivo
                                     <Text style={[styles.tableCell, styles.tableCellNumber]}>{idx + 1}</Text>
                                     <Text style={[styles.tableCell, styles.tableCellCodigoEtiqueta]}>{activo.codigo_etiqueta}</Text>
                                     <Text style={[styles.tableCell, styles.tableCellNombre]}>{activo.nombre_af || activo.descripcion_af}</Text>
-                                    <Text style={[styles.tableCell, styles.tableCellUbicacion]}>{activo.ubicacion_actual || 'Sin ubicación'}</Text>
+                                    <Text style={[styles.tableCell, styles.tableCellUbicacion]}>{normalizeUbicacion(activo.ubicacion_actual)}</Text>
                                     <Text style={[styles.tableCell, styles.tableCellSerie]}>{activo.numero_serie_af}</Text>
                                     <Text style={[styles.tableCell, styles.tableCellModelo]}>{activo.modelo_af}</Text>
                                     <Text style={[styles.tableCell, styles.tableCellMarca]}>{activo.marca_af}</Text>
