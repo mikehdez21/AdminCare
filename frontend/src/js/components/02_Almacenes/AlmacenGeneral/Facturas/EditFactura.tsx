@@ -13,6 +13,8 @@ import { IoIosCard } from 'react-icons/io';
 import { SiGooglemessages } from 'react-icons/si';
 import { IoAddCircleOutline } from 'react-icons/io5';
 import { AiOutlineNumber } from 'react-icons/ai';
+import AsignacionesAF from './AsignacionesAF';
+
 
 import '@styles/02_Almacenes/AlmacenGeneral/Facturas/AddFactura.css'
 
@@ -50,6 +52,8 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
   const [fleteFactura, setFleteFactura] = useState<number>(0);
   const [ivaFactura, setIvaFactura] = useState<number>(0.16);
   const [totalFactura, setTotalFactura] = useState<number>(0);
+
+  const [isAsignacionesOpen, setIsAsignacionesOpen] = useState(false);
 
   const proveedores = useSelector((state: RootState) => state.proveedor.proveedores);
   const tiposFactura = useSelector((state: RootState) => state.facturasaf.tiposFacturas);
@@ -107,14 +111,6 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
   const ivaCalculado = baseGravable * 0.16;
   const subtotalConIVA = baseGravable + ivaCalculado;
   const totalFinal = subtotalConIVA;
-
-  const [isSeriesModalOpen, setIsSeriesModalOpen] = useState(false);
-  const [seriesEditables, setSeriesEditables] = useState<string[]>([]);
-  const [activoSerieEnEdicion, setActivoSerieEnEdicion] = useState<{
-    clave: string;
-    nombre_af: string;
-    indices: number[];
-  } | null>(null);
 
   // Inicializar datos del formulario con la factura a editar
   useEffect(() => {
@@ -209,28 +205,7 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
   const handleActivosCreados = (nuevosActivosCreados: ActivoFactura[]) => {
     setActivosFactura(nuevosActivosCreados);
   };
-
-  const abrirModalSeries = (activoAgrupado: ActivoFactura & { _indices?: number[]; _clave?: string }) => {
-    console.log(activoAgrupado)
-    const indices = activoAgrupado._indices || [];
-    const seriesActuales = indices.map((idx) => activosFactura[idx]?.numero_serie_af || '');
-    console.log(seriesActuales)
-
-    setActivoSerieEnEdicion({
-      clave: activoAgrupado._clave || `${activoAgrupado.nombre_af}-${Date.now()}`,
-      nombre_af: activoAgrupado.nombre_af,
-      indices,
-    });
-    setSeriesEditables(seriesActuales);
-    setIsSeriesModalOpen(true);
-  };
-
-  const cerrarModalSeries = () => {
-    setIsSeriesModalOpen(false);
-    setSeriesEditables([]);
-    setActivoSerieEnEdicion(null);
-  };
-
+  
   // Manejar el envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -498,7 +473,7 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
                 <tr>
                   <th>Nombre del Activo</th>
                   <th>Lote</th>
-                  <th id='th_NoSerie'>Números de Serie</th>
+                  <th id='th_Asignaciones'>Asignaciones</th>
                   <th id='th_Cantidad'>Cantidad </th>
                   <th>Clasificación</th>
                   <th id='th_PrecioUnitario'>Precio Unitario</th>
@@ -516,13 +491,13 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
                           : '-'}
                       </td>
 
-                      <td id='td_NoSerie'>
+                      <td id='td_Asignaciones'>
                         <button
-                          type='button'
-                          className='btnEditNoSeries'
-                          onClick={() => abrirModalSeries(activo)}
+                          className='buttonAsignaciones disabled'
+                          onClick={() => setIsAsignacionesOpen(true)}
+                          disabled
                         >
-                          Editar ({(activo as { _indices?: number[] })._indices?.length || 0})
+                          Editar ({(activo as { _indices?: number[] })._indices?.length || 0} activos)
                         </button>
 
 
@@ -553,54 +528,6 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
             </table>
           </div>
         </section>
-
-        {isSeriesModalOpen && activoSerieEnEdicion && (
-          <div className='serieModalOverlay'>
-            <div className='serieModal'>
-              <h3 className='serieModalTitle'>Números de Serie</h3>
-              <p className='serieModalSubTitle'>
-                {activoSerieEnEdicion.nombre_af} ({activoSerieEnEdicion.indices.length === 1 ? '1 activo fijo' : `${activoSerieEnEdicion.indices.length} activos fijos`})
-              </p>
-
-              <div className='serieModalGrid'>
-                {seriesEditables.map((serie, idx) => (
-                  <label key={`${activoSerieEnEdicion.clave}-${idx}`} className='serieModalLabel'>
-                    Número de Serie #{idx + 1}
-                    <input
-                      type='text'
-                      value={serie}
-                      onChange={(e) => {
-                        const nuevaLista = [...seriesEditables];
-                        nuevaLista[idx] = e.target.value;
-                        setSeriesEditables(nuevaLista);
-                      }}
-                      placeholder={`Número de serie ${idx + 1}`}
-                      className='serieModalInput'
-                    />
-                  </label>
-                ))}
-              </div>
-
-              <div className='serieModalActions'>
-                <ModalButtons
-                  buttons={[
-                    {
-                      text: 'Guardar',
-                      type: 'submit',
-                      className: 'button_addedit'
-                    },
-                    {
-                      text: 'Cancelar',
-                      type: 'button',
-                      className: 'button_close',
-                      onClick: cerrarModalSeries
-                    }
-                  ]}
-                />
-              </div>
-            </div>
-          </div>
-        )}
 
         <section className='valoresFactura'>
           <div className='title_Container'>
@@ -724,6 +651,17 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
           activosExistentes={activosFactura}
         />
       )}
+
+      {isAsignacionesOpen && (
+        <AsignacionesAF
+          isOpen={isAsignacionesOpen}
+          onClose={() => setIsAsignacionesOpen(false)}
+          onGuardar={() => ''}
+          onActivosCreados={[]}
+          onActivosChange={() => ''}
+        />
+      )
+      }
     </div>
   );
 };
