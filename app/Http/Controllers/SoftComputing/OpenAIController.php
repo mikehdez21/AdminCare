@@ -145,6 +145,7 @@ class OpenAIController extends Controller
 							'algorithm' => $algorithm,
 							'model_used' => $fallbackModel,
 							'analysis_text' => $outputText,
+							'cleaned' => $this->postProcessModelOutput($outputText),
 							'raw_response' => $responsePayload,
 						],
 					], 200);
@@ -170,6 +171,7 @@ class OpenAIController extends Controller
 						'model_used' => $model,
 						'analysis_text' => $outputText,
 						'citations' => $citations,
+						'cleaned' => $this->postProcessModelOutput($outputText),
 						'raw_response' => $responsePayload,
 					],
 				], 200);
@@ -263,6 +265,7 @@ class OpenAIController extends Controller
 						'disabled_reason' => $webSearchStatus['disabled_reason'],
 						'sources' => $webSearchSources,
 					],
+					'cleaned' => $this->postProcessModelOutput($outputText),
 					'raw_response' => $responsePayload,
 				],
 			], 200);
@@ -381,6 +384,157 @@ class OpenAIController extends Controller
 		}
 
 		return false;
+	}
+
+	/**
+	 * Post-process model output: try to parse JSON, normalize prices and validate URLs.
+	 */
+	private function postProcessModelOutput(string $text): array
+	{
+		$raw = trim($text);
+		$parsed = null;
+		try {
+			$parsed = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+		} catch (\Throwable $e) {
+			// Attempt to extract JSON substring
+			if (preg_match('/(\{[\s\S]*\}|\[[\s\S]*\])/', $raw, $m)) {
+				try {
+					$parsed = json_decode($m[0], true, 512, JSON_THROW_ON_ERROR);
+				} catch (\Throwable $_) {
+					$parsed = null;
+				}
+			}
+		}
+
+		$result = ['raw_text' => $raw, 'parsed' => $parsed, 'results' => []];
+		if (!is_array($parsed)) {
+			return $result;
+		}
+
+		// Support keys in Spanish/English
+		$candidateKeys = ['resultados', 'results', 'resultado', 'items', 'data'];
+		$items = null;
+		foreach ($candidateKeys as $k) {
+			if (isset($parsed[$k]) && is_array($parsed[$k])) {
+				$items = $parsed[$k];
+				break;
+			}
+		}
+		if ($items === null && is_array($parsed)) {
+			// If parsed is a sequential array of results
+			$allStringKeys = array_filter(array_keys($parsed), 'is_string');
+			if (empty($allStringKeys)) {
+				$items = $parsed;
+			}
+		}
+
+		if (!is_array($items)) {
+			return $result;
+		}
+
+		$cleaned = [];
+		foreach ($items as $entry) {
+			if (!is_array($entry)) {
+				continue;
+			}
+
+			$entryClean = $entry;
+
+			// Flexible key lookup
+			$urlKeys = ['url', 'link', 'enlace'];
+			$priceKeys = ['precio_actual', 'precio', 'price', 'precio_referencia', 'precio_ref'];
+
+			// Validate URL
+			$url = null;
+			foreach ($urlKeys as $k) {
+				if (!empty($entry[$k])) {
+					$url = (string) $entry[$k];
+					break;
+				}
+			}
+			if ($url !== null) {
+				$url = trim($url);
+				$urlChecked = $this->isUrlReachable($url);
+				$entryClean['url'] = $urlChecked ? $this->ensureUrlHasScheme($url) : null;
+				if (!$urlChecked) {
+					$entryClean['notas'] = trim(($entryClean['notas'] ?? '') . ' URL no válida o inaccesible.');
+					$entryClean['url_valid'] = false;
+				} else {
+					$entryClean['url_valid'] = true;
+				}
+			}
+
+			// Normalize prices (attempt for actual and reference)
+			foreach ($priceKeys as $k) {
+				if (isset($entry[$k])) {
+					$normalized = $this->normalizePrice($entry[$k]);
+					$entryClean[$k . '_normalized'] = $normalized;
+					if ($normalized === null || $normalized <= 0) {
+						$entryClean['notas'] = trim(($entryClean['notas'] ?? '') . ' Precio no válido o no encontrado.');
+						$entryClean[$k . '_valid'] = false;
+					} else {
+						$entryClean[$k . '_valid'] = true;
+					}
+				}
+			}
+
+			$cleaned[] = $entryClean;
+		}
+
+		$result['results'] = $cleaned;
+		return $result;
+	}
+
+	private function ensureUrlHasScheme(string $url): string
+	{
+		$u = trim($url);
+		if (!preg_match('/^https?:\/\//i', $u)) {
+			$u = 'https://' . ltrim($u, '/');
+		}
+		return $u;
+	}
+
+	/**
+	 * Check that a URL responds with an OK HTTP status.
+	 */
+	private function isUrlReachable(string $url): bool
+	{
+		$u = $this->ensureUrlHasScheme($url);
+		try {
+			$response = Http::timeout(6)->get($u);
+			$status = $response->status();
+			return $status >= 200 && $status < 400;
+		} catch (\Throwable $e) {
+			return false;
+		}
+	}
+
+	/**
+	 * Extract a float from various price formats. Returns null if not parsable.
+	 */
+	private function normalizePrice($value): ?float
+	{
+		if ($value === null) {
+			return null;
+		}
+		$s = (string) $value;
+		// Remove currency symbols and whitespace
+		$s = preg_replace('/[^0-9,\.\-]/u', '', $s);
+		if ($s === '') {
+			return null;
+		}
+		// Replace comma as decimal if needed (e.g., 1.234,56 or 1234,56)
+		if (preg_match('/,\d{1,2}$/', $s) && preg_match('/\./', $s)) {
+			// assume thousand separators and comma decimal
+			$s = str_replace('.', '', $s);
+			$s = str_replace(',', '.', $s);
+		} else {
+			$s = str_replace(',', '.', $s);
+		}
+		if (!preg_match('/-?\d+(?:\.\d+)?/', $s, $m)) {
+			return null;
+		}
+		return (float) $m[0];
 	}
 
 	private function extractWebSearchSources(array $responsePayload): array

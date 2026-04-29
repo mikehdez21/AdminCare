@@ -23,6 +23,7 @@ interface AddActivosFacturaProps {
   onClose: () => void;
   onActivosCreados?: (activos: ActivoFactura[]) => void;
   activosExistentes?: ActivoFactura[];
+  isAddMode?: boolean;
 }
 
 Modal.setAppElement('#root');
@@ -31,7 +32,8 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
   isOpen,
   onClose,
   onActivosCreados,
-  activosExistentes = []
+  activosExistentes = [],
+  isAddMode
 }) => {
 
   console.log('ADDActivosFactura')
@@ -487,7 +489,7 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
           <button
             className="buttonCrearActivo"
             onClick={() => setIsAddActivoFijoOpen(true)}
-            disabled={activosExistentes?.length > 0}
+            disabled={activosExistentes?.length > 0 && !isAddMode}
           >
             <FaPlus /> Crear Nuevo Activo Fijo
           </button>
@@ -641,7 +643,7 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
               type: 'button',
               className: 'button_addedit',
               onClick: handleConfirmar,
-              disabled: activosAgregados.length === 0 || activosExistentes?.length > 0
+              disabled: activosAgregados.length === 0 || activosExistentes?.length > 0 && !isAddMode
             },
             {
               text: 'Cancelar',

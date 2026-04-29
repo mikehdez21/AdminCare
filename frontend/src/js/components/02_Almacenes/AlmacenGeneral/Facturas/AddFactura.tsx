@@ -1228,6 +1228,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
           onClose={closeModalAddActivosFactura}
           onActivosCreados={handleActivosCreados}
           activosExistentes={activosFactura}
+          isAddMode={true}
         />
       )}
 
