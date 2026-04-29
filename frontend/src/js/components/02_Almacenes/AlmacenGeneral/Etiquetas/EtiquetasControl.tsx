@@ -49,7 +49,7 @@ const AlmacenGeneral_Etiquetas: React.FC = () => {
   }
 
   const handleOpcionImprFactura = () => {
-    setOpenImprAF(true);
+    setOpenImprFactura(true);
     navigate('/almacen_general/etiquetas/factura');
   }
 
@@ -58,15 +58,15 @@ const AlmacenGeneral_Etiquetas: React.FC = () => {
     const cargarActivosFijos = async () => {
       try {
         const resultAction = await dispatch(getActivosFijos()).unwrap();
-      
-        if(resultAction.success){
+
+        if (resultAction.success) {
           dispatch(setListActivosFijos(resultAction.activosFijos!)); // Establece los activos fijos en el estado
-      
-        } else{
+
+        } else {
           console.log('Error', resultAction.message)
         }
-      
-      
+
+
       } catch (error) {
         console.error('Error al cargar proveedores:', error);
       }
@@ -76,14 +76,14 @@ const AlmacenGeneral_Etiquetas: React.FC = () => {
     const cargarClasificaciones = async () => {
       try {
         const resultAction = await dispatch(getClasificaciones()).unwrap();
-        if(resultAction.success){
+        if (resultAction.success) {
           dispatch(setListClasificacion(resultAction.clasificacion!)); // Establece el clasificacion en el estado
-            
-        } else{
+
+        } else {
           console.log('Error', resultAction.message)
         }
-            
-            
+
+
       } catch (error) {
         console.error('Error al cargar clasificaciones:', error);
       }
@@ -96,16 +96,16 @@ const AlmacenGeneral_Etiquetas: React.FC = () => {
         if (resultAction.success) {
           dispatch(setFacturas(resultAction.facturas!));
         } else {
-          console.log('Error', resultAction.message)        
+          console.log('Error', resultAction.message)
         }
-    
+
       } catch (error) {
         console.error('Error al cargar las facturas:', error);
       }
     };
     cargarFacturas();
 
-    
+
   }, [])
 
 
@@ -114,19 +114,19 @@ const AlmacenGeneral_Etiquetas: React.FC = () => {
       <header>
 
         <div className='returnButton'>
-          {isOpenImprAF || isOpenImprFactura ? 
-            <button  onClick={handleRegresarImpresiones}>
+          {isOpenImprAF || isOpenImprFactura ?
+            <button onClick={handleRegresarImpresiones}>
               <FaArrowCircleRight className='iconAdd' style={
                 { transform: 'rotate(180deg)' }
               } /> Volver
             </button>
-            : null    
+            : null
           }
         </div>
 
-        
-        
-        
+
+
+
         <h1>Impresión de Etiquetas</h1>
 
       </header>
@@ -156,16 +156,16 @@ const AlmacenGeneral_Etiquetas: React.FC = () => {
       <header>
 
         <div className='returnButton'>
-          {isOpenImprAF || isOpenImprFactura ? 
-            <button  onClick={handleRegresarImpresiones}>
+          {isOpenImprAF || isOpenImprFactura ?
+            <button onClick={handleRegresarImpresiones}>
               <FaArrowCircleRight className='iconAdd' style={
                 { transform: 'rotate(180deg)' }
               } /> Volver
             </button>
-            : null    
+            : null
           }
         </div>
-        
+
         <h1>Impresión por Activo Fijo</h1>
 
       </header>
@@ -178,17 +178,17 @@ const AlmacenGeneral_Etiquetas: React.FC = () => {
   )
 
   const renderImprFactura = () => (
-    
+
     <>
       <header>
         <div className='returnButton'>
-          {isOpenImprAF || isOpenImprFactura ? 
-            <button  onClick={handleRegresarImpresiones}>
+          {isOpenImprAF || isOpenImprFactura ?
+            <button onClick={handleRegresarImpresiones}>
               <FaArrowCircleRight className='iconAdd' style={
                 { transform: 'rotate(180deg)' }
               } /> Volver
             </button>
-            : null    
+            : null
           }
         </div>
         <h1>Impresión por Factura</h1>
@@ -200,17 +200,17 @@ const AlmacenGeneral_Etiquetas: React.FC = () => {
     </>
   )
 
-  
-    
+
+
 
   return (
 
     <div className='mainDiv_EtiquetasControl'>
-      
-      {isOpenImprAF ? renderImprAF() : 
-        isOpenImprFactura ? renderImprFactura() : 
+
+      {isOpenImprAF ? renderImprAF() :
+        isOpenImprFactura ? renderImprFactura() :
           renderOpcionesImpresion()}
-      
+
 
     </div>
 

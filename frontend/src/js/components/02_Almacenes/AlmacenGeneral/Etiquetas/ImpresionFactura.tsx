@@ -1,9 +1,9 @@
-import { API_BASE_URL } from '@/variableApi';
 // Bibliotecas
 import React, { useState, useEffect } from 'react';
 import { AppDispatch, RootState } from '@/store/store';
 import { useDispatch, useSelector } from 'react-redux';
 import axios, { AxiosError } from 'axios';
+import { API_BASE_URL } from '@/variableApi';
 import Swal from 'sweetalert2';
 
 // Styles
@@ -297,8 +297,8 @@ const ImpresionFactura: React.FC<ImpresionFacturaProps> = ({ facturaNuevaID, onI
               <div
                 key={factura.id_factura}
                 className={`facturaItem disponible ${facturaSeleccionada?.id_factura === factura.id_factura
-                    ? 'seleccionado'
-                    : ''
+                  ? 'seleccionado'
+                  : ''
                   }`}
                 onClick={() => handleSeleccionarFactura(factura)}
               >
@@ -311,11 +311,11 @@ const ImpresionFactura: React.FC<ImpresionFacturaProps> = ({ facturaNuevaID, onI
 
 
 
-                  {proveedores.map((proveedor) => (
-                    <p key={proveedor.id_proveedor} className='proveedor'>
-                      {factura.id_proveedor === proveedor.id_proveedor ? proveedor.razon_social : ''}
+                  {proveedores.find(prov => prov.id_proveedor === factura.id_proveedor)?.nombre_proveedor && (
+                    <p className='proveedor'>
+                      {proveedores.find(prov => prov.id_proveedor === factura.id_proveedor)?.razon_social}
                     </p>
-                  ))}
+                  )}
 
 
 
@@ -338,7 +338,6 @@ const ImpresionFactura: React.FC<ImpresionFacturaProps> = ({ facturaNuevaID, onI
             <h3>
               <FaList className="columnIcon" /> Activos de la Factura
               <span className="contadorBadge">{activosFactura.length}</span>
-              <small>(En el siguiente orden): </small>
             </h3>
 
             {facturaSeleccionada && activosFactura.length > 0 && (
@@ -389,8 +388,8 @@ const ImpresionFactura: React.FC<ImpresionFacturaProps> = ({ facturaNuevaID, onI
                   >
                     <div className="activoFacturaInfo">
                       <h4>
-                        {activo.nombre_af}{' '}
                         <p className="codigo">{activo.codigo_unico}</p>
+                        {activo.nombre_af}{' '}
                       </h4>
 
                       <p className="clasificacion">{getNombreClasificacion(activo.id_clasificacion!)}</p>
