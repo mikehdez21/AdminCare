@@ -54,6 +54,7 @@ const App: React.FC = () => {
           <Route path='/dbstatus' element={<DBStatus />} />
           <Route path='/login' element={<PageLogin />} />
           <Route path='/activosfijos/qraf/scan/:codigoQR' element={<ActivoQRPublic />} />
+          <Route path='/activosfijos/qraf/:codigoQR' element={<ActivoQRPublic />} />
         </Route>
 
 
