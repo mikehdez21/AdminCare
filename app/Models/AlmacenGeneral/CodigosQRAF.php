@@ -150,6 +150,9 @@ class CodigosQRAF extends Model
         }
     }
 
+
+    
+
     /**
      * Generar imagen QR usando endroid/qr-code v6
      * 
