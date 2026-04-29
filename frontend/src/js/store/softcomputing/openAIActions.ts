@@ -34,6 +34,7 @@ export interface OpenAISoftComputingResponse {
 		algorithm?: SoftComputingAlgorithm;
 		model_used: string;
 		analysis_text: string;
+		citations?: Array<{ url: string; title?: string }>;
 		web_search?: {
 			requested: boolean;
 			attempted: boolean;
@@ -44,6 +45,11 @@ export interface OpenAISoftComputingResponse {
 				title: string;
 				url: string;
 			}>;
+		};
+		cleaned?: {
+			raw_text: string;
+			parsed?: Record<string, unknown>;
+			results: Array<Record<string, unknown>>;
 		};
 		raw_response: Record<string, unknown>;
 	};

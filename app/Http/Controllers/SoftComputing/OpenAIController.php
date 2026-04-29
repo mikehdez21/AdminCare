@@ -40,21 +40,45 @@ class OpenAIController extends Controller
 			$algorithm = $validated['algorithm'] ?? null;
 			$inputData = $validated['data'] ?? [];
 
+		$systemPrompt = "Eres un analista experto en compras empresariales para el sistema AdminCare. Responde solo en JSON válido, sin markdown. Si no puedes validar una URL o precio, indícalo en notas y no inventes enlaces.";
 
-			$systemPrompt = "Eres un analista experto en compras empresariales para el sistema AdminCare. Responde solo en JSON válido, sin markdown. Si no puedes validar una URL o precio, indícalo en notas y no inventes enlaces.";
+		// Construir prompt de usuario estructurado para cada activo
+		$activos = isset($inputData['activos']) && is_array($inputData['activos']) ? $inputData['activos'] : [];
+		$activosPrompt = '';
+		foreach ($activos as $idx => $activo) {
+			$nombre = $activo['nombre_af'] ?? '';
+			$marca = $activo['marca_af'] ?? '';
+			$modelo = $activo['modelo_af'] ?? '';
+			$precio = $activo['precio_unitario_af'] ?? '';
+			
+			// Normalizar a número
+			$precioNum = (float) str_replace([',', ' ', '$'], '', (string) $precio);
+			$precioFormateado = $precioNum > 0 ? (string) $precioNum : '0.00';
+			
+			$activosPrompt .= "\nActivo #" . ($idx + 1) . ":\n- Nombre: {$nombre}\n- Marca: {$marca}\n- Modelo: {$modelo}\n- Precio unitario: {$precioFormateado}";
+		}
 
-			// Construir prompt de usuario estructurado para cada activo
-			$activos = isset($inputData['activos']) && is_array($inputData['activos']) ? $inputData['activos'] : [];
-			$activosPrompt = '';
-			foreach ($activos as $idx => $activo) {
-				$nombre = $activo['nombre_af'] ?? '';
-				$marca = $activo['marca_af'] ?? '';
-				$modelo = $activo['modelo_af'] ?? '';
-				$precio = $activo['precio_unitario_af'] ?? '';
-				$activosPrompt .= "\nActivo #" . ($idx + 1) . ":\n- Nombre: {$nombre}\n- Marca: {$marca}\n- Modelo: {$modelo}\n- Precio unitario: {$precio}";
-			}
+		$userPrompt = "Tengo los siguientes activos para compra:{$activosPrompt}\n\n"
+			. "Realiza una búsqueda web SOLO en Amazon, MercadoLibre y Walmart para encontrar productos iguales o comparables. "
+			. "Responde ÚNICAMENTE con un JSON válido (sin markdown, sin explicaciones adicionales) con esta estructura exacta:\n"
+			. "{\n"
+			. "  \"resumen_general\": \"Breve análisis (máximo 2 líneas) indicando si los precios son competitivos comparado con el mercado.\",\n"
+			. "  \"resultados\": [\n"
+			. "    {\n"
+			. "      \"activo\": {\"nombre_af\": \"nombre del activo\", \"marca_af\": \"marca\", \"modelo_af\": \"modelo\"},\n"
+			. "      \"precio_actual\": <número sin símbolo>,\n"
+			. "      \"opcion_mas_barata\": \"nombre de la alternativa encontrada\",\n"
+			. "      \"precio_referencia\": <número encontrado en web>,\n"
+			. "      \"ahorro_estimado\": <diferencia calculada>,\n"
+			. "      \"url\": \"URL completa verificada (https://...)\",\n"
+			. "      \"notas\": \"Indicar si la URL fue validada o si hay incertidumbre\"\n"
+			. "    }\n"
+			. "  ]\n"
+			. "}\n"
+			. "IMPORTANTE: Si no puedes encontrar información confiable, precios válidos o URLs verificables, "
+			. "establece precio_referencia en 0 y explícitamente en notas: 'Información no disponible' o 'URL no pudo ser verificada'. "
+			. "NO inventes enlaces ni precios. Máximo 3 opciones por activo. Responde SOLO con el JSON sin código fences.";
 
-			$userPrompt = "Tengo los siguientes activos para compra:{$activosPrompt}\n\nRealiza una búsqueda web solo en Amazon, MercadoLibre y Walmart para encontrar productos iguales o comparables. Devuelve un JSON con:\n- resumen_general: breve análisis de si el precio es competitivo.\n- resultados: máximo 3 opciones, cada una con { activo, precio_actual, opcion_mas_barata, precio_referencia, ahorro_estimado, url, notas }\nSi no puedes validar la URL o el precio, indícalo en notas y no inventes enlaces. No incluyas más de 3 resultados por activo.";
 
 			$requestPayload = [
 				'input' => [
@@ -439,12 +463,13 @@ class OpenAIController extends Controller
 			}
 
 			$entryClean = $entry;
+			$validationNotes = [];
 
 			// Flexible key lookup
 			$urlKeys = ['url', 'link', 'enlace'];
 			$priceKeys = ['precio_actual', 'precio', 'price', 'precio_referencia', 'precio_ref'];
 
-			// Validate URL
+			// Validate URL - only validate if URL exists and is not empty
 			$url = null;
 			foreach ($urlKeys as $k) {
 				if (!empty($entry[$k])) {
@@ -454,13 +479,18 @@ class OpenAIController extends Controller
 			}
 			if ($url !== null) {
 				$url = trim($url);
-				$urlChecked = $this->isUrlReachable($url);
-				$entryClean['url'] = $urlChecked ? $this->ensureUrlHasScheme($url) : null;
-				if (!$urlChecked) {
-					$entryClean['notas'] = trim(($entryClean['notas'] ?? '') . ' URL no válida o inaccesible.');
-					$entryClean['url_valid'] = false;
+				// Solo validar si la URL no es "URL no disponible" o similar
+				if ($url !== 'URL no disponible' && $url !== '' && strlen($url) > 5) {
+					$urlChecked = $this->isUrlReachable($url);
+					$entryClean['url'] = $urlChecked ? $this->ensureUrlHasScheme($url) : null;
+					if (!$urlChecked) {
+						$validationNotes[] = 'URL no validada';
+						$entryClean['url_valid'] = false;
+					} else {
+						$entryClean['url_valid'] = true;
+					}
 				} else {
-					$entryClean['url_valid'] = true;
+					$entryClean['url_valid'] = false;
 				}
 			}
 
@@ -470,12 +500,21 @@ class OpenAIController extends Controller
 					$normalized = $this->normalizePrice($entry[$k]);
 					$entryClean[$k . '_normalized'] = $normalized;
 					if ($normalized === null || $normalized <= 0) {
-						$entryClean['notas'] = trim(($entryClean['notas'] ?? '') . ' Precio no válido o no encontrado.');
+						$validationNotes[] = ucfirst($k) . ' no válido';
 						$entryClean[$k . '_valid'] = false;
 					} else {
 						$entryClean[$k . '_valid'] = true;
 					}
 				}
+			}
+
+			// Append validation notes to existing notas if there are any
+			if (!empty($validationNotes)) {
+				$existingNotes = trim((string) ($entryClean['notas'] ?? ''));
+				$notesLine = implode('. ', $validationNotes);
+				$entryClean['notas'] = $existingNotes
+					? $existingNotes . '. ' . $notesLine
+					: $notesLine;
 			}
 
 			$cleaned[] = $entryClean;

@@ -264,11 +264,13 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
 
   const obtenerResumenActivosActuales = () => {
     return activosFactura.map((activo) => ({
-      nombre_af: activo.nombre_af,
-      marca_af: activo.marca_af,
-      modelo_af: activo.modelo_af,
-      cantidad: toSafeNumber(activo.cantidad, 0),
+      nombre_af: activo.nombre_af || 'Activo sin nombre',
+      marca_af: activo.marca_af || 'N/D',
+      modelo_af: activo.modelo_af || 'N/D',
+      // Enviar ambas variantes para compatibilidad
       precio_unitario: toSafeNumber(activo.precio_unitario_af, 0),
+      precio_unitario_af: toSafeNumber(activo.precio_unitario_af, 0),
+      cantidad: toSafeNumber(activo.cantidad, 0),
       total_linea: toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.precio_unitario_af, 0),
       id_clasificacion: toSafeNumber(activo.id_clasificacion, 0),
     }));
@@ -350,7 +352,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
   };
 
   // Extrae y muestra annotations (url_citation) si existen en el JSON de OpenAI
-  const renderOpenAIRecommendationHtml = (analysisText: string, rawResponse?: any): string => {
+  const renderOpenAIRecommendationHtml = (analysisText: string, rawResponse?: any, cleanedData?: any): string => {
     const normalizedText = unwrapCodeFence(analysisText);
 
     let annotations: Array<{ url: string; title?: string }> = [];
@@ -386,6 +388,9 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
 
       const resumenRaw = parsed.resumen_general;
       const resultados = Array.isArray(parsed.resultados) ? parsed.resultados : [];
+      
+      // Usar cleaned.results si está disponible (con precios ya normalizados)
+      const cleanedResults = cleanedData?.results || [];
 
       const resumenHtml =
         resumenRaw && typeof resumenRaw === 'object'
@@ -405,7 +410,10 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
 
       const resultadosHtml = resultados.length
         ? resultados
-          .map((item) => {
+          .map((item, index) => {
+            // Usar datos limpios si están disponibles
+            const cleanedItem = cleanedResults[index] || item;
+            
             const activoRaw = item.activo;
             const activoObj = activoRaw && typeof activoRaw === 'object' ? activoRaw as Record<string, unknown> : null;
 
@@ -417,15 +425,18 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
             const modelo = activoObj ? escapeHtml(String(activoObj.modelo ?? activoObj.modelo_af ?? 'N/D')) : 'N/D';
 
             const opcion = escapeHtml(item.opcion_mas_barata || 'Sin opción específica');
-            const precioActual = toSafeNumber(
-              item.precio_actual,
-              0);
-            const precioRef = toSafeNumber(item.precio_referencia, 0);
-            const ahorro = toSafeNumber(item.ahorro_estimado, 0);
+            
+            // Usar precios normalizados si están disponibles
+            const precioActual = cleanedItem.precio_actual_normalized 
+              ?? toSafeNumber(item.precio_actual, 0);
+            const precioRef = cleanedItem.precio_referencia_normalized 
+              ?? toSafeNumber(item.precio_referencia, 0);
+            const ahorro = precioRef > 0 && precioActual > 0 ? precioActual - precioRef : toSafeNumber(item.ahorro_estimado, 0);
+            
             const notas = escapeHtml(item.notas || '');
             const rawUrl = (item.url || '').trim();
             const safeUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : '';
-            const urlHtml = safeUrl
+            const urlHtml = safeUrl && cleanedItem.url_valid !== false
               ? `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">Ver opción</a>`
               : '<span>URL no disponible</span>';
 
@@ -524,7 +535,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
           title: 'Recomendación OpenAI',
           html: `
             ${renderWebSearchMetaHtml(openAITestResult.data.web_search, openAITestResult.data.model_used)}
-            ${renderOpenAIRecommendationHtml(analysisText, openAITestResult.data.raw_response)}
+            ${renderOpenAIRecommendationHtml(analysisText, openAITestResult.data.raw_response, openAITestResult.data.cleaned)}
           `,
           width: 860,
           confirmButtonText: 'OK',
