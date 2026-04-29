@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 
 // Icons
 import { FiCheckCircle, FiAlertCircle, FiX } from 'react-icons/fi';
+import { FaArrowCircleLeft } from 'react-icons/fa';
 
 // Styles
 import '@styles/02_Almacenes/AlmacenGeneral/ActivosFijos/checkAF.css';
@@ -25,7 +26,7 @@ interface ActivoEscaneado extends ActivosFijos {
     qrCapturado: string;
 }
 
-const CheckAF: React.FC<CheckAFsProps> = ({ isOpen, listActivos, infoLugar }) => {
+const CheckAF: React.FC<CheckAFsProps> = ({ isOpen, onClose, listActivos, infoLugar }) => {
     const [activosEscaneados, setActivosEscaneados] = useState<ActivoEscaneado[]>([]);
 
     // Calcula los activos pendientes en base a los escaneados y la lista total
@@ -286,13 +287,27 @@ const CheckAF: React.FC<CheckAFsProps> = ({ isOpen, listActivos, infoLugar }) =>
         <>
             <div className="mainDiv_CheckAF">
                 <div className="headerCheckAF">
-                    <h2>
+
+                    <div className='infoCheck'>
+
+                        <h2>
+                            {infoLugar}
+                        </h2>
+
+                        <div className="buttonsHeader">
+                            <button type='button' className='buttonPDF' onClick={() => setShowPDF(true)}>Ver PDF</button>
+                            <button type="button" className="buttonRegresar" onClick={onClose}> <FaArrowCircleLeft className='iconAdd' /> Lista de Activos </button>
+
+                        </div>
+
+
+                    </div>
+
+                    <h3>
                         Revisar Activos Fijos con Zebra DS22
 
-                        <button onClick={() => setShowPDF(true)}>Ver PDF</button>
+                    </h3>
 
-
-                    </h2>
                     <div className="estadisticas">
                         <span>{activosEscaneados.length} / {listActivos.length} escaneados</span>
                         <div className="progressBar">

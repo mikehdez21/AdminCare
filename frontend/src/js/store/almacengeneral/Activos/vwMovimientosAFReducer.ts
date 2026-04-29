@@ -22,16 +22,18 @@ const vwMovimientosAFSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getVWmovimientosActivosFijos.fulfilled, (state, action: PayloadAction<{ success: boolean; ActivosMovimientosView?: VwMovimientosAF[]; message: string }>) => {
-        if (action.payload.success && action.payload.ActivosMovimientosView) {
-          state.activosMovimientos = action.payload.ActivosMovimientosView;
+      .addCase(getVWmovimientosActivosFijos.fulfilled, (state, action: PayloadAction<{ success: boolean; vwMovimientosAF?: VwMovimientosAF[]; ActivosMovimientosView?: VwMovimientosAF[]; message: string }>) => {
+        const activosMovimientos = action.payload.vwMovimientosAF || action.payload.ActivosMovimientosView || [];
+
+        if (action.payload.success && activosMovimientos.length > 0) {
+          state.activosMovimientos = activosMovimientos;
+          state.error = null;
         } else {
-          state.activosMovimientos = [];
           state.error = action.payload.message || 'Error al obtener movimientos de activos';
         }
       })
       .addCase(getVWmovimientosActivosFijos.rejected, (state, action) => {
-        state.error = action.payload as string;
+        state.error = action.error.message || 'Error al obtener movimientos de activos';
       })
   }
 });

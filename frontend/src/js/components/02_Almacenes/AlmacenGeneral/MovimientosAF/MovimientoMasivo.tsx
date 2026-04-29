@@ -4,14 +4,12 @@ import Swal from 'sweetalert2';
 import Modal from 'react-modal';
 import { AppDispatch, RootState } from '@/store/store';
 import { getEmpleados } from '@/store/administrador/Empleados/empleadosActions';
-import { 
+import {
     editMovimientoActivoFijo,
     getMovimientosActivosFijos,
     getTipoMovimientosActivosFijos,
-    getVWmovimientosActivosFijos
-
- } from '@/store/almacengeneral/Activos/MovimientosActivos/movimientosAFActions';
-
+    getVWmovimientosActivosFijos,
+} from '@/store/almacengeneral/Activos/MovimientosActivos/movimientosAFActions';
 import { MovimientosActivosFijos } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 import { getFechaHoraActual } from '@/utils/dateFormat';
 
