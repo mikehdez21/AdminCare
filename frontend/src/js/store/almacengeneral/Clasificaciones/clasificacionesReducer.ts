@@ -31,27 +31,26 @@ const clasificacionSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getClasificaciones.fulfilled, (state, action: PayloadAction<{success: boolean, clasificacionesAF?: ClasificacionesAF[], message: string}>) => {
-        if (action.payload.success && action.payload.clasificacionesAF){
-          state.clasificacionesAF = action.payload.clasificacionesAF;
+      .addCase(getClasificaciones.fulfilled, (state, action: PayloadAction<{success: boolean, clasificacion?: ClasificacionesAF[], message: string}>) => {
+        if (action.payload.success && Array.isArray(action.payload.clasificacion)){
+          state.clasificacionesAF = action.payload.clasificacion;
+          state.error = null;
         } else {
-          state.clasificacionesAF = []
           state.error = action.payload.message ? (action.payload.message as string) : 'Error al obtener clasificacionessss';
         }
       })
       .addCase(getClasificaciones.rejected, (state, action) => {
-        state.error = action.payload as string
+        state.error = action.error.message || 'Error al obtener clasificaciones';
       })
-      .addCase(addClasificacion.fulfilled, (state, action: PayloadAction<{success: boolean, clasificacionesAF?: ClasificacionesAF[], message: string}>) => {
-        if (action.payload.success && action.payload.clasificacionesAF){
-          state.clasificacionesAF = [...state.clasificacionesAF, ...action.payload.clasificacionesAF]; // Mantener proveedores anteriores y añadir nuevos
+      .addCase(addClasificacion.fulfilled, (state, action: PayloadAction<{success: boolean, message: string}>) => {
+        if (action.payload.success){
+          state.error = null;
         } else {
-          state.clasificacionesAF = []
           state.error = action.payload.message || 'Error al añadir la clasificación'; // Manejo de errores
         }
       })
       .addCase(addClasificacion.rejected, (state, action) => {
-        state.error = action.payload as string
+        state.error = action.error.message || 'Error al añadir la clasificación';
       })
   }
 })

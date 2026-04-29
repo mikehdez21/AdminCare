@@ -156,6 +156,14 @@ const AlmacenGeneralCharts: React.FC = () => {
         return activos.filter((a) => a.id_estado_af && inactivoIds.has(a.id_estado_af)).length;
     }, [activos, estatusAF, activosMovimientos]);
 
+    const totalActivosNoPropios = useMemo(() => {
+        if (activosMovimientos.length > 0) {
+            return activosMovimientos.filter((a) => !a.af_propio).length;
+        }
+
+        return activos.filter((a) => !a.af_propio).length;
+    }, [activos, activosMovimientos]);
+
     const activosPorClasificacion = useMemo(() => {
         const map = new Map<string, number>();
 
@@ -270,6 +278,10 @@ const AlmacenGeneralCharts: React.FC = () => {
                 <div className="agc-kpi-card">
                     <h4>Total Bajas de Activos</h4>
                     <p>{totalActivosInactivos}</p>
+                </div>
+                <div className="agc-kpi-card">
+                    <h4>Total Activos No Propios</h4>
+                    <p>{totalActivosNoPropios}</p>
                 </div>
             </div>
 

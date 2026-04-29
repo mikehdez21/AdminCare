@@ -61,6 +61,15 @@ Route::prefix('HSS1')->group(function () {
     Route::post('/auth/login', [AuthController::class, 'login'])->name('login');
 
     // ============================================================
+    // RUTA PÚBLICA DE ESCANEO QR (sin autenticación)
+    // ============================================================
+    Route::get('/almacengeneral/qraf/scan/{codigoQR}', [CodigosQRAFController::class, 'escanearQR']);
+
+
+
+
+    
+    // ============================================================
     // RUTAS PROTEGIDAS (auth:sanctum con sesión + CSRF)
     // ============================================================
     Route::group(['middleware' => 'auth:sanctum'], function () {
@@ -123,7 +132,6 @@ Route::prefix('HSS1')->group(function () {
         Route::prefix('almacengeneral/qraf')->group(function () {
             Route::post('generar/{idActivo}', [CodigosQRAFController::class, 'generarQR']);
             Route::post('generar-con-logo/{idActivo}', [CodigosQRAFController::class, 'generarQRConLogo']);
-            Route::get('scan/{codigoQR}', [CodigosQRAFController::class, 'escanearQR']);
             Route::get('descargar/{idActivo}', [CodigosQRAFController::class, 'descargarQR']);
             Route::get('listar', [CodigosQRAFController::class, 'index']);
             Route::put('desactivar/{idQR}', [CodigosQRAFController::class, 'desactivar']);
