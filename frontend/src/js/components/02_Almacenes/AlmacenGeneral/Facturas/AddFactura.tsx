@@ -351,6 +351,47 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
     `;
   };
 
+    const renderMLModelExplanationHtml = (
+      trainData: any,
+      predictRows: Array<{ features: Record<string, number> }>,
+      currentAlgorithm: string
+    ) => {
+      const modelLabel = escapeHtml(String(trainData?.algorithm_label || currentAlgorithm || 'RandomForestRegressor'));
+      const modelId = trainData?.model_id ? escapeHtml(String(trainData.model_id)) : 'N/D';
+      const supportedModels = ['RandomForestRegressor', 'LinearRegression', 'KNeighborsRegressor']
+        .map(escapeHtml)
+        .join(', ');
+
+      const featureNames = Array.isArray(trainData?.feature_names) && trainData.feature_names.length > 0
+        ? trainData.feature_names.map((feature: string) => escapeHtml(String(feature))).join(', ')
+        : 'subtotal_factura, descuento_factura, flete_factura, iva_factura, total_factura, total_linea';
+
+      const firstRow = predictRows[0]?.features || {};
+      const predictionInputs = Object.entries(firstRow)
+        .map(([key, value]) => `<li><strong>${escapeHtml(key)}:</strong> ${escapeHtml(formatPeso(value))}</li>`)
+        .join('');
+
+      const modelDescription = currentAlgorithm === 'random_forest'
+        ? 'Random Forest combina varios árboles de decisión y promedia sus resultados para estimar un precio más estable.'
+        : currentAlgorithm === 'linear_regression'
+          ? 'Linear Regression ajusta una relación lineal entre los datos de entrada y el precio objetivo.'
+          : 'KNN compara la factura actual con casos similares guardados y usa sus vecinos más cercanos para estimar el precio.';
+
+      return `
+        <div class="recommendationPanel recommendationPanel--raw">
+          <p class="recommendationPanel__line"><strong>Modelo utilizado:</strong> ${modelLabel}</p>
+          <p class="recommendationPanel__line"><strong>Identificador del modelo:</strong> ${modelId}</p>
+          <p class="recommendationPanel__line"><strong>Modelos soportados:</strong> ${supportedModels}</p>
+          <p class="recommendationPanel__line"><strong>Cómo funciona:</strong> ${escapeHtml(modelDescription)}</p>
+          <p class="recommendationPanel__line"><strong>Datos tomados de la BD:</strong> el servicio FastAPI entrena con registros de factura/activo y usa ${escapeHtml(featureNames)} como variables de entrada; el objetivo que aprende es precio_unitario_af.</p>
+          <p class="recommendationPanel__line"><strong>Datos enviados para esta recomendación:</strong></p>
+          <ul class="recommendationPanel__list">
+            ${predictionInputs || '<li>Sin datos de entrada disponibles.</li>'}
+          </ul>
+        </div>
+      `;
+    };
+
   // Extrae y muestra annotations (url_citation) si existen en el JSON de OpenAI
   const renderOpenAIRecommendationHtml = (analysisText: string, rawResponse?: any, cleanedData?: any): string => {
     const normalizedText = unwrapCodeFence(analysisText);
@@ -658,6 +699,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
           `;
         })
         .join('');
+      const explanationHtml = renderMLModelExplanationHtml(trainResponse.data, predictRows, 'random_forest');
 
       await Swal.fire({
         icon: 'info',
@@ -666,6 +708,8 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
           <div class="recommendationPanel">
             <p class="recommendationPanel__line"><strong>Modelo:</strong> ${escapeHtml(modelId)}</p>
             <p class="recommendationPanel__line"><strong>Métricas:</strong> ${escapeHtml(resumenMetricas)}</p>
+            <hr class="recommendationPanel__divider" />
+            ${explanationHtml}
             <hr class="recommendationPanel__divider" />
             ${comparativoHtml || '<p class="recommendationPanel__empty">No se recibieron predicciones para mostrar.</p>'}
           </div>
