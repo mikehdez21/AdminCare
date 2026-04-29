@@ -59,10 +59,17 @@ class OpenAIController extends Controller
 		}
 
 		$userPrompt = "Tengo los siguientes activos para compra:{$activosPrompt}\n\n"
-			. "Realiza una búsqueda web SOLO en Amazon, MercadoLibre y Walmart para encontrar productos iguales o comparables. "
+			. "Realiza una búsqueda web SOLO en sitios mexicanos para encontrar productos iguales o comparables. "
+			. "IMPORTANTE: Usa ÚNICAMENTE estos dominios mexicanos y sus URLs de búsqueda:\n"
+			. "- MercadoLibre México: https://listado.mercadolibre.com.mx/\n"
+			. "  Ejemplo: https://listado.mercadolibre.com.mx/laptop-hp-15#D[A:laptop%20hp%2015]\n"
+			. "- Amazon México: https://www.amazon.com.mx/\n"
+			. "  Ejemplo: https://www.amazon.com.mx/s?k=laptop+hp+15&__mk_es_MX=%C3%85M%C3%85%C5%BD%C3%95%C3%91\n"
+			. "- Walmart México: https://www.walmart.com.mx/\n"
+			. "  Ejemplos: https://www.walmart.com.mx/search?q=laptop+hp+15 y https://www.walmart.com.mx/search?q=asus+vivobook+15\n\n"
 			. "Responde ÚNICAMENTE con un JSON válido (sin markdown, sin explicaciones adicionales) con esta estructura exacta:\n"
 			. "{\n"
-			. "  \"resumen_general\": \"Breve análisis (máximo 2 líneas) indicando si los precios son competitivos comparado con el mercado.\",\n"
+			. "  \"resumen_general\": \"Breve análisis (máximo 2 líneas) indicando si los precios son competitivos comparado con el mercado mexicano.\",\n"
 			. "  \"resultados\": [\n"
 			. "    {\n"
 			. "      \"activo\": {\"nombre_af\": \"nombre del activo\", \"marca_af\": \"marca\", \"modelo_af\": \"modelo\"},\n"
@@ -70,14 +77,21 @@ class OpenAIController extends Controller
 			. "      \"opcion_mas_barata\": \"nombre de la alternativa encontrada\",\n"
 			. "      \"precio_referencia\": <número encontrado en web>,\n"
 			. "      \"ahorro_estimado\": <diferencia calculada>,\n"
-			. "      \"url\": \"URL completa verificada (https://...)\",\n"
-			. "      \"notas\": \"Indicar si la URL fue validada o si hay incertidumbre\"\n"
+			. "      \"url\": \"URL COMPLETA de búsqueda mexicana (https://listado.mercadolibre.com.mx/... o https://www.amazon.com.mx/s?... o https://www.walmart.com.mx/search?...)\",\n"
+			. "      \"notas\": \"Indicar si encontraste el producto y si el precio es fiable\"\n"
 			. "    }\n"
 			. "  ]\n"
-			. "}\n"
-			. "IMPORTANTE: Si no puedes encontrar información confiable, precios válidos o URLs verificables, "
-			. "establece precio_referencia en 0 y explícitamente en notas: 'Información no disponible' o 'URL no pudo ser verificada'. "
-			. "NO inventes enlaces ni precios. Máximo 3 opciones por activo. Responde SOLO con el JSON sin código fences.";
+			. "}\n\n"
+			. "OBLIGATORIO:\n"
+			. "- Los precios deben ser en pesos mexicanos (MXN).\n"
+			. "- MercadoLibre debe usar URLs de búsqueda en listado.mercadolibre.com.mx, no páginas de producto.\n"
+			. "- Amazon debe usar URLs de búsqueda con /s?k=.\n"
+			. "- Walmart debe usar URLs de búsqueda con /search?q=.\n"
+			. "- Todas las URLs DEBEN ser de México y terminar en .com.mx.\n"
+			. "- Si no puedes encontrar información confiable, precios válidos o URLs de sitios mexicanos, "
+			. "establece precio_referencia en 0 y explícitamente en notas: 'Producto no encontrado en sitios mexicanos' o 'Información no disponible'. "
+			. "- NO inventes enlaces, NO uses URLs de .com (sin .mx).\n"
+			. "- Máximo 3 opciones por activo. Responde SOLO con el JSON sin código fences.";
 
 
 			$requestPayload = [
@@ -116,12 +130,9 @@ class OpenAIController extends Controller
 					'web_search_options' => [
 						'mode' => 'enabled',
 						'allowed_domains' => [
-							'amazon.com.mx',
 							'mercadolibre.com.mx',
+							'amazon.com.mx',
 							'walmart.com.mx',
-							'amazon.com',
-							'mercadolibre.com',
-							'walmart.com'
 						]
 					],
 					'temperature' => 0.2,
@@ -469,7 +480,7 @@ class OpenAIController extends Controller
 			$urlKeys = ['url', 'link', 'enlace'];
 			$priceKeys = ['precio_actual', 'precio', 'price', 'precio_referencia', 'precio_ref'];
 
-			// Validate URL - only validate if URL exists and is not empty
+			// Validate URL - check if it's a valid Mexican domain
 			$url = null;
 			foreach ($urlKeys as $k) {
 				if (!empty($entry[$k])) {
@@ -479,15 +490,25 @@ class OpenAIController extends Controller
 			}
 			if ($url !== null) {
 				$url = trim($url);
-				// Solo validar si la URL no es "URL no disponible" o similar
+				// Check if URL is from a valid Mexican domain
 				if ($url !== 'URL no disponible' && $url !== '' && strlen($url) > 5) {
-					$urlChecked = $this->isUrlReachable($url);
-					$entryClean['url'] = $urlChecked ? $this->ensureUrlHasScheme($url) : null;
-					if (!$urlChecked) {
-						$validationNotes[] = 'URL no validada';
+					$isMexicanDomain = $this->isValidMexicanDomain($url);
+					if (!$isMexicanDomain) {
+						// Not a Mexican domain
+						$validationNotes[] = 'URL debe ser de dominio mexicano (.com.mx)';
+						$entryClean['url'] = null;
 						$entryClean['url_valid'] = false;
 					} else {
-						$entryClean['url_valid'] = true;
+						// Valid Mexican domain, try to reach it
+						$urlChecked = $this->isUrlReachable($url);
+						$entryClean['url'] = $urlChecked ? $this->ensureUrlHasScheme($url) : $url;
+						if (!$urlChecked) {
+							// URL not reachable but is from valid domain
+							$validationNotes[] = 'URL no alcanzable (dominio correcto)';
+							$entryClean['url_valid'] = false;
+						} else {
+							$entryClean['url_valid'] = true;
+						}
 					}
 				} else {
 					$entryClean['url_valid'] = false;
@@ -508,13 +529,16 @@ class OpenAIController extends Controller
 				}
 			}
 
-			// Append validation notes to existing notas if there are any
+			// Append validation notes to existing notas only if there are new issues
 			if (!empty($validationNotes)) {
 				$existingNotes = trim((string) ($entryClean['notas'] ?? ''));
 				$notesLine = implode('. ', $validationNotes);
-				$entryClean['notas'] = $existingNotes
-					? $existingNotes . '. ' . $notesLine
-					: $notesLine;
+				// Only append if not already present
+				if ($existingNotes && strpos($existingNotes, $notesLine) === false) {
+					$entryClean['notas'] = $existingNotes . '. ' . $notesLine;
+				} elseif (!$existingNotes) {
+					$entryClean['notas'] = $notesLine;
+				}
 			}
 
 			$cleaned[] = $entryClean;
@@ -531,6 +555,27 @@ class OpenAIController extends Controller
 			$u = 'https://' . ltrim($u, '/');
 		}
 		return $u;
+	}
+
+	/**
+	 * Check that a URL is a valid Mexican e-commerce domain.
+	 */
+	private function isValidMexicanDomain(string $url): bool
+	{
+		$u = trim($url);
+		$mexDomains = [
+			'mercadolibre.com.mx',
+			'amazon.com.mx',
+			'walmart.com.mx',
+		];
+
+		foreach ($mexDomains as $domain) {
+			if (strpos($u, $domain) !== false) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**

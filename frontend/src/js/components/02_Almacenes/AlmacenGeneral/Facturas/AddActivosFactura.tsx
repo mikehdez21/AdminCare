@@ -372,8 +372,7 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
       }
 
       return itemsNormalizados.map((itemBase, index) => ({
-        ...itemBase,
-        cantidad: 1,
+        ...itemBase, precio_unitario_af: activo.precio_unitario_af, cantidad: 1,
         numero_serie_af: seriesCapturadas[index] || itemBase.numero_serie_af || '',
       }));
     });
