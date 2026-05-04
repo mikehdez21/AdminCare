@@ -138,7 +138,8 @@ export const MyDocument = ({ activosResponsable, infoResponsable }: ScaneoActivo
         <Page size="LETTER" style={styles.page}>
             <View>
                 <Text style={{ fontSize: 18, color: '#333', textAlign: 'center', marginBottom: 4, fontWeight: 'bold' }}>Hospital San Serafín</Text>
-                <Text style={{ fontSize: 14, color: '#333', textAlign: 'center', marginBottom: 8, }}>Responsiva de Activos Fijos Asociados a {infoResponsable?.nombre_empleado} {infoResponsable?.apellido_paterno} {infoResponsable?.apellido_materno}</Text>
+                <Text style={{ fontSize: 14, color: '#333', textAlign: 'center', marginBottom: 8, }}>Responsiva de Traspaso de Activos Fijos </Text>
+
 
                 <Text style={{ display: 'flex', textAlign: 'center', marginBottom: 12, color: '#777', fontSize: 9, justifyContent: 'center' }}>
                     Fecha y Hora de la Responsiva: {formatDateHorasToFrontend(getFechaHoraActual() || '') || 'Desconocida'}

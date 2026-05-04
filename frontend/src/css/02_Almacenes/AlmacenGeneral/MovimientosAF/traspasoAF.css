@@ -53,10 +53,6 @@
                 min-height: 90px;
                 resize: vertical;
             }
-
-
-
-
         }
 
         .divButton {
@@ -75,15 +71,20 @@
                 border-radius: 8px;
                 padding: 0.55rem 2rem;
                 cursor: pointer;
+                border: none;
 
                 &:hover {
                     background-color: #2563eb;
                 }
 
+                &:disabled {
+                    background-color: #7c7c7c;
+                    cursor: not-allowed;
+                }
             }
 
             .buttonSubmit {
-                background-color: #11d811;
+                background-color: #16a34a;
                 color: #ffffff;
                 font-weight: 700;
                 font-size: 0.86rem;
@@ -92,6 +93,7 @@
                 border-radius: 8px;
                 padding: 0.55rem 2rem;
                 cursor: pointer;
+                border: none;
 
                 &:hover {
                     background-color: #13b913;
@@ -104,25 +106,26 @@
                 }
             }
         }
-
-
     }
 }
 
 .modalActivosEmpleado {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: auto;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
 
     .modalContainer {
         background-color: #ffffff;
         border-radius: 15px;
         padding: 15px;
         width: 90%;
-        max-width: 800px;
+        max-width: 900px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
 
         .modalHeader {
             display: flex;
@@ -144,8 +147,6 @@
                 }
             }
 
-
-
             .buttonClose {
                 background-color: #ef4444;
                 color: #ffffff;
@@ -156,6 +157,7 @@
                 border-radius: 8px;
                 padding: 0.40rem 0.60rem;
                 cursor: pointer;
+                border: none;
 
                 &:hover {
                     background-color: #dc2626;
@@ -184,7 +186,6 @@
                 border: 1px solid #e2e8f0;
 
                 tr {
-
                     th {
                         background: #f8fafc;
                         color: #2f5994;
@@ -193,14 +194,12 @@
                         text-align: left;
                         padding: 0.55rem;
                         border: 1px solid #e2e8f0;
-
                     }
 
                     td {
                         text-align: left;
                         padding: 0.55rem;
                         border: 1px solid #e2e8f0;
-
                     }
 
                     .thCantidad,
@@ -213,11 +212,126 @@
                     }
                 }
             }
-
-
-
-
-
         }
     }
+}
+
+.modalTraspasoPDF {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .divPreviewPDF {
+        background-color: #ffffff;
+        border-radius: 15px;
+        padding: 15px;
+        width: 90%;
+        max-width: 900px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+
+        .modalPreviewHeader {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            margin-bottom: 10px;
+
+            h3 {
+                margin: 0;
+                color: #334155;
+                font-size: 1.1rem;
+                font-weight: 700;
+            }
+
+            .buttonClose {
+                background-color: #ef4444;
+                color: #ffffff;
+                font-weight: 700;
+                font-size: 0.86rem;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                border-radius: 8px;
+                padding: 0.40rem 0.60rem;
+                cursor: pointer;
+                border: none;
+                min-width: 60px;
+
+                &:hover {
+                    background-color: #dc2626;
+                }
+            }
+        }
+
+        .modalPreviewContent {
+            display: flex;
+            justify-content: center;
+            height: 70vh;
+            margin-bottom: 15px;
+        }
+
+        .modalPreviewActions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            flex-shrink: 0;
+
+            .buttonSubmit {
+                background-color: #16a34a;
+                color: #ffffff;
+                font-weight: 700;
+                font-size: 0.86rem;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                border-radius: 8px;
+                padding: 0.55rem 2rem;
+                cursor: pointer;
+                border: none;
+                min-width: 150px;
+
+                &:hover {
+                    background-color: #13b913;
+                }
+
+                &:disabled {
+                    background-color: #7c7c7c;
+                    cursor: not-allowed;
+                    transform: none;
+                }
+            }
+
+            .buttonActivosEmpleado {
+                background-color: #3b82f6;
+                color: #ffffff;
+                font-weight: 700;
+                font-size: 0.86rem;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                border-radius: 8px;
+                padding: 0.55rem 2rem;
+                cursor: pointer;
+                border: none;
+                min-width: 100px;
+
+                &:hover {
+                    background-color: #2563eb;
+                }
+
+                &:disabled {
+                    background-color: #7c7c7c;
+                    cursor: not-allowed;
+                }
+            }
+        }
+    }
+
+
+
 }
