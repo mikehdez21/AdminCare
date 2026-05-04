@@ -12,7 +12,7 @@ import { FaBoxArchive, FaBoxesStacked } from "react-icons/fa6";
 // Styles
 import '@styles/02_Almacenes/AlmacenGeneral/MovimientosAF/movimientosAFControl.css';
 import AlmacenGeneral_MovimientoIndividual from './MovimientoIndividual';
-import AlmacenGeneral_MovimientoMasivo from './MovimientoMasivo';
+import AlmacenGeneral_MovimientoMasivo from './TraspasoAF';
 
 const AlmacenGeneral_MovimientosAF: React.FC = () => {
   const navigate = useNavigate();

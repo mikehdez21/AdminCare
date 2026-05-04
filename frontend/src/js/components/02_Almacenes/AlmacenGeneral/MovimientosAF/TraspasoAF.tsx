@@ -10,10 +10,13 @@ import {
     getTipoMovimientosActivosFijos,
     getVWmovimientosActivosFijos,
 } from '@/store/almacengeneral/Activos/MovimientosActivos/movimientosAFActions';
-import { MovimientosActivosFijos } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
+import { MovimientosActivosFijos, ActivosFijos } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 import { getFechaHoraActual } from '@/utils/dateFormat';
+import { PDFViewer } from '@react-pdf/renderer';
+import { MyDocument } from '@/reactPDF/pdfTraspasoAF';
+import { Empleados } from '@/@types/mainTypes';
 
-import '@styles/02_Almacenes/AlmacenGeneral/MovimientosAF/movimientoMasivo.css';
+import '@styles/02_Almacenes/AlmacenGeneral/MovimientosAF/traspasoAF.css';
 
 Modal.setAppElement('#root');
 
@@ -46,12 +49,14 @@ const AlmacenGeneral_MovimientoMasivo: React.FC = () => {
     const [tipoMovimientoSeleccionado, setTipoMovimientoSeleccionado] = useState<number>(0);
     const [motivoMovimiento, setMotivoMovimiento] = useState<string>('Reasignacion masiva de activos');
     const [isModalActivosOpen, setIsModalActivosOpen] = useState<boolean>(false);
+    const [isPreviewModalOpen, setIsPreviewModalOpen] = useState<boolean>(false);
+    const [previewDestino, setPreviewDestino] = useState<Empleados | null>(null);
     const [procesando, setProcesando] = useState<boolean>(false);
 
     useEffect(() => {
         if (!empleados.length) dispatch(getEmpleados());
         if (!activosMovimientos.length) dispatch(getVWmovimientosActivosFijos());
-        if (!movimientosAF.length) dispatch(getVWmovimientosActivosFijos());
+        if (!movimientosAF.length) dispatch(getMovimientosActivosFijos());
         if (!tiposMovimiento.length) dispatch(getTipoMovimientosActivosFijos());
     }, [dispatch, empleados.length, activosMovimientos.length, movimientosAF.length, tiposMovimiento.length]);
 
@@ -160,6 +165,15 @@ const AlmacenGeneral_MovimientoMasivo: React.FC = () => {
         });
     }, [empleadosActivos, responsableOrigen]);
 
+    // Validar que todos los activos del origen tengan su movimiento cargado
+    const datosListos = useMemo(() => {
+        if (activosDelOrigen.length === 0) return false;
+        return activosDelOrigen.every((activo) => {
+            const idActivo = Number(activo.id_activo_fijo);
+            return !Number.isNaN(idActivo) && ultimoMovimientoPorActivo.has(idActivo);
+        });
+    }, [activosDelOrigen, ultimoMovimientoPorActivo]);
+
     const handleTransferenciaMasiva = async () => {
         if (!responsableOrigen || !responsableDestino) {
             Swal.fire('Faltan datos', 'Selecciona empleado origen y destino.', 'warning');
@@ -210,13 +224,26 @@ const AlmacenGeneral_MovimientoMasivo: React.FC = () => {
             return;
         }
 
+        console.log(destinoSeleccionado);
+
+        // Abrir modal de preview del PDF antes de ejecutar el traspaso
+        if (destinoSeleccionado) {
+            setPreviewDestino(destinoSeleccionado);
+            setIsPreviewModalOpen(true);
+        }
+    };
+
+    const confirmarTraspaso = async (destino: Empleados | null, activos: typeof activosDelOrigen) => {
+        if (!destino || !activos || activos.length === 0) return;
+
+        setIsPreviewModalOpen(false);
         setProcesando(true);
 
         let movidos = 0;
         let omitidos = 0;
 
         try {
-            for (const activo of activosDelOrigen) {
+            for (const activo of activos) {
                 const idActivo = activo.id_activo_fijo;
                 if (!idActivo) {
                     omitidos += 1;
@@ -237,7 +264,7 @@ const AlmacenGeneral_MovimientoMasivo: React.FC = () => {
                     motivo_movimiento: motivoMovimiento.trim(),
                     fecha_movimiento: getFechaHoraActual(),
                     id_responsable_anterior: ultimoMovimiento.id_responsable_actual || null,
-                    id_responsable_actual: responsableDestino,
+                    id_responsable_actual: destino.id_empleado || null,
                     id_ubicacion_anterior: ultimoMovimiento.id_ubicacion_actual || ultimoMovimiento.id_ubicacion_anterior || null,
                     id_ubicacion_actual: ultimoMovimiento.id_ubicacion_actual || ultimoMovimiento.id_ubicacion_anterior || null,
                 };
@@ -254,8 +281,8 @@ const AlmacenGeneral_MovimientoMasivo: React.FC = () => {
             await dispatch(getVWmovimientosActivosFijos()).unwrap();
 
             Swal.fire(
-                'Movimiento masivo completado',
-                `Activos movidos: ${movidos}. Omitidos: ${omitidos}.`,
+                'Traspaso de Activos Completado',
+                `Activos Traspasados: ${movidos}. Omitidos: ${omitidos}.`,
                 movidos > 0 ? 'success' : 'warning'
             );
 
@@ -365,7 +392,7 @@ const AlmacenGeneral_MovimientoMasivo: React.FC = () => {
                             }
                             onClick={handleTransferenciaMasiva}
                         >
-                            {procesando ? 'Procesando...' : `Mover ${activosDelOrigen.length} activos`}
+                            {procesando ? 'Procesando...' : `Traspasar ${activosDelOrigen.length} Activos`}
                         </button>
 
                     </div>
@@ -417,6 +444,43 @@ const AlmacenGeneral_MovimientoMasivo: React.FC = () => {
 
                 </div>
 
+            </Modal>
+
+            {/* Modal de preview del PDF antes de ejecutar el traspaso */}
+            <Modal
+                isOpen={isPreviewModalOpen}
+                onRequestClose={() => setIsPreviewModalOpen(false)}
+                className='modalTraspasoPDF'
+                shouldCloseOnEsc={true}
+                shouldCloseOnOverlayClick={true}
+            >
+                <div className='divPreviewPDF'>
+                    <div className='modalPreviewHeader'>
+                        <h3>Vista previa - Responsiva de Traspaso</h3>
+                        <button className='buttonClose' onClick={() => setIsPreviewModalOpen(false)}>Cerrar</button>
+                    </div>
+
+                    <div className='modalPreviewContent' >
+                        <PDFViewer style={{ width: '100%', height: '100%' }}>
+                            <MyDocument
+                                activosResponsable={
+                                    (activosDelOrigen.map((a) => ({ ...a, id_responsable_actual: previewDestino?.id_empleado })) as unknown) as ActivosFijos[]
+                                }
+                                infoResponsable={previewDestino}
+                            />
+                        </PDFViewer>
+                    </div>
+
+                    <div className='modalPreviewActions'>
+                        <button
+                            className='buttonSubmit'
+                            onClick={() => confirmarTraspaso(previewDestino, activosDelOrigen)}
+                            disabled={procesando || !datosListos}
+                        >
+                            {procesando ? 'Procesando...' : `Confirmar y Traspasar`}
+                        </button>
+                    </div>
+                </div>
             </Modal>
         </>
     );

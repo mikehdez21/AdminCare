@@ -94,7 +94,6 @@ export const editMovimientoActivoFijo = createAsyncThunk<{ success: boolean; mes
     try {
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      console.log(csrfToken);
 
       const response = await axios.put(
         `${API_BASE_URL}/api/HSS1/almacengeneral/movimientos-activosfijos/${MovimientoActivoFijoEditado.id_movimientoAF}`,
