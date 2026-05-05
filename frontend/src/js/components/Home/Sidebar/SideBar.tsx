@@ -58,6 +58,17 @@ const SideBar: React.FC<SideBarProps> = ({ currentUser, onOpenLogoutModal }) => 
   };
 
 
+
+
+  const getAppName = (): string => {
+    if (import.meta.env.DEV) {
+      return 'PruebasDev';
+    } else if (import.meta.env.PROD) {
+      return import.meta.env.VITE_APP_NAME || 'Nombre de la App';
+    }
+    return 'Nombre de la App';
+  };
+
   return (
     <div className='Sidebar'>
       <div className="Sidebar_Header">
@@ -68,7 +79,7 @@ const SideBar: React.FC<SideBarProps> = ({ currentUser, onOpenLogoutModal }) => 
             alt="Logo en Sidebar"
             className="navBarHeader_img"
           />
-          <h1 onClick={() => handleSelectSection()} className="navBarHeader_text">Hospital San Serafin</h1>
+          <h1 onClick={() => handleSelectSection()} className="navBarHeader_text">{getAppName()}</h1>
         </div>
 
         <hr className="navBarHeader_Divisor" />

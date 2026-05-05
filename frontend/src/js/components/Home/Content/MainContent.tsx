@@ -50,10 +50,19 @@ const MainContent: React.FC<MainContentProps> = ({ currentUser }) => {
     }
   }, [dispatch]);
 
+  const getAppName = (): string => {
+    if (import.meta.env.DEV) {
+      return 'PruebasDev';
+    } else if (import.meta.env.PROD) {
+      return import.meta.env.VITE_APP_NAME || 'Nombre de la App';
+    }
+    return 'Nombre de la App';
+  };
+
   return (
     <div className='div_MainContent'>
       <div className='div_infoHeader'>
-        <p>| HSS - {currentUser ? currentUser.nombre_usuario : 'Usuario no identificado'} |</p>
+        <p>| {getAppName()} - {currentUser ? currentUser.nombre_usuario : 'Usuario no identificado'} |</p>
       </div>
 
       <div className='div_SectionSelected'>
