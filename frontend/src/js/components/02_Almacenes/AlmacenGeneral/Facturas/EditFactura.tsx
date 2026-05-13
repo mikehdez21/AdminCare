@@ -19,7 +19,8 @@ import AsignacionesAF from './AsignacionesAF';
 import '@styles/02_Almacenes/AlmacenGeneral/Facturas/AddFactura.css'
 
 import { getProveedores } from '@/store/almacengeneral/Proveedores/proveedoresActions';
-import { getFormasPago, getTiposMoneda } from '@/store/shared/fiscalActions';
+import { getFormasPago } from '@/store/almacengeneral/FormaPago/formaPagoActions';
+import { getTiposMoneda } from '@/store/almacengeneral/TipoMoneda/tipoMonedaActions';
 import AddActivosFactura from './AddActivosFactura';
 import { ActivoFactura } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 import { FacturasAF, ActivoFacturaInput } from '@/@types/AlmacenGeneralTypes/facturasTypes';

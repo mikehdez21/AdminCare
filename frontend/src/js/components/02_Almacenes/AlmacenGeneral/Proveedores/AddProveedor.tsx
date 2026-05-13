@@ -6,7 +6,9 @@ import { addProveedor, getProveedores, getTiposDescuento, getTiposProveedores } 
 import { setListProveedor } from '@/store/almacengeneral/Proveedores/proveedoresReducer';
 import { Proveedores } from '@/@types/AlmacenGeneralTypes/proveedorTypes';
 import Swal from 'sweetalert2';
-import { getFormasPago, getTiposRegimen, getTiposFacturacion, getTiposMoneda } from '@/store/shared/fiscalActions';
+import { getTiposRegimen, getTiposFacturacion } from '@/store/shared/fiscalActions';
+import { getFormasPago } from '@/store/almacengeneral/FormaPago/formaPagoActions';
+import { getTiposMoneda } from '@/store/almacengeneral/TipoMoneda/tipoMonedaActions';
 import ModalButtons from '@/components/00_Utils/ModalButtons';
 
 import '@styles/02_Almacenes/AlmacenGeneral/Proveedores/modalProveedores.css';

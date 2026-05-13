@@ -21,6 +21,7 @@ import { MdOutlineKeyboardArrowUp } from 'react-icons/md';
 
 // Styles
 import '@styles/02_Almacenes/AlmacenGeneral/AlmacenGeneral.css';
+import AlmacenGeneral_ControlTipoMoneda from './Parametros/TipoMoneda/TipoMonedaControl';
 
 const Main_AlmacenGeneral: React.FC = () => {
   const navigate = useNavigate();
@@ -37,7 +38,8 @@ const Main_AlmacenGeneral: React.FC = () => {
     location.pathname.startsWith('/almacen_general/proveedores') ||
     location.pathname.startsWith('/almacen_general/params/clasificacionAF') ||
     location.pathname.startsWith('/almacen_general/params/tipoFactura') ||
-    location.pathname.startsWith('/almacen_general/params/formaPago');
+    location.pathname.startsWith('/almacen_general/params/formaPago') ||
+    location.pathname.startsWith('/almacen_general/params/tipoMoneda');
 
 
   const handleOpenSubMenu = () => {
@@ -148,10 +150,10 @@ const Main_AlmacenGeneral: React.FC = () => {
 
                   <li
                     id='subMenu1'
-                    className={location.pathname.startsWith('/almacen_general/params/monedaPago') ? 'selectedNavbarAlmacen_subMenu' : ''}
-                    onClick={() => handleSelectSection('/almacen_general/params/monedaPago ')}
+                    className={location.pathname.startsWith('/almacen_general/params/tipoMoneda') ? 'selectedNavbarAlmacen_subMenu' : ''}
+                    onClick={() => handleSelectSection('/almacen_general/params/tipoMoneda ')}
                   >
-                    Moneda de Pago
+                    Tipo de Moneda
                   </li>
 
 
@@ -185,6 +187,7 @@ const Main_AlmacenGeneral: React.FC = () => {
           {location.pathname.startsWith('/almacen_general/params/clasificacionAF') && <AlmacenGeneral_ControlClasificacion />}
           {location.pathname.startsWith('/almacen_general/params/tipoFactura') && <AlmacenGeneral_ControlTipoFactura />}
           {location.pathname.startsWith('/almacen_general/params/formaPago') && <AlmacenGeneral_ControlFormaPago />}
+          {location.pathname.startsWith('/almacen_general/params/monedaPago') && <AlmacenGeneral_ControlTipoMoneda />}
 
 
         </div>

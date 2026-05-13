@@ -122,7 +122,8 @@
 					padding: 10px 5px;
 				}
                 
-				#th_TipoFacturaID{
+				#th_TipoFacturaID,
+				#td_TipoFacturaID {
 					width: 30px;
 					text-align: center;
 				}

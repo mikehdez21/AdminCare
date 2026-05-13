@@ -20,7 +20,8 @@ import { getClasificaciones } from '@/store/almacengeneral/Clasificaciones/clasi
 import { setListClasificacion } from '@/store/almacengeneral/Clasificaciones/clasificacionesReducer';
 
 // Types
-import { getFormasPago, getTiposMoneda } from '@/store/shared/fiscalActions';
+import { getFormasPago } from '@/store/almacengeneral/FormaPago/formaPagoActions';
+import { getTiposMoneda } from '@/store/almacengeneral/TipoMoneda/tipoMonedaActions';
 import { getTiposFacturas } from '@/store/almacengeneral/Facturas/facturasActions';
 
 // Componentes

@@ -5,7 +5,9 @@ import { useDispatch } from 'react-redux';
 import { editProveedor, getProveedores, getTiposDescuento, getTiposProveedores } from '@/store/almacengeneral/Proveedores/proveedoresActions';
 import { setListProveedor } from '@/store/almacengeneral/Proveedores/proveedoresReducer';
 import { Proveedores } from '@/@types/AlmacenGeneralTypes/proveedorTypes';
-import { getFormasPago, getTiposRegimen, getTiposFacturacion, getTiposMoneda } from '@/store/shared/fiscalActions';
+import { getTiposRegimen, getTiposFacturacion } from '@/store/shared/fiscalActions';
+import { getFormasPago } from '@/store/almacengeneral/FormaPago/formaPagoActions';
+import { getTiposMoneda } from '@/store/almacengeneral/TipoMoneda/tipoMonedaActions';
 import Swal from 'sweetalert2';
 import ModalButtons from '@/components/00_Utils/ModalButtons';
 

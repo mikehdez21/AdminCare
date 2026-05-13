@@ -42,7 +42,7 @@ export const addFormaPago = createAsyncThunk<{ success: boolean; message: string
 );
 
 // Obtener las formas de pago registradas
-export const getFormasPago = createAsyncThunk<{ success: boolean; formasPago?: FormasPago[]; message: string }>(
+export const getFormasPago = createAsyncThunk<{ success: boolean; formasPago?: []; message: string }>(
 	'almacengeneral/getFormasPago',
 	async () => {
 		try {

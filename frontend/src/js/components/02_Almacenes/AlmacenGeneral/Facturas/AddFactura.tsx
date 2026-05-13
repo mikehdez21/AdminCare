@@ -30,7 +30,8 @@ import ModalButtons from '@/components/00_Utils/ModalButtons';
 
 // Store
 import { getProveedores } from '@/store/almacengeneral/Proveedores/proveedoresActions';
-import { getFormasPago, getTiposMoneda } from '@/store/shared/fiscalActions';
+import { getFormasPago } from '@/store/almacengeneral/FormaPago/formaPagoActions';
+import { getTiposMoneda } from '@/store/almacengeneral/TipoMoneda/tipoMonedaActions';
 import { getClasificaciones } from '@/store/almacengeneral/Clasificaciones/clasificacionesActions';
 
 // Styles

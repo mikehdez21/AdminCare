@@ -10,7 +10,9 @@ import { setListProveedor } from '@/store/almacengeneral/Proveedores/proveedores
 
 // Almacen General Tipos
 import { getTiposProveedores, getTiposDescuento, } from '@/store/almacengeneral/Proveedores/proveedoresActions';
-import { getFormasPago, getTiposRegimen, getTiposMoneda, getTiposFacturacion } from '@/store/shared/fiscalActions';
+import { getTiposRegimen, getTiposFacturacion } from '@/store/shared/fiscalActions';
+import { getFormasPago } from '@/store/almacengeneral/FormaPago/formaPagoActions';
+import { getTiposMoneda } from '@/store/almacengeneral/TipoMoneda/tipoMonedaActions';
 
 // Componentes
 import Paginacion from '@/components/00_Utils/Paginacion';
