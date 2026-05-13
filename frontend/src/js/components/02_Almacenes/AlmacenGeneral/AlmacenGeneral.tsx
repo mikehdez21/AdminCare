@@ -13,6 +13,7 @@ import AlmacenGeneralCharts from './AlmacenGeneralCharts';
 // -- Parámetros --
 import AlmacenGeneral_ControlClasificacion from './Parametros/Clasificaciones/ClasificacionControl';
 import AlmacenGeneral_ControlTipoFactura from './Parametros/TipoFactura/TipoFacturaControl';
+import AlmacenGeneral_ControlFormaPago from './Parametros/FormaPago/FormaPagoControl';
 
 // Icons
 import { MdOutlineKeyboardArrowUp } from 'react-icons/md';
@@ -35,7 +36,9 @@ const Main_AlmacenGeneral: React.FC = () => {
     location.pathname.startsWith('/almacen_general/etiquetas') ||
     location.pathname.startsWith('/almacen_general/proveedores') ||
     location.pathname.startsWith('/almacen_general/params/clasificacionAF') ||
-    location.pathname.startsWith('/almacen_general/params/tipoFactura');
+    location.pathname.startsWith('/almacen_general/params/tipoFactura') ||
+    location.pathname.startsWith('/almacen_general/params/formaPago');
+
 
   const handleOpenSubMenu = () => {
     setIsSubMenuOpen(!isSubMenuOpen);
@@ -181,6 +184,8 @@ const Main_AlmacenGeneral: React.FC = () => {
           {location.pathname.startsWith('/almacen_general/proveedores') && <AlmacenGeneral_ControlProveedor />}
           {location.pathname.startsWith('/almacen_general/params/clasificacionAF') && <AlmacenGeneral_ControlClasificacion />}
           {location.pathname.startsWith('/almacen_general/params/tipoFactura') && <AlmacenGeneral_ControlTipoFactura />}
+          {location.pathname.startsWith('/almacen_general/params/formaPago') && <AlmacenGeneral_ControlFormaPago />}
+
 
         </div>
       }

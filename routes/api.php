@@ -23,14 +23,17 @@ use App\Http\Controllers\AdminControllers\UbicacionController;
 
 // AlmacenGeneral_Controllers
 use App\Http\Controllers\AlmacenGeneral\ProveedorController;
-use App\Http\Controllers\AlmacenGeneral\ClasificacionController;
-use App\Http\Controllers\AlmacenGeneral\TiposFacturaController;
 use App\Http\Controllers\AlmacenGeneral\FacturaController;
 use App\Http\Controllers\AlmacenGeneral\FacturaActivosController;
 use App\Http\Controllers\AlmacenGeneral\ActivosFijosController;
 use App\Http\Controllers\AlmacenGeneral\MovimientosActivosFijosController;
 use App\Http\Controllers\AlmacenGeneral\CodigosQRAFController;
 use App\Http\Controllers\AlmacenGeneral\PrinterController;
+
+// AlmacenGeneral -- ParamsControllers
+use App\Http\Controllers\AlmacenGeneral\ClasificacionController;
+use App\Http\Controllers\AlmacenGeneral\TiposFacturaController;
+use App\Http\Controllers\AlmacenGeneral\FormaPagoController;
 
 //  -   // AlmacenGeneral
 use App\Http\Controllers\FillTypes\AlmacenGeneral\TypesProveedorController;
@@ -114,6 +117,9 @@ Route::prefix('HSS1')->group(function () {
         
         // TIPOS DE FACTURA
         Route::apiResource('/almacengeneral/tiposfactura', TiposFacturaController::class);
+
+        // FORMAS DE PAGO
+        Route::apiResource('/almacengeneral/formaspago', FormaPagoController::class);
         
         // ACTIVOS FIJOS
         Route::apiResource('/almacengeneral/activosfijos', ActivosFijosController::class);
