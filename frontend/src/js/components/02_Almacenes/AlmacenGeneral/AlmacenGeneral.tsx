@@ -8,8 +8,11 @@ import AlmacenGeneral_Etiquetas from './Etiquetas/EtiquetasControl';
 import AlmacenGeneral_Activos from './ActivosFijos/ActivosFijosControl';
 import AlmacenGeneral_MovimientosAF from './MovimientosAF/MovimientosAFControl';
 import AlmacenGeneral_ControlProveedor from './Proveedores/ProveedorControl';
-import AlmacenGeneral_ControlClasificacion from './Parametros/Clasificaciones/ClasificacionControl';
 import AlmacenGeneralCharts from './AlmacenGeneralCharts';
+
+// -- Parámetros --
+import AlmacenGeneral_ControlClasificacion from './Parametros/Clasificaciones/ClasificacionControl';
+import AlmacenGeneral_ControlTipoFactura from './Parametros/TipoFactura/TipoFacturaControl';
 
 // Icons
 import { MdOutlineKeyboardArrowUp } from 'react-icons/md';
@@ -31,7 +34,8 @@ const Main_AlmacenGeneral: React.FC = () => {
     location.pathname.startsWith('/almacen_general/movimientos_activos') ||
     location.pathname.startsWith('/almacen_general/etiquetas') ||
     location.pathname.startsWith('/almacen_general/proveedores') ||
-    location.pathname.startsWith('/almacen_general/params/regClasificacion');
+    location.pathname.startsWith('/almacen_general/params/clasificacionAF') ||
+    location.pathname.startsWith('/almacen_general/params/tipoFactura');
 
   const handleOpenSubMenu = () => {
     setIsSubMenuOpen(!isSubMenuOpen);
@@ -117,10 +121,34 @@ const Main_AlmacenGeneral: React.FC = () => {
                 <ul>
                   <li
                     id='subMenu1'
-                    className={location.pathname.startsWith('/almacen_general/params/regClasificacion') ? 'selectedNavbarAlmacen_subMenu' : ''}
-                    onClick={() => handleSelectSection('/almacen_general/params/regClasificacion')}
+                    className={location.pathname.startsWith('/almacen_general/params/clasificacionAF') ? 'selectedNavbarAlmacen_subMenu' : ''}
+                    onClick={() => handleSelectSection('/almacen_general/params/clasificacionAF')}
                   >
                     Clasificación AF
+                  </li>
+
+                  <li
+                    id='subMenu1'
+                    className={location.pathname.startsWith('/almacen_general/params/tipoFactura') ? 'selectedNavbarAlmacen_subMenu' : ''}
+                    onClick={() => handleSelectSection('/almacen_general/params/tipoFactura ')}
+                  >
+                    Tipo de Factura
+                  </li>
+
+                  <li
+                    id='subMenu1'
+                    className={location.pathname.startsWith('/almacen_general/params/formaPago') ? 'selectedNavbarAlmacen_subMenu' : ''}
+                    onClick={() => handleSelectSection('/almacen_general/params/formaPago ')}
+                  >
+                    Forma de Pago
+                  </li>
+
+                  <li
+                    id='subMenu1'
+                    className={location.pathname.startsWith('/almacen_general/params/monedaPago') ? 'selectedNavbarAlmacen_subMenu' : ''}
+                    onClick={() => handleSelectSection('/almacen_general/params/monedaPago ')}
+                  >
+                    Moneda de Pago
                   </li>
 
 
@@ -151,7 +179,8 @@ const Main_AlmacenGeneral: React.FC = () => {
           {location.pathname.startsWith('/almacen_general/movimientos_activos') && <AlmacenGeneral_MovimientosAF />}
           {location.pathname.startsWith('/almacen_general/etiquetas') && <AlmacenGeneral_Etiquetas />}
           {location.pathname.startsWith('/almacen_general/proveedores') && <AlmacenGeneral_ControlProveedor />}
-          {location.pathname.startsWith('/almacen_general/params/regClasificacion') && <AlmacenGeneral_ControlClasificacion />}
+          {location.pathname.startsWith('/almacen_general/params/clasificacionAF') && <AlmacenGeneral_ControlClasificacion />}
+          {location.pathname.startsWith('/almacen_general/params/tipoFactura') && <AlmacenGeneral_ControlTipoFactura />}
 
         </div>
       }

@@ -24,6 +24,7 @@ use App\Http\Controllers\AdminControllers\UbicacionController;
 // AlmacenGeneral_Controllers
 use App\Http\Controllers\AlmacenGeneral\ProveedorController;
 use App\Http\Controllers\AlmacenGeneral\ClasificacionController;
+use App\Http\Controllers\AlmacenGeneral\TiposFacturaController;
 use App\Http\Controllers\AlmacenGeneral\FacturaController;
 use App\Http\Controllers\AlmacenGeneral\FacturaActivosController;
 use App\Http\Controllers\AlmacenGeneral\ActivosFijosController;
@@ -110,6 +111,9 @@ Route::prefix('HSS1')->group(function () {
         
         // CLASIFICACIONES
         Route::apiResource('/almacengeneral/clasificaciones', ClasificacionController::class);
+        
+        // TIPOS DE FACTURA
+        Route::apiResource('/almacengeneral/tiposfactura', TiposFacturaController::class);
         
         // ACTIVOS FIJOS
         Route::apiResource('/almacengeneral/activosfijos', ActivosFijosController::class);
