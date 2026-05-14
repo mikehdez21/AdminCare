@@ -107,21 +107,21 @@ const EstatusAFControl: React.FC = () => {
                         <table>
                             <thead>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Descripción</th>
-                                    <th>Creado</th>
-                                    <th>Modificado</th>
-                                    <th>ACCIONES</th>
+                                    <th id='th_EstatusAFID'>ID</th>
+                                    <th id='th_EstatusAFDescripcion'>Descripción</th>
+                                    <th id='th_EstatusAFCreado'>Creado</th>
+                                    <th id='th_FechaModificacion'>Modificado</th>
+                                    <th id='th_Acciones'>ACCIONES</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {paginaActualList.map(e => (
                                     <tr key={e.id_estatusaf}>
-                                        <td>{e.id_estatusaf}</td>
-                                        <td>{e.descripcion_estatusaf}</td>
-                                        <td>{e.created_at}</td>
-                                        <td>{e.updated_at}</td>
-                                        <td>
+                                        <td id='td_EstatusAFID'>{e.id_estatusaf}</td>
+                                        <td id='td_EstatusAFDescripcion'>{e.descripcion_estatusaf}</td>
+                                        <td id='td_EstatusAFCreado'>{e.created_at}</td>
+                                        <td id='td_EstatusAFModificado'>{e.updated_at}</td>
+                                        <td id='td_Acciones'>
                                             <div className='divActions'>
                                                 <button className='button_editEntity' onClick={() => { setEstatusToEdit_Delete(e); setModalEditOpen(true); }}><MdEdit /></button>
                                                 <button className='button_deleteEntity' onClick={() => { setEstatusToEdit_Delete(e); setModalDeleteOpen(true); }}><MdDeleteForever /></button>

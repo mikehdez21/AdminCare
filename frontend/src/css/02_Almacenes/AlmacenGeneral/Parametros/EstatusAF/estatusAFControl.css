@@ -125,20 +125,6 @@
 						text-align: center;
 					}
 
-					#th_EstatusActivo,
-					#td_EstatusActivo {
-						text-align: center;
-					}
-
-					.status-activo {
-						color: #08c433;
-						font-weight: 500;
-					}
-
-					.status-inactivo {
-						color: #e70c22;
-						font-weight: 500;
-					}
 
 					#th_FechaCreacion,
 					#td_FechaCreacion {
