@@ -18,6 +18,7 @@ import fiscalReducer from '@/store/shared/fiscalReducer'
 import clasificacionesReducer from '@/store/almacengeneral/Clasificaciones/clasificacionesReducer'
 
 import sectionReducer from '@/store/sectionReducer'
+import statusReducer from '@/store/statusReducer';
 
 const store = configureStore({
   reducer: {
@@ -27,6 +28,7 @@ const store = configureStore({
 
     // Auth y Usuarios
     auth: authReducer,
+    apiStatus: statusReducer,
     users: userReducer,
     roles: rolesReducer,
     departamentos: departamentosReducer,
