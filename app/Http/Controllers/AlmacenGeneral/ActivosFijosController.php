@@ -5,14 +5,12 @@ namespace App\Http\Controllers\AlmacenGeneral;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\AlmacenGeneral\ActivosFijos;
-use Illuminate\Support\Facades\DB;
 
 // MODELS - FILTROS ACTIVOS FIJOS
 use App\Models\Departamento;
 use App\Models\Ubicacion;
 use App\Models\AlmacenGeneral\Clasificaciones;
 use App\Models\Empleado;
-
 
 class ActivosFijosController extends Controller
 {
@@ -51,7 +49,7 @@ class ActivosFijosController extends Controller
                 'modelo_af' => 'required|string|max:255',
                 'marca_af' => 'required|string|max:255',
                 'numero_serie_af' => 'required|string|max:255',
-                'precio_unitario_af' => 'required|integer',
+                'precio_unitario_af' => 'required|float|min:0',
                 'af_propio' => 'boolean',
                 'id_estado_af' => 'required|integer',
                 'id_clasificacion' => 'required|integer',
@@ -126,28 +124,6 @@ class ActivosFijosController extends Controller
             return response()->json(['error' => 'Activo fijo no encontrado: ' . $e->getMessage()], 404);
         }
     }
-
-    // Obtener los estatus de los activos fijos (Crear CRUD Completo, Model y Controller)
-    public function getEstatusActivosFijos()
-    {
-        try {
-            $API_estatusaf = DB::table('almacengeneral.tableRef_EstatusAF')
-                ->select('id_estatusaf', 'descripcion_estatusaf')
-                ->get();
-
-            return response()->json([
-                'success' => true,
-                'API_Response' => $API_estatusaf,
-                'message' => 'DatosAPI - EstatusActivosFijos'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al obtener estatus de activos fijos: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
 
 
     // Activos Fijos FILTRADOS //

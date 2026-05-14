@@ -3,7 +3,8 @@ import Modal from 'react-modal';
 import { AppDispatch, RootState } from '@/store/store';
 import { useDispatch, useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
-import { addActivoFijo, getActivosFijos, getEstatusActivosFijos } from '@/store/almacengeneral/Activos/activosActions';
+import { addActivoFijo, getActivosFijos } from '@/store/almacengeneral/Activos/activosActions';
+import { getEstatusAF } from '@/store/almacengeneral/Activos/EstatusAF/estatusAFActions';
 import { setListActivosFijos } from '@/store/almacengeneral/Activos/activosReducer';
 
 import { ActivoFactura, ActivosFijos, MovimientosActivosFijos } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
@@ -63,12 +64,12 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
   const empleados = useSelector((state: RootState) => state.empleados.empleados);
   const ubicaciones = useSelector((state: RootState) => state.ubicaciones.ubicaciones);
   const tiposClasificacionAF = useSelector((state: RootState) => state.clasificacion.clasificacionesAF);
-  const tiposEstatusAF = useSelector((state: RootState) => state.activos.estatusActivoFijo);
+  const tiposEstatusAF = useSelector((state: RootState) => state.estatusAF.estatusAF);
   const tipoMovimientoAF = useSelector((state: RootState) => state.movimientosAF.tipoMovimientoAF);
 
 
   useEffect(() => {
-    if (!tiposEstatusAF?.length) dispatch(getEstatusActivosFijos());
+    if (!tiposEstatusAF?.length) dispatch(getEstatusAF());
     if (!tiposClasificacionAF?.length) dispatch(getClasificaciones());
     if (!empleados?.length) dispatch(getEmpleados());
     if (!ubicaciones?.length) dispatch(getUbicaciones());

@@ -1,7 +1,6 @@
 // store.ts
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from '@/store/authReducer';
-import statusReducer from '@/store/statusReducer';
 
 import userReducer from '@/store/administrador/Users/usersReducer'
 import empleadosReducer from '@/store/administrador/Empleados/empleadosReducer'
@@ -11,6 +10,7 @@ import ubicacionesReducer from '@/store/administrador/Ubicaciones/ubicacionesRed
 
 import facturasReducer from '@/store/almacengeneral/Facturas/facturasReducer'
 import activosReducer from '@/store/almacengeneral/Activos/activosReducer'
+import estatusAFReducer from '@/store/almacengeneral/Activos/EstatusAF/estatusAFReducer'
 import vwMovimientosAFReducer from '@/store/almacengeneral/Activos/vwMovimientosAFReducer';
 import movimientosAFReducer from '@/store/almacengeneral/Activos/MovimientosActivos/movimientosAFReducer'
 import proveedoresReducer from '@/store/almacengeneral/Proveedores/proveedoresReducer'
@@ -27,7 +27,6 @@ const store = configureStore({
 
     // Auth y Usuarios
     auth: authReducer,
-    apiStatus: statusReducer,
     users: userReducer,
     roles: rolesReducer,
     departamentos: departamentosReducer,
@@ -39,6 +38,7 @@ const store = configureStore({
 
     // AlmacenGeneral
     activos: activosReducer,
+    estatusAF: estatusAFReducer,
     vwMovimientosAF: vwMovimientosAFReducer,
     movimientosAF: movimientosAFReducer,
     clasificacion: clasificacionesReducer,

@@ -18,8 +18,10 @@ import {
     VwMovimientosAF,
 } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 import { FacturasAF, TiposFacturasAF } from '@/@types/AlmacenGeneralTypes/facturasTypes';
-import { getActivosFijos, getEstatusActivosFijos } from '@/store/almacengeneral/Activos/activosActions';
-import { setListActivosFijos, setListEstatusActivosFijos } from '@/store/almacengeneral/Activos/activosReducer';
+import { getActivosFijos } from '@/store/almacengeneral/Activos/activosActions';
+import { getEstatusAF } from '@/store/almacengeneral/Activos/EstatusAF/estatusAFActions';
+import { setListActivosFijos } from '@/store/almacengeneral/Activos/activosReducer';
+import { setListEstatusAF } from '@/store/almacengeneral/Activos/EstatusAF/estatusAFReducer';
 import { getFacturas, getTiposFacturas } from '@/store/almacengeneral/Facturas/facturasActions';
 import { setFacturas } from '@/store/almacengeneral/Facturas/facturasReducer';
 import { getClasificaciones } from '@/store/almacengeneral/Clasificaciones/clasificacionesActions';
@@ -57,7 +59,7 @@ const AlmacenGeneralCharts: React.FC = () => {
     });
 
     const activos = useSelector((state: RootState) => state.activos.activosfijos);
-    const estatusAF = useSelector((state: RootState) => state.activos.estatusActivoFijo);
+    const estatusAF = useSelector((state: RootState) => state.estatusAF.estatusAF);
     const facturas = useSelector((state: RootState) => state.facturasaf.facturasaf);
     const tiposFacturas = useSelector((state: RootState) => state.facturasaf.tiposFacturas);
     const clasificaciones = useSelector((state: RootState) => state.clasificacion.clasificacionesAF);
@@ -80,9 +82,9 @@ const AlmacenGeneralCharts: React.FC = () => {
             if (estatusAF.length === 0 && !fetchedRef.current.estatus) {
                 fetchedRef.current.estatus = true;
                 tasks.push((async () => {
-                    const resEstatus = await dispatch(getEstatusActivosFijos()).unwrap();
+                    const resEstatus = await dispatch(getEstatusAF()).unwrap();
                     if (resEstatus.success && resEstatus.estatusAF) {
-                        dispatch(setListEstatusActivosFijos(resEstatus.estatusAF as EstatusActivosFijos[]));
+                        dispatch(setListEstatusAF(resEstatus.estatusAF as EstatusActivosFijos[]));
                     }
                 })());
             }

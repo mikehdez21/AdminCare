@@ -14,6 +14,7 @@ import AlmacenGeneralCharts from './AlmacenGeneralCharts';
 import AlmacenGeneral_ControlClasificacion from './Parametros/Clasificaciones/ClasificacionControl';
 import AlmacenGeneral_ControlTipoFactura from './Parametros/TipoFactura/TipoFacturaControl';
 import AlmacenGeneral_ControlFormaPago from './Parametros/FormaPago/FormaPagoControl';
+import AlmacenGeneral_ControlEstatusAF from './Parametros/EstatusAF/EstatusAFControl';
 
 // Icons
 import { MdOutlineKeyboardArrowUp } from 'react-icons/md';
@@ -39,7 +40,8 @@ const Main_AlmacenGeneral: React.FC = () => {
     location.pathname.startsWith('/almacen_general/params/clasificacionAF') ||
     location.pathname.startsWith('/almacen_general/params/tipoFactura') ||
     location.pathname.startsWith('/almacen_general/params/formaPago') ||
-    location.pathname.startsWith('/almacen_general/params/tipoMoneda');
+    location.pathname.startsWith('/almacen_general/params/tipoMoneda') ||
+    location.pathname.startsWith('/almacen_general/params/estatusAF');
 
 
   const handleOpenSubMenu = () => {
@@ -156,6 +158,14 @@ const Main_AlmacenGeneral: React.FC = () => {
                     Tipo de Moneda
                   </li>
 
+                  <li
+                    id='subMenu1'
+                    className={location.pathname.startsWith('/almacen_general/params/estatusAF') ? 'selectedNavbarAlmacen_subMenu' : ''}
+                    onClick={() => handleSelectSection('/almacen_general/params/estatusAF ')}
+                  >
+                    Estatus de Activos
+                  </li>
+
 
 
 
@@ -188,6 +198,7 @@ const Main_AlmacenGeneral: React.FC = () => {
           {location.pathname.startsWith('/almacen_general/params/tipoFactura') && <AlmacenGeneral_ControlTipoFactura />}
           {location.pathname.startsWith('/almacen_general/params/formaPago') && <AlmacenGeneral_ControlFormaPago />}
           {location.pathname.startsWith('/almacen_general/params/tipoMoneda') && <AlmacenGeneral_ControlTipoMoneda />}
+          {location.pathname.startsWith('/almacen_general/params/estatusAF') && <AlmacenGeneral_ControlEstatusAF />}
 
 
         </div>

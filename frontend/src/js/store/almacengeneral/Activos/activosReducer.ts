@@ -1,16 +1,14 @@
-import { ActivosFijos, EstatusActivosFijos } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
+import { ActivosFijos } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { addActivoFijo, getActivosFijos, getEstatusActivosFijos } from './activosActions';
+import { addActivoFijo, getActivosFijos } from './activosActions';
 
 export interface ActivosState {
   activosfijos: ActivosFijos[];
-  estatusActivoFijo: EstatusActivosFijos[];
   error: string | null; // Agregar un campo para manejar errores
 }
 
 const initialState: ActivosState = {
   activosfijos: [],
-  estatusActivoFijo: [],
   error: null,
 }
 
@@ -26,10 +24,6 @@ const activosSlice = createSlice({
       if (index !== -1) {
         state.activosfijos[index] = action.payload;
       }
-    },
-
-    setListEstatusActivosFijos: (state, action: PayloadAction<EstatusActivosFijos[]>) => {
-      state.estatusActivoFijo = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -59,20 +53,8 @@ const activosSlice = createSlice({
       .addCase(addActivoFijo.rejected, (state, action) => {
         state.error = action.error.message || 'Error inesperado';
       })
-
-      .addCase(getEstatusActivosFijos.fulfilled, (state, action) => {
-        if (action.payload.success && action.payload.estatusAF) {
-          state.estatusActivoFijo = action.payload.estatusAF;
-        } else {
-          state.estatusActivoFijo = [];
-          state.error = action.payload.message || 'Error al obtener estatus de activos fijos';
-        }
-      })
-      .addCase(getEstatusActivosFijos.rejected, (state, action) => {
-        state.error = action.error.message || 'Error inesperado';
-      })
   }
 });
 
-export const { setListActivosFijos, updateActivosFijos, setListEstatusActivosFijos } = activosSlice.actions;
+export const { setListActivosFijos, updateActivosFijos } = activosSlice.actions;
 export default activosSlice.reducer;

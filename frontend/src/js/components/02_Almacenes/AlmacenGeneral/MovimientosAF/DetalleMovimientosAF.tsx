@@ -18,7 +18,7 @@ interface DetalleActivoModalProps {
 
 const ModalAFDetails: React.FC<DetalleActivoModalProps> = ({ isOpen, onClose, activoDetalle }) => {
   if (!isOpen) return null;
-  const estatusActivoFijo = useSelector((state: RootState) => state.activos.estatusActivoFijo);
+  const estatusActivoFijo = useSelector((state: RootState) => state.estatusAF.estatusAF);
 
   return (
     <Modal

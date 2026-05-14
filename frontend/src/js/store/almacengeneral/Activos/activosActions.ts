@@ -167,41 +167,6 @@ export const deleteActivoFijo = createAsyncThunk<{ success: boolean; message: st
   }
 );
 
-// Obtener los estatus de los Activos Fijos
-export const getEstatusActivosFijos = createAsyncThunk<{ success: boolean; estatusAF?: []; message: string }>(
-  'almacengeneral/getEstatusActivosFijos',
-  async () => {
-    try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/tipos-estatusaf`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken || '',
-        },
-        withCredentials: true,
-      });
-
-
-      return { success: response.data.success, estatusAF: response.data.API_Response || [], message: response.data.message };
-    } catch (error) {
-      // Manejo de errores
-      if (axios.isAxiosError(error) && error.response) {
-        // Retornar la respuesta del backend como parte del error
-        return ({
-          success: false,
-          message: error.response.data.message || 'Error inesperado',
-        });
-      }
-
-      return ({
-        success: false,
-        message: 'Error inesperado',
-      });
-    }
-  }
-);
 
 
 
@@ -360,7 +325,7 @@ export const getActivosFijosPorClasificacion = createAsyncThunk<{ success: boole
 
 // Obtener ActivosFijos por Responsable
 export const getActivosFijosPorResponsable = createAsyncThunk<{ success: boolean; activosFijos?: ActivosFijos[], message: string }, number>(
-  'almacenGeneral/getActivosFijosPorResponsable',
+  'almacengeneral/getActivosFijosPorResponsable',
   async (id_empleado: number) => {
     try {
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });

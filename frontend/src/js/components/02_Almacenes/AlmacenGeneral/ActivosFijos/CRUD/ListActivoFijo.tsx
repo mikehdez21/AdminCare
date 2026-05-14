@@ -46,7 +46,7 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
   const navigate = useNavigate();
 
   const [activosFiltrados, setActivosFiltrados] = useState<ActivosFijos[]>([]);
-  const estatusActivoFijo = useSelector((state: RootState) => state.activos.estatusActivoFijo);
+  const estatusActivoFijo = useSelector((state: RootState) => state.estatusAF.estatusAF);
   const clasificacionActivoFijo = useSelector((state: RootState) => state.clasificacion.clasificacionesAF);
 
   const [isModalAddActivoFijoOpen, setModalAddActivoFijoOpen] = useState(false);
@@ -266,9 +266,9 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
   const activosFijosFiltrados = Array.isArray(activosFiltrados)
     ? activosFiltrados
       .filter(activo =>
-        activo.descripcion_af.toLowerCase().includes(busqueda.toLowerCase()) ||
-        activo.id_activo_fijo?.toString().includes(busqueda) ||
-        (activo.codigo_lote || '').toLowerCase().includes(busqueda.toLowerCase())
+        (activo.descripcion_af || '').toLowerCase().includes((busqueda || '').toLowerCase()) ||
+        activo.id_activo_fijo?.toString().includes(busqueda || '') ||
+        (activo.codigo_lote || '').toLowerCase().includes((busqueda || '').toLowerCase())
       )
       .sort((a, b) => a.id_activo_fijo! - b.id_activo_fijo!) // Orden ascendente por ID
     : [];

@@ -25,8 +25,8 @@ import { FaFilePdf } from "react-icons/fa6";
 import { PDFViewer } from '@react-pdf/renderer';
 import { MyDocument } from '@/reactPDF/pdfMovimientosAF';
 
-import { getEstatusActivosFijos } from '@/store/almacengeneral/Activos/activosActions';
-import { setListEstatusActivosFijos } from '@/store/almacengeneral/Activos/activosReducer';
+import { getEstatusAF } from '@/store/almacengeneral/Activos/EstatusAF/estatusAFActions';
+import { setListEstatusAF } from '@/store/almacengeneral/Activos/EstatusAF/estatusAFReducer';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 
 
@@ -38,7 +38,7 @@ const AlmacenGeneral_MovimientoIndividual: React.FC = () => {
 
     // Cambiar a usar la vista de movimientos en lugar de movimientos simples
     const activosMovimientos = useSelector((state: RootState) => state.vwMovimientosAF.activosMovimientos);
-    const estatusActivoFijo = useSelector((state: RootState) => state.activos.estatusActivoFijo);
+    const estatusActivoFijo = useSelector((state: RootState) => state.estatusAF.estatusAF);
 
 
     // Estados para el componente de movimientos
@@ -155,10 +155,10 @@ const AlmacenGeneral_MovimientoIndividual: React.FC = () => {
 
         const cargarEstatusActivosFijos = async () => {
             try {
-                const resultAction = await dispatch(getEstatusActivosFijos()).unwrap();
+                const resultAction = await dispatch(getEstatusAF()).unwrap();
 
                 if (resultAction.success) {
-                    dispatch(setListEstatusActivosFijos(resultAction.estatusAF!)); // Establece el estatus en el estado
+                    dispatch(setListEstatusAF(resultAction.estatusAF!)); // Establece el estatus en el estado
 
                 } else {
                     console.log('Error', resultAction.message)

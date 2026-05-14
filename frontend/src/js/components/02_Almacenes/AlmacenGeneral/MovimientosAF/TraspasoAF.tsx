@@ -36,7 +36,7 @@ const nombreCompletoEmpleado = (empleado: {
     apellido_materno: string;
 }) => `${empleado.nombre_empleado} ${empleado.apellido_paterno} ${empleado.apellido_materno}`.trim();
 
-const AlmacenGeneral_MovimientoMasivo: React.FC = () => {
+const AlmacenGeneral_TraspasoAF: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
 
     const empleados = useSelector((state: RootState) => state.empleados.empleados);
@@ -486,4 +486,4 @@ const AlmacenGeneral_MovimientoMasivo: React.FC = () => {
     );
 };
 
-export default AlmacenGeneral_MovimientoMasivo;
+export default AlmacenGeneral_TraspasoAF;

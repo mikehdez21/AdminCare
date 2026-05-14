@@ -25,8 +25,10 @@ import AFEmpleados from './AFEmpleados';
 import ListActivosFijos from './CRUD/ListActivoFijo';
 
 // Activos Fijos
-import { getActivosFijos, getEstatusActivosFijos } from '@/store/almacengeneral/Activos/activosActions';
-import { setListActivosFijos, setListEstatusActivosFijos } from '@/store/almacengeneral/Activos/activosReducer';
+import { getActivosFijos } from '@/store/almacengeneral/Activos/activosActions';
+import { getEstatusAF } from '@/store/almacengeneral/Activos/EstatusAF/estatusAFActions';
+import { setListActivosFijos } from '@/store/almacengeneral/Activos/activosReducer';
+import { setListEstatusAF } from '@/store/almacengeneral/Activos/EstatusAF/estatusAFReducer';
 
 // Clasificaciones
 import { getClasificaciones } from '@/store/almacengeneral/Clasificaciones/clasificacionesActions';
@@ -90,10 +92,10 @@ const AlmacenGeneral_ActivosFijos: React.FC = () => {
 
     const cargarEstatusActivosFijos = async () => {
       try {
-        const resultAction = await dispatch(getEstatusActivosFijos()).unwrap();
+        const resultAction = await dispatch(getEstatusAF()).unwrap();
 
         if (resultAction.success) {
-          dispatch(setListEstatusActivosFijos(resultAction.estatusAF!)); // Establece el estatus en el estado
+          dispatch(setListEstatusAF(resultAction.estatusAF!)); // Establece el estatus en el estado
 
         } else {
           console.log('Error', resultAction.message)

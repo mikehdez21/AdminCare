@@ -35,6 +35,7 @@ use App\Http\Controllers\AlmacenGeneral\ClasificacionController;
 use App\Http\Controllers\AlmacenGeneral\TiposFacturaController;
 use App\Http\Controllers\AlmacenGeneral\FormaPagoController;
 use App\Http\Controllers\AlmacenGeneral\TiposMonedaController;
+use App\Http\Controllers\AlmacenGeneral\EstatusAFController;
 
 
 //  -   // AlmacenGeneral
@@ -126,6 +127,9 @@ Route::prefix('HSS1')->group(function () {
         // ACTIVOS FIJOS
         Route::apiResource('/almacengeneral/activosfijos', ActivosFijosController::class);
 
+        // ESTATUS DE ACTIVOS FIJOS
+        Route::apiResource('/almacengeneral/activosfijos-estatus', EstatusAFController::class);
+
         // ACTIVOS FIJOS FILTRADOS
         Route::get('/almacengeneral/activosfijos/departamento/{idDepartamento}', [ActivosFijosController::class, 'getActivosPorDepartamento']);
         Route::get('/almacengeneral/activosfijos/ubicacion/{idUbicacion}', [ActivosFijosController::class, 'getActivosPorUbicacion']);
@@ -136,7 +140,6 @@ Route::prefix('HSS1')->group(function () {
 
         // ACTIVOS FIJOS - MOVIMIENTOS 
         Route::apiResource('/almacengeneral/movimientos-activosfijos', MovimientosActivosFijosController::class);
-        Route::get('/almacengeneral/tipos-estatusaf', [ActivosFijosController::class, 'getEstatusActivosFijos']);
         Route::get('/almacengeneral/view-activosfijos', [MovimientosActivosFijosController::class, 'getVWMovimientosAFCompletos']);
         Route::get('/almacengeneral/tipos-movimientosaf', [MovimientosActivosFijosController::class, 'getTiposMovimientosAF']);
         
