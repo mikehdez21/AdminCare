@@ -64,7 +64,7 @@ const SideBar: React.FC<SideBarProps> = ({ currentUser, onOpenLogoutModal }) => 
     if (import.meta.env.DEV) {
       return 'PruebasDev';
     } else if (import.meta.env.PROD) {
-      return import.meta.env.VITE_APP_NAME || 'Nombre de la App';
+      return 'Hospital San Serafín';
     }
     return 'Nombre de la App';
   };
