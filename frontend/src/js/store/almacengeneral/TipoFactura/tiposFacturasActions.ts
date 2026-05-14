@@ -51,7 +51,7 @@ export const getTiposFacturas = createAsyncThunk<{ success: boolean; tiposFactur
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/tiposfacturas`, {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/tiposfactura`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
