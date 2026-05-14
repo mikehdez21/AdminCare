@@ -95,11 +95,8 @@ Route::prefix('HSS1')->group(function () {
         
         // ALMACENES - TIPOS
         Route::get('/almacengeneral/tipos-proveedor', [TypesProveedorController::class, 'getTiposProveedor']);
-        Route::get('/almacengeneral/formas-pago', [TypesProveedorController::class, 'getFormasPago']);
         Route::get('/almacengeneral/tipos-regimen', [TypesProveedorController::class, 'getTiposRegimen']);
         Route::get('/almacengeneral/descuentos-proveedor', [TypesProveedorController::class, 'getDescuentosProveedor']);
-        Route::get('/almacengeneral/tipos-facturacion', [TypesProveedorController::class, 'getTiposFacturacion']);
-        Route::get('/almacengeneral/tipos-moneda', [TypesProveedorController::class, 'getTiposMoneda']);
 
         // FACTURAS
         Route::apiResource('/almacengeneral/facturas', FacturaController::class);

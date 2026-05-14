@@ -187,7 +187,7 @@ const Main_AlmacenGeneral: React.FC = () => {
           {location.pathname.startsWith('/almacen_general/params/clasificacionAF') && <AlmacenGeneral_ControlClasificacion />}
           {location.pathname.startsWith('/almacen_general/params/tipoFactura') && <AlmacenGeneral_ControlTipoFactura />}
           {location.pathname.startsWith('/almacen_general/params/formaPago') && <AlmacenGeneral_ControlFormaPago />}
-          {location.pathname.startsWith('/almacen_general/params/monedaPago') && <AlmacenGeneral_ControlTipoMoneda />}
+          {location.pathname.startsWith('/almacen_general/params/tipoMoneda') && <AlmacenGeneral_ControlTipoMoneda />}
 
 
         </div>
