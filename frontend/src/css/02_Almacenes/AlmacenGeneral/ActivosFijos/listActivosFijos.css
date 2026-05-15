@@ -195,7 +195,7 @@
                     z-index: 2;
 
                     .CodigoLote {
-                        width: 200px;
+                        width: 150px;
                         overflow: hidden;
                         text-overflow: ellipsis;
                     }
@@ -211,7 +211,7 @@
                     z-index: 2;
 
                     .NombreAF {
-                        width: 200px;
+                        width: 250px;
                         overflow: hidden;
                         text-overflow: ellipsis;
                     }

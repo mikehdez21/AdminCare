@@ -18,12 +18,14 @@ import { FaArrowCircleLeft } from 'react-icons/fa';
 import { FiAlertTriangle } from 'react-icons/fi';
 
 import '@styles/02_Almacenes/AlmacenGeneral/ActivosFijos/resumenAF.css'
+import { formatMexicanCurrency } from '@/utils/numbersFormat';
 
 interface ResumenPorActivo {
     nombre: string;
     precioUnitario: number;
     cantidad: number;
     totalValor: number;
+    esPropio?: boolean;
 }
 
 interface ChartItem {
@@ -76,11 +78,13 @@ const ResumenAF: React.FC<ResumenAFProps> = ({ isOpen, onClose, listActivos, inf
             const movimiento = movimientosPorId.get(idActivo);
 
             const nombre = movimiento?.nombre_af || activo.nombre_af || 'Sin nombre';
+            const esPropio = activo.af_propio ?? true; // Asumir que es propio si no se especifica
             const precioUnitario = Number(movimiento?.precio_unitario_af ?? activo.precio_unitario_af ?? 0);
 
             if (!acumulado.has(nombre)) {
                 acumulado.set(nombre, {
                     nombre,
+                    esPropio,
                     precioUnitario,
                     cantidad: 0,
                     totalValor: 0,
@@ -167,7 +171,7 @@ const ResumenAF: React.FC<ResumenAFProps> = ({ isOpen, onClose, listActivos, inf
 
                 <section>
                     <span className="label">Total de la entidad: </span>
-                    <span className="valor">${totalGeneral.toLocaleString('es-CO', { maximumFractionDigits: 2 })}</span>
+                    <span className="valor">${totalGeneral.toLocaleString('es-MX', { maximumFractionDigits: 2 })}</span>
                 </section>
 
             </div>
@@ -211,7 +215,7 @@ const ResumenAF: React.FC<ResumenAFProps> = ({ isOpen, onClose, listActivos, inf
                                             label: (context) => {
                                                 const etiqueta = context.label || 'Activo';
                                                 const valor = Number(context.raw || 0);
-                                                return `${etiqueta}: $${valor.toLocaleString('es-CO', { maximumFractionDigits: 2 })}`;
+                                                return `${etiqueta}: $${valor.toLocaleString('es-MX', { maximumFractionDigits: 2 })}`;
                                             },
                                         },
                                     },
@@ -237,15 +241,17 @@ const ResumenAF: React.FC<ResumenAFProps> = ({ isOpen, onClose, listActivos, inf
                         <tbody>
                             {resumenPorActivo.map((activo) => (
                                 <tr key={activo.nombre}>
-                                    <td>{activo.nombre}</td>
-                                    <td className="numero">${activo.precioUnitario.toLocaleString('es-CO', { maximumFractionDigits: 2 })}</td>
+                                    <td>
+                                        {activo.nombre} <strong>{activo.esPropio === false ? ' (Comodato)' : ''}</strong>
+                                    </td>
+                                    <td className="numero">{formatMexicanCurrency(activo.precioUnitario)}</td>
                                     <td className="numero">{activo.cantidad}</td>
-                                    <td className="numero total">${activo.totalValor.toLocaleString('es-CO', { maximumFractionDigits: 2 })}</td>
+                                    <td className="numero total">{formatMexicanCurrency(activo.totalValor)}</td>
                                 </tr>
                             ))}
                             <tr className="fila-total">
                                 <td colSpan={3}><strong>TOTAL ENTIDAD</strong></td>
-                                <td className="numero total"><strong>${totalGeneral.toLocaleString('es-CO', { maximumFractionDigits: 2 })}</strong></td>
+                                <td className="numero total"><strong>{formatMexicanCurrency(totalGeneral)}</strong></td>
                             </tr>
                         </tbody>
                     </table>

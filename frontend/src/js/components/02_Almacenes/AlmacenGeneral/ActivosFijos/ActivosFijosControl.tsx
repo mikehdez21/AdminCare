@@ -314,7 +314,7 @@ const AlmacenGeneral_ActivosFijos: React.FC = () => {
         <div className='divOption' onClick={() => handleOpcionAFNoPropios()}>
           <PiHandCoinsLight className='iconFiltro' />
           <h2> Activos No Propios </h2>
-          <p>Consultar activos que no son propios</p>
+          <p>Consultar activos que son a "Comodato"</p>
         </div>
 
         <div className='divOption' onClick={() => handleOpcionAFClasificacion()}>

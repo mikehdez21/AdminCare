@@ -17,6 +17,7 @@ import DeleteActivoFijo from './DeleteActivoFijo';
 import CheckAF from '../CheckAFs';
 import ResumenAF from '../ResumenAF';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat';
+import { formatMexicanCurrency } from '@/utils/numbersFormat';
 
 
 // Icons
@@ -490,7 +491,7 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
 
                     <td id='td_NombreAF'>
                       <p className='NombreAF'>
-                        {activoFijo.nombre_af}
+                        {activoFijo.nombre_af} <strong>{activoFijo.af_propio === false ? ' (Comodato)' : ''}</strong>
                       </p>
                     </td>
 
@@ -512,7 +513,7 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
                         {activoFijo.numero_serie_af}
                       </div>
                     </td>
-                    <td id='td_PrecioUnitario'>$ {activoFijo.precio_unitario_af}</td>
+                    <td id='td_PrecioUnitario'>{formatMexicanCurrency(activoFijo.precio_unitario_af)}</td>
                     <td id='td_AFPropio'>{activoFijo.af_propio ? 'Sí' : 'No'}</td>
 
                     <td id='td_EstadoAF'>

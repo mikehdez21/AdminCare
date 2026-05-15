@@ -25,10 +25,9 @@ import AddActivosFactura from './AddActivosFactura';
 import { ActivoFactura, ActivoAgrupado, MovimientosActivosFijos } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 import { FacturasAF, ActivoFacturaInput } from '@/@types/AlmacenGeneralTypes/facturasTypes';
 import ModalButtons from '@/components/00_Utils/ModalButtons';
-import { formatCurrency, formatPeso, toSafeNumber, parseInputNumber } from '@/utils/numbersFormat';
+import { formatCurrency, toSafeNumber, parseInputNumber, formatMexicanCurrency } from '@/utils/numbersFormat';
 import { getClasificaciones } from '@/store/almacengeneral/Clasificaciones/clasificacionesActions';
 import { getMovimientosActivosFijos } from '@/store/almacengeneral/Activos/MovimientosActivos/movimientosAFActions';
-
 
 interface EditFacturaProps {
   onClose: () => void;
@@ -38,9 +37,6 @@ interface EditFacturaProps {
 
 const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToEdit }) => {
   const dispatch = useDispatch<AppDispatch>();
-
-  console.log('Factura a Editar:', facturaToEdit);
-
 
   // Estados para los campos del formulario de EditFactura
   const [proveedorFactura, setProveedorFactura] = useState<number>(0);
@@ -103,6 +99,7 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
     }, new Map<string, (ActivoFactura & { _indices?: number[]; _clave?: string })>()).values()
   ), [activosFactura]);
 
+  console.log(activosFacturaAgrupados[0])
 
   const abrirModalAsignacionSeries = (activoAgrupado: ActivoFactura & { _indices?: number[]; _clave?: string }) => {
     const indices = activoAgrupado._indices || [];
@@ -346,7 +343,7 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
   const handleActivosCreados = (nuevosActivosCreados: ActivoFactura[]) => {
     setActivosFactura(nuevosActivosCreados);
   };
-  
+
   // Manejar el envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -389,7 +386,7 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
               numero_serie_af: activo.numero_serie_af,
               precio_unitario_af: activo.precio_unitario_af,
               fecha_compra_af: activo.fecha_registro_af || '',
-              af_propio: !!activo.af_propio,
+              af_propio: activo.af_propio,
               id_estado_af: activo.id_estado_af || 1,
               id_clasificacion: activo.id_clasificacion || 1,
               precio_unitario: activo.precio_unitario_af,
@@ -643,6 +640,7 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
                           className='buttonAsignaciones'
                           type='button'
                           onClick={() => abrirModalAsignacionSeries(activo)}
+
                         >
                           Editar ({(activo as { _indices?: number[] })._indices?.length || 0} activos)
                         </button>
@@ -659,8 +657,8 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
                         })()}
                       </td>
 
-                      <td id='td_PrecioUnitario'>{formatPeso(activo.precio_unitario_af)}</td>
-                      <td>{formatPeso(toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.precio_unitario_af, 0))}</td>
+                      <td id='td_PrecioUnitario'>{formatMexicanCurrency(activo.precio_unitario_af)}</td>
+                      <td>{formatMexicanCurrency(toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.precio_unitario_af, 0))}</td>
 
                     </tr>
                   ))
@@ -741,19 +739,19 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
             <div className='totalFacturaCalculado'>
 
               <p id='subTotalFacturaConFleteValue'>
-                {formatPeso(subtotalConFlete)}
+                {formatMexicanCurrency(subtotalConFlete)}
               </p>
 
               <p id='subTotalFacturaConDescuentoValue'>
-                {formatPeso(subtotalConDescuento)}
+                {formatMexicanCurrency(subtotalConDescuento)}
               </p>
 
               <p id='subTotalSinIVAValue'>
-                {formatPeso(baseGravable)}
+                {formatMexicanCurrency(baseGravable)}
               </p>
 
               <p id='totalFacturaFinalValue'>
-                {formatPeso(totalFinal)}
+                {formatMexicanCurrency(totalFinal)}
               </p>
             </div>
           </div>

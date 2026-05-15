@@ -427,7 +427,7 @@ const CheckAF: React.FC<CheckAFsProps> = ({ isOpen, onClose, listActivos, infoLu
                                             </p>
                                             <p className="timestamp">
                                                 {activo.timestamp.toLocaleTimeString(
-                                                    'es-CO'
+                                                    'es-MX'
                                                 )}
                                             </p>
                                         </div>

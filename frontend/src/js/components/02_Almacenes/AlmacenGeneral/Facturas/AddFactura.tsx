@@ -25,7 +25,7 @@ import { AiOutlineNumber } from 'react-icons/ai';
 // Components
 import AsignacionesAF from './AsignacionesAF';
 import { getFechaHoraActual } from '@/utils/dateFormat';
-import { formatCurrency, formatPeso, toSafeNumber, parseInputNumber } from '@/utils/numbersFormat';
+import { formatCurrency, toSafeNumber, parseInputNumber, formatMexicanCurrency } from '@/utils/numbersFormat';
 import ModalButtons from '@/components/00_Utils/ModalButtons';
 
 // Store
@@ -369,7 +369,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
 
       const firstRow = predictRows[0]?.features || {};
       const predictionInputs = Object.entries(firstRow)
-        .map(([key, value]) => `<li><strong>${escapeHtml(key)}:</strong> ${escapeHtml(formatPeso(value))}</li>`)
+        .map(([key, value]) => `<li><strong>${escapeHtml(key)}:</strong> ${escapeHtml(formatMexicanCurrency(value))}</li>`)
         .join('');
 
       const modelDescription = currentAlgorithm === 'random_forest'
@@ -486,9 +486,9 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
                 <div class="recommendationCard">
                   <p class="recommendationCard__title"><strong>${nombreActivo}</strong></p>
                   <p class="recommendationCard__meta">Marca: ${marca} | Modelo: ${modelo}</p>
-                  <p class="recommendationCard__line">Precio actual: ${formatPeso(precioActual)}</p>
+                  <p class="recommendationCard__line">Precio actual: ${formatMexicanCurrency(precioActual)}</p>
                   <p class="recommendationCard__line">Opción sugerida: ${opcion}</p>
-                  <p class="recommendationCard__line">Precio referencia: ${formatPeso(precioRef)} | Ahorro estimado: ${formatPeso(ahorro)}</p>
+                  <p class="recommendationCard__line">Precio referencia: ${formatMexicanCurrency(precioRef)} | Ahorro estimado: ${formatMexicanCurrency(ahorro)}</p>
                   <p class="recommendationCard__line">${urlHtml}</p>
                   ${notas ? `<p class="recommendationCard__notes">Notas: ${notas}</p>` : ''}
                 </div>
@@ -685,7 +685,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
         if (diferenciaPct > 15) estatus = 'Sobreprecio probable';
         if (diferenciaPct < -15) estatus = 'Debajo de referencia';
 
-        return `${activo.nombre_af}: actual ${formatPeso(actual)} | ML ${formatPeso(estimado)} | ${diferenciaPct.toFixed(2)}% (${estatus})`;
+        return `${activo.nombre_af}: actual ${formatMexicanCurrency(actual)} | ML ${formatMexicanCurrency(estimado)} | ${diferenciaPct.toFixed(2)}% (${estatus})`;
       });
 
       const metrics = (trainResponse.data.metrics || {}) as { mae?: number; rmse?: number; r2?: number };
@@ -1143,8 +1143,8 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
                         })()}
                       </td>
 
-                      <td id='td_PrecioUnitario'> {formatPeso(activo.precio_unitario_af)}</td>
-                      <td>{formatPeso(toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.precio_unitario_af, 0))}</td>
+                      <td id='td_PrecioUnitario'> {formatMexicanCurrency(activo.precio_unitario_af)}</td>
+                      <td>{formatMexicanCurrency(toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.precio_unitario_af, 0))}</td>
 
                     </tr>
                   ))
@@ -1227,19 +1227,19 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
             <div className='totalFacturaCalculado'>
 
               <p id='subTotalFacturaConFleteValue'>
-                {formatPeso(subtotalConFlete)}
+                {formatMexicanCurrency(subtotalConFlete)}
               </p>
 
               <p id='subTotalFacturaConDescuentoValue'>
-                {formatPeso(subtotalConDescuento)}
+                {formatMexicanCurrency(subtotalConDescuento)}
               </p>
 
               <p id='subTotalSinIVAValue'>
-                {formatPeso(baseGravable)}
+                {formatMexicanCurrency(baseGravable)}
               </p>
 
               <p id='totalFacturaFinalValue'>
-                {formatPeso(totalFinal)}
+                {formatMexicanCurrency(totalFinal)}
               </p>
             </div>
           </div>

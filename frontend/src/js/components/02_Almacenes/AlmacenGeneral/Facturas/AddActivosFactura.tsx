@@ -10,7 +10,7 @@ import ModalButtons from '@/components/00_Utils/ModalButtons';
 import { ActivoFactura } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 
 // Utils
-import { formatPeso } from '@/utils/numbersFormat';
+import { formatMexicanCurrency } from '@/utils/numbersFormat';
 
 // Icons
 import { FaList, FaPlus, FaTrash } from 'react-icons/fa';
@@ -675,7 +675,7 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
 
                       <section className="activoSubTotal">
                         <p className="subTotal">
-                          <strong>Subtotal: {formatPeso(activo.cantidad * activo.precio_unitario_af)}</strong>
+                          <strong>Subtotal: {formatMexicanCurrency(activo.cantidad * activo.precio_unitario_af)}</strong>
                         </p>
                       </section>
 
@@ -696,7 +696,7 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
 
         <div className="divTotal">
           <div className="totalDetalle">
-            <h4 className="totalFinal">Total: {formatPeso(totalSeleccionados)}</h4>
+            <h4 className="totalFinal">Total: {formatMexicanCurrency(totalSeleccionados)}</h4>
             <p className="totalInfo">({activosAgregados.length} activos, {activosAgregados.reduce((t, a) => t + a.cantidad, 0)} unidades totales)</p>
           </div>
         </div>
