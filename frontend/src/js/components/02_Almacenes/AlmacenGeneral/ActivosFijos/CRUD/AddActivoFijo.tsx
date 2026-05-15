@@ -47,7 +47,7 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
   const [modeloAF, setModeloAF] = useState<string>('');
   const [marcaAF, setMarcaAF] = useState<string>('');
   const [noSerieAF, setNoSerieAF] = useState<string>('');
-  const [precioUnitarioAF, setPrecioUnitarioAF] = useState<number>(0.00);
+  const [costoUnitarioAF, setCostoUnitarioAF] = useState<number>(0.00);
   const [afPropio, setAFPropio] = useState<boolean>(true);
   const [tipoEstatusAF, setTipoEstatusAF] = useState<number>(0);
   const [tipoClasificacionAF, setTipoClasificacionAF] = useState<number>(0);
@@ -77,10 +77,10 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
   }, [dispatch, tiposEstatusAF, tiposClasificacionAF, empleados, ubicaciones, tipoMovimientoAF]);
 
   useEffect(() => {
-    if (!afPropio && precioUnitarioAF !== 0) {
-      setPrecioUnitarioAF(0);
+    if (!afPropio && costoUnitarioAF !== 0) {
+      setCostoUnitarioAF(0);
     }
-  }, [afPropio, precioUnitarioAF]);
+  }, [afPropio, costoUnitarioAF]);
 
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -94,7 +94,7 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
         modelo_af: modeloAF,
         marca_af: marcaAF,
         numero_serie_af: noSerieAF,
-        precio_unitario_af: afPropio ? precioUnitarioAF : 0,
+        costo_unitario_af: afPropio ? costoUnitarioAF : 0,
         af_propio: afPropio,
         id_estado_af: tipoEstatusAF,
         id_clasificacion: tipoClasificacionAF,
@@ -129,7 +129,7 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
         setModeloAF('');
         setMarcaAF('');
         setNoSerieAF('');
-        setPrecioUnitarioAF(0.00);
+        setCostoUnitarioAF(0.00);
         setAFPropio(true);
         setFechaRegistroAF(getFechaHoraActual());
         setTipoEstatusAF(0);
@@ -188,7 +188,7 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
             setModeloAF('');
             setMarcaAF('');
             setNoSerieAF('');
-            setPrecioUnitarioAF(0.00);
+            setCostoUnitarioAF(0.00);
             setAFPropio(true);
             setTipoEstatusAF(0);
             setTipoClasificacionAF(0);
@@ -357,7 +357,7 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
                         const esPropio = e.target.value === '1';
                         setAFPropio(esPropio);
                         if (!esPropio) {
-                          setPrecioUnitarioAF(0);
+                          setCostoUnitarioAF(0);
                         }
                       }}
                     >
@@ -368,23 +368,23 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
                   </label>
 
                   <label>
-                    *Precio Unitario{afPropio ? '' : ' (Comodato)'}:
+                    *Costo Unitario{afPropio ? '' : ' (Comodato)'}:
                     <input
                       type="number"
                       min={'0'}
                       placeholder='0.00'
-                      value={precioUnitarioAF}
+                      value={costoUnitarioAF}
                       disabled={!afPropio}
                       onChange={(e) => {
                         const valor = e.target.value;
                         if (valor === '') {
-                          setPrecioUnitarioAF(0);
+                          setCostoUnitarioAF(0);
                         } else {
-                          setPrecioUnitarioAF(parseFloat(valor) || 0);
+                          setCostoUnitarioAF(parseFloat(valor) || 0);
                         }
                       }}
                       onFocus={(e) => {
-                        if (precioUnitarioAF === 0) {
+                        if (costoUnitarioAF === 0) {
                           e.target.select();
                         }
                       }} />

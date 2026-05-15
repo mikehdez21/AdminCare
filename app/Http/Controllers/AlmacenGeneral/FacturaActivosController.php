@@ -31,11 +31,11 @@ class FacturaActivosController extends Controller
                     'fecha_registro_af' => $activo->fecha_registro_af,
                     'af_propio' => $activo->af_propio,
                     'numero_serie_af' => $activo->numero_serie_af,
-                    'precio_unitario_af' => $activo->precio_unitario_af,
+                    'costo_unitario_af' => $activo->costo_unitario_af,
                     'descuento_af' => $activo->pivot->descuento_af,
                     'descuento_porcentajeaf' => $activo->pivot->descuento_porcentajeaf,
                     'observaciones' => $activo->pivot->observaciones_detalleaf,
-                    'total' => $activo->pivot->precio_unitario_af,
+                    'total' => $activo->pivot->costo_unitario_af,
                 ];
             });
 
@@ -60,7 +60,7 @@ class FacturaActivosController extends Controller
                 'activos' => 'required|array',
                 'activos.*.id_activo_fijo' => 'required|integer',
                 'activos.*.numero_serie_af' => 'required|string',
-                'activos.*.precio_unitario_af' => 'required|numeric|min:0',
+                'activos.*.costo_unitario_af' => ['required', 'regex:/^\d+(\.\d{1,2})?$/'],
                 'activos.*.observaciones' => 'nullable|string'
             ]);
 
@@ -78,7 +78,7 @@ class FacturaActivosController extends Controller
                     'id_factura' => $validatedData['id_factura'],
                     'id_activo_fijo' => $activoData['id_activo_fijo'],
                     'numero_serie_af' => $activoData['numero_serie_af'],
-                    'precio_unitario_af' => $activoData['precio_unitario_af'],
+                    'costo_unitario_af' => $activoData['costo_unitario_af'],
                     'observaciones_detalleaf' => $activoData['observaciones'] ?? null
                 ]);
 
@@ -112,7 +112,7 @@ class FacturaActivosController extends Controller
                 'activos' => 'required|array',
                 'activos.*.id_activo_fijo' => 'required|integer',
                 'activos.*.numero_serie_af' => 'required|string',
-                'activos.*.precio_unitario_af' => 'required|numeric|min:0',
+                'activos.*.costo_unitario_af' => ['required', 'regex:/^\d+(\.\d{1,2})?$/'],
                 'activos.*.observaciones' => 'nullable|string'
             ]);
 
@@ -131,7 +131,7 @@ class FacturaActivosController extends Controller
                     'id_factura' => $idFactura,
                     'id_activo_fijo' => $activoData['id_activo_fijo'],
                     'numero_serie_af' => $activoData['numero_serie_af'],
-                    'precio_unitario_af' => $activoData['precio_unitario_af'],
+                    'costo_unitario_af' => $activoData['costo_unitario_af'],
                     'observaciones_detalleaf' => $activoData['observaciones'] ?? null
                 ]);
 

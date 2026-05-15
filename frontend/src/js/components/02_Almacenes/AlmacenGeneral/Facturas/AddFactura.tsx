@@ -91,7 +91,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
 
    // Subtotal, IVA y totales (memorizados)
   const subtotal = React.useMemo(() => activosFactura.reduce(
-    (acc, activo) => acc + toSafeNumber(activo.precio_unitario_af, 0) * toSafeNumber(activo.cantidad, 0),
+    (acc, activo) => acc + toSafeNumber(activo.costo_unitario_af, 0) * toSafeNumber(activo.cantidad, 0),
     0
   ), [activosFactura]);
 
@@ -106,7 +106,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
       const clave = [
         activo.nombre_af || '',
         activo.id_clasificacion || 0,
-        toSafeNumber(activo.precio_unitario_af, 0),
+        toSafeNumber(activo.costo_unitario_af, 0),
         (activo.observaciones_af || '').trim(),
         activo.codigo_lote || '',
       ].join('|');
@@ -269,10 +269,10 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
       marca_af: activo.marca_af || 'N/D',
       modelo_af: activo.modelo_af || 'N/D',
       // Enviar ambas variantes para compatibilidad
-      precio_unitario: toSafeNumber(activo.precio_unitario_af, 0),
-      precio_unitario_af: toSafeNumber(activo.precio_unitario_af, 0),
+      costo_unitario: toSafeNumber(activo.costo_unitario_af, 0),
+      costo_unitario_af: toSafeNumber(activo.costo_unitario_af, 0),
       cantidad: toSafeNumber(activo.cantidad, 0),
-      total_linea: toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.precio_unitario_af, 0),
+      total_linea: toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.costo_unitario_af, 0),
       id_clasificacion: toSafeNumber(activo.id_clasificacion, 0),
     }));
   };
@@ -384,7 +384,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
           <p class="recommendationPanel__line"><strong>Identificador del modelo:</strong> ${modelId}</p>
           <p class="recommendationPanel__line"><strong>Modelos soportados:</strong> ${supportedModels}</p>
           <p class="recommendationPanel__line"><strong>Cómo funciona:</strong> ${escapeHtml(modelDescription)}</p>
-          <p class="recommendationPanel__line"><strong>Datos tomados de la BD:</strong> el servicio FastAPI entrena con registros de factura/activo y usa ${escapeHtml(featureNames)} como variables de entrada; el objetivo que aprende es precio_unitario_af.</p>
+          <p class="recommendationPanel__line"><strong>Datos tomados de la BD:</strong> el servicio FastAPI entrena con registros de factura/activo y usa ${escapeHtml(featureNames)} como variables de entrada; el objetivo que aprende es costo_unitario_af.</p>
           <p class="recommendationPanel__line"><strong>Datos enviados para esta recomendación:</strong></p>
           <ul class="recommendationPanel__list">
             ${predictionInputs || '<li>Sin datos de entrada disponibles.</li>'}
@@ -545,7 +545,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
           algorithm: 'linear_regression',
           use_web_search: true,
           prompt:
-            'Con base en nombre, marca, modelo y precio unitario de cada activo, realiza una búsqueda sencilla tipo Google Shopping para identificar la misma opción (o alternativa comparable) más barata. Responde en JSON con llaves: resumen_general y resultados[]. Cada resultado debe incluir: activo, precio_actual, opcion_mas_barata, precio_referencia, ahorro_estimado, url, notas. Si no hay navegación en tiempo real o no puedes validar la URL, indícalo explícitamente en notas y no inventes enlaces.',
+            'Con base en nombre, marca, modelo y costo unitario de cada activo, realiza una búsqueda sencilla tipo Google Shopping para identificar la misma opción (o alternativa comparable) más barata. Responde en JSON con llaves: resumen_general y resultados[]. Cada resultado debe incluir: activo, precio_actual, opcion_mas_barata, precio_referencia, ahorro_estimado, url, notas. Si no hay navegación en tiempo real o no puedes validar la URL, indícalo explícitamente en notas y no inventes enlaces.',
           data: {
             numero_factura: numeroFactura.trim() || 'PENDIENTE',
             subtotal_factura: toSafeNumber(subTotalFactura, 0),
@@ -640,8 +640,8 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
 
       const predictRows = activosFactura.map((activo) => {
         const cantidad = toSafeNumber(activo.cantidad, 0);
-        const precioUnitario = toSafeNumber(activo.precio_unitario_af, 0);
-        const totalLinea = cantidad * precioUnitario;
+        const costoUnitario = toSafeNumber(activo.costo_unitario_af, 0);
+        const totalLinea = cantidad * costoUnitario;
 
         return {
           features: {
@@ -650,7 +650,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
             flete_factura: toSafeNumber(fleteFactura, 0),
             iva_factura: toSafeNumber(ivaFactura, 0),
             total_factura: toSafeNumber(totalFactura, 0),
-            total_linea: toSafeNumber(totalLinea, precioUnitario),
+            total_linea: toSafeNumber(totalLinea, costoUnitario),
           },
         };
       });
@@ -677,7 +677,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
         : [];
 
       const comparativo = activosFactura.map((activo, idx) => {
-        const actual = toSafeNumber(activo.precio_unitario_af, 0);
+        const actual = toSafeNumber(activo.costo_unitario_af, 0);
         const estimado = toSafeNumber(predicted[idx], 0);
         const diferenciaPct = estimado > 0 ? ((actual - estimado) / estimado) * 100 : 0;
 
@@ -842,7 +842,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
           marca_af: activo.marca_af,
           modelo_af: activo.modelo_af,
           numero_serie_af: activo.numero_serie_af,
-          precio_unitario_af: activo.precio_unitario_af,
+          costo_unitario_af: activo.costo_unitario_af,
           af_propio: activo.af_propio,
           fecha_registro_af: activo.fecha_registro_af,
           id_estado_af: activo.id_estado_af,
@@ -851,7 +851,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
           observaciones_af: activo.observaciones_af || null,
 
           // Datos de la relación factura-activo
-          precio_unitario: activo.precio_unitario_af,
+          costo_unitario: activo.costo_unitario_af,
           cantidad: activo.cantidad,
           observaciones: activo.observaciones_af || null,
 
@@ -1106,7 +1106,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
                   <th id='th_Asignaciones'>Asignaciones</th>
                   <th id='th_Cantidad'>Cantidad </th>
                   <th>Clasificación</th>
-                  <th id='th_PrecioUnitario'>Precio Unitario</th>
+                  <th id='th_CostoUnitario'>Costo Unitario</th>
                   <th>Total  </th>
                 </tr>
               </thead>
@@ -1143,8 +1143,8 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
                         })()}
                       </td>
 
-                      <td id='td_PrecioUnitario'> {formatMexicanCurrency(activo.precio_unitario_af)}</td>
-                      <td>{formatMexicanCurrency(toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.precio_unitario_af, 0))}</td>
+                      <td id='td_CostoUnitario'> {formatMexicanCurrency(activo.costo_unitario_af)}</td>
+                      <td>{formatMexicanCurrency(toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.costo_unitario_af, 0))}</td>
 
                     </tr>
                   ))
@@ -1178,17 +1178,6 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
               />
             </label>
 
-            <label> IVA (16%)
-              <input
-                type="number"
-                step="0.01"
-                name="IVA"
-                value={formatCurrency(ivaFactura)}
-                onChange={e => setIvaFactura(parseInputNumber(e.target.value))}
-                disabled
-              />
-            </label>
-
             <label> Flete (Valor numérico)
               <input
                 type="number"
@@ -1208,6 +1197,17 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
                 placeholder="0.00"
                 value={descuentoFactura || ''}
                 onChange={e => setDescuentoFactura(parseInputNumber(e.target.value))}
+              />
+            </label>
+
+            <label> IVA (16%)
+              <input
+                type="number"
+                step="0.01"
+                name="IVA"
+                value={formatCurrency(ivaFactura)}
+                onChange={e => setIvaFactura(parseInputNumber(e.target.value))}
+                disabled
               />
             </label>
 

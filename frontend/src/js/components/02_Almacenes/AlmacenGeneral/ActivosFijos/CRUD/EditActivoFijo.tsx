@@ -42,7 +42,7 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
   const [modeloAF, setModeloAF] = useState<string>('');
   const [marcaAF, setMarcaAF] = useState<string>('');
   const [noSerieAF, setNoSerieAF] = useState<string>('');
-  const [precioUnitarioAF, setPrecioUnitarioAF] = useState<number>(0.00);
+  const [costoUnitarioAF, setCostoUnitarioAF] = useState<number>(0.00);
   const [afPropio, setAFPropio] = useState<boolean>(true);
   const [tipoEstatusAF, setTipoEstatusAF] = useState<number>(0);
   const [tipoClasificacionAF, setTipoClasificacionAF] = useState<number>(0);
@@ -99,7 +99,7 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
       setModeloAF(activoFijoToEdit.modelo_af);
       setMarcaAF(activoFijoToEdit.marca_af);
       setNoSerieAF(activoFijoToEdit.numero_serie_af);
-      setPrecioUnitarioAF(activoFijoToEdit.precio_unitario_af);
+      setCostoUnitarioAF(activoFijoToEdit.costo_unitario_af);
 
 
       setAFPropio(activoFijoToEdit.af_propio);
@@ -139,7 +139,7 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
       setModeloAF('');
       setMarcaAF('');
       setNoSerieAF('');
-      setPrecioUnitarioAF(0.00);
+      setCostoUnitarioAF(0.00);
       setAFPropio(true);
       setTipoEstatusAF(0);
       setTipoClasificacionAF(0);
@@ -164,7 +164,7 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
         modelo_af: modeloAF,
         marca_af: marcaAF,
         numero_serie_af: noSerieAF,
-        precio_unitario_af: precioUnitarioAF,
+        costo_unitario_af: costoUnitarioAF,
         af_propio: afPropio,
         id_estado_af: tipoEstatusAF,
         id_clasificacion: tipoClasificacionAF,
@@ -181,7 +181,7 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
       formData.append('modelo_af', modeloAF);
       formData.append('marca_af', marcaAF);
       formData.append('numero_serie_af', noSerieAF);
-      formData.append('precio_unitario_af', precioUnitarioAF.toString());
+      formData.append('costo_unitario_af', costoUnitarioAF.toString());
       formData.append('af_propio', afPropio ? '1' : '0');
       formData.append('id_estado_af', tipoEstatusAF.toString());
       formData.append('id_clasificacion', tipoClasificacionAF.toString());
@@ -205,7 +205,7 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
           setModeloAF('');
           setMarcaAF('');
           setNoSerieAF('');
-          setPrecioUnitarioAF(0.00);
+          setCostoUnitarioAF(0.00);
           setAFPropio(true);
           setTipoEstatusAF(0);
           setTipoClasificacionAF(0);
@@ -329,7 +329,7 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
                         const esPropio = e.target.value === '1';
                         setAFPropio(esPropio);
                         if (!esPropio) {
-                          setPrecioUnitarioAF(0);
+                          setCostoUnitarioAF(0);
                         }
                       }}
                     >
@@ -340,23 +340,23 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
                   </label>
 
                   <label>
-                    *Precio Unitario{afPropio ? '' : ' (Comodato)'}:
+                    *Costo Unitario{afPropio ? '' : ' (Comodato)'}:
                     <input
                       type="number"
                       min={'0'}
                       placeholder='0.00'
-                      value={precioUnitarioAF}
+                      value={costoUnitarioAF}
                       disabled={!afPropio}
                       onChange={(e) => {
                         const valor = e.target.value;
                         if (valor === '') {
-                          setPrecioUnitarioAF(0);
+                          setCostoUnitarioAF(0);
                         } else {
-                          setPrecioUnitarioAF(parseFloat(valor) || 0);
+                          setCostoUnitarioAF(parseFloat(valor) || 0);
                         }
                       }}
                       onFocus={(e) => {
-                        if (precioUnitarioAF === 0) {
+                        if (costoUnitarioAF === 0) {
                           e.target.select();
                         }
                       }} />

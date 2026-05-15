@@ -22,7 +22,7 @@ import { formatMexicanCurrency } from '@/utils/numbersFormat';
 
 interface ResumenPorActivo {
     nombre: string;
-    precioUnitario: number;
+    costoUnitario: number;
     cantidad: number;
     totalValor: number;
     esPropio?: boolean;
@@ -57,13 +57,13 @@ const ResumenAF: React.FC<ResumenAFProps> = ({ isOpen, onClose, listActivos, inf
     }, [dispatch, isOpen, activosMovimientos.length]);
 
     const movimientosPorId = useMemo(() => {
-        const map = new Map<number, { nombre_af: string; precio_unitario_af: number }>();
+        const map = new Map<number, { nombre_af: string; costo_unitario_af: number }>();
 
         for (const movimiento of activosMovimientos) {
             if (!movimiento.id_activo_fijo) continue;
             map.set(movimiento.id_activo_fijo, {
                 nombre_af: movimiento.nombre_af,
-                precio_unitario_af: Number(movimiento.precio_unitario_af) || 0,
+                costo_unitario_af: Number(movimiento.costo_unitario_af) || 0,
             });
         }
 
@@ -79,13 +79,13 @@ const ResumenAF: React.FC<ResumenAFProps> = ({ isOpen, onClose, listActivos, inf
 
             const nombre = movimiento?.nombre_af || activo.nombre_af || 'Sin nombre';
             const esPropio = activo.af_propio ?? true; // Asumir que es propio si no se especifica
-            const precioUnitario = Number(movimiento?.precio_unitario_af ?? activo.precio_unitario_af ?? 0);
+            const costoUnitario = Number(movimiento?.costo_unitario_af ?? activo.costo_unitario_af ?? 0);
 
             if (!acumulado.has(nombre)) {
                 acumulado.set(nombre, {
                     nombre,
                     esPropio,
-                    precioUnitario,
+                    costoUnitario,
                     cantidad: 0,
                     totalValor: 0,
                 });
@@ -93,7 +93,7 @@ const ResumenAF: React.FC<ResumenAFProps> = ({ isOpen, onClose, listActivos, inf
 
             const registro = acumulado.get(nombre)!;
             registro.cantidad += 1;
-            registro.totalValor += precioUnitario;
+            registro.totalValor += costoUnitario;
         }
 
         return Array.from(acumulado.values()).sort((a, b) => b.totalValor - a.totalValor);
@@ -233,7 +233,7 @@ const ResumenAF: React.FC<ResumenAFProps> = ({ isOpen, onClose, listActivos, inf
                         <thead>
                             <tr>
                                 <th>Activo Fijo</th>
-                                <th>Precio Unitario</th>
+                                <th>Costo Unitario</th>
                                 <th>Cantidad</th>
                                 <th>Total</th>
                             </tr>
@@ -244,7 +244,7 @@ const ResumenAF: React.FC<ResumenAFProps> = ({ isOpen, onClose, listActivos, inf
                                     <td>
                                         {activo.nombre} <strong>{activo.esPropio === false ? ' (Comodato)' : ''}</strong>
                                     </td>
-                                    <td className="numero">{formatMexicanCurrency(activo.precioUnitario)}</td>
+                                    <td className="numero">{formatMexicanCurrency(activo.costoUnitario)}</td>
                                     <td className="numero">{activo.cantidad}</td>
                                     <td className="numero total">{formatMexicanCurrency(activo.totalValor)}</td>
                                 </tr>

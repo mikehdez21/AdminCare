@@ -259,8 +259,8 @@
                     }
                 }
 
-                #th_PrecioUnitario,
-                #td_PrecioUnitario {
+                #th_CostoUnitario,
+                #td_CostoUnitario {
                     text-align: center;
                     white-space: nowrap;
                 }

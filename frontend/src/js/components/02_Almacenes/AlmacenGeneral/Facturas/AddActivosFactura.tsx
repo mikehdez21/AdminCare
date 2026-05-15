@@ -52,7 +52,7 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
   const obtenerClaveAgrupacion = (activo: ActivoFactura) => [
     activo.nombre_af || '',
     activo.id_clasificacion || 0,
-    Number(activo.precio_unitario_af || 0),
+    Number(activo.costo_unitario_af || 0),
     (activo.observaciones_af || '').trim(),
     activo.codigo_lote || '',
   ].join('|');
@@ -248,10 +248,10 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
     }
   };
 
-  // Actualizar cantidad o precio de activo seleccionado
+  // Actualizar cantidad o costo de activo seleccionado
   const handleActualizarActivo = (
     codigoUnico: string,
-    campo: 'cantidad' | 'precio_unitario_af',
+    campo: 'cantidad' | 'costo_unitario_af',
     valor: number
   ) => {
     const activoAActualizar = activosAgregados.find(activo => activo.codigo_unico === codigoUnico);
@@ -283,15 +283,15 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
             : activo
         )
       );
-    } else if (campo === 'precio_unitario_af') {
-      const precioNuevo = valor < 0 ? 0 : valor;
+    } else if (campo === 'costo_unitario_af') {
+      const costoNuevo = valor < 0 ? 0 : valor;
 
       setActivosSeleccionados(
         activosAgregados.map(activo =>
           activo.codigo_unico === codigoUnico
             ? {
               ...activo,
-              precio_unitario_af: precioNuevo
+              costo_unitario_af: costoNuevo
             }
             : activo
         )
@@ -333,7 +333,7 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
       id_activo_fijo: tempId, // ID temporal para manejo en UI
       codigo_unico: tempCodigoUnico, // Código temporal único para manejo en UI
       cantidad: 1,
-      precio_unitario_af: ActivoFijoFactura.precio_unitario_af || 0,
+      costo_unitario_af: ActivoFijoFactura.costo_unitario_af || 0,
       descuento_af: 0,
       descuento_porcentajeaf: 0,
       id_tipo_movimiento: ActivoFijoFactura.id_tipo_movimiento || 0,
@@ -400,7 +400,7 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
       }
 
       return itemsNormalizados.map((itemBase, index) => ({
-        ...itemBase, precio_unitario_af: activo.precio_unitario_af, cantidad: 1,
+        ...itemBase, costo_unitario_af: activo.costo_unitario_af, cantidad: 1,
         numero_serie_af: seriesCapturadas[index] || itemBase.numero_serie_af || '',
       }));
     });
@@ -533,7 +533,7 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
 
   // Calcular total (memorizado)
   const totalSeleccionados = React.useMemo(() => activosAgregados.reduce(
-    (total, activo) => total + (activo.cantidad * activo.precio_unitario_af),
+    (total, activo) => total + (activo.cantidad * activo.costo_unitario_af),
     0
   ), [activosAgregados]);
 
@@ -618,7 +618,7 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
 
                       <section className="activoControls">
 
-                        <div className="divCantidadPrecio">
+                        <div className="divCantidadCosto">
                           <label>
                             Cantidad:
                             <input
@@ -635,18 +635,18 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
                           </label>
 
                           <label>
-                            Precio Unitario:
+                            Costo Unitario:
                             <input
                               type="number"
                               min="0"
                               step="0.01"
-                              value={activo.precio_unitario_af}
+                              value={activo.costo_unitario_af}
                               onChange={(e) => handleActualizarActivo(
                                 activo.codigo_unico!,
-                                'precio_unitario_af',
+                                'costo_unitario_af',
                                 Number(e.target.value)
                               )}
-                              className="precioInput"
+                              className="costoInput"
                               disabled={activo.af_propio === false}
                             />
                           </label>
@@ -675,7 +675,7 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
 
                       <section className="activoSubTotal">
                         <p className="subTotal">
-                          <strong>Subtotal: {formatMexicanCurrency(activo.cantidad * activo.precio_unitario_af)}</strong>
+                          <strong>Subtotal: {formatMexicanCurrency(activo.cantidad * activo.costo_unitario_af)}</strong>
                         </p>
                       </section>
 

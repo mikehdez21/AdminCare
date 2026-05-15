@@ -33,8 +33,8 @@ return new class extends Migration {
             // Número de serie del activo fijo
             $table->string('numero_serie_af')->nullable();
 
-            // Precio unitario del activo fijo
-            $table->decimal('precio_unitario_af', 12, 2)->nullable();
+            // Costo unitario del activo fijo
+            $table->decimal('costo_unitario_af', 12, 2)->nullable();
 
             // Activo Fijo Propio o Comodato
             $table->boolean('af_propio')->default(true)->notNull();

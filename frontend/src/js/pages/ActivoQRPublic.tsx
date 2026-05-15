@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '@/variableApi';
 import '@styles/02_Almacenes/AlmacenGeneral/ActivoQR/activoQRPublic.css';
+import { formatMexicanCurrency } from '@/utils/numbersFormat';
 
 interface ActivoQRData {
   qraf: {
@@ -25,7 +26,7 @@ interface ActivoQRData {
     modelo_af: string | null;
     marca_af: string | null;
     numero_serie_af: string | null;
-    precio_unitario_af: string | null;
+    costo_unitario_af: string | null;
     fecha_registro_af: string | null;
     af_propio: boolean;
     observaciones_af: string | null;
@@ -116,15 +117,6 @@ const ActivoQRPublic: React.FC = () => {
       month: '2-digit',
       day: '2-digit'
     });
-  };
-
-  const formatCurrency = (value: string | null) => {
-    if (value === null) return 'N/A';
-    const numValue = parseFloat(value);
-    return new Intl.NumberFormat('es-MX', {
-      style: 'currency',
-      currency: 'MXN'
-    }).format(numValue);
   };
 
   return (
@@ -256,10 +248,10 @@ const ActivoQRPublic: React.FC = () => {
           <div className="qr-section">
             <div className="section-title">Detalles Adicionales</div>
             <div className="info-grid">
-              {activoVW.precio_unitario_af !== null && (
+              {activoVW.costo_unitario_af !== null && (
                 <div className="info-item">
-                  <span className="info-label">💰 Precio Unitario</span>
-                  <span className="info-value">{formatCurrency(activoVW.precio_unitario_af)}</span>
+                  <span className="info-label">💰 Costo Unitario</span>
+                  <span className="info-value">{formatMexicanCurrency(activoVW.costo_unitario_af)}</span>
                 </div>
               )}
               {activoVW.fecha_registro_af && (

@@ -32,7 +32,7 @@ class ActivosFijos extends Model
         'modelo_af',
         'marca_af',
         'numero_serie_af',
-        'precio_unitario_af',
+        'costo_unitario_af',
         'af_propio',
         'id_estado_af',
         'id_clasificacion',

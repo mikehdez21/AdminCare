@@ -460,7 +460,7 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
                   <th id='th_Modelo'>Modelo</th>
                   <th id='th_Marca'>Marca</th>
                   <th id='th_NumeroSerie'>Número de Serie</th>
-                  <th id='th_PrecioUnitario'>Precio Unitario</th>
+                  <th id='th_CostoUnitario'>Costo Unitario</th>
                   <th id='th_AFPropio'>Activo Propio</th>
                   <th id='th_EstadoAF'>Estado del Activo</th>
                   <th id='th_ClasificacionAF'>Clasificación</th>
@@ -513,7 +513,7 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
                         {activoFijo.numero_serie_af}
                       </div>
                     </td>
-                    <td id='td_PrecioUnitario'>{formatMexicanCurrency(activoFijo.precio_unitario_af)}</td>
+                    <td id='td_CostoUnitario'>{formatMexicanCurrency(activoFijo.costo_unitario_af)}</td>
                     <td id='td_AFPropio'>{activoFijo.af_propio ? 'Sí' : 'No'}</td>
 
                     <td id='td_EstadoAF'>

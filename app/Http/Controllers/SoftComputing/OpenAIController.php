@@ -49,7 +49,7 @@ class OpenAIController extends Controller
 			$nombre = $activo['nombre_af'] ?? '';
 			$marca = $activo['marca_af'] ?? '';
 			$modelo = $activo['modelo_af'] ?? '';
-			$precio = $activo['precio_unitario_af'] ?? '';
+			$precio = $activo['costo_unitario_af'] ?? '';
 			
 			// Normalizar a número
 			$precioNum = (float) str_replace([',', ' ', '$'], '', (string) $precio);

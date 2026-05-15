@@ -80,7 +80,7 @@ const DeleteActivoFijo: React.FC<DeleteActivoFijoProps> = ({ isOpen, onClose, ac
             <li> <strong>Modelo: </strong>{activoFijoToDelete?.modelo_af} </li>
             <li> <strong>Marca: </strong>{activoFijoToDelete?.marca_af} </li>
             <li> <strong>Número de Serie: </strong>{activoFijoToDelete?.numero_serie_af} </li>
-            <li> <strong>Precio Unitario: </strong>${activoFijoToDelete?.precio_unitario_af}</li>
+            <li> <strong>Costo Unitario: </strong>${activoFijoToDelete?.costo_unitario_af}</li>
           </ul>
 
         </div>

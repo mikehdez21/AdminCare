@@ -154,7 +154,7 @@
             }
 
             .cantidadInput,
-            .precioInput,
+            .costoInput,
             .descuentoInput,
             .descuentoPorcentajeInput {
               padding: 6px 8px;
@@ -165,7 +165,7 @@
             }
 
             .cantidadInput:focus,
-            .precioInput:focus,
+            .costoInput:focus,
             .descuentoInput:focus,
             .descuentoPorcentajeInput:focus {
               outline: none;

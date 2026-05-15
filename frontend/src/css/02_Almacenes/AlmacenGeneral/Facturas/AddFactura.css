@@ -287,8 +287,8 @@
                     #td_Asignaciones,
                     #th_Cantidad,
                     #td_Cantidad,
-                    #th_PrecioUnitario,
-                    #td_PrecioUnitario {
+                    #th_CostoUnitario,
+                    #td_CostoUnitario {
                         text-align: center;
 
                         .buttonAsignaciones {

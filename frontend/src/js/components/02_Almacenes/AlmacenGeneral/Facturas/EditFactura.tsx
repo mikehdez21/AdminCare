@@ -72,7 +72,7 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
       const clave = [
         activo.nombre_af || '',
         activo.id_clasificacion || 0,
-        toSafeNumber(activo.precio_unitario_af, 0),
+        toSafeNumber(activo.costo_unitario_af, 0),
         (activo.observaciones_af || '').trim(),
         activo.codigo_lote || '',
       ].join('|');
@@ -212,7 +212,7 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
 
   // Subtotal, IVA y totales (memorizados)
   const subtotal = React.useMemo(() => activosFactura.reduce(
-    (acc, activo) => acc + toSafeNumber(activo.precio_unitario_af, 0) * toSafeNumber(activo.cantidad, 0),
+    (acc, activo) => acc + toSafeNumber(activo.costo_unitario_af, 0) * toSafeNumber(activo.cantidad, 0),
     0
   ), [activosFactura]);
 
@@ -285,7 +285,7 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
             modelo_af: activoBase.modelo_af || '',
             marca_af: activoBase.marca_af || '',
             numero_serie_af: activo.numero_serie_af || '',
-            precio_unitario_af: activo.precio_unitario_af || 0,
+            costo_unitario_af: activo.costo_unitario_af || 0,
             af_propio: activo.af_propio,
             id_estado_af: activoBase.id_estado_af ?? null,
             id_clasificacion: activo.id_clasificacion ?? null,
@@ -384,12 +384,12 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
               marca_af: activo.marca_af,
               modelo_af: activo.modelo_af,
               numero_serie_af: activo.numero_serie_af,
-              precio_unitario_af: activo.precio_unitario_af,
+              costo_unitario_af: activo.costo_unitario_af,
               fecha_compra_af: activo.fecha_registro_af || '',
               af_propio: activo.af_propio,
               id_estado_af: activo.id_estado_af || 1,
               id_clasificacion: activo.id_clasificacion || 1,
-              precio_unitario: activo.precio_unitario_af,
+              costo_unitario: activo.costo_unitario_af,
               cantidad: activo.cantidad,
               observaciones: activo.observaciones_af || null,
               // Datos de asignación (para actualizar movimientos de activos existentes)
@@ -407,7 +407,7 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
             marca_af: activo.marca_af,
             modelo_af: activo.modelo_af,
             numero_serie_af: activo.numero_serie_af,
-            precio_unitario_af: activo.precio_unitario_af,
+            costo_unitario_af: activo.costo_unitario_af,
             af_propio: activo.af_propio,
             fecha_registro_af: activo.fecha_registro_af,
             id_estado_af: activo.id_estado_af || 1,
@@ -416,7 +416,7 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
             observaciones_af: activo.observaciones_af || null,
 
             // Datos de la relación factura-activo
-            precio_unitario: activo.precio_unitario_af,
+            costo_unitario: activo.costo_unitario_af,
             cantidad: activo.cantidad,
             observaciones: activo.observaciones_af || null,
 
@@ -620,7 +620,7 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
                   <th id='th_Asignaciones'>Asignaciones</th>
                   <th id='th_Cantidad'>Cantidad </th>
                   <th>Clasificación</th>
-                  <th id='th_PrecioUnitario'>Precio Unitario</th>
+                  <th id='th_CostoUnitario'>Costo Unitario</th>
                   <th>Total  </th>
                 </tr>
               </thead>
@@ -657,8 +657,8 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
                         })()}
                       </td>
 
-                      <td id='td_PrecioUnitario'>{formatMexicanCurrency(activo.precio_unitario_af)}</td>
-                      <td>{formatMexicanCurrency(toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.precio_unitario_af, 0))}</td>
+                      <td id='td_CostoUnitario'>{formatMexicanCurrency(activo.costo_unitario_af)}</td>
+                      <td>{formatMexicanCurrency(toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.costo_unitario_af, 0))}</td>
 
                     </tr>
                   ))

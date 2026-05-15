@@ -20,7 +20,7 @@ return new class extends Migration
             af.modelo_af,
             af.marca_af,
             af.numero_serie_af,
-            af.precio_unitario_af,
+            af.costo_unitario_af,
             af.fecha_registro_af,
             af.af_propio,
             af.codigo_etiqueta,
