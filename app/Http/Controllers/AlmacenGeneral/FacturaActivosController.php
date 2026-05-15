@@ -29,6 +29,7 @@ class FacturaActivosController extends Controller
                     'lote_total' => $activo->lote_total,
                     'id_clasificacion' => $activo->id_clasificacion,
                     'fecha_registro_af' => $activo->fecha_registro_af,
+                    'af_propio' => $activo->af_propio,
                     'numero_serie_af' => $activo->numero_serie_af,
                     'precio_unitario_af' => $activo->precio_unitario_af,
                     'descuento_af' => $activo->pivot->descuento_af,

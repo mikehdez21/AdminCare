@@ -1115,7 +1115,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
                 {activosFacturaAgrupados.length > 0 ? (
                   activosFacturaAgrupados.map((activo, index) => (
                     <tr key={activo.id_activo_fijo || index}>
-                      <td>{activo.nombre_af}</td>
+                      <td>{activo.nombre_af} <strong>{activo.af_propio === false ? ' (Comodato)' : ''}</strong></td>
                       <td>
                         {activo.codigo_lote
                           ? `${activo.codigo_lote} (${activo.lote_afconsecutivo || '-'} / ${activo.lote_total || '-'})`
@@ -1284,7 +1284,6 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
           onClose={closeModalAddActivosFactura}
           onActivosCreados={handleActivosCreados}
           activosExistentes={activosFactura}
-          isAddMode={true}
         />
       )}
 

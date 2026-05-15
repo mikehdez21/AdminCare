@@ -23,7 +23,6 @@ interface AddActivosFacturaProps {
   onClose: () => void;
   onActivosCreados?: (activos: ActivoFactura[]) => void;
   activosExistentes?: ActivoFactura[];
-  isAddMode?: boolean;
 }
 
 Modal.setAppElement('#root');
@@ -33,7 +32,6 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
   onClose,
   onActivosCreados,
   activosExistentes = [],
-  isAddMode
 }) => {
 
   console.log('ADDActivosFactura')
@@ -46,6 +44,10 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
   const [isAddActivoFijoOpen, setIsAddActivoFijoOpen] = useState(false);
   const [busquedaSeleccionados, setBusquedaSeleccionados] = useState<string>('');
   const tempSequenceRef = useRef<number>(0);
+  const resumenInicialRef = useRef<{ totalTipos: number; totalUnidades: number }>({
+    totalTipos: 0,
+    totalUnidades: 0,
+  });
 
   const obtenerClaveAgrupacion = (activo: ActivoFactura) => [
     activo.nombre_af || '',
@@ -117,12 +119,25 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
     return seriesAjustadas;
   };
 
+  const calcularResumenActivos = (activos: ActivoFactura[]) => {
+    const { activosAgrupados } = agruparActivos(activos);
+
+    return {
+      totalTipos: activosAgrupados.length,
+      totalUnidades: activosAgrupados.reduce(
+        (total, activo) => total + normalizarCantidad(Number(activo.cantidad || 1)),
+        0
+      ),
+    };
+  };
+
   // Store
   useEffect(() => {
     if (isOpen) {
       // Inicializar con los activos existentes de la factura
       const { activosAgrupados, seriesPorGrupo } = agruparActivos(activosExistentes);
       setActivosSeleccionados(activosAgrupados);
+      resumenInicialRef.current = calcularResumenActivos(activosExistentes);
 
       const seriesIniciales: Record<string, string[]> = {};
 
@@ -257,18 +272,31 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
           [clave]: ajustarArregloSeries(seriesActuales, nuevaCantidad)
         };
       });
-    }
 
-    setActivosSeleccionados(
-      activosAgregados.map(activo =>
-        activo.codigo_unico === codigoUnico
-          ? {
-            ...activo,
-            [campo]: campo === 'cantidad' ? normalizarCantidad(valor) : Number(valor || 0)
-          }
-          : activo
-      )
-    );
+      setActivosSeleccionados(
+        activosAgregados.map(activo =>
+          activo.codigo_unico === codigoUnico
+            ? {
+              ...activo,
+              cantidad: nuevaCantidad
+            }
+            : activo
+        )
+      );
+    } else if (campo === 'precio_unitario_af') {
+      const precioNuevo = valor < 0 ? 0 : valor;
+
+      setActivosSeleccionados(
+        activosAgregados.map(activo =>
+          activo.codigo_unico === codigoUnico
+            ? {
+              ...activo,
+              precio_unitario_af: precioNuevo
+            }
+            : activo
+        )
+      );
+    }
   };
 
   const handleSerieChange = (activo: ActivoFactura, index: number, valor: string) => {
@@ -390,6 +418,36 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
     // Calcular total de unidades físicas
     const totalUnidades = activosAgregados.reduce((total, activo) => total + activo.cantidad, 0);
     const cantidadTipos = activosAgregados.length;
+    const resumenInicial = resumenInicialRef.current;
+    const resumenActual = calcularResumenActivos(activosAgregados);
+    const deltaTipos = resumenActual.totalTipos - resumenInicial.totalTipos;
+    const deltaUnidades = resumenActual.totalUnidades - resumenInicial.totalUnidades;
+
+    const lineasCambio: string[] = [];
+
+    if (deltaTipos === 0 && deltaUnidades === 0) {
+      lineasCambio.push('No hay cambios respecto al estado original de la factura.');
+    } else {
+      if (deltaTipos > 0) {
+        lineasCambio.push(`Se agregaron ${deltaTipos} tipo(s) de activos.`);
+      } else if (deltaTipos < 0) {
+        lineasCambio.push(`Se quitaron ${Math.abs(deltaTipos)} tipo(s) de activos.`);
+      } else {
+        lineasCambio.push('La cantidad de tipos de activos se mantiene igual.');
+      }
+
+      if (deltaUnidades > 0) {
+        lineasCambio.push(`La factura aumentó en ${deltaUnidades} unidad(es) físicas.`);
+      } else if (deltaUnidades < 0) {
+        lineasCambio.push(`La factura disminuyó en ${Math.abs(deltaUnidades)} unidad(es) físicas.`);
+      } else {
+        lineasCambio.push('El total de unidades físicas se mantiene igual.');
+      }
+
+      if (deltaTipos < 0 || deltaUnidades < 0) {
+        lineasCambio.push('El cambio actual reduce la cantidad de activos respecto a lo que ya tenía la factura.');
+      }
+    }
 
     console.log('ActivosCopia', activosCopia)
 
@@ -403,17 +461,31 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
 
     // Mostrar confirmación antes de proceder
     const result = await Swal.fire({
-      icon: 'question',
-      title: '¿Confirmar activos para la factura?',
+      icon: deltaTipos < 0 || deltaUnidades < 0 ? 'warning' : 'question',
+      title: '¿Confirmar cambios en la factura?',
       html: `
         <div style="text-align: left; margin: 20px;">
-          <p><strong>Se agregarán a la factura:</strong></p>
+          <p><strong>Estado original de la factura:</strong></p>
           <ul style="margin: 10px 0;">
-            <li>${cantidadTipos} tipo(s) de activos diferentes</li>
-            <li>${totalUnidades} unidades físicas totales</li>
+            <li>${resumenInicial.totalTipos} tipo(s) de activos</li>
+            <li>${resumenInicial.totalUnidades} unidades físicas</li>
+          </ul>
+          <p><strong>Estado actual antes de guardar:</strong></p>
+          <ul style="margin: 10px 0;">
+            <li>${resumenActual.totalTipos} tipo(s) de activos</li>
+            <li>${resumenActual.totalUnidades} unidades físicas</li>
           </ul>
           <p style="margin-top: 15px; color: #666; font-size: 0.9em;">
-            <strong>Nota:</strong> Los activos serán creados en la base de datos cuando guardes la factura completa.
+            <strong>Detalle del cambio:</strong>
+          </p>
+          <div style="color: #444; font-size: 0.95em; line-height: 1.5;">
+            ${lineasCambio.map((linea) => `<p>• ${linea}</p>`).join('')}
+          </div>
+          <p style="margin-top: 15px; color: #666; font-size: 0.9em;">
+            <strong>Nota:</strong> Los cambios se aplicarán cuando guardes la factura completa.
+            </br>
+            <strong>Nota 2:</strong> Los cambios afectan a los activos asociados a la factura, los activos no se eliminan por completo.
+
           </p>
         </div>
       `,
@@ -429,8 +501,8 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
 
       Swal.fire({
         icon: 'success',
-        title: 'Activos agregados',
-        text: `Se agregaron ${cantidadTipos} activo(s) a la factura.`,
+        title: 'Cambios aplicados',
+        text: `La factura quedó con ${cantidadTipos} tipo(s) y ${totalUnidades} unidad(es) físicas.`,
         timer: 2000,
         showConfirmButton: false
       });
@@ -488,7 +560,6 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
           <button
             className="buttonCrearActivo"
             onClick={() => setIsAddActivoFijoOpen(true)}
-            disabled={activosExistentes?.length > 0 && !isAddMode}
           >
             <FaPlus /> Crear Nuevo Activo Fijo
           </button>
@@ -501,7 +572,6 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
             {activosSeleccionadosFiltrados.length > 0 ? (
               activosSeleccionadosFiltrados.map((activo) => {
                 const esActivoTemporal = activo.id_activo_fijo && activo.id_activo_fijo < 0;
-                const esActivoExistente = activo.id_activo_fijo && activo.id_activo_fijo > 0;
                 const claveActivo = obtenerClaveActivo(activo);
                 const cantidad = normalizarCantidad(Number(activo.cantidad || 1));
                 const series = ajustarArregloSeries(seriesPorActivo[claveActivo] || [], cantidad);
@@ -515,14 +585,13 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
 
                         <section className='nameActivo'>
                           <p>
-                            {activo.nombre_af}
+                            {activo.nombre_af} <strong>{activo.af_propio === false ? ' (Comodato)' : ''}</strong>
                           </p>
 
                           <button
-                            className="buttonRemover disabled"
+                            className="buttonRemover"
                             onClick={() => handleRemoverActivo(activo.codigo_unico!)}
                             title="Remover de factura"
-                            disabled={!!esActivoExistente}
                           >
                             <FaTrash />
                           </button>
@@ -556,7 +625,6 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
                               type="number"
                               min="1"
                               value={activo.cantidad}
-                              disabled={!!esActivoExistente}
                               onChange={(e) => handleActualizarActivo(
                                 activo.codigo_unico!,
                                 'cantidad',
@@ -573,13 +641,13 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
                               min="0"
                               step="0.01"
                               value={activo.precio_unitario_af}
-                              disabled={!!esActivoExistente}
                               onChange={(e) => handleActualizarActivo(
                                 activo.codigo_unico!,
                                 'precio_unitario_af',
                                 Number(e.target.value)
                               )}
                               className="precioInput"
+                              disabled={activo.af_propio === false}
                             />
                           </label>
                         </div>
@@ -596,7 +664,6 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
                                   value={serie}
                                   onChange={(e) => handleSerieChange(activo, index, e.target.value)}
                                   className="noSerieInput"
-                                  disabled={!!esActivoExistente}
                                 />
                               ))}
                             </div>
@@ -642,7 +709,6 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
               type: 'button',
               className: 'button_addedit',
               onClick: handleConfirmar,
-              disabled: activosAgregados.length === 0 || activosExistentes?.length > 0 && !isAddMode
             },
             {
               text: 'Cancelar',

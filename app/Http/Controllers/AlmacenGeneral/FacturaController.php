@@ -315,6 +315,20 @@ class FacturaController extends Controller
                             'observaciones_detalleaf' => $activoData['observaciones'] ?? null
                         ]);
 
+                        // Crear movimiento si hay datos de asignación
+                        if (!empty($activoData['id_responsable_actual']) && !empty($activoData['id_ubicacion_actual'])) {
+                            MovimientosActivos::create([
+                                'id_activo_fijo' => $activoData['id_activo_fijo'],
+                                'id_tipo_movimiento' => $activoData['id_tipo_movimiento'] ?? 1,
+                                'motivo_movimiento' => $activoData['motivo_asignacion'] ?? 'Asignación actualizada por modificación de factura',
+                                'fecha_movimiento' => $activoData['fecha_movimiento'] ?? now(),
+                                'id_responsable_anterior' => null,
+                                'id_responsable_actual' => $activoData['id_responsable_actual'],
+                                'id_ubicacion_anterior' => null,
+                                'id_ubicacion_actual' => $activoData['id_ubicacion_actual'],
+                            ]);
+                        }
+
                         continue;
                     }
 

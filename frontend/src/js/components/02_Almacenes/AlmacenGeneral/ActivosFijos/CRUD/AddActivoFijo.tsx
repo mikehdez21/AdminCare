@@ -368,7 +368,7 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
                   </label>
 
                   <label>
-                    *Precio Unitario{afPropio ? '' : ' (COMODATO)'}:
+                    *Precio Unitario{afPropio ? '' : ' (Comodato)'}:
                     <input
                       type="number"
                       min={'0'}

@@ -340,7 +340,7 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
                   </label>
 
                   <label>
-                    *Precio Unitario{afPropio ? '' : ' (COMODATO)'}:
+                    *Precio Unitario{afPropio ? '' : ' (Comodato)'}:
                     <input
                       type="number"
                       min={'0'}
