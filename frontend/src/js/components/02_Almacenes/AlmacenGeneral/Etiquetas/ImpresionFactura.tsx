@@ -59,6 +59,9 @@ const ImpresionFactura: React.FC<ImpresionFacturaProps> = ({ facturaNuevaID, onI
   const proveedores = useSelector((state: RootState) => state.proveedor.proveedores);
   const clasificaciones = useSelector((state: RootState) => state.clasificacion.clasificacionesAF);
 
+  // QZ Tray hook (must be at top level)
+  const { connect, findPrinters, printZPL } = useQZ();
+
 
   useEffect(() => {
     setFacturasDisponibles(facturas);
@@ -165,8 +168,6 @@ const ImpresionFactura: React.FC<ImpresionFacturaProps> = ({ facturaNuevaID, onI
     }
 
     setLoadingZebra(true);
-
-    const { connect, findPrinters, printZPL } = useQZ();
 
     try {
       // Obtener CSRF token (para endpoints que lo requieran)

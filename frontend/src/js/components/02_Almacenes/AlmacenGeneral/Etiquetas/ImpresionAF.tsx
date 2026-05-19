@@ -6,6 +6,7 @@ import { AppDispatch, RootState } from '@/store/store';
 import { useDispatch, useSelector } from 'react-redux';
 import axios, { AxiosError } from 'axios';
 
+
 // Styles
 import '@styles/02_Almacenes/AlmacenGeneral/Etiquetas/ImpresionAF.css';
 
@@ -14,6 +15,7 @@ import { ActivosFijos } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 
 // Icons
 import { FaList, FaPrint, FaQrcode } from 'react-icons/fa';
+import { useQZ } from '@/hooks/useQZ';
 
 // Interface para respuesta de impresión Zebra
 interface PrinterApiResponse {
@@ -47,6 +49,9 @@ const ImpresionAF: React.FC = () => {
   // Store
   const activosFijos = useSelector((state: RootState) => state.activos.activosfijos);
   const clasificaciones = useSelector((state: RootState) => state.clasificacion.clasificacionesAF);
+
+  // QZ Tray hook (top-level)
+  const { connect, findPrinters, printZPL } = useQZ();
 
   useEffect(() => {
     setActivosSeleccionados([...activosExistentes]);
@@ -186,23 +191,59 @@ const ImpresionAF: React.FC = () => {
     setSuccessZebra(null);
 
     try {
-      // Obtener CSRF token
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, {
-        withCredentials: true
-      });
+      // Obtener CSRF token (si el backend lo requiere)
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
 
-      // Enviar solicitud de impresión a Zebra
-      const response = await axios.post(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/printer/etiqueta/${activoSeleccionadoActual.id_activo_fijo}`,
-        {},
-        { withCredentials: true }
-      );
+      const qzAvailable = typeof window !== 'undefined' && (window as any).qz;
 
-      if (response.data.success) {
-        setSuccessZebra(response.data.message || 'Etiqueta impresa exitosamente en Zebra');
-        console.log('Impresión Zebra exitosa:', response.data);
+      if (qzAvailable) {
+        // Intentar usar QZ Tray local
+        try {
+          await connect();
+        } catch (e) {
+          console.warn('No se pudo conectar a QZ Tray:', e);
+        }
+
+        // Obtener ZPL desde el backend (preview endpoint)
+        try {
+          const resp = await axios.get(
+            `${API_BASE_URL}/api/HSS1/almacengeneral/printer/preview-zpl/${activoSeleccionadoActual.id_activo_fijo}`,
+            { withCredentials: true }
+          );
+
+          if (resp.data && resp.data.success && resp.data.zpl) {
+            let printerName: string | undefined;
+            try {
+              const p = await (window as any).qz.printers.find();
+              if (Array.isArray(p)) printerName = p[0];
+              else if (typeof p === 'string') printerName = p;
+            } catch {
+              const found = await findPrinters();
+              printerName = found[0];
+            }
+
+            await printZPL(resp.data.zpl as string, printerName);
+            setSuccessZebra('Etiqueta enviada a impresora local');
+          } else {
+            setErrorZebra('No se generó ZPL para la etiqueta');
+          }
+        } catch (err) {
+          console.error('Error generando ZPL o imprimiendo localmente:', err);
+          setErrorZebra('Error generando ZPL o imprimiendo localmente');
+        }
       } else {
-        setErrorZebra(response.data.message || 'Error al imprimir en Zebra');
+        // Fallback: enviar solicitud de impresión al backend (impresión por IP)
+        const response = await axios.post(
+          `${API_BASE_URL}/api/HSS1/almacengeneral/printer/etiqueta/${activoSeleccionadoActual.id_activo_fijo}`,
+          {},
+          { withCredentials: true }
+        );
+
+        if (response.data.success) {
+          setSuccessZebra(response.data.message || 'Etiqueta impresa exitosamente en Zebra');
+        } else {
+          setErrorZebra(response.data.message || 'Error al imprimir en Zebra');
+        }
       }
     } catch (error: unknown) {
       console.error('Error al imprimir en Zebra:', error);
@@ -214,7 +255,6 @@ const ImpresionAF: React.FC = () => {
       setErrorZebra(errorMessage);
     } finally {
       setLoadingZebra(false);
-      // Limpiar mensajes después de 5 segundos
       setTimeout(() => {
         setSuccessZebra(null);
         setErrorZebra(null);

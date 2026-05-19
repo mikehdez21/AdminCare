@@ -29,6 +29,7 @@ use App\Http\Controllers\AlmacenGeneral\ActivosFijosController;
 use App\Http\Controllers\AlmacenGeneral\MovimientosActivosFijosController;
 use App\Http\Controllers\AlmacenGeneral\CodigosQRAFController;
 use App\Http\Controllers\AlmacenGeneral\PrinterController;
+use App\Http\Controllers\Printing\QzSigningController;
 
 // AlmacenGeneral -- ParamsControllers
 use App\Http\Controllers\AlmacenGeneral\ClasificacionController;
@@ -164,6 +165,12 @@ Route::prefix('HSS1')->group(function () {
             Route::get('test', [PrinterController::class, 'testConexion']);
             Route::get('config', [PrinterController::class, 'obtenerConfiguracion']);
             Route::post('preview-zpl/{idActivo}', [PrinterController::class, 'previewZPL']);
+        });
+
+        // IMPRESIÓN - QZ Tray (certificado y firma)
+        Route::prefix('qz')->group(function () {
+            Route::get('certificate', [QzSigningController::class, 'certificate']);
+            Route::post('sign', [QzSigningController::class, 'sign']);
         });
 
 
