@@ -4,15 +4,16 @@ import { AppDispatch, RootState } from '@/store/store';
 import { fetchMetodosDepreciacion } from '@/store/almacengeneral/Activos/DepreciacionAF/depreciacionAFActions';
 import { MetodoDepreciacion } from '@/@types/AlmacenGeneralTypes/depreciacionTypes';
 
+// Componentes
+import Paginacion from '@/components/00_Utils/Paginacion';
+import AddMetodoDepreciacion from './AddMetodoDepreciacion';
+import EditMetodoDepreciacion from './EditMetodoDepreciacion';
+import DeleteMetodoDepreciacion from './DeleteMetodoDepreciacion';
+
 // Icons
 import { IoAddCircleOutline } from 'react-icons/io5';
 import { MdEdit, MdDeleteForever } from 'react-icons/md';
 import { FiAlertTriangle } from 'react-icons/fi';
-
-// Componentes
-import AddMetodoDepreciacion from './AddMetodoDepreciacion';
-import EditMetodoDepreciacion from './EditMetodoDepreciacion';
-import DeleteMetodoDepreciacion from './DeleteMetodoDepreciacion';
 
 // Styles
 import '@styles/03_Contabilidad/Configuracion/MetodosDepreciacion/metodosDepreciacionControl.css';
@@ -57,7 +58,7 @@ const MetodosDepreciacionControl: React.FC = () => {
     const numeroTotalPaginas = Math.max(1, Math.ceil(total / porPagina));
 
     return (
-        <div className='mainDiv_ClasificacionesControl'>
+        <div className='mainDiv_MetodosDepreciacionControl'>
             <div className='searchAdd_ButtonDiv'>
                 <div className='text_Div'>
                     <p>Mostrando {pageItems.length} de {metodos.length} métodos</p>
@@ -85,11 +86,19 @@ const MetodosDepreciacionControl: React.FC = () => {
                 </div>
             ) : (
                 <>
+                    <Paginacion
+                        paginaActual={paginaActual}
+                        numeroTotalPaginas={numeroTotalPaginas}
+                        onPageChange={setPaginaActual}
+                        onPaginaAnterior={() => setPaginaActual(paginaActual - 1)}
+                        onPaginaSiguiente={() => setPaginaActual(paginaActual + 1)}
+                    />
+
                     <div className='list_entitiesDiv'>
                         <table>
                             <thead>
                                 <tr>
-                                    <th id='th_ClasificacionID'>ID</th>
+                                    <th id='th_MetodoDepreciacionID'>ID</th>
                                     <th>Nombre</th>
                                     <th>Descripción</th>
                                     <th>Fórmula</th>
@@ -103,7 +112,7 @@ const MetodosDepreciacionControl: React.FC = () => {
                             <tbody>
                                 {pageItems.map(m => (
                                     <tr key={m.id_metodo_depreciacion}>
-                                        <td id='td_ClasificacionID'>{m.id_metodo_depreciacion}</td>
+                                        <td id='td_MetodoDepreciacionID'>{m.id_metodo_depreciacion}</td>
                                         <td>{m.nombre_metodo}</td>
                                         <td>{m.descripcion_metodo}</td>
                                         <td>{m.formula}</td>
@@ -123,11 +132,13 @@ const MetodosDepreciacionControl: React.FC = () => {
                         </table>
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'center', margin: '10px' }}>
-                        <button onClick={() => setPaginaActual(p => Math.max(1, p - 1))} disabled={paginaActual === 1}>Anterior</button>
-                        <div style={{ padding: '0 10px', alignSelf: 'center' }}>{paginaActual} / {numeroTotalPaginas}</div>
-                        <button onClick={() => setPaginaActual(p => Math.min(numeroTotalPaginas, p + 1))} disabled={paginaActual === numeroTotalPaginas}>Siguiente</button>
-                    </div>
+                    <Paginacion
+                        paginaActual={paginaActual}
+                        numeroTotalPaginas={numeroTotalPaginas}
+                        onPageChange={setPaginaActual}
+                        onPaginaAnterior={() => setPaginaActual(paginaActual - 1)}
+                        onPaginaSiguiente={() => setPaginaActual(paginaActual + 1)}
+                    />
                 </>
             )}
 
