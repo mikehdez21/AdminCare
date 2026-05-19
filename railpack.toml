@@ -1,0 +1,5 @@
+[build]
+nixpacks_config = "nixpacks.toml"
+
+[start]
+run_migrations = false
