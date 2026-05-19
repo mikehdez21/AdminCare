@@ -9,7 +9,7 @@
 return [
     'zebra' => [
         // Conexión por IP (Impresora en red)
-        'host' => env('ZEBRA_HOST', '172.16.43.114'),
+        'host' => env('ZEBRA_HOST', '172.16.43.119'),
         'port' => env('ZEBRA_PORT', 9100),
         'timeout' => env('ZEBRA_TIMEOUT', 5),
         'name' => env('ZEBRA_NAME', 'ZDesigner ZD620-300dpi ZPL'),
