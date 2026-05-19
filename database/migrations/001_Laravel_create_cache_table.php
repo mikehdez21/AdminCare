@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::createIfNotExists('cache', function (Blueprint $table) {
+        Schema::dropIfExists('cache');
+        Schema::create('cache', function (Blueprint $table) {
             $table->string('key')->primary();
             $table->mediumText('value');
             $table->integer('expiration');
         });
 
-        Schema::createIfNotExists('cache_locks', function (Blueprint $table) {
+        Schema::dropIfExists('cache_locks');
+        Schema::create('cache_locks', function (Blueprint $table) {
             $table->string('key')->primary();
             $table->string('owner');
             $table->integer('expiration');
