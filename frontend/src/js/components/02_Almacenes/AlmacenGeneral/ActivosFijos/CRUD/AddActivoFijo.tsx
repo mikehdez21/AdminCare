@@ -52,6 +52,7 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
   const [tipoEstatusAF, setTipoEstatusAF] = useState<number>(0);
   const [tipoClasificacionAF, setTipoClasificacionAF] = useState<number>(0);
   const [fechaRegistroAF, setFechaRegistroAF] = useState<string>(getFechaHoraActual);
+  const [depreciacionAplicada, setDepreciacionAplicada] = useState<boolean>(false);
   const [observacionesAF, setObservacionesAF] = useState<string>('');
 
   // Estados para los campos del formulario de Asignación del Activo Fijo
@@ -99,6 +100,7 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
         id_estado_af: tipoEstatusAF,
         id_clasificacion: tipoClasificacionAF,
         fecha_registro_af: fechaRegistroAF,
+        depreciacion_aplicada: depreciacionAplicada,
         observaciones_af: observacionesAF,
 
       };
@@ -134,6 +136,7 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
         setFechaRegistroAF(getFechaHoraActual());
         setTipoEstatusAF(0);
         setTipoClasificacionAF(0);
+        setDepreciacionAplicada(false);
         setObservacionesAF('');
         setTipoMovimiento(0);
         setResponsableActual(0);
@@ -193,6 +196,7 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
             setTipoEstatusAF(0);
             setTipoClasificacionAF(0);
             setFechaRegistroAF(getFechaHoraActual());
+            setDepreciacionAplicada(false);
             setObservacionesAF('');
 
             setTipoMovimiento(0);

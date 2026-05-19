@@ -358,6 +358,40 @@
                     text-align: center;
                 }
 
+                #th_DepreciacionAplicada,
+                #td_DepreciacionAplicada {
+                    text-align: center;
+
+                    .badge {
+                        padding: 4px 8px;
+                        border-radius: 8px;
+                        font-size: 11px;
+                        font-weight: 600;
+                        text-align: center;
+                        color: white;
+                        min-width: 70px;
+                        display: inline-block;
+                    }
+
+                    .depreciacion-aplicada-activa {
+                        background-color: #22c55e;
+                    }
+
+                    /* Naranja */
+                    .depreciacion-aplicada-inactiva {
+                        background-color: #ef4444;
+                    }
+
+                    /* Rojo */
+
+                    .depreciacion-aplicada-noaplica {
+                        background-color: #6b7280;
+                    }
+
+                    /* Gris */
+
+                }
+
                 #th_Observaciones,
                 #td_Observaciones {
                     text-align: start;

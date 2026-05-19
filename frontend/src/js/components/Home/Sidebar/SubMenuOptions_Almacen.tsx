@@ -6,7 +6,7 @@ import { useDispatch } from 'react-redux';
 import { setSelectedSection } from '@/store/sectionReducer';
 
 // Icons
-import { MdInventory, MdWarehouse, MdCleanHands, MdOutlineKeyboardArrowUp } from 'react-icons/md';
+import { MdInventory, MdWarehouse, MdOutlineKeyboardArrowUp } from 'react-icons/md';
 
 
 
@@ -16,7 +16,7 @@ interface MenuOptions_ParentProps {
   departamento: string;
 }
 
-const SubMenuOptions_Almacen: React.FC<MenuOptions_ParentProps> = ({ selectedSection, role, departamento }) => {
+const SubMenuOptions_Almacen: React.FC<MenuOptions_ParentProps> = ({ selectedSection, role }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -46,7 +46,7 @@ const SubMenuOptions_Almacen: React.FC<MenuOptions_ParentProps> = ({ selectedSec
 
         <div
           className={
-            ['Almacen', 'ServiciosGenerales', 'FarmaciaInterna'].includes(selectedSection)
+            ['Almacen'].includes(selectedSection)
               ? 'SubMenu_IconTitle sidebar_SectionSelected'
               : 'SubMenu_IconTitle'
           }
@@ -72,18 +72,6 @@ const SubMenuOptions_Almacen: React.FC<MenuOptions_ParentProps> = ({ selectedSec
                 >
 
                   <MdWarehouse /> <p>Almacen General</p>
-                </li>
-              )}
-
-
-              {(role === 'Admin' || departamento === 'ServiciosGenerales') && (
-                <li
-                  onClick={() => handleSelectSection('ServiciosGenerales', '/servicios_generales')}
-                  id='SubMenu_Option'
-                  className={`subMenuOption delayOption2 ${selectedSection === 'ServiciosGenerales' ? 'sidebar_Section_SubMenuSelected' : ''}`}
-                >
-
-                  <MdCleanHands /> <p>Servicios Generales</p>
                 </li>
               )}
 

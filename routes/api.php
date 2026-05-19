@@ -41,6 +41,11 @@ use App\Http\Controllers\AlmacenGeneral\EstatusAFController;
 //  -   // AlmacenGeneral
 use App\Http\Controllers\FillTypes\AlmacenGeneral\TypesProveedorController;
 
+// Contabilidad
+use App\Http\Controllers\AlmacenGeneral\DepreciacionController;
+use App\Http\Controllers\AlmacenGeneral\MetodoDepreciacionController;
+use App\Http\Controllers\AlmacenGeneral\EstatusDepreciacionController;
+
 Route::prefix('HSS1')->group(function () {
 
     // ============================================================
@@ -128,7 +133,7 @@ Route::prefix('HSS1')->group(function () {
         Route::apiResource('/almacengeneral/activosfijos', ActivosFijosController::class);
 
         // ESTATUS DE ACTIVOS FIJOS
-        Route::apiResource('/almacengeneral/activosfijos-estatus', EstatusAFController::class);
+    Route::apiResource('/almacengeneral/activosfijos-estatus', EstatusAFController::class);
 
         // ACTIVOS FIJOS FILTRADOS
         Route::get('/almacengeneral/activosfijos/departamento/{idDepartamento}', [ActivosFijosController::class, 'getActivosPorDepartamento']);
@@ -161,21 +166,50 @@ Route::prefix('HSS1')->group(function () {
             Route::post('preview-zpl/{idActivo}', [PrinterController::class, 'previewZPL']);
         });
 
-        // ADMINISTRADOR - Roles
+
+       // CONTABILIDAD
+
+        // Contabilidad - Depreciación
+        Route::prefix('/contabilidad/depreciacion')->group(function () {
+            Route::get('/activos-sin-depreciar', [DepreciacionController::class, 'activosSinDepreciar']);
+            Route::get('/activos-en-depreciacion', [DepreciacionController::class, 'activosEnDepreciacion']);
+            Route::post('/activar/{idActivo}', [DepreciacionController::class, 'activarDepreciacion']);
+            Route::get('/historico/{idActivo}', [DepreciacionController::class, 'historicoDepreciaciones']);
+            Route::post('/calcular/{idActivo}', [DepreciacionController::class, 'calcularDepreciacion']);
+        });
+
+        // Configuración - Métodos de Depreciación
+        Route::prefix('/contabilidad/metodos-depreciacion')->group(function () {
+            Route::get('/', [MetodoDepreciacionController::class, 'index']);
+            Route::post('/', [MetodoDepreciacionController::class, 'store']);
+            Route::put('/{id}', [MetodoDepreciacionController::class, 'update']);
+        });
+
+        // Configuración - Estatus de Depreciación
+        Route::prefix('/contabilidad/estatus-depreciacion')->group(function () {
+            Route::get('/', [EstatusDepreciacionController::class, 'index']);
+            Route::post('/', [EstatusDepreciacionController::class, 'store']);
+            Route::put('/{id}', [EstatusDepreciacionController::class, 'update']);
+        });
+
+
+        // ADMINISTRADOR
+
+        // Rutas CRUD Roles
         Route::apiResource('/admin/roles', RolesAdminController::class);
         
-        // ADMINISTRADOR - Departamentos
+        // Rutas CRUD Departamentos
         Route::apiResource('/admin/departamentos', DepartamentosAdminController::class);
 
-        // ADMINISTRADOR - Usuarios
+        // Rutas CRUD Usuarios
         Route::apiResource('/admin/users', UserAdminController::class);
         Route::put('/admin/empleados/{id}/bajaUsuario', [UserAdminController::class, 'updateBajaUsuario']);
 
-        // ADMINISTRADOR - Empleados
+        // Rutas CRUD Empleados
         Route::apiResource('/admin/empleados', EmpleadoAdminController::class);
         Route::put('/admin/empleados/{id}/bajaEmpleado', [EmpleadoAdminController::class, 'updateBajaEmpleado']);
 
-        // ADMINISTRADOR - Ubicaciones
+        // Rutas CRUD Ubicaciones
         Route::apiResource('/admin/ubicaciones', UbicacionController::class);
 
     });

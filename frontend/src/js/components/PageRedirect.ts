@@ -14,6 +14,10 @@ const redirectByRole = (role: string | null, navigate: NavigateFunction) => {
       navigate('/admin');
       break;
 
+    case '"JAlmacenGeneral"':
+      navigate('/almacen_general');
+      break;
+
     default:
       navigate('/home'); // Ruta predeterminada si el rol no coincide
       break;

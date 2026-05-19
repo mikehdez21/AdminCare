@@ -14,6 +14,7 @@ import AlmacenGeneralCharts from './AlmacenGeneralCharts';
 import AlmacenGeneral_ControlClasificacion from './Parametros/Clasificaciones/ClasificacionControl';
 import AlmacenGeneral_ControlTipoFactura from './Parametros/TipoFactura/TipoFacturaControl';
 import AlmacenGeneral_ControlFormaPago from './Parametros/FormaPago/FormaPagoControl';
+import AlmacenGeneral_ControlTipoMoneda from './Parametros/TipoMoneda/TipoMonedaControl';
 import AlmacenGeneral_ControlEstatusAF from './Parametros/EstatusAF/EstatusAFControl';
 
 // Icons
@@ -22,7 +23,6 @@ import { MdOutlineKeyboardArrowUp } from 'react-icons/md';
 
 // Styles
 import '@styles/02_Almacenes/AlmacenGeneral/AlmacenGeneral.css';
-import AlmacenGeneral_ControlTipoMoneda from './Parametros/TipoMoneda/TipoMonedaControl';
 
 const Main_AlmacenGeneral: React.FC = () => {
   const navigate = useNavigate();

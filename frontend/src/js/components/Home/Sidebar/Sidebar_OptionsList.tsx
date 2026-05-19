@@ -20,9 +20,11 @@ import { setSelectedSection } from '@/store/sectionReducer';
 import { RiDashboardLine } from 'react-icons/ri';
 import { BiSupport } from 'react-icons/bi';
 
+
 // SubMenus Components
 import SubMenuOptions_Almacen from './SubMenuOptions_Almacen';
 import SubMenuOptions_Administrador from './SubMenuOptions_Administrador';
+import SubMenuOptions_Contabilidad from './SubMenuOptions_Contabilidad';
 
 import '@styles/Home/PageHome.css';
 
@@ -90,6 +92,17 @@ const Sidebar_OptionsList: React.FC<Sidebar_OptionsListProps> = ({ role, departa
             <SubMenuOptions_Almacen selectedSection={selectedSection} role={role} departamento={departamento} />
           </div>
 
+        </li>
+      )}
+
+
+      {(role === 'Admin' || role === 'JContabilidad') && (
+        <li
+        >
+          {/* Contabilidad */}
+          <div className="divOption_IconTitle" >
+            <SubMenuOptions_Contabilidad selectedSection={selectedSection} role={role} departamento={departamento} />
+          </div>
         </li>
       )}
 

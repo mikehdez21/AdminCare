@@ -37,6 +37,7 @@ class ActivosFijos extends Model
         'id_estado_af',
         'id_clasificacion',
         'fecha_registro_af',
+        'depreciacion_aplicada',
         'observaciones_af',
     ];
 
@@ -71,12 +72,12 @@ class ActivosFijos extends Model
         return $this->belongsTo(Clasificaciones::class, 'id_clasificacion', 'id_clasificacion');
     }
 
+    // === RELACIONES A TRAVÉS DE MOVIMIENTOS ===
+
     public function codigosQR(): HasMany
     {
         return $this->hasMany(CodigosQRAF::class, 'id_activo_fijo', 'id_activo_fijo');
     }
-
-    // === RELACIONES A TRAVÉS DE MOVIMIENTOS ===
 
     public function movimientos(): HasMany
     {
@@ -87,6 +88,11 @@ class ActivosFijos extends Model
     {
         return $this->hasOne(MovimientosActivos::class, 'id_activo_fijo', 'id_activo_fijo')
             ->latest('fecha_movimiento');
+    }
+
+    public function depreciaciones(): HasMany
+    {
+        return $this->hasMany(Depreciacion::class, 'id_activo_fijo');
     }
 
 
@@ -170,6 +176,25 @@ class ActivosFijos extends Model
         return $query->where('af_propio', false);
     }
 
+    // === SCOPES PARA DEPRECIACIÓN ===
+
+    public function scopeSinDepreciar($query)
+    {
+        return $query->where('depreciacion_aplicada', false);
+    }
+
+    public function scopeEnDepreciacion($query)
+    {
+        return $query->where('depreciacion_aplicada', true);
+    }
+
+
+    // METODOS PERSONALIZADOS
+    public function ultimaDepreciacion()
+    {
+        return $this->hasOne(Depreciacion::class, 'id_activo_fijo')
+            ->latest('fecha_calculo_depreciacion');
+    }
 
 
     /**

@@ -12,7 +12,6 @@ const LayoutJefatura = lazy(() => import('./layouts/LayoutJefatura'));
 const LayoutUsuario = lazy(() => import('./layouts/LayoutUsuario'));
 
 const Status = lazy(() => import('./components/Status'));
-const DBStatus = lazy(() => import('./components/DBStatus'));
 const PageLogin = lazy(() => import('./components/Login/PageLogin'));
 const ActivoQRPublic = lazy(() => import('./pages/ActivoQRPublic'));
 
@@ -28,8 +27,8 @@ const RouteLoader: React.FC = () => (
 );
 
 const App: React.FC = () => {
-  
-  const dispatch = useDispatch<AppDispatch>(); 
+
+  const dispatch = useDispatch<AppDispatch>();
 
   // Recuperar Usuario Logeado y su Información desde LOCALSTORAGE
   useEffect(() => {
@@ -46,77 +45,83 @@ const App: React.FC = () => {
       <Suspense fallback={<RouteLoader />}>
         <Routes>
 
-        
-        {/* Rutas públicas */}
-        <Route path="/" element={<Layout_Public />} >
-          <Route index element={<Navigate to="/login" />} />
-          <Route path='/status' element={<Status />} />
-          <Route path='/dbstatus' element={<DBStatus />} />
-          <Route path='/login' element={<PageLogin />} />
-          <Route path='/activosfijos/qraf/scan/:codigoQR' element={<ActivoQRPublic />} />
-          <Route path='/activosfijos/qraf/:codigoQR' element={<ActivoQRPublic />} />
-        </Route>
+
+          {/* Rutas públicas */}
+          <Route path="/" element={<Layout_Public />} >
+            <Route index element={<Navigate to="/login" />} />
+            <Route path='/status' element={<Status />} />
+            <Route path='/login' element={<PageLogin />} />
+            <Route path='/activosfijos/qraf/scan/:codigoQR' element={<ActivoQRPublic />} />
+            <Route path='/activosfijos/qraf/:codigoQR' element={<ActivoQRPublic />} />
+          </Route>
 
 
 
-        {/* Rutas protegidas - Admin */}
-        <Route element={<ProtectedRoutes />} >
-          <Route path="/admin" element={<LayoutAdmin />} />
+          {/* Rutas protegidas - Admin */}
+          <Route element={<ProtectedRoutes />} >
+            <Route path="/admin" element={<LayoutAdmin />} />
 
-          {/* Almacenes */}
-          <Route path="/almacen_general/*" element={<LayoutAdmin />} />
-          <Route path="/servicios_generales/*" element={<LayoutAdmin />} />
-          <Route path="/farmacia_interna/*" element={<LayoutAdmin />} />
+            {/* Almacenes */}
+            <Route path="/almacen_general/*" element={<LayoutAdmin />} />
 
-          {/* Administrador */}
-          <Route path="/gestion_usuarios/*" element={<LayoutAdmin />} />
-          <Route path="/gestion_empleados/*" element={<LayoutAdmin />} />
-          <Route path="/gestion_roles/*" element={<LayoutAdmin />} />
-          <Route path="/gestion_departamentos/*" element={<LayoutAdmin />} />
-          <Route path="/gestion_ubicaciones/*" element={<LayoutAdmin />} />
+            {/* Contabilidad */}
+            <Route path="/contabilidad/depreciacionaf" element={<LayoutAdmin />} />
+            <Route path="/contabilidad/configuracion" element={<LayoutAdmin />} />
+            <Route path="/contabilidad/auditoria" element={<LayoutAdmin />} />
 
-
-        </Route>
-
-
-
-        {/* Rutas protegidas - Jefaturas */}
-        <Route element={<ProtectedRoutes />} >
-          <Route path="/dashboard" element={<LayoutJefatura />} />
-          <Route path="/home" element={<LayoutUsuario />} />
+            {/* Administrador */}
+            <Route path="/gestion_usuarios/*" element={<LayoutAdmin />} />
+            <Route path="/gestion_empleados/*" element={<LayoutAdmin />} />
+            <Route path="/gestion_roles/*" element={<LayoutAdmin />} />
+            <Route path="/gestion_departamentos/*" element={<LayoutAdmin />} />
+            <Route path="/gestion_ubicaciones/*" element={<LayoutAdmin />} />
 
 
-          {/* Almacenes */}
-          <Route path="/almacen_general/*" element={<LayoutJefatura />} />
-          <Route path="/servicios_generales/*" element={<LayoutJefatura />} />
-          <Route path="/farmacia_interna/*" element={<LayoutJefatura />} />
-
-        </Route>
+          </Route>
 
 
 
+          {/* Rutas protegidas - Jefaturas */}
+          <Route element={<ProtectedRoutes />} >
+            <Route path="/home" element={<LayoutJefatura />} />
 
-        {/* Rutas protegidas - Usuarios */}
-        <Route element={<ProtectedRoutes />} >
-          
-          {/* Almacenes */}
-          <Route path="/almacen_general/*" element={<LayoutUsuario />} />
-          <Route path="/almacen_general/facturas/nuevaFactura" element={<LayoutUsuario />} />
+            {/* Almacenes */}
+            <Route path="/almacen_general/*" element={<LayoutJefatura />} />
 
+            {/* Contabilidad */}
+            <Route path="/contabilidad/depreciacionaf" element={<LayoutAdmin />} />
+            <Route path="/contabilidad/configuracion" element={<LayoutAdmin />} />
+            <Route path="/contabilidad/auditoria" element={<LayoutAdmin />} />
 
-          <Route path="/servicios_generales/*" element={<LayoutUsuario />} />
-          <Route path="/farmacia_interna/*" element={<LayoutUsuario />} />
-
-        </Route>
+          </Route>
 
 
 
 
+          {/* Rutas protegidas - Usuarios */}
+          <Route element={<ProtectedRoutes />} >
+
+            <Route path="/home" element={<LayoutUsuario />} />
+
+
+            {/* Almacenes */}
+            <Route path="/almacen_general/*" element={<LayoutUsuario />} />
+
+            {/* Contabilidad */}
+            <Route path="/contabilidad/depreciacionaf" element={<LayoutAdmin />} />
+            <Route path="/contabilidad/configuracion" element={<LayoutAdmin />} />
+            <Route path="/contabilidad/auditoria" element={<LayoutAdmin />} />
+
+          </Route>
 
 
 
 
-      </Routes>
+
+
+
+
+        </Routes>
       </Suspense>
     </Router>
   )

@@ -47,6 +47,7 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
   const [tipoEstatusAF, setTipoEstatusAF] = useState<number>(0);
   const [tipoClasificacionAF, setTipoClasificacionAF] = useState<number>(0);
   const [fechaRegistroAF, setFechaRegistroAF] = useState('');
+  const [depreciacionAplicada, setDepreciacionAplicada] = useState<boolean>(false);
   const [observacionesAF, setObservacionesAF] = useState('');
 
   // Estados para los campos del formulario de Asignación del Activo Fijo
@@ -144,6 +145,7 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
       setTipoEstatusAF(0);
       setTipoClasificacionAF(0);
       setFechaRegistroAF('');
+      setDepreciacionAplicada(false);
       setObservacionesAF('');
       setTipoMovimiento(null);
       setResponsableActual(null);
@@ -169,6 +171,7 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
         id_estado_af: tipoEstatusAF,
         id_clasificacion: tipoClasificacionAF,
         fecha_registro_af: fechaRegistroAF,
+        depreciacion_aplicada: depreciacionAplicada,
         observaciones_af: observacionesAF,
       };
 
@@ -210,6 +213,7 @@ const EditActivoFijo: React.FC<EditActivoFijoProps> = ({ isOpen, onClose, activo
           setTipoEstatusAF(0);
           setTipoClasificacionAF(0);
           setFechaRegistroAF('');
+          setDepreciacionAplicada(false);
           setObservacionesAF('');
 
           setTipoMovimiento(null);

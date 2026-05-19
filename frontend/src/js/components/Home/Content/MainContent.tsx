@@ -10,6 +10,10 @@ import HomeUsuario from '@/components/01_HomeDashboard/HomeUsuario';
 // AlmacenGeneral
 import Main_AlmacenGeneral from '@/components/02_Almacenes/AlmacenGeneral/AlmacenGeneral';
 
+// Contabilidad
+import Main_DepreciacionControl from '@/components/03_Contabilidad/DepreciacionAF/DepreciacionControl';
+import Main_ConfigContabilidadControl from '@/components/03_Contabilidad/Configuración/ConfigContabilidadControl';
+
 // Administrador
 import Main_UsuariosControl from '@/components/99_Administrador/Usuarios/UsuariosControl';
 import Main_EmpleadosControl from '@/components/99_Administrador/Empleados/EmpleadosControl';
@@ -50,10 +54,19 @@ const MainContent: React.FC<MainContentProps> = ({ currentUser }) => {
     }
   }, [dispatch]);
 
+  const getAppName = (): string => {
+    if (import.meta.env.DEV) {
+      return 'PruebasDev';
+    } else if (import.meta.env.PROD) {
+      return import.meta.env.VITE_APP_NAME || 'Nombre de la App';
+    }
+    return 'Nombre de la App';
+  };
+
   return (
     <div className='div_MainContent'>
       <div className='div_infoHeader'>
-        <p>| AdminCare - {currentUser ? currentUser.nombre_usuario : 'Usuario no identificado'} |</p>
+        <p>| {getAppName()} - {currentUser ? currentUser.nombre_usuario : 'Usuario no identificado'} |</p>
       </div>
 
       <div className='div_SectionSelected'>
@@ -63,6 +76,10 @@ const MainContent: React.FC<MainContentProps> = ({ currentUser }) => {
 
         {/* AlmacenGeneral */}
         {sectionSelected_FromSidebar === 'Almacen' && <Main_AlmacenGeneral />}
+
+        {/* Contabilidad */}
+        {sectionSelected_FromSidebar === 'DepreciacionAF' && <Main_DepreciacionControl />}
+        {sectionSelected_FromSidebar === 'ContabilidadConfiguracion' && <Main_ConfigContabilidadControl />}
 
         {/* Administrador */}
         {sectionSelected_FromSidebar === 'GestionUsuarios' && <Main_UsuariosControl />}

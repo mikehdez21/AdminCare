@@ -1,0 +1,519 @@
+.main_ListActivosDepreciacion {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+
+
+
+    .header_KPIs {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin: 12px auto;
+        width: 95%;
+        max-width: 1400px;
+
+        .kpi-row-1 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .kpi-row-2 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .cardKPI {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #f8fafc;
+            border-radius: 8px;
+            padding: 0.8rem 0.9rem;
+            border: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: default;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+            min-height: 100px;
+
+            h4 {
+                margin: 0;
+                font-size: 0.7rem;
+                font-weight: 600;
+                opacity: 0.88;
+                text-transform: uppercase;
+                letter-spacing: 0.2px;
+                color: #cbd5e1;
+                line-height: 1.2;
+            }
+
+            p {
+                text-align: center;
+                margin: 0.4rem 0 0;
+                font-size: 1.4rem;
+                font-weight: 800;
+                color: #f8fafc;
+                word-break: break-word;
+            }
+
+            .kpi-subtitle {
+                margin-top: 0.3rem;
+                font-size: 0.65rem;
+                color: #94a3b8;
+                opacity: 0.85;
+            }
+
+            &.cardKPI-table {
+                min-height: auto;
+                padding: 0.8rem;
+                grid-column: auto;
+
+                h4 {
+                    font-size: 0.7rem;
+                    margin-bottom: 0.6rem;
+                }
+
+                .kpi-table-wrap {
+                    display: flex;
+                    width: 100%;
+                    background-color: #ffffff;
+                    border-radius: 10px;
+                    margin: 0px 15px;
+                    padding: 0px 0px;
+                    overflow-x: auto;
+                    font-size: 0.75rem;
+
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        background: #f8f9fa;
+
+                        thead th {
+                            background: #e2e8f0;
+                            color: #475569;
+                            padding: 0.5rem;
+                            font-weight: 600;
+                            font-size: 0.65rem;
+                            border-bottom: 1px solid #cbd5e1;
+                        }
+
+                        tbody td {
+                            padding: 0.5rem;
+                            border-bottom: 1px solid #e2e8f0;
+                            color: #334155;
+                        }
+
+
+
+                    }
+                }
+
+                .kpi-table-wrap::-webkit-scrollbar {
+                    width: 6px;
+                }
+
+                .kpi-table-wrap::-webkit-scrollbar-thumb {
+                    background: #cbd5e1;
+                    border-radius: 3px;
+                }
+            }
+
+            &:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                border-color: #475569;
+            }
+        }
+    }
+
+    hr {
+        width: 80%;
+        border: 0;
+        border-top: 1px solid #ccc;
+    }
+
+    .divButtonsDepreciacion {
+        display: flex;
+        gap: 15px;
+        margin: 20px 0;
+
+        button {
+            display: flex;
+            gap: 5px;
+            background-color: #e0e0e0;
+            color: #666;
+            font-weight: 700;
+            font-size: 14px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 2px solid #333;
+            transition: all 0.3s ease;
+
+            &:hover {
+                background-color: #d0d0d0;
+                color: #333;
+            }
+
+            &.active {
+                background-color: #c914ed;
+                color: #ffffff;
+                font-weight: 800;
+                border-color: #a010b8;
+                box-shadow: 0 4px 12px rgba(201, 20, 237, 0.3);
+
+                &:hover {
+                    background-color: #df67f7;
+                    box-shadow: 0 6px 16px rgba(201, 20, 237, 0.4);
+                }
+            }
+        }
+    }
+
+    .tableContainer {
+        display: flex;
+        background-color: #ffffff;
+        border-radius: 10px;
+        margin: 15px 15px;
+        padding: 0px 0px;
+        overflow-x: auto;
+        border: 4px solid #bbbaba;
+
+
+        .depreciacionTableContainer {
+            width: 100%;
+            overflow-x: auto;
+
+            table {
+                text-align: left;
+                width: 100%;
+
+                /*Heads Table*/
+                tr {
+
+                    th {
+                        border-width: 1px;
+                        border-color: #d8d5d5d5;
+                        border-bottom-style: solid;
+                        padding: 5px 15px;
+                        text-align: center;
+                    }
+
+                    td {
+                        font-size: 14px;
+                        border-width: 1px;
+                        border-color: #d8d5d5d5;
+                        border-bottom-style: solid;
+                        padding: 5px 15px;
+                        text-align: center;
+                    }
+
+                    #th_Acciones,
+                    #td_Acciones {
+
+                        border-width: 1px;
+                        border-color: #d8d5d5d5;
+                        background-color: #ffffff;
+                        border-left-style: solid;
+                        text-align: center;
+                        position: sticky;
+                        right: 0;
+                        box-shadow: -1px 0 0 #ccc;
+                        gap: 5px;
+
+                    }
+
+                    #td_Acciones {
+                        display: flex;
+                        flex-direction: column;
+                    }
+
+                    .buttonActivar {
+                        background: #3f5fee;
+                        color: #f8fafc;
+                        border: none;
+                        border-radius: 5px;
+                        padding: 5px 10px;
+                        cursor: pointer;
+
+                        &:hover {
+                            background-color: #218838;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+
+}
+
+.modalComponent_DepreciacionAF {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .modalDepreciacionAF {
+        background-color: #ffffff;
+        border-radius: 15px;
+        padding: 25px;
+        max-width: 800px;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+
+        h3 {
+            margin: 0 0 5px 0;
+            color: #333;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .modalSubtitle {
+            text-align: center;
+            margin: 0 0 20px 0;
+            color: #c914ed;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .divInputs_RecalcularDepreciacionAF {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            gap: 20px;
+
+            label {
+                display: flex;
+                flex-direction: column;
+                font-size: 13px;
+                text-align: left;
+                margin-top: 10px;
+                font-weight: bold;
+
+                .emailInput {
+                    display: flex;
+                    gap: 5px;
+                    align-items: center;
+
+                    input {
+                        flex: 1;
+                    }
+
+                }
+            }
+
+            input,
+            select {
+                padding: 8px;
+                margin-top: 5px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 14px;
+                text-align: center;
+            }
+        }
+
+        .divLabelsDetalles_DepreciacionAF {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            align-items: start;
+
+            .detalle-group {
+                display: flex;
+                flex-direction: column;
+                padding: 12px 14px;
+                background: #f8f9fa;
+                border-radius: 10px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+                text-align: center;
+
+                label {
+                    margin: 0 0 6px 0;
+                    font-size: 11px;
+                    font-weight: 800;
+                    color: #6b7280;
+                    text-transform: uppercase;
+                    letter-spacing: 0.6px;
+                }
+
+                p {
+                    margin: 0;
+                    font-size: 14px;
+                    color: #111827;
+                    font-weight: 600;
+                    word-break: break-word;
+
+                    strong {
+                        color: #c914ed;
+                        font-weight: 800;
+                    }
+                }
+            }
+
+            hr {
+                grid-column: 1 / -1;
+                width: 100%;
+                margin: 6px 0 2px 0;
+                border: 0;
+                border-top: 1px solid #e5e7eb;
+            }
+
+            .button_close {
+                grid-column: 1 / -1;
+                width: 100%;
+                margin-top: 8px;
+            }
+        }
+
+        button {
+            padding: 10px 20px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+
+            &.button_addedit {
+                background-color: #28a745;
+                color: white;
+
+                &:hover {
+                    background-color: #218838;
+                    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+                }
+            }
+
+            &.button_close {
+                background-color: #6c757d;
+                color: white;
+
+                &:hover {
+                    background-color: #5a6268;
+                    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+                }
+            }
+        }
+
+
+    }
+
+}
+
+.modalComponent_HistoricoDepreciacion {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .modalDepreciacionHistorico {
+        background-color: #ffffff;
+        border-radius: 15px;
+        padding: 25px;
+        overflow-y: auto;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+
+        h3 {
+            margin: 0 0 5px 0;
+            color: #333;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .modalSubtitle {
+            text-align: center;
+            margin: 0 0 20px 0;
+            color: #c914ed;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .historicoTableContainer {
+            width: 100%;
+            overflow-x: auto;
+
+            table {
+                text-align: left;
+                width: 100%;
+
+
+                tr {
+
+                    th {
+                        border-width: 1px;
+                        border-color: #d8d5d5d5;
+                        border-bottom-style: solid;
+                        padding: 5px 15px;
+                        text-align: center;
+                    }
+
+                    td {
+                        font-size: 14px;
+                        border-width: 1px;
+                        border-color: #d8d5d5d5;
+                        border-bottom-style: solid;
+                        padding: 5px 15px;
+                        text-align: center;
+                    }
+                }
+            }
+        }
+
+        button {
+            padding: 10px 20px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+
+            &.button_addedit {
+                background-color: #28a745;
+                color: white;
+
+                &:hover {
+                    background-color: #218838;
+                    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+                }
+            }
+
+            &.button_close {
+                background-color: #6c757d;
+                color: white;
+
+                &:hover {
+                    background-color: #5a6268;
+                    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+                }
+            }
+        }
+
+
+    }
+
+
+
+
+
+
+}

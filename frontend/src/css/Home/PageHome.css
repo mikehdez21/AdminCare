@@ -135,7 +135,8 @@
                             }
 
                             #SubMenu_Almacen,
-                            #SubMenu_Administrador {
+                            #SubMenu_Administrador,
+                            #SubMenu_Contabilidad {
 
                                 .divMenu_SubMenus {
 
@@ -353,7 +354,8 @@
                             }
 
                             #SubMenu_Almacen,
-                            #SubMenu_Administrador {
+                            #SubMenu_Administrador,
+                            #SubMenu_Contabilidad {
                                 width: 100%;
 
                                 .divMenu_SubMenus {

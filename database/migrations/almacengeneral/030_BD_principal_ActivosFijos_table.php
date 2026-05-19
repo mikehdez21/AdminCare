@@ -59,6 +59,9 @@ return new class extends Migration {
             // Fecha de registro del activo en el sistema
             $table->dateTime('fecha_registro_af')->notNull();
 
+            // Estatus de depreciación del activo (booleano: true = en proceso de depreciación, false = no se ha depreciado o ya está totalmente depreciado)
+            $table->boolean('depreciacion_aplicada')->default(false)->notNull();
+
             // Observaciones adicionales sobre el activo
             $table->text('observaciones_af')->nullable();
 

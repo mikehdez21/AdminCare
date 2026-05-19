@@ -12,7 +12,7 @@ return new class extends Migration {
         DB::statement('CREATE SCHEMA IF NOT EXISTS almacengeneral');
 
         // Crear la tabla 'af_depreciacion' dentro del esquema 'almacengeneral'
-        Schema::create('almacengeneral.tableAF_Depreciacion', function (Blueprint $table) {
+        Schema::create('almacengeneral.tableAF_DepreciacionActivo', function (Blueprint $table) {
             // ID de la factura (Clave primaria autoincremental)
             $table->bigIncrements('id_depreciacionaf')->primary();
 
@@ -37,11 +37,28 @@ return new class extends Migration {
             // Valor en libros del activo fijo después de la depreciación
             $table->decimal('valor_libros_af', 21, 2)->notNull();
 
-            // Método de depreciación (cadena de texto, opcional)
-            $table->string('metodo_depreciacionaf', 100)->nullable();
+            // Método de depreciación (Clave Foránea que referencia a la tabla de métodos de depreciación)
+            $table->foreignId('id_metodo_depreciacionaf')->nullable()->constrained('almacengeneral.tableRef_MetodosDepreciacion', 'id_metodo_depreciacion')->onDelete('set null');
 
+            // Fecha de inicio de la depreciación (snapshot al activar)
+            $table->date('fecha_inicio_depreciacion')->nullable();
+
+            // Vida útil en años (snapshot al activar)
+            $table->integer('vida_util_anios')->nullable();
+
+            // Valor residual (snapshot al activar)
+            $table->decimal('valor_residual_af', 21, 2)->nullable()->default(0);
             // Fecha del calculo de la depreciación
             $table->dateTime('fecha_calculo_depreciacion')->notNull();
+
+            // Identificador del usuario que realizó el cálculo (auditoría)
+            $table->foreignId('id_usuario_calculo')->nullable()->constrained('tableUsuarios', 'id_usuario')->onDelete('set null');
+
+            // Identificador del estatus de la depreciación (Clave Foránea que referencia a la tabla de estatus de depreciación)
+            $table->foreignId('id_estatus_depreciacion')->notNull()->constrained('almacengeneral.tableRef_EstatusDepreciacionAF', 'id_estatus_depreciacion')->onDelete('restrict');
+
+            // Evitar duplicados por activo / año de depreciación
+            $table->unique(['id_activo_fijo', 'anio_depreciacionaf'], 'uk_activo_anio_deprec');
 
             // Observaciones adicionales sobre la depreciación
             $table->text('observaciones_depreciacionaf')->nullable();
@@ -52,13 +69,12 @@ return new class extends Migration {
             // Índices para mejorar el rendimiento de las consultas
             $table->index('fecha_calculo_depreciacion', 'idx_fecha_calculo_depreciacion');
             $table->index(['id_activo_fijo', 'fecha_calculo_depreciacion'], 'idx_activo_fecha_calculo');
-
         });
     }
 
     public function down()
     {
-        // Eliminar la tabla 'tableAF_Depreciacion' en caso de revertir la migración
-        Schema::dropIfExists('almacengeneral.tableAF_Depreciacion');
+        // Eliminar la tabla 'tableAF_DepreciacionActivo' en caso de revertir la migración
+        Schema::dropIfExists('almacengeneral.tableAF_DepreciacionActivo');
     }
 };

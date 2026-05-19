@@ -5,44 +5,43 @@ namespace App\Http\Controllers\AlmacenGeneral;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use App\Models\AlmacenGeneral\EstatusActivosFijos;
+use App\Models\AlmacenGeneral\EstatusDepreciacionAF;
 
-class EstatusAFController extends Controller
+class EstatusDepreciacionController extends Controller
 {
-    
-    // Obtener todos los estatus de activos fijos
+    // Obtener todos los estatus de depreciación
     public function index()
     {
         $response = ["success" => false, "data" => [], "message" => ""];
 
         try {
-            $estatus = EstatusActivosFijos::all([
-                'id_estatusaf',
-                'descripcion_estatusaf',
+            $estatus = EstatusDepreciacionAF::all([
+                'id_estatus_depreciacion',
+                'descripcion_estatus_depreciacion',
                 'created_at',
                 'updated_at'
             ]);
 
             if ($estatus->isEmpty()) {
-                $response['message'] = 'No se encontraron estatus de activos fijos.';
+                $response['message'] = 'No se encontraron estatus de depreciación.';
             } else {
                 $response['success'] = true;
                 $response['data'] = $estatus;
             }
         } catch (\Exception $e) {
-            $response['message'] = 'Error al obtener los estatus de activos fijos: ' . $e->getMessage();
+            $response['message'] = 'Error al obtener los estatus de depreciación: ' . $e->getMessage();
         }
 
         return response()->json($response, 200);
     }
 
-    // Crear un nuevo estatus de activos fijos
+    // Crear un nuevo estatus de depreciación
     public function store(Request $request)
     {
         $response = ["success" => false, "message" => "", "data" => []];
 
         $validator = Validator::make($request->all(), [
-            'descripcion_estatusaf' => 'required|string|max:255',
+            'descripcion_estatus_depreciacion' => 'required|string|max:255|unique:almacengeneral.tableRef_EstatusDepreciacionAF,descripcion_estatus_depreciacion',
         ]);
 
         if ($validator->fails()) {
@@ -51,49 +50,49 @@ class EstatusAFController extends Controller
 
         try {
             $input = $request->all();
-            $estatus = EstatusActivosFijos::create($input);
+            $estatus = EstatusDepreciacionAF::create($input);
 
             $response['success'] = true;
-            $response['message'] = 'Estatus de activos fijos registrado exitosamente!';
+            $response['message'] = 'Estatus de depreciación registrado exitosamente!';
             $response['data'] = $estatus;
         } catch (\Exception $e) {
-            $response['message'] = 'Error al crear el estatus de activos fijos: ' . $e->getMessage();
+            $response['message'] = 'Error al crear el estatus de depreciación: ' . $e->getMessage();
         }
 
         return response()->json($response, $response['success'] ? 201 : 500);
     }
 
-    // Actualizar un estatus de activos fijos existente
+    // Actualizar un estatus de depreciación existente
     public function update(Request $request, $id)
     {
         $response = ["success" => false, "message" => "", "data" => []];
 
         try {
-            $estatus = EstatusActivosFijos::findOrFail($id);
+            $estatus = EstatusDepreciacionAF::findOrFail($id);
             $estatus->update($request->all());
 
             $response['success'] = true;
-            $response['message'] = 'Estatus de activos fijos actualizado exitosamente.';
+            $response['message'] = 'Estatus de depreciación actualizado exitosamente.';
             $response['data'] = $estatus;
         } catch (\Exception $e) {
-            $response['message'] = 'Error al actualizar el estatus de activos fijos: ' . $e->getMessage();
+            $response['message'] = 'Error al actualizar el estatus de depreciación: ' . $e->getMessage();
         }
 
         return response()->json($response, $response['success'] ? 200 : 500);
     }
 
-    // Eliminar un estatus de activos fijos
+    // Eliminar un estatus de depreciación
     public function destroy($id)
     {
         $response = ["success" => false, "message" => ""];
 
         try {
-            EstatusActivosFijos::destroy($id);
+            EstatusDepreciacionAF::destroy($id);
             $response['success'] = true;
-            $response['message'] = 'Estatus de activos fijos eliminado exitosamente.';
+            $response['message'] = 'Estatus de depreciación eliminado exitosamente.';
             return response()->json($response, 200);
         } catch (\Exception $e) {
-            $response['message'] = 'Error al eliminar el estatus de activos fijos: ' . $e->getMessage();
+            $response['message'] = 'Error al eliminar el estatus de depreciación: ' . $e->getMessage();
             return response()->json($response, 500);
         }
     }

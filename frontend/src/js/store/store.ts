@@ -16,9 +16,9 @@ import movimientosAFReducer from '@/store/almacengeneral/Activos/MovimientosActi
 import proveedoresReducer from '@/store/almacengeneral/Proveedores/proveedoresReducer'
 import fiscalReducer from '@/store/shared/fiscalReducer'
 import clasificacionesReducer from '@/store/almacengeneral/Clasificaciones/clasificacionesReducer'
+import depreciacionReducer from '@/store/almacengeneral/Activos/DepreciacionAF/depreciacionAFReducer';
 
 import sectionReducer from '@/store/sectionReducer'
-import statusReducer from '@/store/statusReducer';
 
 const store = configureStore({
   reducer: {
@@ -28,7 +28,6 @@ const store = configureStore({
 
     // Auth y Usuarios
     auth: authReducer,
-    apiStatus: statusReducer,
     users: userReducer,
     roles: rolesReducer,
     departamentos: departamentosReducer,
@@ -46,6 +45,9 @@ const store = configureStore({
     clasificacion: clasificacionesReducer,
     facturasaf: facturasReducer,
     proveedor: proveedoresReducer,
+
+    // Contabilidad
+    depreciacionAF: depreciacionReducer,
 
     //  otros reducers...
   },

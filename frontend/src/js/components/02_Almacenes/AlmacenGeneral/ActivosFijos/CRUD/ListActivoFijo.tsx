@@ -465,6 +465,7 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
                   <th id='th_EstadoAF'>Estado del Activo</th>
                   <th id='th_ClasificacionAF'>Clasificación</th>
                   <th id='th_FechaRegistro'>Fecha Registro</th>
+                  <th id='th_DepreciacionAplicada'>Depreciación</th>
                   <th id='th_Observaciones'>Observaciones</th>
                   <th id='th_FechaCreacion'>Fecha Creación</th>
                   <th id='th_FechaModificacion'>Fecha Modificación</th>
@@ -546,6 +547,26 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
 
                     <td id='td_FechaRegistro'>{formatDateHorasToFrontend(activoFijo.fecha_registro_af)}</td>
 
+                    <td id='td_DepreciacionAplicada'>
+                      {activoFijo.af_propio === false ? (
+                        <div className='badge depreciacion-aplicada-noaplica'>
+                          N/A
+                        </div>
+                      ) : (
+                        activoFijo.depreciacion_aplicada ? (
+
+                          <div className='badge depreciacion-aplicada-activa'>
+                            Activa
+                          </div>
+                        ) : (
+
+                          <div className='badge depreciacion-aplicada-inactiva'>
+                            Inactiva
+                          </div>
+                        )
+                      )}
+                    </td>
+
                     <td id='td_Observaciones'>
                       <div className='divObservacionesAF'>
                         {activoFijo.observaciones_af}
@@ -578,22 +599,29 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
           />
 
         </>
-      )}
+      )
+      }
 
-      {isModalAddActivoFijoOpen && (
-        <AddActivoFijo isOpen={isModalAddActivoFijoOpen} onClose={closeModalAddActivoFijo} onAddSinFactura={handleActualizarActivosEditados} />
-      )}
+      {
+        isModalAddActivoFijoOpen && (
+          <AddActivoFijo isOpen={isModalAddActivoFijoOpen} onClose={closeModalAddActivoFijo} onAddSinFactura={handleActualizarActivosEditados} />
+        )
+      }
 
-      {isModalEditActivoFijoOpen && activoFijoToEdit_Delete && (
-        <EditActivoFijo isOpen={isModalEditActivoFijoOpen} onClose={closeModalEditActivoFijo} activoFijoToEdit={activoFijoToEdit_Delete} onEdit={handleActualizarActivosEditados} />
-      )}
+      {
+        isModalEditActivoFijoOpen && activoFijoToEdit_Delete && (
+          <EditActivoFijo isOpen={isModalEditActivoFijoOpen} onClose={closeModalEditActivoFijo} activoFijoToEdit={activoFijoToEdit_Delete} onEdit={handleActualizarActivosEditados} />
+        )
+      }
 
-      {isModalDeleteActivoFijoOpen && activoFijoToEdit_Delete && (
-        <DeleteActivoFijo isOpen={isModalDeleteActivoFijoOpen} onClose={closeAlertDeleteActivoFijo} activoFijoToDelete={activoFijoToEdit_Delete} />
-      )}
+      {
+        isModalDeleteActivoFijoOpen && activoFijoToEdit_Delete && (
+          <DeleteActivoFijo isOpen={isModalDeleteActivoFijoOpen} onClose={closeAlertDeleteActivoFijo} activoFijoToDelete={activoFijoToEdit_Delete} />
+        )
+      }
 
 
-    </div>
+    </div >
   );
 
   return (

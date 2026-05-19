@@ -34,6 +34,7 @@ export interface ActivosFijos {
   id_estado_af: number | null;
   id_clasificacion: number | null;
   fecha_registro_af: string | null;
+  depreciacion_aplicada: boolean;
   observaciones_af: string;
   ubicacion_actual?: string | null;
   codigosQR?: CodigosQRAF[];
@@ -132,8 +133,8 @@ export interface ActivoEntityResponse {
   lote_total?: number | null;
   cantidad?: number;
   id_clasificacion: number | null;
-  af_propio: boolean;
   fecha_registro_af: string | null;
+  af_propio: boolean;
   numero_serie_af: string;
   costo_unitario_af: number;
   descuento_af: number;
