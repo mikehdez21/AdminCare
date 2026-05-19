@@ -19,6 +19,7 @@ import clasificacionesReducer from '@/store/almacengeneral/Clasificaciones/clasi
 import depreciacionReducer from '@/store/almacengeneral/Activos/DepreciacionAF/depreciacionAFReducer';
 
 import sectionReducer from '@/store/sectionReducer'
+import statusReducer from '@/store/statusReducer';
 
 const store = configureStore({
   reducer: {
@@ -28,6 +29,7 @@ const store = configureStore({
 
     // Auth y Usuarios
     auth: authReducer,
+    apiStatus: statusReducer,
     users: userReducer,
     roles: rolesReducer,
     departamentos: departamentosReducer,
