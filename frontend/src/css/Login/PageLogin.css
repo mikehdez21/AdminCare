@@ -6,6 +6,7 @@
 
     background-image: url('/img/loginBackground.png');
     background-size: cover; /* Ajusta la imagen para cubrir todo el fondo */
+    background-repeat: no-repeat;
     background-position: center; /* Centra la imagen */
 
     /* Lado Izquierdo News */
@@ -365,8 +366,12 @@
 @media (max-width: 768px) {
   .mainDiv_PageLogin {
     flex-direction: column;
-    height: auto;
-    min-height: 100vh;
+        height: 100dvh;
+        min-height: 100dvh;
+        overflow: hidden;
+        background-size: 100% 100%;
+        background-position: center center;
+        background-repeat: no-repeat;
   }
 
   .mainDiv_PageLogin .mainDivPageLogin_IzqNews {
@@ -376,16 +381,36 @@
   .mainDiv_PageLogin .mainDivPageLogin_DerLogin {
     width: 100%;
     flex: 1;
-    padding: 20px;
+        padding: 16px;
   }
 
   .mainDiv_PageLogin .mainDivPageLogin_DerLogin .contentDiv_Login {
     display: flex;
     justify-content: center;
-    width: 100%;
-    max-width: 420px;
+        width: 100%;
+        max-width: 420px;
     margin: 0 auto;
-  }
+        box-sizing: border-box;
+    }
+
+
+    .mainDiv_PageLogin .mainDivPageLogin_DerLogin .contentDiv_Login .div_ComponentLogin .titleDiv_Login {
+        font-size: clamp(20px, 7vw, 26px);
+        line-height: 1.1;
+        padding: 8px 0 12px;
+        background: none;
+        -webkit-background-clip: initial;
+        background-clip: initial;
+        -webkit-text-stroke: 0;
+        color: #949494;
+        text-shadow: 0 0 12px rgba(91, 250, 255, 0.18);
+    }
+
+
+    .mainDiv_PageLogin .mainDivPageLogin_DerLogin .contentDiv_Login .div_ComponentLogin .messagesLogin .loginMessageBox {
+        width: 100%;
+        box-sizing: border-box;
+    }
 
   
 }
