@@ -14,7 +14,7 @@ class FormaPagoController extends Controller
     public function index()
     {
 
-		$formasPago = Cache::remember('catalogos.formas_pago.index', now()->addMinutes(15), function () {
+        $formasPago = Cache::store('file')->remember('catalogos.formas_pago.index', now()->addMinutes(15), function () {
 			return FormaPago::all([
 				'id_formapago',
 				'descripcion_formaspago',
@@ -48,7 +48,7 @@ class FormaPagoController extends Controller
         try {
             $input = $request->all();
             $formaPago = FormaPago::create($input);
-            Cache::forget('catalogos.formas_pago.index');
+            Cache::store('file')->forget('catalogos.formas_pago.index');
 
             $response['success'] = true;
             $response['message'] = 'Forma de pago registrada exitosamente!';
@@ -68,7 +68,7 @@ class FormaPagoController extends Controller
         try {
             $formaPago = FormaPago::findOrFail($id);
             $formaPago->update($request->all());
-            Cache::forget('catalogos.formas_pago.index');
+            Cache::store('file')->forget('catalogos.formas_pago.index');
 
             $response['success'] = true;
             $response['message'] = 'Forma de pago actualizada exitosamente.';
@@ -87,7 +87,7 @@ class FormaPagoController extends Controller
 
         try {
             FormaPago::destroy($id);
-            Cache::forget('catalogos.formas_pago.index');
+            Cache::store('file')->forget('catalogos.formas_pago.index');
             $response['success'] = true;
             $response['message'] = 'Forma de pago eliminada exitosamente.';
             return response()->json($response, 200);

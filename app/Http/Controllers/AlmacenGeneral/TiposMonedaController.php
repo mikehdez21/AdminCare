@@ -14,7 +14,7 @@ class TiposMonedaController extends Controller
 	public function index()
 	{
 
-		$tipos = Cache::remember('catalogos.tipos_moneda.index', now()->addMinutes(15), function () {
+		$tipos = Cache::store('file')->remember('catalogos.tipos_moneda.index', now()->addMinutes(15), function () {
 			return MonedaPago::all([
 				'id_tipomoneda',
 				'descripcion_tipomoneda',
@@ -48,7 +48,7 @@ class TiposMonedaController extends Controller
 		try {
 			$input = $request->all();
 			$tipo = MonedaPago::create($input);
-			Cache::forget('catalogos.tipos_moneda.index');
+			Cache::store('file')->forget('catalogos.tipos_moneda.index');
 
 			$response['success'] = true;
 			$response['message'] = 'Tipo de moneda registrado exitosamente!';
@@ -68,7 +68,7 @@ class TiposMonedaController extends Controller
 		try {
 			$tipo = MonedaPago::findOrFail($id);
 			$tipo->update($request->all());
-			Cache::forget('catalogos.tipos_moneda.index');
+			Cache::store('file')->forget('catalogos.tipos_moneda.index');
 
 			$response['success'] = true;
 			$response['message'] = 'Tipo de moneda actualizado exitosamente.';
@@ -87,7 +87,7 @@ class TiposMonedaController extends Controller
 
 		try {
 			MonedaPago::destroy($id);
-			Cache::forget('catalogos.tipos_moneda.index');
+			Cache::store('file')->forget('catalogos.tipos_moneda.index');
 			$response['success'] = true;
 			$response['message'] = 'Tipo de moneda eliminado exitosamente.';
 			return response()->json($response, 200);

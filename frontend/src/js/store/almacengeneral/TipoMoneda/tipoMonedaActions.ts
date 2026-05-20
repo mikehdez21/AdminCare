@@ -59,14 +59,7 @@ export const getTiposMoneda = createAsyncThunk<{ success: boolean; tiposMoneda?:
     }
 
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
       const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/tiposmoneda`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken || '',
-        },
         withCredentials: true,
       });
 

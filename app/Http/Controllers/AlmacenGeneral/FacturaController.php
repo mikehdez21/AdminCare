@@ -493,7 +493,7 @@ class FacturaController extends Controller
     public function getTiposFacturas()
     {
         try {
-            $API_tiposfacturas = Cache::remember('catalogos.tipos_facturas_af.index', now()->addMinutes(30), function () {
+            $API_tiposfacturas = Cache::store('file')->remember('catalogos.tipos_facturas_af.index', now()->addMinutes(30), function () {
                 return DB::table('almacengeneral.tableRef_TiposFacturasAF')
                     ->select('id_tipofacturaaf', 'nombre_tipofactura')
                     ->get();

@@ -57,14 +57,7 @@ export const getFormasPago = createAsyncThunk<{ success: boolean; formasPago?: [
 		}
 
 		try {
-			await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-			const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
 			const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/formaspago`, {
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRF-TOKEN': csrfToken || '',
-				},
 				withCredentials: true,
 			});
 

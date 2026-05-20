@@ -11,7 +11,7 @@ class TypesProveedorController extends Controller
     public function getTiposProveedor()
     {
         try {
-            $API_tiposproveedor = Cache::remember('catalogos.tipos_proveedor.index', now()->addMinutes(30), function () {
+            $API_tiposproveedor = Cache::store('file')->remember('catalogos.tipos_proveedor.index', now()->addMinutes(30), function () {
                 return DB::table('almacengeneral.tableRef_TiposProveedor')
                     ->select('id_tipoproveedor', 'descripcion_tipoproveedor')
                     ->get();
@@ -35,7 +35,7 @@ class TypesProveedorController extends Controller
     public function getFormasPago()
     {
         try {
-            $API_formaspago = Cache::remember('catalogos.formas_pago_ref.index', now()->addMinutes(30), function () {
+            $API_formaspago = Cache::store('file')->remember('catalogos.formas_pago_ref.index', now()->addMinutes(30), function () {
                 return DB::table('almacengeneral.tableRef_FormasPago')
                     ->select('id_formapago', 'descripcion_formaspago')
                     ->get();
@@ -58,7 +58,7 @@ class TypesProveedorController extends Controller
     public function getTiposRegimen()
     {
         try {
-            $API_regimenfiscal = Cache::remember('catalogos.regimen_fiscal.index', now()->addMinutes(30), function () {
+            $API_regimenfiscal = Cache::store('file')->remember('catalogos.regimen_fiscal.index', now()->addMinutes(30), function () {
                 return DB::table('almacengeneral.tableRef_RegimenFiscales')
                     ->select('id_regimenfiscal', 'descripcion_regimenfiscal')
                     ->get();
@@ -81,7 +81,7 @@ class TypesProveedorController extends Controller
     public function getDescuentosProveedor()
     {
         try {
-            $API_descuentoproveedor = Cache::remember('catalogos.descuentos_proveedor.index', now()->addMinutes(30), function () {
+            $API_descuentoproveedor = Cache::store('file')->remember('catalogos.descuentos_proveedor.index', now()->addMinutes(30), function () {
                 return DB::table('almacengeneral.tableRef_DescuentoProveedor')
                     ->select('id_descuento_proveedor', 'descripcion_descuentoproveedor')
                     ->get();
@@ -104,7 +104,7 @@ class TypesProveedorController extends Controller
     public function getTiposFacturacion()
     {
         try {
-            $API_tiposfacturacion = Cache::remember('catalogos.tipos_facturacion.index', now()->addMinutes(30), function () {
+            $API_tiposfacturacion = Cache::store('file')->remember('catalogos.tipos_facturacion.index', now()->addMinutes(30), function () {
                 return DB::table('almacengeneral.tableRef_TiposFacturacion')
                     ->select('id_tipofacturacion', 'descripcion_tipofacturacion')
                     ->get();
@@ -127,7 +127,7 @@ class TypesProveedorController extends Controller
     public function getTiposMoneda()
     {
         try {
-            $API_tiposmoneda = Cache::remember('catalogos.tipos_moneda_ref.index', now()->addMinutes(30), function () {
+            $API_tiposmoneda = Cache::store('file')->remember('catalogos.tipos_moneda_ref.index', now()->addMinutes(30), function () {
                 return DB::table('almacengeneral.tableRef_TiposMonedas')
                     ->select('id_tipomoneda', 'descripcion_tipomoneda')
                     ->get();

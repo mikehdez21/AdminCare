@@ -2,6 +2,7 @@ import axios from 'axios';
 import { User, Roles, Departamentos } from '@/@types/mainTypes';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { API_BASE_URL } from '@/variableApi';
+import { ensureCsrfCookie } from '@/utils/csrf';
 // Definiciones de tipos
 
 interface LoginCredentials {
@@ -33,14 +34,7 @@ LoginSuccessResponse, // Tipos de datos retornados en caso de éxito
     console.log(credentials)
     try {
       // 1. Obtener el CSRF cookie requerido por Sanctum SPA
-      await axios.get(
-        `${API_BASE_URL}/sanctum/csrf-cookie`,
-        {
-          withCredentials: true,
-          withXSRFToken: true,
-          headers: { 'Content-Type': 'application/json' },
-        }
-      );
+      await ensureCsrfCookie();
 
       // 2. Realizar solicitud de inicio de sesión
       const response = await axios.post(

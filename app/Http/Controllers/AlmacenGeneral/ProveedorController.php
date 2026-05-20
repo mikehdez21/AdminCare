@@ -70,7 +70,7 @@ class ProveedorController extends Controller
             ], 200);
         }
 
-        $proveedores = Cache::remember('catalogos.proveedores.index', now()->addMinutes(10), function () use ($columns) {
+        $proveedores = Cache::store('file')->remember('catalogos.proveedores.index', now()->addMinutes(10), function () use ($columns) {
             return Proveedores::all($columns);
         });
 
@@ -123,7 +123,7 @@ class ProveedorController extends Controller
 
             // Crear proveedor
             $proveedor = Proveedores::create($input);
-            Cache::forget('catalogos.proveedores.index');
+            Cache::store('file')->forget('catalogos.proveedores.index');
 
             return response()->json([
                 "success" => true,
@@ -151,7 +151,7 @@ class ProveedorController extends Controller
         try {
             $proveedor = Proveedores::findOrFail($id);
             $proveedor->update($request->all());
-            Cache::forget('catalogos.proveedores.index');
+            Cache::store('file')->forget('catalogos.proveedores.index');
 
             $response['success'] = true;
             $response['message'] = 'Proveedor actualizado exitosamente.';
@@ -170,7 +170,7 @@ class ProveedorController extends Controller
 
         try {
             Proveedores::destroy($id);
-            Cache::forget('catalogos.proveedores.index');
+            Cache::store('file')->forget('catalogos.proveedores.index');
             $response['success'] = true;
             $response['message'] = 'Proveedor eliminado exitosamente.';
             return response()->json($response, 200);

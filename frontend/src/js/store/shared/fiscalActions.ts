@@ -19,14 +19,7 @@ export const getTiposRegimen = createAsyncThunk<{ success: boolean; regimenesFis
     }
 
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
       const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/tipos-regimen`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken || '',
-        },
         withCredentials: true,
       });
 
@@ -65,14 +58,7 @@ export const getTiposFacturacion = createAsyncThunk<{ success: boolean; tiposFac
     }
 
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
       const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/tipos-facturacion`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken || '',
-        },
         withCredentials: true,
       });
 
