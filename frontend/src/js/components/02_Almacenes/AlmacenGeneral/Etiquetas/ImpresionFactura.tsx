@@ -58,9 +58,6 @@ const ImpresionFactura: React.FC<ImpresionFacturaProps> = ({ facturaNuevaID, onI
   const proveedores = useSelector((state: RootState) => state.proveedor.proveedores);
   const clasificaciones = useSelector((state: RootState) => state.clasificacion.clasificacionesAF);
 
-  // QZ Tray hook (must be at top level)
-  const { connect, findPrinters, printZPL } = useQZ();
-
 
   useEffect(() => {
     setFacturasDisponibles(facturas);

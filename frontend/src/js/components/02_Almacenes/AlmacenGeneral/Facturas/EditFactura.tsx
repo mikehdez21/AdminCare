@@ -290,6 +290,7 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
             id_estado_af: activoBase.id_estado_af ?? null,
             id_clasificacion: activo.id_clasificacion ?? null,
             fecha_registro_af: activoBase.fecha_registro_af || '',
+            depreciacion_aplicada: activoBase.depreciacion_aplicada || false,
             observaciones_af: activoBase.observaciones_af || activo.observaciones || '',
             cantidad: activo.cantidad ?? 1,
             descuento_af: activo.descuento_af || 0,
