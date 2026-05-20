@@ -22,7 +22,6 @@ import { setListProveedor } from '@/store/almacengeneral/Proveedores/proveedores
 
 // Actions
 import { getActivosFactura } from '@/store/almacengeneral/Facturas/facturasActions';
-import { useQZ } from '@/hooks/useQZ';
 
 // Interface para respuesta de impresión Zebra
 interface PrinterApiResponse {
@@ -170,7 +169,7 @@ const ImpresionFactura: React.FC<ImpresionFacturaProps> = ({ facturaNuevaID, onI
     setLoadingZebra(true);
 
     try {
-      // Obtener CSRF token (para endpoints que lo requieran)
+      // Obtener CSRF token
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, {
         withCredentials: true,
       });
@@ -179,85 +178,32 @@ const ImpresionFactura: React.FC<ImpresionFacturaProps> = ({ facturaNuevaID, onI
       let activosConError = 0;
       const erroresDetallados: string[] = [];
 
-      // Si QZ Tray está disponible en el cliente, usar impresión local USB
-      const qzAvailable = typeof window !== 'undefined' && (window as any).qz;
-
-      if (qzAvailable) {
+      // Imprimir cada activo
+      for (const activo of activosFactura) {
         try {
-          await connect();
-        } catch (e) {
-          console.warn('No se pudo conectar a QZ Tray:', e);
-        }
+          const response = await axios.post(
+            `${API_BASE_URL}/api/HSS1/almacengeneral/printer/etiqueta/${activo.id_activo_fijo}`,
+            {},
+            { withCredentials: true }
+          );
 
-        // Intentar obtener nombre de impresora por defecto
-        let printerName: string | undefined;
-        try {
-          const p = await (window as any).qz.printers.find();
-          if (Array.isArray(p)) printerName = p[0];
-          else if (typeof p === 'string') printerName = p;
-        } catch {
-          const found = await findPrinters();
-          printerName = found[0];
-        }
-
-        // Imprimir cada activo solicitando ZPL al backend (preview endpoint)
-        for (const activo of activosFactura) {
-          try {
-            const resp = await axios.get(
-              `${API_BASE_URL}/api/HSS1/almacengeneral/printer/preview-zpl/${activo.id_activo_fijo}`,
-              { withCredentials: true }
-            );
-
-            if (resp.data && resp.data.success && resp.data.zpl) {
-              const zpl = resp.data.zpl as string;
-              try {
-                await printZPL(zpl, printerName);
-                activosImpresos++;
-              } catch (err: any) {
-                activosConError++;
-                erroresDetallados.push(`${activo.codigo_unico}: ${err?.message || 'Error QZ Tray'}`);
-              }
-            } else {
-              activosConError++;
-              erroresDetallados.push(`${activo.codigo_unico}: No se generó ZPL`);
-            }
-          } catch (error: unknown) {
+          if (response.data.success) {
+            activosImpresos++;
+          } else {
             activosConError++;
-            let errorMsg = 'Error desconocido';
-            if (axios.isAxiosError(error)) {
-              errorMsg = error.response?.data?.message || 'Error al conectar';
-            }
-            erroresDetallados.push(`${activo.codigo_unico}: ${errorMsg}`);
+            erroresDetallados.push(`${activo.codigo_unico}: ${response.data.message}`);
           }
-        }
-      } else {
-        // Fallback: enviar petición al backend que imprime por IP (comportamiento actual)
-        for (const activo of activosFactura) {
-          try {
-            const response = await axios.post(
-              `${API_BASE_URL}/api/HSS1/almacengeneral/printer/etiqueta/${activo.id_activo_fijo}`,
-              {},
-              { withCredentials: true }
-            );
-
-            if (response.data.success) {
-              activosImpresos++;
-            } else {
-              activosConError++;
-              erroresDetallados.push(`${activo.codigo_unico}: ${response.data.message}`);
-            }
-          } catch (error: unknown) {
-            activosConError++;
-            let errorMsg = 'Error desconocido';
-            if (axios.isAxiosError(error)) {
-              errorMsg = error.response?.data?.message || 'Error al conectar';
-            }
-            erroresDetallados.push(`${activo.codigo_unico}: ${errorMsg}`);
+        } catch (error: unknown) {
+          activosConError++;
+          let errorMsg = 'Error desconocido';
+          if (axios.isAxiosError(error)) {
+            errorMsg = error.response?.data?.message || 'Error al conectar';
           }
+          erroresDetallados.push(`${activo.codigo_unico}: ${errorMsg}`);
         }
       }
 
-      // Mostrar resultado (igual que antes)
+      // Mostrar resultado
       if (activosImpresos > 0) {
         let mensajeExito = `Se imprimieron ${activosImpresos} etiqueta(s) exitosamente`;
         if (activosConError > 0) {
