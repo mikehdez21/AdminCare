@@ -19,7 +19,7 @@ AdminCare comenzó como un sistema para almacén general y control de activos, p
 | Frontend | React 18, Redux Toolkit, Vite | Vercel |
 | Backend | Laravel 11, Sanctum, Spatie Permission | Railway |
 | Microservicio IA | FastAPI, scikit-learn | Railway |
-| Datos | Supabase | Infraestructura del backend |
+| Base de Datos | PostgreSQL | Supabase |
 
 ## Arquitectura
 

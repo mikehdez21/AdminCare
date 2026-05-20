@@ -65,9 +65,9 @@ const App: React.FC = () => {
             <Route path="/almacen_general/*" element={<LayoutAdmin />} />
 
             {/* Contabilidad */}
-            <Route path="/contabilidad/depreciacionaf" element={<LayoutAdmin />} />
-            <Route path="/contabilidad/configuracion" element={<LayoutAdmin />} />
-            <Route path="/contabilidad/auditoria" element={<LayoutAdmin />} />
+            <Route path="/contabilidad/depreciacionaf/*" element={<LayoutAdmin />} />
+            <Route path="/contabilidad/configuracion/*" element={<LayoutAdmin />} />
+            <Route path="/contabilidad/auditoria/*" element={<LayoutAdmin />} />
 
             {/* Administrador */}
             <Route path="/gestion_usuarios/*" element={<LayoutAdmin />} />
@@ -89,9 +89,9 @@ const App: React.FC = () => {
             <Route path="/almacen_general/*" element={<LayoutJefatura />} />
 
             {/* Contabilidad */}
-            <Route path="/contabilidad/depreciacionaf" element={<LayoutAdmin />} />
-            <Route path="/contabilidad/configuracion" element={<LayoutAdmin />} />
-            <Route path="/contabilidad/auditoria" element={<LayoutAdmin />} />
+            <Route path="/contabilidad/depreciacionaf/*" element={<LayoutAdmin />} />
+            <Route path="/contabilidad/configuracion/*" element={<LayoutAdmin />} />
+            <Route path="/contabilidad/auditoria/*" element={<LayoutAdmin />} />
 
           </Route>
 
@@ -108,9 +108,9 @@ const App: React.FC = () => {
             <Route path="/almacen_general/*" element={<LayoutUsuario />} />
 
             {/* Contabilidad */}
-            <Route path="/contabilidad/depreciacionaf" element={<LayoutAdmin />} />
-            <Route path="/contabilidad/configuracion" element={<LayoutAdmin />} />
-            <Route path="/contabilidad/auditoria" element={<LayoutAdmin />} />
+            <Route path="/contabilidad/depreciacionaf/*" element={<LayoutAdmin />} />
+            <Route path="/contabilidad/configuracion/*" element={<LayoutAdmin />} />
+            <Route path="/contabilidad/auditoria/*" element={<LayoutAdmin />} />
 
           </Route>
 

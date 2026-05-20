@@ -55,7 +55,7 @@ const SubMenuOptions_Contabilidad: React.FC<MenuOptions_ParentProps> = ({ select
 
                 <div
                     className={
-                        ['DepreciacionActivos', 'ContabilidadConfiguracion', 'Auditoria'].includes(selectedSection)
+                        ['DepreciacionAF', 'ContabilidadConfiguracion', 'Auditoria'].includes(selectedSection)
                             ? 'SubMenu_IconTitle sidebar_SectionSelected'
                             : 'SubMenu_IconTitle'
                     }
