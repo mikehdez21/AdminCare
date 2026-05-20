@@ -2,7 +2,7 @@
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/mikehdez21/AdminCare)
 
-AdminCare es un ERP para administración, activos, almacén y facturación, construido como un monorepo con frontend y backend desplegados por separado. El proyecto combina operación diaria, impresión de etiquetas, control por roles y funciones de SoftComputing para análisis predictivo y apoyo con IA.
+AdminCare comenzó como un sistema para almacén general y control de activos, pero el desarrollo fue ampliando su alcance hasta convertirlo en una base tipo ERP pensada para crecer por microsistemas. Hoy sigue cubriendo almacén y activos, pero está planteado para integrar módulos como agenda de citas de consulta externa e imagen, etiquetado de instrumental de CEYE, helpdesk, intranet hospitalaria y otros proyectos en puerta, manteniendo una arquitectura preparada para expansión.
 
 ## Qué resuelve
 
@@ -19,7 +19,7 @@ AdminCare es un ERP para administración, activos, almacén y facturación, cons
 | Frontend | React 18, Redux Toolkit, Vite | Vercel |
 | Backend | Laravel 11, Sanctum, Spatie Permission | Railway |
 | Microservicio IA | FastAPI, scikit-learn | Railway |
-| Datos | PostgreSQL, SQLite de respaldo | Infraestructura del backend |
+| Datos | Supabase | Infraestructura del backend |
 
 ## Arquitectura
 
@@ -29,19 +29,26 @@ El flujo está pensado en tres piezas:
 - API en Laravel para autenticación, reglas de negocio y persistencia.
 - Servicio SoftComputing en Python para tareas de predicción y análisis.
 
-Además, el despliegue está desacoplado: el frontend publica en Vercel y las APIs se resuelven contra Railway con reglas de proxy/rewrite para evitar problemas de CORS.
+Además, el despliegue está desacoplado: el frontend publica en Vercel y las APIs se resuelven contra Railway con reglas de proxy/rewrite para evitar problemas de CORS. La base de datos del sistema se centraliza en Supabase.
 
 ## SoftComputing
 
 SoftComputing es la capa de inteligencia del sistema. Se usa para complementar la operación con análisis de datos, predicción de precios y detección de anomalías, conectando el backend Laravel con un microservicio Python especializado.
+
+En precios, el microservicio FastAPI trabaja con tres algoritmos principales:
+
+- `LinearRegression` para relaciones lineales simples.
+- `RandomForestRegressor` para combinar varios árboles y dar predicciones más robustas.
+- `KNeighborsRegressor` para estimar valores a partir de casos similares.
+
+La parte contextual usa OpenAI para análisis asistido sobre escenarios como predicción de precios, detección de anomalías, fraude y optimización de inventario. El flujo principal usa `gpt-5-search-api` y, si hace falta, cae a `gpt-4o-mini` como respaldo.
 
 ## Deploys
 
 - Frontend: Vercel.
 - Backend API: Railway.
 - Servicio SoftComputing: Railway.
-- Base de datos principal: PostgreSQL.
-- Respaldo local o de desarrollo: SQLite.
+- Base de datos: Supabase.
 
 ## Módulos destacados
 
@@ -50,6 +57,7 @@ SoftComputing es la capa de inteligencia del sistema. Se usa para complementar l
 - Almacén general y facturación.
 - Generación de QR y etiquetas para impresión.
 - Servicios de análisis y predicción para soporte operativo.
+- Análisis contextual con OpenAI para apoyo en decisiones.
 
 ## Acceso rápido por QR
 
