@@ -8,6 +8,7 @@ use App\Models\AlmacenGeneral\FacturaAF;
 use App\Models\AlmacenGeneral\FacturaActivos;
 use App\Models\AlmacenGeneral\ActivosFijos;
 use App\Models\AlmacenGeneral\MovimientosActivos;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class FacturaController extends Controller
@@ -492,9 +493,11 @@ class FacturaController extends Controller
     public function getTiposFacturas()
     {
         try {
-            $API_tiposfacturas = DB::table('almacengeneral.tableRef_TiposFacturasAF')
-                ->select('id_tipofacturaaf', 'nombre_tipofactura')
-                ->get();
+            $API_tiposfacturas = Cache::remember('catalogos.tipos_facturas_af.index', now()->addMinutes(30), function () {
+                return DB::table('almacengeneral.tableRef_TiposFacturasAF')
+                    ->select('id_tipofacturaaf', 'nombre_tipofactura')
+                    ->get();
+            });
 
             return response()->json([
                 'success' => true,

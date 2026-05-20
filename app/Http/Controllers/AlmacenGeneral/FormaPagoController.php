@@ -4,6 +4,7 @@ namespace App\Http\Controllers\AlmacenGeneral;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 use App\Models\AlmacenGeneral\FormaPago;
 
@@ -12,27 +13,23 @@ class FormaPagoController extends Controller
     // Obtener todas las formas de pago
     public function index()
     {
-        $response = ["success" => false, "data" => [], "message" => ""];
 
-        try {
-            $formasPago = FormaPago::all([
-                'id_formapago',
-                'descripcion_formaspago',
-                'created_at',
-                'updated_at'
-            ]);
+		$formasPago = Cache::remember('catalogos.formas_pago.index', now()->addMinutes(15), function () {
+			return FormaPago::all([
+				'id_formapago',
+				'descripcion_formaspago',
+				'created_at',
+				'updated_at'
+			]);
+		});
 
-            if ($formasPago->isEmpty()) {
-                $response['message'] = 'No se encontraron formas de pago.';
-            } else {
-                $response['success'] = true;
-                $response['data'] = $formasPago;
-            }
-        } catch (\Exception $e) {
-            $response['message'] = 'Error al obtener las formas de pago: ' . $e->getMessage();
-        }
-
-        return response()->json($response, 200);
+		return response()->json([
+			'success' => $formasPago->isNotEmpty(),
+			'data' => $formasPago,
+			'message' => $formasPago->isEmpty()
+				? 'No se encontraron formas de pago.'
+				: 'Formas de pago cargadas correctamente.',
+		], 200);
     }
 
     // Crear una nueva forma de pago
@@ -51,6 +48,7 @@ class FormaPagoController extends Controller
         try {
             $input = $request->all();
             $formaPago = FormaPago::create($input);
+            Cache::forget('catalogos.formas_pago.index');
 
             $response['success'] = true;
             $response['message'] = 'Forma de pago registrada exitosamente!';
@@ -70,6 +68,7 @@ class FormaPagoController extends Controller
         try {
             $formaPago = FormaPago::findOrFail($id);
             $formaPago->update($request->all());
+            Cache::forget('catalogos.formas_pago.index');
 
             $response['success'] = true;
             $response['message'] = 'Forma de pago actualizada exitosamente.';
@@ -88,6 +87,7 @@ class FormaPagoController extends Controller
 
         try {
             FormaPago::destroy($id);
+            Cache::forget('catalogos.formas_pago.index');
             $response['success'] = true;
             $response['message'] = 'Forma de pago eliminada exitosamente.';
             return response()->json($response, 200);

@@ -3,6 +3,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import { FormasPago } from '@/@types/fiscalTypes';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 import { API_BASE_URL } from '@/variableApi';
+import type { RootState } from '@/store/store';
 
 // Agregar una nueva Forma de Pago
 export const addFormaPago = createAsyncThunk<{ success: boolean; message: string }, FormasPago>(
@@ -44,7 +45,17 @@ export const addFormaPago = createAsyncThunk<{ success: boolean; message: string
 // Obtener las formas de pago registradas
 export const getFormasPago = createAsyncThunk<{ success: boolean; formasPago?: []; message: string }>(
 	'almacengeneral/getFormasPago',
-	async () => {
+	async (_, { getState }) => {
+		const state = getState() as RootState;
+
+		if (state.fiscal.formasPago.length > 0) {
+			return {
+				success: true,
+				formasPago: state.fiscal.formasPago as [],
+				message: 'Formas de pago cargadas desde cache local',
+			};
+		}
+
 		try {
 			await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
 			const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');

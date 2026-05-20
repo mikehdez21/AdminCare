@@ -3,6 +3,30 @@ import { API_BASE_URL } from '@/variableApi';
 import { Proveedores } from '@/@types/AlmacenGeneralTypes/proveedorTypes';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import type { RootState } from '@/store/store';
+
+export interface ProveedoresPagination {
+  current_page: number;
+  per_page: number;
+  total: number;
+  last_page: number;
+  from: number | null;
+  to: number | null;
+}
+
+export interface GetProveedoresOptions {
+  paginated?: boolean;
+  page?: number;
+  perPage?: number;
+  search?: string;
+}
+
+export interface GetProveedoresResult {
+  success: boolean;
+  proveedor?: Proveedores[];
+  pagination?: ProveedoresPagination;
+  message: string;
+}
 
 
 // Agregar un nuevo proveedor
@@ -42,14 +66,37 @@ export const addProveedor = createAsyncThunk<{ success: boolean; message: string
 );
 
 // Obtener los proveedores registrados
-export const getProveedores = createAsyncThunk<{ success: boolean; proveedor?: Proveedores[]; message: string }>(
+export const getProveedores = createAsyncThunk<GetProveedoresResult, GetProveedoresOptions | void>(
   'almacengeneral/getProveedores',
-  async () => {
+  async (options, { getState }) => {
+    const state = getState() as RootState;
+    const shouldPaginate = Boolean(options?.paginated);
+
+    if (!shouldPaginate && state.proveedor.pagination === null && state.proveedor.proveedores.length > 0) {
+      return {
+        success: true,
+        proveedor: state.proveedor.proveedores,
+        message: 'Proveedores cargados desde cache local',
+      };
+    }
+
     try {
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/proveedores`, {
+      const queryParams = new URLSearchParams();
+
+      if (shouldPaginate) {
+        queryParams.set('paginated', '1');
+        queryParams.set('page', String(options?.page ?? 1));
+        queryParams.set('per_page', String(options?.perPage ?? 10));
+
+        if (options?.search) {
+          queryParams.set('search', options.search);
+        }
+      }
+
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/proveedores${queryParams.toString() ? `?${queryParams.toString()}` : ''}`, {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken || '',
@@ -70,7 +117,12 @@ export const getProveedores = createAsyncThunk<{ success: boolean; proveedor?: P
         };
       });
 
-      return { success: response.data.success, proveedor: proveedoresFormateados as Proveedores[], message: response.data.message };
+      return {
+        success: response.data.success,
+        proveedor: proveedoresFormateados as Proveedores[],
+        pagination: response.data.pagination,
+        message: response.data.message,
+      };
 
     } catch (error) {
       // Manejo de errores

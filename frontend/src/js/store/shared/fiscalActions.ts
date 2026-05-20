@@ -1,12 +1,23 @@
 import axios from 'axios';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { API_BASE_URL } from '@/variableApi';
+import type { RootState } from '@/store/store';
 
 
 // Obtener los tipos de regimen registrados
 export const getTiposRegimen = createAsyncThunk<{ success: boolean; regimenesFiscales?: []; message: string }>(
   'almacengeneral/getTiposRegimen',
-  async () => {
+  async (_, { getState }) => {
+    const state = getState() as RootState;
+
+    if (state.fiscal.regimenesFiscales.length > 0) {
+      return {
+        success: true,
+        regimenesFiscales: state.fiscal.regimenesFiscales as [],
+        message: 'Regimenes fiscales cargados desde cache local',
+      };
+    }
+
     try {
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -42,7 +53,17 @@ export const getTiposRegimen = createAsyncThunk<{ success: boolean; regimenesFis
 // Obtener los tipos de facturacion registrados
 export const getTiposFacturacion = createAsyncThunk<{ success: boolean; tiposFacturacion?: []; message: string }>(
   'almacengeneral/getTiposFacturacion',
-  async () => {
+  async (_, { getState }) => {
+    const state = getState() as RootState;
+
+    if (state.fiscal.tiposFacturacion.length > 0) {
+      return {
+        success: true,
+        tiposFacturacion: state.fiscal.tiposFacturacion as [],
+        message: 'Tipos de facturacion cargados desde cache local',
+      };
+    }
+
     try {
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');

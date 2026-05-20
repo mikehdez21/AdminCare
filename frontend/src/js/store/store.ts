@@ -14,6 +14,7 @@ import estatusAFReducer from '@/store/almacengeneral/Activos/EstatusAF/estatusAF
 import vwMovimientosAFReducer from '@/store/almacengeneral/Activos/vwMovimientosAFReducer';
 import movimientosAFReducer from '@/store/almacengeneral/Activos/MovimientosActivos/movimientosAFReducer'
 import proveedoresReducer from '@/store/almacengeneral/Proveedores/proveedoresReducer'
+import tiposFacturasReducer from '@/store/almacengeneral/TipoFactura/tiposFacturasReducer'
 import fiscalReducer from '@/store/shared/fiscalReducer'
 import clasificacionesReducer from '@/store/almacengeneral/Clasificaciones/clasificacionesReducer'
 import depreciacionReducer from '@/store/almacengeneral/Activos/DepreciacionAF/depreciacionAFReducer';
@@ -46,6 +47,7 @@ const store = configureStore({
     movimientosAF: movimientosAFReducer,
     clasificacion: clasificacionesReducer,
     facturasaf: facturasReducer,
+    tiposFacturas: tiposFacturasReducer,
     proveedor: proveedoresReducer,
 
     // Contabilidad

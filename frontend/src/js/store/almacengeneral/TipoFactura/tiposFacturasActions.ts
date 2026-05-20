@@ -3,6 +3,7 @@ import { TiposFacturasAF } from '@/@types/AlmacenGeneralTypes/facturasTypes';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 import { API_BASE_URL } from '@/variableApi';
+import type { RootState } from '@/store/store';
 
 
 // Agregar un nuevo Tipo de Factura
@@ -46,7 +47,17 @@ export const addTipoFactura = createAsyncThunk<{ success: boolean; message: stri
 // Obtener los tipos de factura registrados
 export const getTiposFacturas = createAsyncThunk<{ success: boolean; tiposFacturas?: TiposFacturasAF[]; message: string }>(
   'almacengeneral/getTiposFacturas',
-  async () => {
+  async (_, { getState }) => {
+    const state = getState() as RootState;
+
+    if (state.tiposFacturas.tiposFacturasAF.length > 0) {
+      return {
+        success: true,
+        tiposFacturas: state.tiposFacturas.tiposFacturasAF,
+        message: 'Tipos de factura cargados desde cache local',
+      };
+    }
+
     try {
       await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');

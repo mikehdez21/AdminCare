@@ -7,6 +7,14 @@ export interface ProveedorState{
     proveedores: Proveedores[];
     tiposProveedores: TiposProveedores[];
     descuentosProveedor: DescuentosProveedor[];
+    pagination: {
+      current_page: number;
+      per_page: number;
+      total: number;
+      last_page: number;
+      from: number | null;
+      to: number | null;
+    } | null;
     error: string | null; // Agregar un campo para manejar errores
 
 }
@@ -15,6 +23,7 @@ const initialState: ProveedorState = {
   proveedores: [],
   tiposProveedores: [],
   descuentosProveedor: [],
+  pagination: null,
   error: null, // Agregar un campo para manejar errores
 }
 
@@ -35,11 +44,13 @@ const proveedorSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getProveedores.fulfilled, (state, action: PayloadAction<{success: boolean, proveedores?: Proveedores[], message: string}>) => {
-        if (action.payload.success && action.payload.proveedores){
-          state.proveedores = action.payload.proveedores
+      .addCase(getProveedores.fulfilled, (state, action: PayloadAction<{success: boolean, proveedor?: Proveedores[], pagination?: ProveedorState['pagination'], message: string}>) => {
+        if (action.payload.success && action.payload.proveedor){
+          state.proveedores = action.payload.proveedor
+          state.pagination = action.payload.pagination ?? null
         } else {
           state.proveedores = []
+          state.pagination = null
           state.error = action.payload.message ? (action.payload.message as string) : 'Error al obtener proveedores';
         }
       })

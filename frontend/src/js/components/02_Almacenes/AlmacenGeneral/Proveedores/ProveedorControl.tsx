@@ -6,7 +6,6 @@ import { useDispatch, useSelector } from 'react-redux';
 // Proveedores
 import { Proveedores } from '@/@types/AlmacenGeneralTypes/proveedorTypes';
 import { getProveedores } from '@/store/almacengeneral/Proveedores/proveedoresActions';
-import { setListProveedor } from '@/store/almacengeneral/Proveedores/proveedoresReducer';
 
 // Almacen General Tipos
 import { getTiposProveedores, getTiposDescuento, } from '@/store/almacengeneral/Proveedores/proveedoresActions';
@@ -36,7 +35,8 @@ const AlmacenGeneral_ControlProveedor: React.FC = () => {
 
   const dispatch = useDispatch<AppDispatch>(); // Tipar el dispatch aquí
   const proveedores = useSelector((state: RootState) => state.proveedor.proveedores);
-  const totalProveedores = proveedores.length;
+  const pagination = useSelector((state: RootState) => state.proveedor.pagination);
+  const totalProveedores = pagination?.total ?? proveedores.length;
   const [proveedorToEdit_Delete, setProveedorToEdit_Delete] = useState<Proveedores | null>(null); // Proveedor seleccionado para editar_eliminar
 
   const tiposProveedores = useSelector((state: RootState) => state.proveedor.tiposProveedores);
@@ -90,13 +90,15 @@ const AlmacenGeneral_ControlProveedor: React.FC = () => {
   useEffect(() => {
     const cargarProveedores = async () => {
       try {
-        const resultAction = await dispatch(getProveedores()).unwrap();
+        const resultAction = await dispatch(getProveedores({
+          paginated: true,
+          page: paginaActual,
+          perPage: proveedoresPorPagina,
+          search: busqueda.trim() || undefined,
+        })).unwrap();
         console.log('Proveedores cargados:', resultAction);
 
-        if (resultAction.success) {
-          dispatch(setListProveedor(resultAction.proveedor!)); // Establece el proveedor en el estado
-
-        } else {
+        if (!resultAction.success) {
           console.log('Error', resultAction.message)
         }
 
@@ -198,28 +200,12 @@ const AlmacenGeneral_ControlProveedor: React.FC = () => {
     cargarTiposMoneda();
 
 
-  }, []); // Solo se ejecuta una vez al montar el componente
+  }, [dispatch, paginaActual, proveedoresPorPagina, busqueda]);
 
 
+  const proveedoresPaginaActual = Array.isArray(proveedores) ? proveedores : [];
 
-
-  // Filtrar y ordenar proveedores basados en la búsqueda
-  const proveedoresFiltrados = Array.isArray(proveedores)
-    ? proveedores
-      .filter(proveedor =>
-        proveedor.nombre_proveedor.toLowerCase().includes(busqueda.toLowerCase()) ||
-        proveedor.id_proveedor?.toString().includes(busqueda)
-      )
-      .sort((a, b) => a.id_proveedor! - b.id_proveedor!) // Orden ascendente por ID
-    : [];
-
-  // Obtener los proveedores para la página actual
-  const indexUltimoProveedor = paginaActual * proveedoresPorPagina;
-  const indexPrimerProveedor = indexUltimoProveedor - proveedoresPorPagina;
-  const proveedoresPaginaActual = proveedoresFiltrados.slice(indexPrimerProveedor, indexUltimoProveedor);
-
-  // Calcular el número total de páginas
-  const numeroTotalPaginas = Math.ceil(proveedoresFiltrados.length / proveedoresPorPagina);
+  const numeroTotalPaginas = pagination?.last_page ?? 1;
 
   // Crear nuevos proveedores
   const handleNuevoProveedor = () => {
@@ -271,7 +257,7 @@ const AlmacenGeneral_ControlProveedor: React.FC = () => {
 
       <hr />
 
-      {proveedoresFiltrados && proveedoresFiltrados.length === 0 ? (
+      {proveedoresPaginaActual.length === 0 ? (
         <div className='noEntities'>
           <FiAlertTriangle /> <p>  No hay proveedores registrados </p> <FiAlertTriangle />
         </div>
@@ -279,11 +265,11 @@ const AlmacenGeneral_ControlProveedor: React.FC = () => {
         <>
           {/* Paginación */}
           <Paginacion
-            paginaActual={paginaActual}
+            paginaActual={pagination?.current_page ?? paginaActual}
             numeroTotalPaginas={numeroTotalPaginas}
             onPageChange={setPaginaActual}
-            onPaginaAnterior={() => setPaginaActual(paginaActual - 1)}
-            onPaginaSiguiente={() => setPaginaActual(paginaActual + 1)}
+            onPaginaAnterior={() => setPaginaActual(Math.max(1, (pagination?.current_page ?? paginaActual) - 1))}
+            onPaginaSiguiente={() => setPaginaActual(Math.min(numeroTotalPaginas, (pagination?.current_page ?? paginaActual) + 1))}
           />
 
           <div className='list_entitiesDiv'>

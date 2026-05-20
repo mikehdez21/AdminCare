@@ -4,6 +4,7 @@ namespace App\Http\Controllers\AlmacenGeneral;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 use App\Models\AlmacenGeneral\Proveedores;
 use Illuminate\Support\Facades\DB;
@@ -12,45 +13,74 @@ use Illuminate\Support\Facades\DB;
 class ProveedorController extends Controller
 {
     // Obtener todos los proveedores
-    public function index()
+    public function index(Request $request)
     {
+        $shouldPaginate = filter_var($request->query('paginated', false), FILTER_VALIDATE_BOOLEAN);
+        $search = trim((string) $request->query('search', ''));
+        $perPage = max(1, min((int) $request->query('per_page', 10), 100));
 
-        $response = ["success" => false, "data" => [], "message" => ""];
+        $columns = [
+            'id_proveedor',
+            'nombre_proveedor',
+            'razon_social',
+            'email_proveedor',
+            'telefono_proveedor',
+            'sitioWeb',
+            'rfc',
+            'id_tipo_moneda',
+            'id_tipo_proveedor',
+            'id_forma_pago',
+            'id_tipo_regimen',
+            'id_tipo_descuento',
+            'id_tipo_facturacion',
+            'estatus_activo',
+            'created_at',
+            'updated_at'
+        ];
 
+        if ($shouldPaginate) {
+            $query = Proveedores::query()->select($columns)
+                ->when($search !== '', function ($builder) use ($search) {
+                    $builder->where(function ($where) use ($search) {
+                        $where->where('nombre_proveedor', 'like', '%' . $search . '%')
+                            ->orWhere('razon_social', 'like', '%' . $search . '%')
+                            ->orWhere('email_proveedor', 'like', '%' . $search . '%')
+                            ->orWhere('rfc', 'like', '%' . $search . '%')
+                            ->orWhereRaw('CAST(id_proveedor AS CHAR) LIKE ?', ['%' . $search . '%']);
+                    });
+                })
+                ->orderBy('id_proveedor', 'asc');
 
-        try {
+            $proveedores = $query->paginate($perPage);
 
-            $proveedores = Proveedores::all([
-                'id_proveedor',
-                'nombre_proveedor',
-                'razon_social',
-                'email_proveedor',
-                'telefono_proveedor',
-                'sitioWeb',
-                'rfc',
-                'id_tipo_moneda',
-                'id_tipo_proveedor',
-                'id_forma_pago',
-                'id_tipo_regimen',
-                'id_tipo_descuento',
-                'id_tipo_facturacion',
-                'estatus_activo',
-                'created_at',
-                'updated_at'
-            ]);
-
-
-            if ($proveedores->isEmpty()) {
-                $response['message'] = 'No se encontraron proveedores.';
-            } else {
-                $response['success'] = true;
-                $response['data'] = $proveedores;
-            }
-        } catch (\Exception $e) {
-            $response['message'] = 'Error al obtener los proveedores: ' . $e->getMessage();
+            return response()->json([
+                'success' => $proveedores->isNotEmpty(),
+                'data' => $proveedores->items(),
+                'pagination' => [
+                    'current_page' => $proveedores->currentPage(),
+                    'per_page' => $proveedores->perPage(),
+                    'total' => $proveedores->total(),
+                    'last_page' => $proveedores->lastPage(),
+                    'from' => $proveedores->firstItem(),
+                    'to' => $proveedores->lastItem(),
+                ],
+                'message' => $proveedores->isEmpty()
+                    ? 'No se encontraron proveedores.'
+                    : 'Proveedores cargados correctamente.',
+            ], 200);
         }
 
-        return response()->json($response, 200);
+        $proveedores = Cache::remember('catalogos.proveedores.index', now()->addMinutes(10), function () use ($columns) {
+            return Proveedores::all($columns);
+        });
+
+        return response()->json([
+            'success' => $proveedores->isNotEmpty(),
+            'data' => $proveedores,
+            'message' => $proveedores->isEmpty()
+                ? 'No se encontraron proveedores.'
+                : 'Proveedores cargados correctamente.',
+        ], 200);
     }
 
     // Crear un nuevo proveedor (antes: createProveedor)
@@ -93,6 +123,7 @@ class ProveedorController extends Controller
 
             // Crear proveedor
             $proveedor = Proveedores::create($input);
+            Cache::forget('catalogos.proveedores.index');
 
             return response()->json([
                 "success" => true,
@@ -120,6 +151,7 @@ class ProveedorController extends Controller
         try {
             $proveedor = Proveedores::findOrFail($id);
             $proveedor->update($request->all());
+            Cache::forget('catalogos.proveedores.index');
 
             $response['success'] = true;
             $response['message'] = 'Proveedor actualizado exitosamente.';
@@ -138,6 +170,7 @@ class ProveedorController extends Controller
 
         try {
             Proveedores::destroy($id);
+            Cache::forget('catalogos.proveedores.index');
             $response['success'] = true;
             $response['message'] = 'Proveedor eliminado exitosamente.';
             return response()->json($response, 200);

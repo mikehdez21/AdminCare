@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\FillTypes\AlmacenGeneral;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class TypesProveedorController extends Controller
@@ -10,9 +11,11 @@ class TypesProveedorController extends Controller
     public function getTiposProveedor()
     {
         try {
-            $API_tiposproveedor = DB::table('almacengeneral.tableRef_TiposProveedor')
-                ->select('id_tipoproveedor', 'descripcion_tipoproveedor')
-                ->get();
+            $API_tiposproveedor = Cache::remember('catalogos.tipos_proveedor.index', now()->addMinutes(30), function () {
+                return DB::table('almacengeneral.tableRef_TiposProveedor')
+                    ->select('id_tipoproveedor', 'descripcion_tipoproveedor')
+                    ->get();
+            });
 
 
             return response()->json([
@@ -32,9 +35,11 @@ class TypesProveedorController extends Controller
     public function getFormasPago()
     {
         try {
-            $API_formaspago = DB::table('almacengeneral.tableRef_FormasPago')
-                ->select('id_formapago', 'descripcion_formaspago')
-                ->get();
+            $API_formaspago = Cache::remember('catalogos.formas_pago_ref.index', now()->addMinutes(30), function () {
+                return DB::table('almacengeneral.tableRef_FormasPago')
+                    ->select('id_formapago', 'descripcion_formaspago')
+                    ->get();
+            });
 
             return response()->json([
                 'success' => true,
@@ -53,9 +58,11 @@ class TypesProveedorController extends Controller
     public function getTiposRegimen()
     {
         try {
-            $API_regimenfiscal = DB::table('almacengeneral.tableRef_RegimenFiscales')
-                ->select('id_regimenfiscal', 'descripcion_regimenfiscal')
-                ->get();
+            $API_regimenfiscal = Cache::remember('catalogos.regimen_fiscal.index', now()->addMinutes(30), function () {
+                return DB::table('almacengeneral.tableRef_RegimenFiscales')
+                    ->select('id_regimenfiscal', 'descripcion_regimenfiscal')
+                    ->get();
+            });
 
             return response()->json([
                 'success' => true,
@@ -74,9 +81,11 @@ class TypesProveedorController extends Controller
     public function getDescuentosProveedor()
     {
         try {
-            $API_descuentoproveedor = DB::table('almacengeneral.tableRef_DescuentoProveedor')
-                ->select('id_descuento_proveedor', 'descripcion_descuentoproveedor')
-                ->get();
+            $API_descuentoproveedor = Cache::remember('catalogos.descuentos_proveedor.index', now()->addMinutes(30), function () {
+                return DB::table('almacengeneral.tableRef_DescuentoProveedor')
+                    ->select('id_descuento_proveedor', 'descripcion_descuentoproveedor')
+                    ->get();
+            });
 
             return response()->json([
                 'success' => true,
@@ -95,9 +104,11 @@ class TypesProveedorController extends Controller
     public function getTiposFacturacion()
     {
         try {
-            $API_tiposfacturacion = DB::table('almacengeneral.tableRef_TiposFacturacion')
-                ->select('id_tipofacturacion', 'descripcion_tipofacturacion')
-                ->get();
+            $API_tiposfacturacion = Cache::remember('catalogos.tipos_facturacion.index', now()->addMinutes(30), function () {
+                return DB::table('almacengeneral.tableRef_TiposFacturacion')
+                    ->select('id_tipofacturacion', 'descripcion_tipofacturacion')
+                    ->get();
+            });
 
             return response()->json([
                 'success' => true,
@@ -116,9 +127,11 @@ class TypesProveedorController extends Controller
     public function getTiposMoneda()
     {
         try {
-            $API_tiposmoneda = DB::table('almacengeneral.tableRef_TiposMonedas')
-                ->select('id_tipomoneda', 'descripcion_tipomoneda')
-                ->get();
+            $API_tiposmoneda = Cache::remember('catalogos.tipos_moneda_ref.index', now()->addMinutes(30), function () {
+                return DB::table('almacengeneral.tableRef_TiposMonedas')
+                    ->select('id_tipomoneda', 'descripcion_tipomoneda')
+                    ->get();
+            });
 
             return response()->json([
                 'success' => true,

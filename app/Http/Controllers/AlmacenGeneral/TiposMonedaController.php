@@ -4,6 +4,7 @@ namespace App\Http\Controllers\AlmacenGeneral;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 use App\Models\AlmacenGeneral\MonedaPago;
 
@@ -12,27 +13,23 @@ class TiposMonedaController extends Controller
 	// Obtener todos los tipos de moneda
 	public function index()
 	{
-		$response = ["success" => false, "data" => [], "message" => ""];
 
-		try {
-			$tipos = MonedaPago::all([
+		$tipos = Cache::remember('catalogos.tipos_moneda.index', now()->addMinutes(15), function () {
+			return MonedaPago::all([
 				'id_tipomoneda',
 				'descripcion_tipomoneda',
 				'created_at',
 				'updated_at'
 			]);
+		});
 
-			if ($tipos->isEmpty()) {
-				$response['message'] = 'No se encontraron tipos de moneda.';
-			} else {
-				$response['success'] = true;
-				$response['data'] = $tipos;
-			}
-		} catch (\Exception $e) {
-			$response['message'] = 'Error al obtener los tipos de moneda: ' . $e->getMessage();
-		}
-
-		return response()->json($response, 200);
+		return response()->json([
+			'success' => $tipos->isNotEmpty(),
+			'data' => $tipos,
+			'message' => $tipos->isEmpty()
+				? 'No se encontraron tipos de moneda.'
+				: 'Tipos de moneda cargados correctamente.',
+		], 200);
 	}
 
 	// Crear un nuevo tipo de moneda
@@ -51,6 +48,7 @@ class TiposMonedaController extends Controller
 		try {
 			$input = $request->all();
 			$tipo = MonedaPago::create($input);
+			Cache::forget('catalogos.tipos_moneda.index');
 
 			$response['success'] = true;
 			$response['message'] = 'Tipo de moneda registrado exitosamente!';
@@ -70,6 +68,7 @@ class TiposMonedaController extends Controller
 		try {
 			$tipo = MonedaPago::findOrFail($id);
 			$tipo->update($request->all());
+			Cache::forget('catalogos.tipos_moneda.index');
 
 			$response['success'] = true;
 			$response['message'] = 'Tipo de moneda actualizado exitosamente.';
@@ -88,6 +87,7 @@ class TiposMonedaController extends Controller
 
 		try {
 			MonedaPago::destroy($id);
+			Cache::forget('catalogos.tipos_moneda.index');
 			$response['success'] = true;
 			$response['message'] = 'Tipo de moneda eliminado exitosamente.';
 			return response()->json($response, 200);
