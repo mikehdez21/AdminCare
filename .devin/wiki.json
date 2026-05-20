@@ -6,8 +6,8 @@
   ],
   "pages": [
     {
-      "title": "AdminCare Overview",
-      "purpose": "High-level introduction to AdminCare: what it is, who uses it, the overall system architecture (Laravel backend on Railway, React/Redux frontend on Vercel, FastAPI SoftComputing microservice), and how the three tiers interact. Links to all major child sections.",
+      "title": "Documentación de AdminCare",
+      "purpose": "Introducción general a AdminCare: qué es, quién lo usa, la arquitectura completa del sistema (backend Laravel en Railway, frontend React/Redux en Vercel y microservicio FastAPI de SoftComputing) y cómo interactúan las tres capas. Enlaza a todas las secciones principales hijas.",
       "page_notes": [
         {
           "content": ""
@@ -15,9 +15,9 @@
       ]
     },
     {
-      "title": "Getting Started & Local Development",
-      "purpose": "Step-by-step guide for setting up the development environment: cloning the repo, installing PHP/Composer dependencies, installing Node/pnpm dependencies, configuring .env files, running migrations and seeders, and starting the Vite dev server with the Laravel backend proxy.",
-      "parent": "AdminCare Overview",
+      "title": "Primeros pasos y desarrollo local",
+      "purpose": "Guía paso a paso para preparar el entorno de desarrollo: clonar el repositorio, instalar dependencias de PHP/Composer, instalar dependencias de Node/pnpm, configurar los archivos .env, ejecutar migraciones y seeders, y levantar el servidor de Vite junto con el proxy del backend Laravel.",
+      "parent": "Documentación de AdminCare",
       "page_notes": [
         {
           "content": ""
@@ -25,9 +25,9 @@
       ]
     },
     {
-      "title": "Deployment Architecture",
-      "purpose": "Explains the three-platform deployment topology: Vercel (React SPA), Railway (Laravel API), and Railway (FastAPI SoftComputing microservice). Covers the Vercel reverse-proxy rewrite rules, environment variables, and the .vercelignore / railway.toml configuration files.",
-      "parent": "AdminCare Overview",
+      "title": "Arquitectura de despliegue",
+      "purpose": "Explica la topología de despliegue en tres plataformas: Vercel (SPA React), Railway (API Laravel) y Railway (microservicio FastAPI de SoftComputing). Cubre las reglas de reescritura del reverse proxy de Vercel, las variables de entorno y los archivos de configuración .vercelignore / railway.toml.",
+      "parent": "Documentación de AdminCare",
       "page_notes": [
         {
           "content": ""
@@ -35,8 +35,8 @@
       ]
     },
     {
-      "title": "Backend Architecture (Laravel)",
-      "purpose": "Overview of the Laravel 11 backend: PSR-4 namespace layout, service container bootstrap, middleware pipeline, route structure (HSS1 prefix), and key design patterns used throughout. Links to child pages for specific subsystems.",
+      "title": "Arquitectura del backend (Laravel)",
+      "purpose": "Resumen del backend Laravel 11: organización PSR-4 de namespaces, arranque del contenedor de servicios, pipeline de middleware, estructura de rutas con prefijo HSS1 y patrones de diseño clave usados en todo el proyecto. Enlaza a páginas hijas para subsistemas específicos.",
       "page_notes": [
         {
           "content": ""
@@ -44,9 +44,9 @@
       ]
     },
     {
-      "title": "Authentication & Authorization",
-      "purpose": "Deep dive into the Sanctum-based SPA authentication flow: CSRF cookie handshake, login/logout lifecycle, session regeneration, role-based access control via Spatie Permission, and the HandleDatabaseErrors middleware. Covers AuthController methods, User model attributes (estatus_activo, ultimo_acceso), and error-ID tracking.",
-      "parent": "Backend Architecture (Laravel)",
+      "title": "Autenticación y autorización",
+      "purpose": "Detalle del flujo de autenticación SPA basado en Sanctum: intercambio de cookie CSRF, ciclo de vida de inicio/cierre de sesión, regeneración de sesión, control de acceso basado en roles mediante Spatie Permission y el middleware HandleDatabaseErrors. Cubre los métodos de AuthController, los atributos del modelo User (estatus_activo, ultimo_acceso) y el seguimiento de IDs de error.",
+      "parent": "Arquitectura del backend (Laravel)",
       "page_notes": [
         {
           "content": ""
@@ -54,9 +54,9 @@
       ]
     },
     {
-      "title": "API Routes & Controllers",
-      "purpose": "Reference for all API endpoints under the /api/HSS1/ prefix: public status routes, auth routes, and the full set of protected routes for AlmacenGeneral, SoftComputing, and Admin modules. Explains the HSS1 namespace convention and how controllers are organized.",
-      "parent": "Backend Architecture (Laravel)",
+      "title": "Rutas y controladores de API",
+      "purpose": "Referencia de todos los endpoints API bajo el prefijo /api/HSS1/: rutas públicas de estado, rutas de autenticación y el conjunto completo de rutas protegidas para los módulos AlmacenGeneral, SoftComputing y Admin. Explica la convención de namespaces HSS1 y cómo está organizada la capa de controladores.",
+      "parent": "Arquitectura del backend (Laravel)",
       "page_notes": [
         {
           "content": ""
@@ -64,9 +64,9 @@
       ]
     },
     {
-      "title": "Database Schema & Migrations",
-      "purpose": "Documents the PostgreSQL schema structure: the main public schema (users, employees, departments, locations, roles) and the almacengeneral schema (fixed assets, invoices, movements, QR codes, responsivas, digital files). Covers the 39 migration files, the vw_movimientosafcompletos view, and seeder data.",
-      "parent": "Backend Architecture (Laravel)",
+      "title": "Esquema de base de datos y migraciones",
+      "purpose": "Documenta la estructura del esquema PostgreSQL: el esquema público principal (usuarios, empleados, departamentos, ubicaciones, roles) y el esquema almacengeneral (activos fijos, facturas, movimientos, códigos QR, responsivas y archivos digitales). Cubre los 39 archivos de migración, la vista vw_movimientosafcompletos y los datos de seeders.",
+      "parent": "Arquitectura del backend (Laravel)",
       "page_notes": [
         {
           "content": ""
@@ -74,9 +74,9 @@
       ]
     },
     {
-      "title": "Middleware & Error Handling",
-      "purpose": "Explains the custom middleware stack: HandleDatabaseErrors (global QueryException interception with UUID error IDs), VerifyCsrfToken (XSRF-TOKEN cookie for SPA), StartSession, EncryptCookies, and ShareErrorsFromSession. Covers the tiered error response strategy (JSON for API, welcome view for browser).",
-      "parent": "Backend Architecture (Laravel)",
+      "title": "Middleware y manejo de errores",
+      "purpose": "Explica la pila de middleware personalizada: HandleDatabaseErrors (intercepción global de QueryException con IDs UUID), VerifyCsrfToken (cookie XSRF-TOKEN para la SPA), StartSession, EncryptCookies y ShareErrorsFromSession. Cubre la estrategia de respuesta de errores por niveles (JSON para API y vista welcome para navegador).",
+      "parent": "Arquitectura del backend (Laravel)",
       "page_notes": [
         {
           "content": ""
@@ -84,8 +84,8 @@
       ]
     },
     {
-      "title": "AlmacenGeneral Module",
-      "purpose": "Overview of the General Warehouse (AlmacenGeneral) module — the core business domain of AdminCare. Introduces the main entities (ActivosFijos, Facturas, Proveedores, Movimientos, CodigosQRAF) and links to child pages for each sub-system.",
+      "title": "Módulo AlmacenGeneral",
+      "purpose": "Resumen del módulo de AlmacenGeneral, el dominio central de negocio de AdminCare. Presenta las entidades principales (ActivosFijos, Facturas, Proveedores, Movimientos y CodigosQRAF) y enlaza a páginas hijas para cada subsistema.",
       "page_notes": [
         {
           "content": ""
@@ -93,9 +93,9 @@
       ]
     },
     {
-      "title": "Fixed Assets (Activos Fijos)",
-      "purpose": "Covers the ActivosFijos model and its lifecycle: auto-generated codigo_unico (AF1, AF2...), lote/batch creation, classification, status tracking (EstatusAF), and the TieneArchivos trait for digital file attachments. Documents the ActivosFijosController CRUD endpoints and the frontend components (ActivosFijosControl, AddActivoFijo, EditActivoFijo, DeleteActivoFijo, ListActivoFijo).",
-      "parent": "AlmacenGeneral Module",
+      "title": "Activos fijos",
+      "purpose": "Cubre el modelo ActivosFijos y su ciclo de vida: generación automática de codigo_unico (AF1, AF2...), creación por lote, clasificación, seguimiento de estatus (EstatusAF) y el trait TieneArchivos para adjuntar archivos digitales. Documenta los endpoints CRUD de ActivosFijosController y los componentes frontend (ActivosFijosControl, AddActivoFijo, EditActivoFijo, DeleteActivoFijo y ListActivoFijo).",
+      "parent": "Módulo AlmacenGeneral",
       "page_notes": [
         {
           "content": ""
@@ -103,9 +103,9 @@
       ]
     },
     {
-      "title": "Invoice Management (Facturas)",
-      "purpose": "Documents the full invoice lifecycle: creating a Factura with nested ActivoFactura items, financial calculations (subtotal, IVA at 16%, discounts, freight), the AddFactura/EditFactura/DeleteFactura components, and the FacturasControl routing component. Explains the atomic backend transaction that creates the invoice and all assets simultaneously.",
-      "parent": "AlmacenGeneral Module",
+      "title": "Gestión de facturas",
+      "purpose": "Documenta el ciclo completo de facturación: creación de una Factura con elementos anidados ActivoFactura, cálculos financieros (subtotal, IVA al 16%, descuentos y flete), los componentes AddFactura/EditFactura/DeleteFactura y el componente de ruteo FacturasControl. Explica la transacción atómica del backend que crea la factura y todos los activos al mismo tiempo.",
+      "parent": "Módulo AlmacenGeneral",
       "page_notes": [
         {
           "content": ""
@@ -113,9 +113,9 @@
       ]
     },
     {
-      "title": "Asset Movements (Movimientos AF)",
-      "purpose": "Explains the MovimientosActivos model and controller: tracking asset transfers between employees, departments, and locations. Covers the vw_movimientosafcompletos database view that joins all movement data, the MovimientosAFControl frontend component, and the movement type reference table.",
-      "parent": "AlmacenGeneral Module",
+      "title": "Movimientos de activos fijos",
+      "purpose": "Explica el modelo y el controlador MovimientosActivos: seguimiento de traslados de activos entre empleados, departamentos y ubicaciones. Cubre la vista de base de datos vw_movimientosafcompletos que une toda la información de movimientos, el componente frontend MovimientosAFControl y la tabla de referencia de tipos de movimiento.",
+      "parent": "Módulo AlmacenGeneral",
       "page_notes": [
         {
           "content": ""
@@ -123,9 +123,9 @@
       ]
     },
     {
-      "title": "Suppliers (Proveedores)",
-      "purpose": "Documents the Proveedores model and CRUD operations, the reference catalog controllers (TypesProveedorController) for payment methods, tax regimes, discount types, billing types, and currency types. Covers the ProveedorControl frontend component and the fiscal shared Redux slice.",
-      "parent": "AlmacenGeneral Module",
+      "title": "Proveedores",
+      "purpose": "Documenta el modelo Proveedores y sus operaciones CRUD, así como los controladores del catálogo de referencia (TypesProveedorController) para métodos de pago, regímenes fiscales, tipos de descuento, tipos de facturación y tipos de moneda. Cubre el componente frontend ProveedorControl y el slice compartido de Redux para fiscal.",
+      "parent": "Módulo AlmacenGeneral",
       "page_notes": [
         {
           "content": ""
@@ -133,9 +133,9 @@
       ]
     },
     {
-      "title": "QR Codes & Label Printing",
-      "purpose": "Deep dive into the CodigosQRAF system: QR generation lifecycle (Endroid QrCode library, PNG/SVG fallback), scan tracking (intentos_lectura, fecha_ultimo_escaneo), the legacy web redirect route, and the ZebraService for physical label printing. Covers ZPL generation, logo hex-encoding, TCP socket transmission, standard vs. compact label formats, and batch printing.",
-      "parent": "AlmacenGeneral Module",
+      "title": "Códigos QR e impresión de etiquetas",
+      "purpose": "Profundiza en el sistema CodigosQRAF: ciclo de generación de QR (librería Endroid QrCode, fallback PNG/SVG), seguimiento de escaneos (intentos_lectura, fecha_ultimo_escaneo), la ruta heredada de redirección web y el ZebraService para impresión física de etiquetas. Cubre la generación ZPL, la codificación hexadecimal del logo, la transmisión por socket TCP, los formatos estándar y compacto y la impresión por lotes.",
+      "parent": "Módulo AlmacenGeneral",
       "page_notes": [
         {
           "content": ""
@@ -143,8 +143,8 @@
       ]
     },
     {
-      "title": "SoftComputing & AI Integration",
-      "purpose": "Overview of the two-track AI/ML system embedded in AdminCare: the OpenAI LLM analysis engine and the scikit-learn pricing prediction microservice. Explains how both are triggered from the invoice creation workflow and links to child pages for each track.",
+      "title": "SoftComputing e integración de IA",
+      "purpose": "Resumen del sistema de IA/ML de dos vías integrado en AdminCare: el motor de análisis con OpenAI y el microservicio de predicción de precios con scikit-learn. Explica cómo ambos se activan desde el flujo de creación de facturas y enlaza a las páginas hijas de cada rama.",
       "page_notes": [
         {
           "content": ""
@@ -152,9 +152,9 @@
       ]
     },
     {
-      "title": "OpenAI Analysis Engine",
-      "purpose": "Documents the OpenAIController: four operational modes (price_prediction, anomaly_detection, fraud_detection, inventory_optimization), dual-prompt construction, the three-stage resilience strategy (primary → tool retry → fallback model), and the extractOutputText response normalizer. Covers the analyzeSoftComputing Redux thunk and CSRF handling.",
-      "parent": "SoftComputing & AI Integration",
+      "title": "Motor de análisis OpenAI",
+      "purpose": "Documenta el OpenAIController: cuatro modos operativos (price_prediction, anomaly_detection, fraud_detection e inventory_optimization), construcción dual de prompts, la estrategia de resiliencia en tres etapas (primario → reintento con herramientas → modelo de respaldo) y el normalizador de respuestas extractOutputText. Cubre el thunk analyzeSoftComputing y el manejo de CSRF.",
+      "parent": "SoftComputing e integración de IA",
       "page_notes": [
         {
           "content": ""
@@ -162,9 +162,9 @@
       ]
     },
     {
-      "title": "ML Pricing Microservice (FastAPI)",
-      "purpose": "Documents the FastAPI softcomputing service: TrainRequest/PredictRequest Pydantic models, the three supported algorithms (LinearRegression, RandomForest, KNN), model artifact persistence with joblib, the MODEL_CACHE in-memory layer, and the database connectivity health check. Covers the PricingModelController proxy layer in Laravel and the trainFromDatabase data extraction logic.",
-      "parent": "SoftComputing & AI Integration",
+      "title": "Microservicio de precios ML (FastAPI)",
+      "purpose": "Documenta el servicio FastAPI de softcomputing: modelos Pydantic TrainRequest/PredictRequest, los tres algoritmos soportados (LinearRegression, RandomForest y KNN), persistencia de artefactos de modelo con joblib, la capa en memoria MODEL_CACHE y la verificación de conectividad a base de datos. Cubre la capa proxy PricingModelController en Laravel y la lógica de extracción de datos trainFromDatabase.",
+      "parent": "SoftComputing e integración de IA",
       "page_notes": [
         {
           "content": ""
@@ -172,8 +172,8 @@
       ]
     },
     {
-      "title": "Frontend Architecture (React/Redux)",
-      "purpose": "Overview of the React 18 + Redux Toolkit frontend: project structure under frontend/src/js/, the Vite build pipeline (dual-mode for Vercel vs. Laravel), lazy-loaded route layout system, and the Redux store shape. Links to child pages for specific frontend subsystems.",
+      "title": "Arquitectura del frontend (React/Redux)",
+      "purpose": "Resumen del frontend con React 18 + Redux Toolkit: estructura del proyecto bajo frontend/src/js/, el pipeline de build con Vite en doble modo (Vercel y Laravel), el sistema de layouts con carga diferida y la forma general del store de Redux. Enlaza a páginas hijas para subsistemas frontend específicos.",
       "page_notes": [
         {
           "content": ""
@@ -181,9 +181,9 @@
       ]
     },
     {
-      "title": "Routing & Layouts",
-      "purpose": "Explains the React Router v6 route tree: public routes (login, QR public page, status), and three protected layout tiers (LayoutAdmin, LayoutJefatura, LayoutUsuario). Covers ProtectedRoutes guard, VerifyAuth, and the role-based layout selection pattern.",
-      "parent": "Frontend Architecture (React/Redux)",
+      "title": "Rutas y layouts",
+      "purpose": "Explica el árbol de rutas de React Router v6: rutas públicas (login, página pública de QR y status) y las tres capas de layouts protegidos (LayoutAdmin, LayoutJefatura y LayoutUsuario). Cubre el guard ProtectedRoutes, VerifyAuth y el patrón de selección de layout por rol.",
+      "parent": "Arquitectura del frontend (React/Redux)",
       "page_notes": [
         {
           "content": ""
@@ -191,9 +191,9 @@
       ]
     },
     {
-      "title": "Redux Store & State Management",
-      "purpose": "Documents the Redux store configuration: all registered reducers (auth, apiStatus, users, roles, departamentos, empleados, ubicaciones, fiscal, activos, vwMovimientosAF, movimientosAF, clasificacion, facturasaf, proveedor, section), the axiosInstance with withCredentials, and the API_BASE_URL environment-driven configuration.",
-      "parent": "Frontend Architecture (React/Redux)",
+      "title": "Store de Redux y gestión de estado",
+      "purpose": "Documenta la configuración del store de Redux: todos los reducers registrados (auth, apiStatus, users, roles, departamentos, empleados, ubicaciones, fiscal, activos, vwMovimientosAF, movimientosAF, clasificacion, facturasaf, proveedor y section), la instancia axios con withCredentials y la configuración de API_BASE_URL basada en variables de entorno.",
+      "parent": "Arquitectura del frontend (React/Redux)",
       "page_notes": [
         {
           "content": ""
@@ -201,8 +201,8 @@
       ]
     },
     {
-      "title": "Administration Module",
-      "purpose": "Overview of the system administration features: user management, employee records, role/permission assignment, department configuration, and location management. Covers the AdminControllers, their corresponding Eloquent models, and the frontend components in 99_Administrador.",
+      "title": "Módulo de administración",
+      "purpose": "Resumen de las funciones de administración del sistema: gestión de usuarios, registros de empleados, asignación de roles/permisos, configuración de departamentos y administración de ubicaciones. Cubre los AdminControllers, sus modelos Eloquent correspondientes y los componentes frontend del área 99_Administrador.",
       "page_notes": [
         {
           "content": ""
@@ -210,9 +210,9 @@
       ]
     },
     {
-      "title": "User & Role Management",
-      "purpose": "Details the User model (tableUsuarios, estatus_activo, ultimo_acceso, id_empleado, id_departamento), the UserController CRUD plus bajaUsuario endpoint, the Spatie Permission integration for role assignment, and the UsuariosControl frontend with AddRolModal, AddUser, EditUser, DeleteUser, ShowUserRoles components.",
-      "parent": "Administration Module",
+      "title": "Gestión de usuarios y roles",
+      "purpose": "Detalla el modelo User (tableUsuarios, estatus_activo, ultimo_acceso, id_empleado e id_departamento), el CRUD de UserController más el endpoint bajaUsuario, la integración con Spatie Permission para asignación de roles y el frontend UsuariosControl con los componentes AddRolModal, AddUser, EditUser, DeleteUser y ShowUserRoles.",
+      "parent": "Módulo de administración",
       "page_notes": [
         {
           "content": ""
@@ -220,9 +220,9 @@
       ]
     },
     {
-      "title": "Employees, Departments & Locations",
-      "purpose": "Documents the Empleado, Departamento, and Ubicacion models and their controllers. Covers the department type enum (Almacen, General, Medico), the employee-department relationship, the bajaEmpleado soft-delete endpoint, and the corresponding frontend management components.",
-      "parent": "Administration Module",
+      "title": "Empleados, departamentos y ubicaciones",
+      "purpose": "Documenta los modelos Empleado, Departamento y Ubicacion y sus controladores. Cubre el enum de tipo de departamento (Almacen, General y Medico), la relación empleado-departamento, el endpoint de baja lógica bajaEmpleado y los componentes frontend de gestión correspondientes.",
+      "parent": "Módulo de administración",
       "page_notes": [
         {
           "content": ""
@@ -230,8 +230,8 @@
       ]
     },
     {
-      "title": "Infrastructure & DevOps",
-      "purpose": "Covers the operational infrastructure: database configuration (PostgreSQL primary, SQLite fallback), session management, CORS policy, the pnpm workspace monorepo setup, and the Unlighthouse performance audit artifacts. Links to child pages for testing and build tooling.",
+      "title": "Infraestructura y DevOps",
+      "purpose": "Cubre la infraestructura operativa: configuración de base de datos (PostgreSQL principal y SQLite como respaldo), gestión de sesiones, política CORS, la configuración monorepo con pnpm workspaces y los artefactos del análisis de rendimiento Unlighthouse. Enlaza a páginas hijas para pruebas y tooling de build.",
       "page_notes": [
         {
           "content": ""
@@ -239,9 +239,9 @@
       ]
     },
     {
-      "title": "Build Tooling & Package Management",
-      "purpose": "Documents the pnpm workspace monorepo structure (root workspace + frontend workspace), the dual Vite build modes (Vercel SPA output vs. Laravel public/build output), TypeScript configuration, ESLint setup, and the Laravel Mix/Vite plugin integration.",
-      "parent": "Infrastructure & DevOps",
+      "title": "Herramientas de build y gestión de paquetes",
+      "purpose": "Documenta la estructura monorepo del workspace pnpm (workspace raíz + workspace frontend), los modos duales de build con Vite (salida SPA para Vercel frente a salida en public/build para Laravel), la configuración de TypeScript, la configuración de ESLint y la integración del plugin Laravel Mix/Vite.",
+      "parent": "Infraestructura y DevOps",
       "page_notes": [
         {
           "content": ""
@@ -249,8 +249,8 @@
       ]
     },
     {
-      "title": "Glossary",
-      "purpose": "Definitions of all codebase-specific terms, Spanish domain vocabulary, abbreviations, and architectural concepts that an onboarding engineer needs to know. Each entry includes file/class pointers.",
+      "title": "Glosario",
+      "purpose": "Definiciones de todos los términos específicos del código base, vocabulario de dominio en español, abreviaturas y conceptos arquitectónicos que un ingeniero de incorporación necesita conocer. Cada entrada incluye referencias a archivos y clases.",
       "page_notes": [
         {
           "content": ""
