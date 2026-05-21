@@ -58,7 +58,7 @@ class DepreciacionController extends Controller
         $valorInicial = $request->input('valor_inicialaf') ?? $activo->costo_unitario_af;
 
         $request->validate([
-            'id_metodo_depreciacion' => 'required|integer|exists:almacengeneral.tableRef_MetodosDepreciacion,id_metodo_depreciacion',
+            'id_metodo_depreciacion' => 'required|integer',
             'fecha_inicio_depreciacion' => 'required|date',
             'vida_util_anios' => 'required|integer|min:1',
             'valor_residual_af' => 'required|numeric|min:0',

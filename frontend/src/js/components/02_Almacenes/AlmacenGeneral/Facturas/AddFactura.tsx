@@ -359,9 +359,6 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
     ) => {
       const modelLabel = escapeHtml(String(trainData?.algorithm_label || currentAlgorithm || 'RandomForestRegressor'));
       const modelId = trainData?.model_id ? escapeHtml(String(trainData.model_id)) : 'N/D';
-      const supportedModels = ['RandomForestRegressor', 'LinearRegression', 'KNeighborsRegressor']
-        .map(escapeHtml)
-        .join(', ');
 
       const featureNames = Array.isArray(trainData?.feature_names) && trainData.feature_names.length > 0
         ? trainData.feature_names.map((feature: string) => escapeHtml(String(feature))).join(', ')
@@ -382,7 +379,6 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
         <div class="recommendationPanel recommendationPanel--raw">
           <p class="recommendationPanel__line"><strong>Modelo utilizado:</strong> ${modelLabel}</p>
           <p class="recommendationPanel__line"><strong>Identificador del modelo:</strong> ${modelId}</p>
-          <p class="recommendationPanel__line"><strong>Modelos soportados:</strong> ${supportedModels}</p>
           <p class="recommendationPanel__line"><strong>Cómo funciona:</strong> ${escapeHtml(modelDescription)}</p>
           <p class="recommendationPanel__line"><strong>Datos tomados de la BD:</strong> el servicio FastAPI entrena con registros de factura/activo y usa ${escapeHtml(featureNames)} como variables de entrada; el objetivo que aprende es costo_unitario_af.</p>
           <p class="recommendationPanel__line"><strong>Datos enviados para esta recomendación:</strong></p>
