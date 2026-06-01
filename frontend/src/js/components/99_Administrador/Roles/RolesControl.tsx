@@ -8,12 +8,15 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Roles } from '@/@types/mainTypes';
 import { getRoles } from '@/store/administrador/Roles/rolesActions';
 import { setListRoles } from '@/store/administrador/Roles/rolesReducer';
+import { getPermisos } from '@/store/administrador/Permisos/permisosActions';
+import { setListPermisos } from '@/store/administrador/Permisos/permisosReducer';
 
 // Componentes
 import Paginacion from '@/components/00_Utils/Paginacion';
 import AddRolesControl from './AddRol';
 import DeleteRoles from './DeleteRol';
 import EditRol from './EditRol';
+import ShowPermisosRole from './ShowPermisosRole';
 
 
 // Icons
@@ -28,18 +31,22 @@ const Main_RolesControl: React.FC = () => {
 
   const dispatch = useDispatch<AppDispatch>(); // Tipar el dispatch aquí
   const [rolesToEdit_Delete, setRolesToEdit_Delete] = useState<Roles | null>(null); // Usuario seleccionado para editar_eliminar
-  
+
+
+
   const [busqueda, setBusqueda] = useState<string>('');
   const [paginaActual, setPaginaActual] = useState<number>(1);
   const [rolesPorPagina, setRolesPorPagina] = useState<number>(5);
 
-    
+
   const [isModalAddRolesOpen, setModalAddRolesOpen] = useState(false);
   const [isModalEditRolesOpen, setModalEditRolesOpen] = useState(false);
   const [isModalDeleteRolesOpen, setModalDeleteRolesOpen] = useState(false);
 
+  const [isModalViewPermisosOpen, setModalViewPermisosOpen] = useState(false);
 
-  
+
+
   // Añadir Roles
   const openModalAddRoles = () => {
     setModalAddRolesOpen(true);
@@ -47,7 +54,7 @@ const Main_RolesControl: React.FC = () => {
   const closeModalAddRoles = () => {
     setModalAddRolesOpen(false);
   };
-  
+
   // Editar Roles
   const openModalEditRoles = (rol: Roles) => {
     setRolesToEdit_Delete(rol)
@@ -57,7 +64,7 @@ const Main_RolesControl: React.FC = () => {
     setModalEditRolesOpen(false);
     setRolesToEdit_Delete(null)
   };
-  
+
   // Eliminar Roles
   const openAlertDeleteRoles = (rol: Roles) => {
     setRolesToEdit_Delete(rol)
@@ -67,12 +74,20 @@ const Main_RolesControl: React.FC = () => {
   const closeAlertDeleteRoles = () => {
     setModalDeleteRolesOpen(false);
     setRolesToEdit_Delete(null)
-
   };
+
+  // Vista de Permisos del Rol
+  const openModalViewPermisos = (rol: Roles) => {
+    setRolesToEdit_Delete(rol);
+    setModalViewPermisosOpen(true);
+  }
+  const closeModalViewPermisos = () => {
+    setModalViewPermisosOpen(false);
+  }
 
   // Cargar los roles desde la API solo si no están cargados en el store
   useEffect(() => {
-    const cargarRoles = async () => {
+    const cargarRolesYPermisos = async () => {
       try {
         const resultAction = await dispatch(getRoles()).unwrap();
         if (resultAction.success) {
@@ -80,20 +95,22 @@ const Main_RolesControl: React.FC = () => {
         } else {
           console.log('Error', resultAction.message);
         }
+
+        const permisosAction = await dispatch(getPermisos()).unwrap();
+        if (permisosAction.success) {
+          dispatch(setListPermisos(permisosAction.permisos!));
+        } else {
+          console.log('Error', permisosAction.message);
+        }
       } catch (error) {
-        console.error('Error al cargar roles:', error);
+        console.error('Error al cargar roles y permisos:', error);
       }
     };
-    cargarRoles();
-  }, []); // Solo ejecuta el effect si los roles no están en el store
-  
-
-
-  
+    cargarRolesYPermisos();
+  }, [dispatch]); // Solo ejecuta el effect si los roles no están en el store
 
   const roles = useSelector((state: RootState) => state.roles?.roles || []);
-  console.log(roles)
-
+  const permisos = useSelector((state: RootState) => state.permisos?.permisos || []);
 
 
   // Filtrar y ordenar roles basados en la búsqueda
@@ -131,15 +148,16 @@ const Main_RolesControl: React.FC = () => {
   };
 
 
-  return(
+  return (
     <div className='mainDiv_RolControl'>
+
       <div className='searchAdd_ButtonDiv'>
- 
+
         <div className='text_Div'>
           <h1>Roles de Usuario</h1>
           <p>Mostrando {rolesPaginaActual.length} de {roles.length} roles</p>
         </div>
-        
+
         <div className='buttons_Div'>
           <select className='selectList' value={rolesPorPagina} id='selectList' name='selectList' onChange={handleChangeRolesPorPagina}>
             <option value={5}>5</option>
@@ -187,6 +205,7 @@ const Main_RolesControl: React.FC = () => {
                 <tr>
                   <th id='th_RolID'>ID</th>
                   <th id='th_NombreRol'>Rol</th>
+                  <th id='th_PermisosRol'>Permisos Asignados</th>
                   <th id='th_FechaCreacion'>Fecha Creación</th>
                   <th id='th_FechaModificacion'>Fecha Modificación</th>
 
@@ -200,14 +219,17 @@ const Main_RolesControl: React.FC = () => {
                   <tr key={rol.id}>
                     <td id='td_RolID'>{rol.id}</td>
                     <td id='td_NombreRol'>{rol.name}</td>
+                    <td id='td_PermisosRol' onClick={() => openModalViewPermisos(rol)}>
+                      {rol.permissions?.length || 0} | Ver
+                    </td>
                     <td id='td_FechaCreacion'>{rol.created_at}</td>
                     <td id='td_FechaModificacion'>{rol.updated_at}</td>
 
 
                     <td id='td_Acciones'>
                       <div className='divActions'>
-                        <button className='button_editEntity' onClick={() => openModalEditRoles(rol)}> <MdEdit/></button>
-                        <button className='button_deleteEntity' onClick={() => openAlertDeleteRoles(rol)}><MdDeleteForever/></button>
+                        <button className='button_editEntity' onClick={() => openModalEditRoles(rol)}> <MdEdit /></button>
+                        <button className='button_deleteEntity' onClick={() => openAlertDeleteRoles(rol)}><MdDeleteForever /></button>
                       </div>
                     </td>
                   </tr>
@@ -227,22 +249,23 @@ const Main_RolesControl: React.FC = () => {
         </>
       )}
 
-    
 
-          
       {isModalAddRolesOpen && (
-        <AddRolesControl isOpen={isModalAddRolesOpen} onClose={closeModalAddRoles} />
+        <AddRolesControl isOpen={isModalAddRolesOpen} onClose={closeModalAddRoles} permisos={permisos} />
       )}
 
       {isModalEditRolesOpen && rolesToEdit_Delete && (
-        <EditRol isOpen={isModalEditRolesOpen} onClose={closeModalEditRoles} rolesToEdit={rolesToEdit_Delete}/>
+        <EditRol isOpen={isModalEditRolesOpen} onClose={closeModalEditRoles} rolesToEdit={rolesToEdit_Delete} permisos={permisos} />
       )}
 
       {isModalDeleteRolesOpen && rolesToEdit_Delete && (
-        <DeleteRoles isOpen={isModalDeleteRolesOpen} onClose={closeAlertDeleteRoles} rolesToDelete={rolesToEdit_Delete}/>
+        <DeleteRoles isOpen={isModalDeleteRolesOpen} onClose={closeAlertDeleteRoles} rolesToDelete={rolesToEdit_Delete} />
       )}
 
-    
+      {isModalViewPermisosOpen && rolesToEdit_Delete && (
+        <ShowPermisosRole isOpen={isModalViewPermisosOpen} onClose={closeModalViewPermisos} rolToShow={rolesToEdit_Delete} />
+      )}
+
 
 
 

@@ -65,6 +65,7 @@ const LogoutModal: React.FC<LogoutModalProps> = ({ currentUser, isOpen, onClose 
       if (resultAction.success) {
         localStorage.removeItem('userData');
         localStorage.removeItem('userRol');
+        localStorage.removeItem('userRolPermissions');
         localStorage.removeItem('userDepartamento');
         localStorage.removeItem('lastPath');
         localStorage.removeItem('selectedSection');

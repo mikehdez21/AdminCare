@@ -1,11 +1,16 @@
 <?php
 
+use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use App\Http\Middleware\HandleDatabaseErrors;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 
 
@@ -17,71 +22,74 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Configuracion oficial de Sanctum SPA para rutas API stateful.
-        $middleware->statefulApi();
-
-        $middleware->api(prepend: [
-            HandleDatabaseErrors::class,
+        $middleware->alias([
+            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
         ]);
 
-        $middleware->web(prepend: [
-            HandleDatabaseErrors::class,
+        $middleware->api(append: [
+            HandleDatabaseErrors::class, // Manejar errores de base de datos ANTES de las sesiones
+            EnsureFrontendRequestsAreStateful::class, // Necesario para autenticación en frontend
+            StartSession::class, // Para manejar sesiones
+            SubstituteBindings::class, // Sustituir bindings de rutas
+            EncryptCookies::class, // Encriptar cookies
+            ShareErrorsFromSession::class, // Compartir errores desde la sesión
+        ]);
+
+        $middleware->web(append: [
+            HandleDatabaseErrors::class, // Manejar errores de base de datos ANTES de las sesiones
+            EnsureFrontendRequestsAreStateful::class, // Necesario para autenticación en frontend
+            EncryptCookies::class, // Encriptar cookies
+            ShareErrorsFromSession::class, // Compartir errores desde la sesión
+            VerifyCsrfToken::class, // Verificación CSRF (Depende de la lógica de tu API)
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Manejar excepciones de base de datos a nivel global
         $exceptions->render(function (\Illuminate\Database\QueryException $e, $request) {
-            $errorId = (string) Str::uuid();
-            $isDebug = (bool) config('app.debug');
             $errorCode = $e->getCode();
             $errorMessage = $e->getMessage();
-            
+
             // Log del error para debugging
-            Log::error('Global database exception', [
-                'error_id' => $errorId,
-                'code' => $errorCode,
-                'message' => $errorMessage,
-                'path' => $request->path(),
-                'method' => $request->method(),
-            ]);
+            Log::error('Global database exception: ' . $errorMessage);
 
-            $payload = [
-                'success' => false,
-                'message' => 'Error en base de datos. Contacta a Sistemas. Ref: ' . $errorId,
-                'error_id' => $errorId,
-                'error_code' => (string) $errorCode,
-            ];
-
-            if ($isDebug) {
-                $payload['details'] = $errorMessage;
-            }
-            
             // Verificar si es un error de tabla no encontrada
-            if ($errorCode == '42P01' || $errorCode == '1146' || 
-                strpos($errorMessage, 'no existe la relación') !== false || 
+            if (
+                $errorCode == '42P01' || $errorCode == '1146' ||
+                strpos($errorMessage, 'no existe la relación') !== false ||
                 strpos($errorMessage, "doesn't exist") !== false ||
-                strpos($errorMessage, 'sessions') !== false) {
-                
+                strpos($errorMessage, 'sessions') !== false
+            ) {
+
                 // Si es una solicitud específica de API, devolver JSON
                 if ($request->is('api/*')) {
-                    return response()->json($payload, 500);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Error en base de datos. Contacta a Sistemas.'
+                    ], 500);
                 }
-                
+
                 // Si es solicitud AJAX (desde frontend React), devolver JSON
                 if ($request->expectsJson() || $request->ajax()) {
-                    return response()->json($payload, 500);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Error en base de datos. Contacta a Sistemas.'
+                    ], 500);
                 }
-                
+
                 // Para navegadores normales, servir la aplicación React
                 // que luego manejará el error via API
                 return response()->view('welcome');
             }
-            
+
             // Otros errores de base de datos
             if ($request->is('api/*') || $request->expectsJson() || $request->ajax()) {
-                return response()->json($payload, 500);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error de conexión a la base de datos. Intenta más tarde.'
+                ], 500);
             }
-            
+
             // Para navegadores, servir la aplicación React
             return response()->view('welcome');
         });

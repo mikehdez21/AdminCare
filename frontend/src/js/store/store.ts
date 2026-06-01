@@ -5,6 +5,7 @@ import authReducer from '@/store/authReducer';
 import userReducer from '@/store/administrador/Users/usersReducer'
 import empleadosReducer from '@/store/administrador/Empleados/empleadosReducer'
 import rolesReducer from '@/store/administrador/Roles/rolesReducer'
+import permisosReducer from './administrador/Permisos/permisosReducer';
 import departamentosReducer from '@/store/administrador/Departamentos/departamentosReducer'
 import ubicacionesReducer from '@/store/administrador/Ubicaciones/ubicacionesReducer'
 
@@ -14,13 +15,11 @@ import estatusAFReducer from '@/store/almacengeneral/Activos/EstatusAF/estatusAF
 import vwMovimientosAFReducer from '@/store/almacengeneral/Activos/vwMovimientosAFReducer';
 import movimientosAFReducer from '@/store/almacengeneral/Activos/MovimientosActivos/movimientosAFReducer'
 import proveedoresReducer from '@/store/almacengeneral/Proveedores/proveedoresReducer'
-import tiposFacturasReducer from '@/store/almacengeneral/TipoFactura/tiposFacturasReducer'
 import fiscalReducer from '@/store/shared/fiscalReducer'
 import clasificacionesReducer from '@/store/almacengeneral/Clasificaciones/clasificacionesReducer'
 import depreciacionReducer from '@/store/almacengeneral/Activos/DepreciacionAF/depreciacionAFReducer';
 
 import sectionReducer from '@/store/sectionReducer'
-import statusReducer from '@/store/statusReducer'
 
 const store = configureStore({
   reducer: {
@@ -30,9 +29,9 @@ const store = configureStore({
 
     // Auth y Usuarios
     auth: authReducer,
-    apiStatus: statusReducer,
     users: userReducer,
     roles: rolesReducer,
+    permisos: permisosReducer,
     departamentos: departamentosReducer,
     empleados: empleadosReducer,
     ubicaciones: ubicacionesReducer,
@@ -47,7 +46,6 @@ const store = configureStore({
     movimientosAF: movimientosAFReducer,
     clasificacion: clasificacionesReducer,
     facturasaf: facturasReducer,
-    tiposFacturas: tiposFacturasReducer,
     proveedor: proveedoresReducer,
 
     // Contabilidad

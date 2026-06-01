@@ -2,8 +2,12 @@
 // Bibliotecas
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setSelectedSection } from '@/store/sectionReducer';
+import { RootState } from '@/store/store';
+
+// Permissions
+import { hasPermission } from '@/utils/permissions.ts';
 
 // Icons
 import { MdInventory, MdWarehouse, MdOutlineKeyboardArrowUp } from 'react-icons/md';
@@ -12,17 +16,21 @@ import { MdInventory, MdWarehouse, MdOutlineKeyboardArrowUp } from 'react-icons/
 
 interface MenuOptions_ParentProps {
   selectedSection: string;
-  role: string;
   departamento: string;
 }
 
-const SubMenuOptions_Almacen: React.FC<MenuOptions_ParentProps> = ({ selectedSection, role }) => {
+const SubMenuOptions_Almacen: React.FC<MenuOptions_ParentProps> = ({ selectedSection }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   // Estados independientes para cada submenú
   const [isAlmacenSubMenuOpen, setIsAlmacenSubMenuOpen] = useState(false);
   const [isAlmacenRotated, setIsAlmacenRotated] = useState(false);
+
+  const userPermissionsFromStore = useSelector((s: RootState) => s.auth.permissions);
+  const userPermissions = userPermissionsFromStore.length > 0
+    ? userPermissionsFromStore
+    : JSON.parse(localStorage.getItem('userRolPermissions') || '[]');
 
   // Manejo del submenú de Almacenes
   const toggleSubMenus_Almacen = () => {
@@ -64,7 +72,7 @@ const SubMenuOptions_Almacen: React.FC<MenuOptions_ParentProps> = ({ selectedSec
             <ul>
 
 
-              {(role === 'Admin' || role === 'JAlmacenGeneral') && (
+              {hasPermission(userPermissions, 'sidebar_submenu_almacenes_almacengeneral') && (
                 <li
                   onClick={() => handleSelectSection('Almacen', '/almacen_general')}
                   id='SubMenu_Option'

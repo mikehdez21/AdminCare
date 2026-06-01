@@ -26,6 +26,7 @@ return new class extends Migration {
             ['descripcion_estatusaf' => 'En Revisión', 'created_at' => now(), 'updated_at' => now()],
             ['descripcion_estatusaf' => 'Perdido', 'created_at' => now(), 'updated_at' => now()],
             ['descripcion_estatusaf' => 'Prestado', 'created_at' => now(), 'updated_at' => now()],
+            ['descripcion_estatusaf' => 'Comodato', 'created_at' => now(), 'updated_at' => now()],
 
 
         ]);

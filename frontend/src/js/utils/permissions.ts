@@ -1,0 +1,2 @@
+export const hasPermission = (permissions: string[] = [], name: string) => permissions.includes(name);
+export const hasAnyPermission = (permissions: string[] = [], names: string[]) => names.some(n => permissions.includes(n));

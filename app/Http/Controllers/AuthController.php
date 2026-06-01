@@ -6,13 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Database\QueryException;
-use Illuminate\Support\Str;
-
-
-
 
 class AuthController extends Controller
 {
@@ -35,17 +29,77 @@ class AuthController extends Controller
                 'message' => 'Usuario autenticado.',
                 'user' => $user
             ], 200);
-        } catch (QueryException $e) {
+        } catch (\Illuminate\Database\QueryException $e) {
             // Manejar errores específicos de base de datos
-            if (strpos($e->getMessage(), 'sessions') !== false || 
-                strpos($e->getMessage(), 'no existe la relación') !== false) {
-                return $this->buildDbErrorResponse($e, 'Error en base de datos. Contacta a Sistemas.');
+            if (
+                strpos($e->getMessage(), 'sessions') !== false ||
+                strpos($e->getMessage(), 'no existe la relación') !== false
+            ) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error en base de datos. Contacta a Sistemas.'
+                ], 500);
             }
-            return $this->buildDbErrorResponse($e, 'Error de conexión a la base de datos.');
-            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de conexión a la base de datos.'
+            ], 500);
         } catch (\Exception $e) {
             // Manejo de errores generales
-            return $this->buildInternalErrorResponse($e);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error interno del servidor. Contacta a Sistemas.'
+            ], 500);
+        }
+    }
+
+    // PERMISOS DEL USUARIO AUTENTICADO
+    public function permissions()
+    {
+        try {
+            if (!Auth::check()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado.'
+                ], 401);
+            }
+
+            $user = User::find(Auth::id());
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no encontrado.'
+                ], 404);
+            }
+
+            $permissions = $user->getAllPermissions()->pluck('name')->values();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Permisos obtenidos correctamente.',
+                'permissions' => $permissions
+            ], 200);
+        } catch (\Illuminate\Database\QueryException $e) {
+            if (
+                strpos($e->getMessage(), 'sessions') !== false ||
+                strpos($e->getMessage(), 'no existe la relación') !== false
+            ) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error en base de datos. Contacta a Sistemas.'
+                ], 500);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de conexión a la base de datos.'
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error interno del servidor. Contacta a Sistemas.'
+            ], 500);
         }
     }
 
@@ -90,17 +144,6 @@ class AuthController extends Controller
     // LOGIN
     public function login(Request $request)
     {
-        Log::info('=== LOGIN DEBUG ===');
-        Log::info('Has session middleware: ' . ($request->hasSession() ? 'yes' : 'no'));
-        if ($request->hasSession()) {
-            Log::info('Session ID: ' . $request->session()->getId());
-        }
-        Log::info('CSRF Token from request: ' . $request->header('X-XSRF-TOKEN'));
-        if ($request->hasSession()) {
-            Log::info('CSRF Token from session: ' . csrf_token());
-        }
-        Log::info('Cookies received: ' . json_encode($request->cookies->all()));
-
         // Respuesta inicial
         $response = ["success" => false];
 
@@ -138,16 +181,14 @@ class AuthController extends Controller
                 if (Auth::attempt(['email_usuario' => $request->email_usuario, 'password' => $request->password])) {
 
                     $roleName = $user->getRoleNames()->first() ?? 'No definido';
-                    $departamento = $user->departamento ? $user->departamento->nombre_departamento : 'No definido';
-
-                    // Regenerar la sesión solo si el middleware de sesión está activo.
-                    if ($request->hasSession()) {
-                        $request->session()->regenerate();
-                    }
+                    $departamento = $user->id_departamento ? $user->departamento->nombre_departamento : 'No asignado';
 
                     $response['user'] = $user; // Obtener el usuario autenticado
                     $response['rol'] = $roleName; // Agregar el nombre del rol a la respuesta
-                    $response['departamento'] = $departamento; // Agregar el departamento a la respuesta
+                    $response['permissions'] = $user->getAllPermissions()->pluck('name'); // Agregar los permisos del usuario a la respuesta
+                    $response['departamento'] = $departamento; // Agregar el nombre del departamento a la respuesta
+
+                    session(['user_id' => $user->id_usuario]); // Almacenar información en la sesión, como el ID del usuario
 
                     $response['message'] = 'Login exitoso!';
                     $response['success'] = true;
@@ -158,41 +199,47 @@ class AuthController extends Controller
                     // Si la autenticación falla
                     $response['message'] = 'Credenciales inválidas!';
                 }
-
-            } catch (QueryException $e) {
+            } catch (\Illuminate\Database\QueryException $e) {
                 // Manejar errores específicos de base de datos
                 $errorCode = $e->getCode();
                 $errorMessage = $e->getMessage();
-                
+
                 // Verificar si es un error de tabla no encontrada (PostgreSQL: 42P01, MySQL: 1146)
                 if ($errorCode == '42P01' || $errorCode == '1146' || strpos($errorMessage, 'no existe la relación') !== false || strpos($errorMessage, "doesn't exist") !== false) {
-                    return $this->buildDbErrorResponse($e, 'Error en base de datos. Contacta a Sistemas.');
+                    $response['message'] = 'Error en base de datos. Contacta a Sistemas.';
                 } else {
-                    return $this->buildDbErrorResponse($e, 'Error de conexión a la base de datos. Intenta más tarde.');
+                    $response['message'] = 'Error de conexión a la base de datos. Intenta más tarde.';
                 }
-                
+
+
+                return response()->json($response, 500);
             } catch (\Exception $e) {
                 // Manejar cualquier otro tipo de error
-                return $this->buildInternalErrorResponse($e);
+                $response['message'] = 'Error interno del servidor. Contacta a Sistemas.';
+
+                return response()->json($response, 500);
             }
 
             return response()->json($response, 200);
-
-        } catch (QueryException $e) {
+        } catch (\Illuminate\Database\QueryException $e) {
             // Catch global para errores de sesiones que ocurren antes del código principal
             $errorMessage = $e->getMessage();
-            
-            if (strpos($errorMessage, 'sessions') !== false || 
+
+            if (
+                strpos($errorMessage, 'sessions') !== false ||
                 strpos($errorMessage, 'no existe la relación') !== false ||
-                $e->getCode() == '42P01') {
-                return $this->buildDbErrorResponse($e, 'Error en base de datos. Contacta a Sistemas.');
+                $e->getCode() == '42P01'
+            ) {
+                $response['message'] = 'Error en base de datos. Contacta a Sistemas.';
             } else {
-                return $this->buildDbErrorResponse($e, 'Error de conexión a la base de datos. Intenta más tarde.');
+                $response['message'] = 'Error de conexión a la base de datos. Intenta más tarde.';
             }
-            
+
+            return response()->json($response, 500);
         } catch (\Exception $e) {
             // Catch global para cualquier otro error
-            return $this->buildInternalErrorResponse($e);
+            $response['message'] = 'Error interno del servidor. Contacta a Sistemas.';
+            return response()->json($response, 500);
         }
     }
 
@@ -204,19 +251,16 @@ class AuthController extends Controller
 
         try {
             // Verificar si el usuario está autenticado
-            $user = $request->user();
-            if (!$user) {
+            if (!Auth::check()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Usuario no autenticado.'
                 ], 401);
             }
-            
-            // Cerrar sesión usando el guard web (en auth:sanctum, Auth::logout puede resolver RequestGuard)
-            if (Auth::guard('web')->check()) {
-                Auth::guard('web')->logout();
-            }
+            // Cerrar sesión del usuario (Sessions)
+            Auth::logout();
 
+            // Invalidar la sesión y regenerar el token CSRF
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
@@ -224,18 +268,21 @@ class AuthController extends Controller
                 "success" => true,
                 "message" => "Sesión cerrada exitosamente.",
             ];
-        } catch (QueryException $e) {
+        } catch (\Illuminate\Database\QueryException $e) {
             // Manejar errores específicos de base de datos
-            if (strpos($e->getMessage(), 'sessions') !== false || 
-                strpos($e->getMessage(), 'no existe la relación') !== false) {
-                return $this->buildDbErrorResponse($e, 'Error en base de datos. Contacta a Sistemas.');
+            if (
+                strpos($e->getMessage(), 'sessions') !== false ||
+                strpos($e->getMessage(), 'no existe la relación') !== false
+            ) {
+                $response['message'] = 'Error en base de datos. Contacta a Sistemas.';
             } else {
-                return $this->buildDbErrorResponse($e, 'Error de conexión a la base de datos.');
+                $response['message'] = 'Error de conexión a la base de datos.';
             }
-            
+            return response()->json($response, 500);
         } catch (\Exception $e) {
             // Manejo de errores generales
-            return $this->buildInternalErrorResponse($e);
+            $response['message'] = 'Error interno del servidor. Contacta a Sistemas.';
+            return response()->json($response, 500);
         }
 
         return response()->json($response, 200);
@@ -248,9 +295,7 @@ class AuthController extends Controller
         // y cerrar sesión si es necesario
 
         // Cerrar sesión del usuario autenticado
-        if (Auth::guard('web')->check()) {
-            Auth::guard('web')->logout();
-        }
+        Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
@@ -258,53 +303,5 @@ class AuthController extends Controller
             "success" => true,
             "message" => "Sesión cerrada por inactividad."
         ]);
-    }
-
-    private function buildDbErrorResponse(QueryException $e, string $message)
-    {
-        $errorId = (string) Str::uuid();
-        $isDebug = (bool) config('app.debug');
-
-        Log::error('AuthController DB error', [
-            'error_id' => $errorId,
-            'code' => $e->getCode(),
-            'message' => $e->getMessage(),
-        ]);
-
-        $payload = [
-            'success' => false,
-            'message' => $message . ' Ref: ' . $errorId,
-            'error_id' => $errorId,
-            'error_code' => (string) $e->getCode(),
-        ];
-
-        if ($isDebug) {
-            $payload['details'] = $e->getMessage();
-        }
-
-        return response()->json($payload, 500);
-    }
-
-    private function buildInternalErrorResponse(\Throwable $e)
-    {
-        $errorId = (string) Str::uuid();
-        $isDebug = (bool) config('app.debug');
-
-        Log::error('AuthController internal error', [
-            'error_id' => $errorId,
-            'message' => $e->getMessage(),
-        ]);
-
-        $payload = [
-            'success' => false,
-            'message' => 'Error interno del servidor. Contacta a Sistemas. Ref: ' . $errorId,
-            'error_id' => $errorId,
-        ];
-
-        if ($isDebug) {
-            $payload['details'] = $e->getMessage();
-        }
-
-        return response()->json($payload, 500);
     }
 }

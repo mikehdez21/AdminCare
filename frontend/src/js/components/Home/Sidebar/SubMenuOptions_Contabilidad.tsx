@@ -2,8 +2,12 @@
 // Bibliotecas
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setSelectedSection } from '@/store/sectionReducer';
+import { RootState } from '@/store/store';
+
+// Permissions
+import { hasPermission } from '@/utils/permissions.ts';
 
 // Icons
 import { TbReportMoney } from "react-icons/tb";
@@ -32,6 +36,11 @@ const SubMenuOptions_Contabilidad: React.FC<MenuOptions_ParentProps> = ({ select
     const [isContabilidadOpen, setIsContabilidadOpen] = useState(false);
     const [isContabilidadRotated, setIsContabilidadRotated] = useState(false);
 
+    const userPermissionsFromStore = useSelector((s: RootState) => s.auth.permissions);
+    const userPermissions = userPermissionsFromStore.length > 0
+        ? userPermissionsFromStore
+        : JSON.parse(localStorage.getItem('userRolPermissions') || '[]');
+
     // Manejo del submenú de Contabilidad
     const toggleSubMenus_Contabilidad = () => {
         setIsContabilidadOpen(!isContabilidadOpen);
@@ -52,10 +61,9 @@ const SubMenuOptions_Contabilidad: React.FC<MenuOptions_ParentProps> = ({ select
 
             <div onClick={toggleSubMenus_Contabilidad} className='divMenu_SubMenus'>
 
-
                 <div
                     className={
-                        ['DepreciacionAF', 'ContabilidadConfiguracion', 'Auditoria'].includes(selectedSection)
+                        ['DepreciacionActivos', 'ContabilidadConfiguracion', 'Auditoria'].includes(selectedSection)
                             ? 'SubMenu_IconTitle sidebar_SectionSelected'
                             : 'SubMenu_IconTitle'
                     }
@@ -66,8 +74,6 @@ const SubMenuOptions_Contabilidad: React.FC<MenuOptions_ParentProps> = ({ select
                 </div>
 
 
-
-
                 {/* Submenu Contabilidad */}
                 <div className="SubMenu_Options">
                     {isContabilidadOpen && (
@@ -75,34 +81,38 @@ const SubMenuOptions_Contabilidad: React.FC<MenuOptions_ParentProps> = ({ select
 
                         <ul>
 
-                            <li
-                                onClick={() => handleSelectSection('DepreciacionAF', '/contabilidad/depreciacionaf')}
-                                id='SubMenu_Option'
-                                className={`subMenuOption delayOption1 ${selectedSection === 'DepreciacionAF' ? 'sidebar_Section_SubMenuSelected' : ''}`}
+                            {hasPermission(userPermissions, 'sidebar_submenu_contabilidad_depreciacionaf') && (
+                                <li
+                                    onClick={() => handleSelectSection('DepreciacionAF', '/contabilidad/depreciacionaf')}
+                                    id='SubMenu_Option'
+                                    className={`subMenuOption delayOption1 ${selectedSection === 'DepreciacionAF' ? 'sidebar_Section_SubMenuSelected' : ''}`}
 
-                            >
-                                <HiArchiveBoxArrowDown /> <p>Depreciación de ActivosFijos</p>
-                            </li>
+                                >
+                                    <HiArchiveBoxArrowDown /> <p>Depreciación de ActivosFijos</p>
+                                </li>
+                            )}
 
+                            {hasPermission(userPermissions, 'sidebar_submenu_contabilidad_configuracion') && (
+                                <li
+                                    onClick={() => handleSelectSection('ContabilidadConfiguracion', '/contabilidad/configuracion')}
+                                    id='SubMenu_Option'
+                                    className={`subMenuOption delayOption2 ${selectedSection === 'ContabilidadConfiguracion' ? 'sidebar_Section_SubMenuSelected' : ''}`}
 
-                            <li
-                                onClick={() => handleSelectSection('ContabilidadConfiguracion', '/contabilidad/configuracion')}
-                                id='SubMenu_Option'
-                                className={`subMenuOption delayOption2 ${selectedSection === 'ContabilidadConfiguracion' ? 'sidebar_Section_SubMenuSelected' : ''}`}
+                                >
+                                    <FaGears /> <p>Configuración</p>
+                                </li>
+                            )}
 
-                            >
-                                <FaGears /> <p>Configuración</p>
-                            </li>
+                            {hasPermission(userPermissions, 'sidebar_submenu_contabilidad_auditoria') && (
+                                <li
+                                    onClick={() => handleSelectSection('Auditoria', '/contabilidad/auditoria')}
+                                    id='SubMenu_Option'
+                                    className={`subMenuOption delayOption3 ${selectedSection === 'Auditoria' ? 'sidebar_Section_SubMenuSelected' : ''}`}
 
-
-                            <li
-                                onClick={() => handleSelectSection('Auditoria', '/contabilidad/auditoria')}
-                                id='SubMenu_Option'
-                                className={`subMenuOption delayOption3 ${selectedSection === 'Auditoria' ? 'sidebar_Section_SubMenuSelected' : ''}`}
-
-                            >
-                                <AiOutlineAudit /> <p>Auditoria</p>
-                            </li>
+                                >
+                                    <AiOutlineAudit /> <p>Auditoria</p>
+                                </li>
+                            )}
 
 
                         </ul>

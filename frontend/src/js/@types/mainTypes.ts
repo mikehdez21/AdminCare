@@ -12,6 +12,15 @@ export interface Roles {
     model_id: number;
     role_id: number;
   };
+  permissions?: Permission[]; // Array de PERMISOS asociados al rol | Revisar role_has_permissions en BD
+}
+
+export interface Permission {
+  id?: number;
+  name: string;
+  guard_name?: string;
+  created_at?: string;
+  updated_at?: string | null;
 }
 
 // Departamentos

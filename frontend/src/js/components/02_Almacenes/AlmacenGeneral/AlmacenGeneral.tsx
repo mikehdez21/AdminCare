@@ -1,6 +1,10 @@
 // Bibliotecas
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
+
+
 
 // subComponentes
 import AlmacenGeneral_Facturas from './Facturas/FacturasControl';
@@ -17,6 +21,9 @@ import AlmacenGeneral_ControlFormaPago from './Parametros/FormaPago/FormaPagoCon
 import AlmacenGeneral_ControlTipoMoneda from './Parametros/TipoMoneda/TipoMonedaControl';
 import AlmacenGeneral_ControlEstatusAF from './Parametros/EstatusAF/EstatusAFControl';
 
+// Permissions
+import { hasPermission } from '@/utils/permissions.ts';
+
 // Icons
 import { MdOutlineKeyboardArrowUp } from 'react-icons/md';
 
@@ -30,6 +37,11 @@ const Main_AlmacenGeneral: React.FC = () => {
 
   const [isRotated, setIsRotated] = React.useState(false);
   const [isSubMenuOpen, setIsSubMenuOpen] = React.useState(false);
+
+  const userPermissionsFromStore = useSelector((s: RootState) => s.auth.permissions);
+  const userPermissions = userPermissionsFromStore.length > 0
+    ? userPermissionsFromStore
+    : JSON.parse(localStorage.getItem('userRolPermissions') || '[]');
 
   const isKnownSection =
     location.pathname.startsWith('/almacen_general/facturas') ||
@@ -63,125 +75,142 @@ const Main_AlmacenGeneral: React.FC = () => {
       <nav className='navbar_AlmacenGeneral'>
         <ul>
 
-          <li
-            onClick={() => handleSelectSection('/almacen_general')}
-            className={location.pathname === '/almacen_general' ? 'selectedNavbarAlmacen' : ''}
-          >
-            <p>Inicio</p>
+          {hasPermission(userPermissions, 'almacengeneral_navbar_inicio') && (
+            <li
+              onClick={() => handleSelectSection('/almacen_general')}
+              className={location.pathname === '/almacen_general' ? 'selectedNavbarAlmacen' : ''}
+            >
+              <p>Inicio</p>
 
-          </li>
+            </li>
+          )}
 
-          <li
-            onClick={() => handleSelectSection('/almacen_general/facturas')}
-            className={location.pathname.startsWith('/almacen_general/facturas') ? 'selectedNavbarAlmacen' : ''}
-          >
-            <p>Facturas</p>
-          </li>
-
-
-          <li
-            onClick={() => handleSelectSection('/almacen_general/activos')}
-            className={location.pathname.startsWith('/almacen_general/activos') ? 'selectedNavbarAlmacen' : ''}
-          >
-            <p>Activos</p>
-          </li>
-
-          <li
-            onClick={() => handleSelectSection('/almacen_general/movimientos_activos')}
-            className={location.pathname.startsWith('/almacen_general/movimientos_activos') ? 'selectedNavbarAlmacen' : ''}
-          >
-            <p>Movimientos de Activos</p>
-          </li>
+          {hasPermission(userPermissions, 'almacengeneral_navbar_facturas') && (
+            <li
+              onClick={() => handleSelectSection('/almacen_general/facturas')}
+              className={location.pathname.startsWith('/almacen_general/facturas') ? 'selectedNavbarAlmacen' : ''}
+            >
+              <p>Facturas</p>
+            </li>
+          )}
 
 
-          <li
-            onClick={() => handleSelectSection('/almacen_general/etiquetas')}
-            className={location.pathname.startsWith('/almacen_general/etiquetas') ? 'selectedNavbarAlmacen' : ''}
-          >
-            <p>Etiquetas</p>
-          </li>
+          {hasPermission(userPermissions, 'almacengeneral_navbar_activos') && (
+            <li
+              onClick={() => handleSelectSection('/almacen_general/activos')}
+              className={location.pathname.startsWith('/almacen_general/activos') ? 'selectedNavbarAlmacen' : ''}
+            >
+              <p>Activos</p>
+            </li>
+          )}
 
-          <li
-            onClick={() => handleSelectSection('/almacen_general/proveedores')}
+          {hasPermission(userPermissions, 'almacengeneral_navbar_movimientosactivos') && (
+            <li
+              onClick={() => handleSelectSection('/almacen_general/movimientos_activos')}
+              className={location.pathname.startsWith('/almacen_general/movimientos_activos') ? 'selectedNavbarAlmacen' : ''}
+            >
 
-            className={location.pathname.startsWith('/almacen_general/proveedores') ? 'selectedNavbarAlmacen' : ''}
-          >
-            <p>Proveedores</p>
-          </li>
-
-
-          <li onClick={handleOpenSubMenu}
-
-            className={
-              location.pathname.startsWith('/almacen_general/params') ? 'selectedNavbarAlmacen' : ''
-            }
-          >
-
-            <div className='paramsTitle'>
-              <p>Parámetros</p>
-              <MdOutlineKeyboardArrowUp className={`IconSubMenu ${isRotated ? 'rotate' : ''}`} />
-            </div>
-
-            <div className='subMenu_Params'>
-
-              {isSubMenuOpen && (
-                <ul>
-                  <li
-                    id='subMenu1'
-                    className={location.pathname.startsWith('/almacen_general/params/clasificacionAF') ? 'selectedNavbarAlmacen_subMenu' : ''}
-                    onClick={() => handleSelectSection('/almacen_general/params/clasificacionAF')}
-                  >
-                    Clasificación AF
-                  </li>
-
-                  <li
-                    id='subMenu1'
-                    className={location.pathname.startsWith('/almacen_general/params/tipoFactura') ? 'selectedNavbarAlmacen_subMenu' : ''}
-                    onClick={() => handleSelectSection('/almacen_general/params/tipoFactura ')}
-                  >
-                    Tipo de Factura
-                  </li>
-
-                  <li
-                    id='subMenu1'
-                    className={location.pathname.startsWith('/almacen_general/params/formaPago') ? 'selectedNavbarAlmacen_subMenu' : ''}
-                    onClick={() => handleSelectSection('/almacen_general/params/formaPago ')}
-                  >
-                    Forma de Pago
-                  </li>
-
-                  <li
-                    id='subMenu1'
-                    className={location.pathname.startsWith('/almacen_general/params/tipoMoneda') ? 'selectedNavbarAlmacen_subMenu' : ''}
-                    onClick={() => handleSelectSection('/almacen_general/params/tipoMoneda ')}
-                  >
-                    Tipo de Moneda
-                  </li>
-
-                  <li
-                    id='subMenu1'
-                    className={location.pathname.startsWith('/almacen_general/params/estatusAF') ? 'selectedNavbarAlmacen_subMenu' : ''}
-                    onClick={() => handleSelectSection('/almacen_general/params/estatusAF ')}
-                  >
-                    Estatus de Activos
-                  </li>
+              <p>Movimientos de Activos</p>
+            </li>
+          )}
 
 
+          {hasPermission(userPermissions, 'almacengeneral_navbar_etiquetas') && (
+            <li
+              onClick={() => handleSelectSection('/almacen_general/etiquetas')}
+              className={location.pathname.startsWith('/almacen_general/etiquetas') ? 'selectedNavbarAlmacen' : ''}
+            >
+              <p>Etiquetas</p>
+            </li>
+          )}
+
+          {hasPermission(userPermissions, 'almacengeneral_navbar_proveedores') && (
+            <li
+              onClick={() => handleSelectSection('/almacen_general/proveedores')}
+
+              className={location.pathname.startsWith('/almacen_general/proveedores') ? 'selectedNavbarAlmacen' : ''}
+            >
+              <p>Proveedores</p>
+            </li>
+          )}
+
+
+          {hasPermission(userPermissions, 'almacengeneral_navbar_params') && (
+            <li onClick={handleOpenSubMenu}
+
+              className={
+                location.pathname.startsWith('/almacen_general/params') ? 'selectedNavbarAlmacen' : ''
+              }
+            >
+
+              <div className='paramsTitle'>
+                <p>Parámetros</p>
+                <MdOutlineKeyboardArrowUp className={`IconSubMenu ${isRotated ? 'rotate' : ''}`} />
+              </div>
+
+              <div className='subMenu_Params'>
+
+                {isSubMenuOpen && (
+                  <ul>
+                    <li
+                      id='subMenu1'
+                      className={location.pathname.startsWith('/almacen_general/params/clasificacionAF') ? 'selectedNavbarAlmacen_subMenu' : ''}
+                      onClick={() => handleSelectSection('/almacen_general/params/clasificacionAF')}
+                    >
+                      Clasificación AF
+                    </li>
+
+                    <li
+                      id='subMenu1'
+                      className={location.pathname.startsWith('/almacen_general/params/tipoFactura') ? 'selectedNavbarAlmacen_subMenu' : ''}
+                      onClick={() => handleSelectSection('/almacen_general/params/tipoFactura ')}
+                    >
+                      Tipo de Factura
+                    </li>
+
+                    <li
+                      id='subMenu1'
+                      className={location.pathname.startsWith('/almacen_general/params/formaPago') ? 'selectedNavbarAlmacen_subMenu' : ''}
+                      onClick={() => handleSelectSection('/almacen_general/params/formaPago ')}
+                    >
+                      Forma de Pago
+                    </li>
+
+                    <li
+                      id='subMenu1'
+                      className={location.pathname.startsWith('/almacen_general/params/tipoMoneda') ? 'selectedNavbarAlmacen_subMenu' : ''}
+                      onClick={() => handleSelectSection('/almacen_general/params/tipoMoneda ')}
+                    >
+                      Tipo de Moneda
+                    </li>
+
+                    <li
+                      id='subMenu1'
+                      className={location.pathname.startsWith('/almacen_general/params/estatusAF') ? 'selectedNavbarAlmacen_subMenu' : ''}
+                      onClick={() => handleSelectSection('/almacen_general/params/estatusAF ')}
+                    >
+                      Estatus de Activos
+                    </li>
 
 
 
-                </ul>
-              )}
 
-            </div>
 
-          </li>
+                  </ul>
+                )}
+
+              </div>
+
+            </li>
+          )}
 
         </ul>
       </nav>
 
-      {!isKnownSection ?
+      {!isKnownSection && hasPermission(userPermissions, 'almacengeneral_navbar_inicio') ?
+
         <div className='noLocationSelected'>
+
           {location.pathname.startsWith('/almacen_general') && <AlmacenGeneralCharts />}
 
         </div>

@@ -1,39 +1,39 @@
-.mainDiv_RolControl{
-    
-    .searchAdd_ButtonDiv{
+.mainDiv_RolControl {
+
+    .searchAdd_ButtonDiv {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 0px;        
-        
-        .text_Div{
+        margin-bottom: 0px;
+
+        .text_Div {
             display: flex;
             color: #383838d5;
             flex: 1;
             justify-content: space-between;
-            
-            h1{
+
+            h1 {
                 font-size: 25px;
                 margin: 5px;
                 align-self: center;
-                
+
             }
-            
+
 
         }
 
-        .buttons_Div{
+        .buttons_Div {
             display: flex;
             gap: 20px;
             padding: 10px;
 
-            .selectList{
+            .selectList {
                 text-align: center;
                 border-radius: 8px;
                 border-width: 2px;
                 border-style: groove;
             }
 
-            input{
+            input {
                 width: 250px;
                 border-radius: 8px;
                 border-width: 2px;
@@ -42,7 +42,7 @@
                 padding: 10px;
             }
 
-            button{
+            button {
                 display: flex;
                 gap: 5px;
                 background-color: #da29fd;
@@ -56,26 +56,26 @@
                 padding: 5px;
                 cursor: pointer;
 
-                .iconAdd{
+                .iconAdd {
                     font-size: 20px;
                 }
             }
 
-            .buttonAdd:hover{
+            .buttonAdd:hover {
                 background-color: #df67f7 !important;
                 color: #000000;
 
             }
         }
 
-        
+
     }
-    
-    hr{
+
+    hr {
         width: 98%;
     }
 
-    .noEntities{
+    .noEntities {
         display: flex;
         background-color: #f7fa52a2;
         justify-self: center;
@@ -86,17 +86,17 @@
         border-radius: 10px;
         font-size: 20px;
         font-weight: 600;
-        border-style:  dashed;
+        border-style: dashed;
         border-color: #00000057;
 
-        p{
+        p {
             margin: 30px 20px;
         }
 
-        
+
     }
-    
-    .list_entitiesDiv{
+
+    .list_entitiesDiv {
         display: flex;
         background-color: #ffffff;
         border-radius: 10px;
@@ -104,22 +104,22 @@
         padding: 10px 10px;
         margin-bottom: 10px;
 
-        table{
+        table {
             text-align: left;
             width: 100%;
-            
-            tr{
 
-                
-                th{
+            tr {
+
+
+                th {
                     border-width: 1px;
                     border-color: #d8d5d5d5;
                     border-bottom-style: solid;
                     padding: 10px 5px;
-                    
+
                 }
-                
-                td{
+
+                td {
                     font-size: 14px;
                     border-width: 1px;
                     border-color: #d8d5d5d5;
@@ -137,7 +137,7 @@
                     background: white;
                 }
 
-                    /* Fijar segunda columna (NOMBRE) */
+                /* Fijar segunda columna (NOMBRE) */
                 #th_NombreRol,
                 #td_NombreRol {
                     padding: 20px 10px;
@@ -148,22 +148,39 @@
                     box-shadow: 1px 0 0 #ccc;
                 }
 
+                #th_PermisosRol,
+                #td_PermisosRol {
+                    text-align: center;
+                }
+
+                #td_PermisosRol {
+                    color: #007bff;
+                    cursor: pointer;
+                    font-weight: 600;
+
+                    &:hover {
+                        color: #00ccff;
+                    }
+                }
+
+
+
 
                 #th_FechaCreacion,
-                #td_FechaCreacion{
+                #td_FechaCreacion {
                     text-align: center;
 
                 }
-                
+
                 #th_FechaModificacion,
-                #td_FechaModificacion{
+                #td_FechaModificacion {
                     text-align: center;
                 }
 
 
                 /* Fijar última columna (ACCIONES) */
                 #th_Acciones,
-                #td_Acciones{
+                #td_Acciones {
                     border-width: 1px;
                     border-color: #d8d5d5d5;
                     background-color: #ffffff;
@@ -172,12 +189,12 @@
                     position: sticky;
                     right: 0;
                     box-shadow: -1px 0 0 #ccc;
-                    
-                    .divActions{
+
+                    .divActions {
                         display: flex;
                         justify-content: center;
 
-                        .button_editEntity{
+                        .button_editEntity {
                             display: flex;
                             align-items: center;
                             background-color: transparent;
@@ -189,11 +206,11 @@
 
                         }
 
-                        .button_editEntity:hover{
+                        .button_editEntity:hover {
                             color: #00ccff;
                         }
 
-                        .button_deleteEntity{
+                        .button_deleteEntity {
                             display: flex;
                             align-items: center;
                             background-color: transparent;
@@ -204,18 +221,20 @@
 
                         }
 
-                        .button_deleteEntity:hover{
+                        .button_deleteEntity:hover {
                             color: #ff0000;
 
                         }
                     }
                 }
 
-                
+
             }
 
         }
     }
+
+
 
 
 }

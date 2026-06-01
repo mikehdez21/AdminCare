@@ -5,7 +5,7 @@ import { useDispatch } from 'react-redux';
 import { deleteRol, getRoles } from '@/store/administrador/Roles/rolesActions';
 import { setListRoles } from '@/store/administrador/Roles/rolesReducer';
 import { Roles } from '@/@types/mainTypes';
-import Swal from 'sweetalert2'; 
+import Swal from 'sweetalert2';
 import ModalButtons from '@/components/00_Utils/ModalButtons';
 
 import '@styles/99_Administrador/Roles/modalRoles.css'
@@ -36,7 +36,7 @@ const DeleteRoles: React.FC<DeleteDepartamentoProps> = ({ isOpen, onClose, roles
           dispatch(setListRoles(rolesActualizados.roles!)); // Actualiza la lista de roles en el estado
 
         }
-          
+
       } else {
         console.log('Error al eliminar el rol:', resultAction.message);
       }
@@ -49,7 +49,7 @@ const DeleteRoles: React.FC<DeleteDepartamentoProps> = ({ isOpen, onClose, roles
       });
 
       onClose(); // Cerrar el modal al completar cualquier acción
-          
+
     } catch (error) {
       console.error('Error al eliminar el rol:', error);
 
@@ -73,17 +73,17 @@ const DeleteRoles: React.FC<DeleteDepartamentoProps> = ({ isOpen, onClose, roles
 
       <div className="mainDiv_modalRoles" >
         <h2>Eliminar Rol</h2>
-        <p>¿Quiere eliminar el rol? </p> 
 
 
         <div className='mainInputs_Delete_AdminEntity'>
           <strong>
-            {rolesToDelete?.name } 
+            {rolesToDelete?.name}
           </strong>
 
         </div>
-        
-        
+
+
+
         <ModalButtons
           buttons={[
             {

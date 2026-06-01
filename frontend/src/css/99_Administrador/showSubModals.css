@@ -1,5 +1,5 @@
 /* Modal - Lista de Roles de un Usuario - UserControl */
-.modalShowListRoles{
+.modalShowListRoles {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
@@ -7,7 +7,7 @@
     justify-content: center;
     align-items: center;
 
-    .mainDiv_modalShowRoles{
+    .mainDiv_modalShowRoles {
         display: flex;
         flex-direction: column;
         text-align: center;
@@ -18,31 +18,31 @@
         width: 300px;
         height: 70%;
 
-        h3{
+        h3 {
             margin: 10px 0px 5px 0px;
             padding: 0px;
         }
 
-        h4{
+        h4 {
             color: #7100b3;
             margin: 0px 0px 20px 0px;
         }
 
-        .list{
+        .list {
             height: 100%;
 
-            ul{
+            ul {
                 list-style-type: none;
                 padding: 0;
                 max-height: 300px;
-                overflow-y: auto; 
+                overflow-y: auto;
                 margin: 0;
                 background-color: #f0f0f0;
                 border-radius: 8px;
                 border: 1px solid #ccc;
                 box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
-                li{
+                li {
                     padding: 3px 12px;
                     margin: 5px 0;
                     display: flex;
@@ -56,31 +56,33 @@
         }
 
         .list::-webkit-scrollbar {
-            width: 15px; /* Ancho de la barra de desplazamiento */
-            height: 8px; /* Altura de la barra de desplazamiento horizontal */
+            width: 15px;
+            /* Ancho de la barra de desplazamiento */
+            height: 8px;
+            /* Altura de la barra de desplazamiento horizontal */
 
         }
-        
+
         .list::-webkit-scrollbar-track {
-            background: linear-gradient(180deg, #1f0166 30%, #911a91 70%, #911a91 100%); 
+            background: linear-gradient(180deg, #1f0166 30%, #911a91 70%, #911a91 100%);
             border-left-style: solid;
             border-color: aliceblue;
             border-width: 0px;
             border-radius: 10px;
         }
-        
+
         .list::-webkit-scrollbar-thumb {
             background-color: #99a5b8;
-            border-radius: 6px; 
+            border-radius: 6px;
             border-color: #911a91;
         }
-        
+
         .list::-webkit-scrollbar-thumb:hover {
             background-color: #aebdd4;
         }
 
-        .buttons{
-            button{
+        .buttons {
+            button {
                 width: 200px;
                 height: 30px;
                 margin: 10px;
@@ -88,7 +90,7 @@
                 font-weight: bold;
             }
 
-            .button_save{
+            .button_save {
                 background-color: #7100b3;
                 color: #ffffff;
                 border: 1px solid #cecece;
@@ -96,7 +98,7 @@
                 cursor: pointer;
             }
 
-            .button_save:hover{
+            .button_save:hover {
                 background-color: #7100b3b3;
                 border: 1px solid #cecece;
             }
@@ -107,11 +109,11 @@
                 border: 1px solid #cecece;
                 border-radius: 10px;
                 cursor: pointer;
-    
+
             }
-    
-            &:hover{
-            background-color: #5a6268;
+
+            &:hover {
+                background-color: #5a6268;
             }
         }
 
@@ -120,7 +122,7 @@
 }
 
 /* Modal - Lista de Roles de un Usuario - AddRolModal */
-.modalAddListRoles{
+.modalAddListRoles {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
@@ -128,7 +130,7 @@
     justify-content: center;
     align-items: center;
 
-    .mainDiv_modalAddRoles{
+    .mainDiv_modalAddRoles {
         display: flex;
         flex-direction: column;
         text-align: center;
@@ -140,12 +142,12 @@
         width: 100%;
         height: 70%;
 
-        h2{
+        h2 {
             margin: 10px 0px;
             padding: 0px;
         }
 
-        .roles_table{
+        .roles_table {
             display: flex;
             justify-content: space-between;
             gap: 20px;
@@ -159,23 +161,23 @@
                 border-radius: 8px;
                 background-color: #f9f9f9;
 
-                h3{
+                h3 {
                     text-align: center;
                 }
 
-                ul{
-                   list-style-type: none;
+                ul {
+                    list-style-type: none;
                     padding: 0;
                     max-height: 300px;
-                    overflow-y: auto; 
+                    overflow-y: auto;
                     margin: 0;
                     background-color: #f0f0f0;
                     border-radius: 8px;
                     border: 1px solid #ccc;
                     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                    
 
-                    li{
+
+                    li {
                         padding: 8px 12px;
                         margin: 5px 0;
                         cursor: pointer;
@@ -186,11 +188,11 @@
                         transition: background-color 0.2s;
                     }
 
-                    li:hover{
+                    li:hover {
                         background-color: #e0e0e0;
                     }
 
-                    .selected{
+                    .selected {
                         background-color: #d1ffd1;
                         color: #000;
                     }
@@ -204,31 +206,33 @@
         }
 
         .list::-webkit-scrollbar {
-            width: 15px; /* Ancho de la barra de desplazamiento */
-            height: 8px; /* Altura de la barra de desplazamiento horizontal */
+            width: 15px;
+            /* Ancho de la barra de desplazamiento */
+            height: 8px;
+            /* Altura de la barra de desplazamiento horizontal */
 
         }
-        
+
         .list::-webkit-scrollbar-track {
-            background: linear-gradient(180deg, #1f0166 30%, #911a91 70%, #911a91 100%); 
+            background: linear-gradient(180deg, #1f0166 30%, #911a91 70%, #911a91 100%);
             border-left-style: solid;
             border-color: aliceblue;
             border-width: 0px;
             border-radius: 10px;
         }
-        
+
         .list::-webkit-scrollbar-thumb {
             background-color: #99a5b8;
-            border-radius: 6px; 
+            border-radius: 6px;
             border-color: #911a91;
         }
-        
+
         .list::-webkit-scrollbar-thumb:hover {
             background-color: #aebdd4;
         }
 
-        .buttons{
-            button{
+        .buttons {
+            button {
                 width: 200px;
                 height: 30px;
                 margin: 10px;
@@ -236,7 +240,7 @@
                 font-weight: bold;
             }
 
-            .button_save{
+            .button_save {
                 background-color: #7100b3;
                 color: #ffffff;
                 border: 1px solid #cecece;
@@ -244,7 +248,7 @@
                 cursor: pointer;
             }
 
-            .button_save:hover{
+            .button_save:hover {
                 background-color: #7100b3b3;
                 border: 1px solid #cecece;
             }
@@ -255,10 +259,10 @@
                 border: 1px solid #cecece;
                 border-radius: 10px;
                 cursor: pointer;
-    
+
             }
-    
-            &:hover{
+
+            &:hover {
                 background-color: #5a6268;
             }
         }
@@ -268,7 +272,7 @@
 }
 
 /* Modal - FotoEmpleado - EmpleadoControl */
-.modalFotoEmpleado{
+.modalFotoEmpleado {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
@@ -276,7 +280,7 @@
     justify-content: center;
     align-items: center;
 
-    .mainDiv_FotoEmpleado{
+    .mainDiv_FotoEmpleado {
         display: flex;
         flex-direction: column;
         text-align: center;
@@ -288,12 +292,12 @@
         width: 100%;
         height: 70%;
 
-        h3{
+        h3 {
             margin: 10px 0px;
             padding: 0px;
         }
 
-        .divImage{
+        .divImage {
             display: flex;
             justify-content: center;
             align-items: center;
@@ -301,14 +305,14 @@
             height: 400px;
             margin-bottom: 10px;
 
-            img{
+            img {
                 max-width: 100%;
                 max-height: 100%;
             }
         }
     }
 
-    .buttons{
+    .buttons {
         .button_close {
             background-color: #6c757d;
             color: #ffffff;
@@ -319,10 +323,64 @@
 
         }
 
-        .button_close:hover{
+        .button_close:hover {
             background-color: #5a6268;
         }
     }
 
 }
 
+/* Modal - Permisos del Rol - RolesControl */
+.modalPermisosRole {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .mainDiv_modalViewPermisos {
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+        background-color: #ffffff;
+        border-radius: 15px;
+        border: 3px groove #7100b3;
+        padding: 15px;
+        width: 400px;
+        height: 70%;
+        gap: 12px;
+
+        h2 {
+            margin: 10px 0px;
+            padding: 0px;
+        }
+
+        ul {
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            flex: 1;
+            overflow-y: auto;
+
+            li {
+                background-color: #fafafa;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                padding: 8px 12px;
+                margin: 5px 0;
+                list-style-type: none;
+                text-align: left;
+            }
+        }
+
+        .modal_buttons {
+            margin-top: auto;
+        }
+
+
+
+    }
+}

@@ -107,6 +107,7 @@ const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
         id_empleado: Number(empleadoSeleccionado) || null,
         id_departamento: Number(departamentoSeleccionado),
 
+
       };
 
       console.log('dataUserADD_Enviada: ', nuevoUsuario);

@@ -7,6 +7,7 @@ use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
+use Illuminate\Validation\Rule;
 
 class RolesController extends Controller
 {
@@ -19,7 +20,7 @@ class RolesController extends Controller
 
         try {
 
-            $roles = Role::all([
+            $roles = Role::with('permissions')->get([
                 'id',
                 'name',
                 'guard_name',
@@ -52,6 +53,11 @@ class RolesController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'guard_name' => 'required|string|max:255',
+            'permissions' => 'sometimes|array',
+            'permissions.*' => [
+                'integer',
+                Rule::exists('permissions', 'id'),
+            ],
         ]);
 
         if ($validator->fails()) {
@@ -60,15 +66,19 @@ class RolesController extends Controller
 
         try {
 
-            $input = $request->all();
+            $input = $request->only(['name', 'guard_name']);
 
             // Crear el rol con los datos del request
             $role = Role::create($input);
 
+            if ($request->has('permissions')) {
+                $role->syncPermissions($request->input('permissions', []));
+            }
+
 
             $response["success"] = true;
             $response['message'] = 'Rol registrado exitosamente!';
-            $response['data'] = $role;
+            $response['data'] = $role->load('permissions');
         } catch (\Exception $e) {
             $response['message'] = 'Error al crear el rol: ' . $e->getMessage();
         }
@@ -78,7 +88,24 @@ class RolesController extends Controller
 
 
     // Obtener un ROL por ID
-    public function show($id) {}
+    public function show($id)
+    {
+        $response = ["success" => false, "data" => [], "message" => ""];
+
+        try {
+            $role = Role::with('permissions')->findOrFail($id);
+
+            $response['success'] = true;
+            $response['data'] = $role;
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            $response['message'] = 'Rol no encontrado.';
+            return response()->json($response, 404);
+        } catch (\Exception $e) {
+            $response['message'] = 'Error al obtener el rol: ' . $e->getMessage();
+        }
+
+        return response()->json($response, $response['success'] ? 200 : 500);
+    }
 
 
     // Actualizar ROL
@@ -88,11 +115,30 @@ class RolesController extends Controller
 
         try {
             $rol = Role::findOrFail($id);
-            $rol->update($request->all());
+
+            $validator = Validator::make($request->all(), [
+                'name' => 'required|string|max:255',
+                'guard_name' => 'required|string|max:255',
+                'permissions' => 'sometimes|array',
+                'permissions.*' => [
+                    'integer',
+                    Rule::exists('permissions', 'id'),
+                ],
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(["error" => $validator->errors()], 422);
+            }
+
+            $rol->update($request->only(['name', 'guard_name']));
+
+            if ($request->has('permissions')) {
+                $rol->syncPermissions($request->input('permissions', []));
+            }
 
             $response['success'] = true;
             $response['message'] = 'Rol actualizado exitosamente.';
-            $response['data'] = $rol;
+            $response['data'] = $rol->load('permissions');
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             $response['message'] = 'Rol no encontrado.';
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -100,6 +146,39 @@ class RolesController extends Controller
             $response['data'] = $e->errors();
         } catch (\Exception $e) {
             $response['message'] = 'Error al actualizar el rol: ' . $e->getMessage();
+        }
+
+        return response()->json($response, $response['success'] ? 200 : 500);
+    }
+
+    public function asignarPermisosRole(Request $request, $id)
+    {
+        $response = ["success" => false, "message" => "", "data" => []];
+
+        $validator = Validator::make($request->all(), [
+            'permissions' => 'required|array',
+            'permissions.*' => [
+                'integer',
+                Rule::exists('permissions', 'id'),
+            ],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(["error" => $validator->errors()], 422);
+        }
+
+        try {
+            $role = Role::findOrFail($id);
+            $role->syncPermissions($request->input('permissions', []));
+
+            $response['success'] = true;
+            $response['message'] = 'Permisos del rol sincronizados exitosamente.';
+            $response['data'] = $role->load('permissions');
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            $response['message'] = 'Rol no encontrado.';
+            return response()->json($response, 404);
+        } catch (\Exception $e) {
+            $response['message'] = 'Error al sincronizar permisos del rol: ' . $e->getMessage();
         }
 
         return response()->json($response, $response['success'] ? 200 : 500);

@@ -16,6 +16,7 @@ use App\Http\Controllers\SoftComputing\PricingModelController;
 // Admin/Controllers 
 use App\Http\Controllers\AdminControllers\UserController as UserAdminController;
 use App\Http\Controllers\AdminControllers\RolesController as RolesAdminController;
+use App\Http\Controllers\AdminControllers\PermissionsController as PermissionsAdminController;
 use App\Http\Controllers\AdminControllers\DepartamentosController as DepartamentosAdminController;
 use App\Http\Controllers\AdminControllers\EmpleadoController as EmpleadoAdminController;
 use App\Http\Controllers\AdminControllers\UbicacionController;
@@ -29,7 +30,6 @@ use App\Http\Controllers\AlmacenGeneral\ActivosFijosController;
 use App\Http\Controllers\AlmacenGeneral\MovimientosActivosFijosController;
 use App\Http\Controllers\AlmacenGeneral\CodigosQRAFController;
 use App\Http\Controllers\AlmacenGeneral\PrinterController;
-use App\Http\Controllers\Printing\QzSigningController;
 
 // AlmacenGeneral -- ParamsControllers
 use App\Http\Controllers\AlmacenGeneral\ClasificacionController;
@@ -73,6 +73,11 @@ Route::prefix('HSS1')->group(function () {
     Route::post('/auth/register', [AuthController::class, 'register'])->name('register');
     Route::post('/auth/login', [AuthController::class, 'login'])->name('login');
 
+     Route::middleware(['auth'])->group(function () {
+        Route::get('/auth/permissions', [AuthController::class, 'permissions']);
+    });
+
+
     // ============================================================
     // RUTA PÚBLICA DE ESCANEO QR (sin autenticación)
     // ============================================================
@@ -85,7 +90,9 @@ Route::prefix('HSS1')->group(function () {
     // ============================================================
     // RUTAS PROTEGIDAS (auth:sanctum con sesión + CSRF)
     // ============================================================
+    
     Route::group(['middleware' => 'auth:sanctum'], function () {
+
 
         // Auth
         Route::post('/auth/logout', [AuthController::class, 'logout']);
@@ -101,124 +108,141 @@ Route::prefix('HSS1')->group(function () {
         Route::get('/softcomputing/pricing/models', [PricingModelController::class, 'listModels']);
         
         // ALMACENES - TIPOS
-        Route::get('/almacengeneral/tipos-proveedor', [TypesProveedorController::class, 'getTiposProveedor']);
-        Route::get('/almacengeneral/tipos-regimen', [TypesProveedorController::class, 'getTiposRegimen']);
-        Route::get('/almacengeneral/descuentos-proveedor', [TypesProveedorController::class, 'getDescuentosProveedor']);
-        Route::get('/almacengeneral/tipos-facturacion', [TypesProveedorController::class, 'getTiposFacturacion']);
 
-        // FACTURAS
-        Route::apiResource('/almacengeneral/facturas', FacturaController::class);
-        Route::get('/almacengeneral/tipos-facturas', [FacturaController::class, 'getTiposFacturas']);
-        
-        // FACTURA-ACTIVOS
-        Route::get('/almacengeneral/facturas/{idFactura}/activos', [FacturaActivosController::class, 'getActivosByFactura']);
-        Route::post('/almacengeneral/facturas/activos', [FacturaActivosController::class, 'addActivosToFactura']);
-        Route::put('/almacengeneral/facturas/{idFactura}/activos', [FacturaActivosController::class, 'updateActivosFactura']);
-        Route::delete('/almacengeneral/facturas/{idFactura}/activos/{idActivo}', [FacturaActivosController::class, 'removeActivoFromFactura']);
+        Route::middleware(['auth', 'permission:sidebar_submenu_almacenes_almacengeneral'])->group(function () {
 
-        // PROVEEDORES 
-        Route::apiResource('/almacengeneral/proveedores', ProveedorController::class);
-        
-        // CLASIFICACIONES
-        Route::apiResource('/almacengeneral/clasificaciones', ClasificacionController::class);
-        
-        // TIPOS DE FACTURA
-        Route::apiResource('/almacengeneral/tiposfactura', TiposFacturaController::class);
+            Route::get('/almacengeneral/tipos-proveedor', [TypesProveedorController::class, 'getTiposProveedor']);
+            Route::get('/almacengeneral/tipos-regimen', [TypesProveedorController::class, 'getTiposRegimen']);
+            Route::get('/almacengeneral/descuentos-proveedor', [TypesProveedorController::class, 'getDescuentosProveedor']);
+            Route::get('/almacengeneral/tipos-facturacion', [TypesProveedorController::class, 'getTiposFacturacion']);
 
-        // FORMAS DE PAGO
-        Route::apiResource('/almacengeneral/formaspago', FormaPagoController::class);
+            // FACTURAS
+            Route::apiResource('/almacengeneral/facturas', FacturaController::class);
+            Route::get('/almacengeneral/tipos-facturas', [FacturaController::class, 'getTiposFacturas']);
+            
+            // FACTURA-ACTIVOS
+            Route::get('/almacengeneral/facturas/{idFactura}/activos', [FacturaActivosController::class, 'getActivosByFactura']);
+            Route::post('/almacengeneral/facturas/activos', [FacturaActivosController::class, 'addActivosToFactura']);
+            Route::put('/almacengeneral/facturas/{idFactura}/activos', [FacturaActivosController::class, 'updateActivosFactura']);
+            Route::delete('/almacengeneral/facturas/{idFactura}/activos/{idActivo}', [FacturaActivosController::class, 'removeActivoFromFactura']);
 
-        // TIPOS DE MONEDA
-        Route::apiResource('/almacengeneral/tiposmoneda', TiposMonedaController::class);
-        
-        // ACTIVOS FIJOS
-        Route::apiResource('/almacengeneral/activosfijos', ActivosFijosController::class);
+            // PROVEEDORES 
+            Route::apiResource('/almacengeneral/proveedores', ProveedorController::class);
+            
+            // CLASIFICACIONES
+            Route::apiResource('/almacengeneral/clasificaciones', ClasificacionController::class);
+            
+            // TIPOS DE FACTURA
+            Route::apiResource('/almacengeneral/tiposfactura', TiposFacturaController::class);
 
-        // ESTATUS DE ACTIVOS FIJOS
-    Route::apiResource('/almacengeneral/activosfijos-estatus', EstatusAFController::class);
+            // FORMAS DE PAGO
+            Route::apiResource('/almacengeneral/formaspago', FormaPagoController::class);
 
-        // ACTIVOS FIJOS FILTRADOS
-        Route::get('/almacengeneral/activosfijos/departamento/{idDepartamento}', [ActivosFijosController::class, 'getActivosPorDepartamento']);
-        Route::get('/almacengeneral/activosfijos/ubicacion/{idUbicacion}', [ActivosFijosController::class, 'getActivosPorUbicacion']);
-        Route::get('/almacengeneral/activosfijos/clasificacion/{idClasificacion}', [ActivosFijosController::class, 'getActivosPorClasificacion']);
-        Route::get('/almacengeneral/activosfijos/responsable/{idEmpleado}', [ActivosFijosController::class, 'getActivosPorResponsable']);
-        Route::get('/almacengeneral/activosfijos-bajas', [ActivosFijosController::class, 'getActivosDadosDeBaja']);
-        Route::get('/almacengeneral/activosfijos-nopropios', [ActivosFijosController::class, 'getActivosNoPropios']);
+            // TIPOS DE MONEDA
+            Route::apiResource('/almacengeneral/tiposmoneda', TiposMonedaController::class);
+            
+            // ACTIVOS FIJOS
+            Route::apiResource('/almacengeneral/activosfijos', ActivosFijosController::class);
 
-        // ACTIVOS FIJOS - MOVIMIENTOS 
-        Route::apiResource('/almacengeneral/movimientos-activosfijos', MovimientosActivosFijosController::class);
-        Route::get('/almacengeneral/view-activosfijos', [MovimientosActivosFijosController::class, 'getVWMovimientosAFCompletos']);
-        Route::get('/almacengeneral/tipos-movimientosaf', [MovimientosActivosFijosController::class, 'getTiposMovimientosAF']);
-        
-        // ACTIVOS FIJOS - CÓDIGOS QR
-        Route::prefix('almacengeneral/qraf')->group(function () {
-            Route::post('generar/{idActivo}', [CodigosQRAFController::class, 'generarQR']);
-            Route::post('generar-con-logo/{idActivo}', [CodigosQRAFController::class, 'generarQRConLogo']);
-            Route::get('descargar/{idActivo}', [CodigosQRAFController::class, 'descargarQR']);
-            Route::get('listar', [CodigosQRAFController::class, 'index']);
-            Route::put('desactivar/{idQR}', [CodigosQRAFController::class, 'desactivar']);
-        });
+            // ESTATUS DE ACTIVOS FIJOS
+            Route::apiResource('/almacengeneral/activosfijos-estatus', EstatusAFController::class);
 
-        // IMPRESIÓN - ZEBRA PRINTER
-        Route::prefix('almacengeneral/printer')->group(function () {
-            Route::post('etiqueta/{idActivo}', [PrinterController::class, 'imprimirEtiquetaZebra']);
-            Route::post('etiquetas-batch', [PrinterController::class, 'imprimirEtiquetasBatch']);
-            Route::get('test', [PrinterController::class, 'testConexion']);
-            Route::get('config', [PrinterController::class, 'obtenerConfiguracion']);
-            Route::post('preview-zpl/{idActivo}', [PrinterController::class, 'previewZPL']);
-        });
+            // ACTIVOS FIJOS FILTRADOS
+            Route::get('/almacengeneral/activosfijos/departamento/{idDepartamento}', [ActivosFijosController::class, 'getActivosPorDepartamento']);
+            Route::get('/almacengeneral/activosfijos/ubicacion/{idUbicacion}', [ActivosFijosController::class, 'getActivosPorUbicacion']);
+            Route::get('/almacengeneral/activosfijos/clasificacion/{idClasificacion}', [ActivosFijosController::class, 'getActivosPorClasificacion']);
+            Route::get('/almacengeneral/activosfijos/responsable/{idEmpleado}', [ActivosFijosController::class, 'getActivosPorResponsable']);
+            Route::get('/almacengeneral/activosfijos-bajas', [ActivosFijosController::class, 'getActivosDadosDeBaja']);
+            Route::get('/almacengeneral/activosfijos-nopropios', [ActivosFijosController::class, 'getActivosNoPropios']);
 
-        // IMPRESIÓN - QZ Tray (certificado y firma)
-        Route::prefix('qz')->group(function () {
-            Route::get('certificate', [QzSigningController::class, 'certificate']);
-            Route::post('sign', [QzSigningController::class, 'sign']);
+            // ACTIVOS FIJOS - MOVIMIENTOS 
+            Route::apiResource('/almacengeneral/movimientos-activosfijos', MovimientosActivosFijosController::class);
+            Route::get('/almacengeneral/view-activosfijos', [MovimientosActivosFijosController::class, 'getVWMovimientosAFCompletos']);
+            Route::get('/almacengeneral/tipos-movimientosaf', [MovimientosActivosFijosController::class, 'getTiposMovimientosAF']);
+            
+            // ACTIVOS FIJOS - CÓDIGOS QR
+            Route::prefix('almacengeneral/qraf')->group(function () {
+                Route::post('generar/{idActivo}', [CodigosQRAFController::class, 'generarQR']);
+                Route::post('generar-con-logo/{idActivo}', [CodigosQRAFController::class, 'generarQRConLogo']);
+                Route::get('descargar/{idActivo}', [CodigosQRAFController::class, 'descargarQR']);
+                Route::get('listar', [CodigosQRAFController::class, 'index']);
+                Route::put('desactivar/{idQR}', [CodigosQRAFController::class, 'desactivar']);
+            });
+
+            // IMPRESIÓN - ZEBRA PRINTER
+            Route::prefix('almacengeneral/printer')->group(function () {
+                Route::post('etiqueta/{idActivo}', [PrinterController::class, 'imprimirEtiquetaZebra']);
+                Route::post('etiquetas-batch', [PrinterController::class, 'imprimirEtiquetasBatch']);
+                Route::get('test', [PrinterController::class, 'testConexion']);
+                Route::get('config', [PrinterController::class, 'obtenerConfiguracion']);
+                Route::post('preview-zpl/{idActivo}', [PrinterController::class, 'previewZPL']);
+            });
+
         });
 
 
        // CONTABILIDAD
+        Route::middleware(['auth', 'permission:sidebar_menu_contabilidad'])->group(function () {
 
-        // Contabilidad - Depreciación
-        Route::prefix('/contabilidad/depreciacion')->group(function () {
-            Route::get('/activos-sin-depreciar', [DepreciacionController::class, 'activosSinDepreciar']);
-            Route::get('/activos-en-depreciacion', [DepreciacionController::class, 'activosEnDepreciacion']);
-            Route::post('/activar/{idActivo}', [DepreciacionController::class, 'activarDepreciacion']);
-            Route::get('/historico/{idActivo}', [DepreciacionController::class, 'historicoDepreciaciones']);
-            Route::post('/calcular/{idActivo}', [DepreciacionController::class, 'calcularDepreciacion']);
+
+            // Contabilidad - Depreciación
+            Route::prefix('/contabilidad/depreciacion')->group(function () {
+                Route::get('/activos-sin-depreciar', [DepreciacionController::class, 'activosSinDepreciar']);
+                Route::get('/activos-en-depreciacion', [DepreciacionController::class, 'activosEnDepreciacion']);
+                Route::post('/activar/{idActivo}', [DepreciacionController::class, 'activarDepreciacion']);
+                Route::get('/historico/{idActivo}', [DepreciacionController::class, 'historicoDepreciaciones']);
+                Route::post('/calcular/{idActivo}', [DepreciacionController::class, 'calcularDepreciacion']);
+            });
+
+            // Configuración - Métodos de Depreciación
+            Route::prefix('/contabilidad/metodos-depreciacion')->group(function () {
+                Route::get('/', [MetodoDepreciacionController::class, 'index']);
+                Route::post('/', [MetodoDepreciacionController::class, 'store']);
+                Route::put('/{id}', [MetodoDepreciacionController::class, 'update']);
+            });
+
+            // Configuración - Estatus de Depreciación
+            Route::prefix('/contabilidad/estatus-depreciacion')->group(function () {
+                Route::get('/', [EstatusDepreciacionController::class, 'index']);
+                Route::post('/', [EstatusDepreciacionController::class, 'store']);
+                Route::put('/{id}', [EstatusDepreciacionController::class, 'update']);
+            });
+
         });
 
-        // Configuración - Métodos de Depreciación
-        Route::prefix('/contabilidad/metodos-depreciacion')->group(function () {
-            Route::get('/', [MetodoDepreciacionController::class, 'index']);
-            Route::post('/', [MetodoDepreciacionController::class, 'store']);
-            Route::put('/{id}', [MetodoDepreciacionController::class, 'update']);
-        });
-
-        // Configuración - Estatus de Depreciación
-        Route::prefix('/contabilidad/estatus-depreciacion')->group(function () {
-            Route::get('/', [EstatusDepreciacionController::class, 'index']);
-            Route::post('/', [EstatusDepreciacionController::class, 'store']);
-            Route::put('/{id}', [EstatusDepreciacionController::class, 'update']);
-        });
 
 
         // ADMINISTRADOR
 
         // Rutas CRUD Roles
-        Route::apiResource('/admin/roles', RolesAdminController::class);
+        Route::middleware('permission:sidebar_submenu_administrador_gestionroles')->group(function () {
+            Route::apiResource('admin/roles', RolesAdminController::class);
+            Route::put('admin/roles/{id}/asignarPermisosRole', [RolesAdminController::class, 'asignarPermisosRole']);
+            Route::apiResource('admin/permisos', PermissionsAdminController::class);
+        });
         
         // Rutas CRUD Departamentos
-        Route::apiResource('/admin/departamentos', DepartamentosAdminController::class);
-
+        Route::middleware('permission:sidebar_submenu_administrador_gestiondepartamentos')->group(function () {
+            Route::apiResource('admin/departamentos', DepartamentosAdminController::class);
+        });
+        
         // Rutas CRUD Usuarios
-        Route::apiResource('/admin/users', UserAdminController::class);
-        Route::put('/admin/empleados/{id}/bajaUsuario', [UserAdminController::class, 'updateBajaUsuario']);
+        Route::middleware('permission:sidebar_submenu_administrador_gestionusuarios')->group(function () {
+            Route::apiResource('/admin/users', UserAdminController::class);
+            Route::put('/admin/empleados/{id}/bajaUsuario', [UserAdminController::class, 'updateBajaUsuario']);
+        });
 
         // Rutas CRUD Empleados
-        Route::apiResource('/admin/empleados', EmpleadoAdminController::class);
-        Route::put('/admin/empleados/{id}/bajaEmpleado', [EmpleadoAdminController::class, 'updateBajaEmpleado']);
+        Route::middleware('permission:sidebar_submenu_administrador_gestionempleados')->group(function () {
+            Route::apiResource('/admin/empleados', EmpleadoAdminController::class);
+            Route::put('/admin/empleados/{id}/bajaEmpleado', [EmpleadoAdminController::class, 'updateBajaEmpleado']);
+        });
 
         // Rutas CRUD Ubicaciones
-        Route::apiResource('/admin/ubicaciones', UbicacionController::class);
+        Route::middleware('permission:sidebar_submenu_administrador_gestionubicaciones')->group(function () {
+            Route::apiResource('/admin/ubicaciones', UbicacionController::class);
+        });
+
 
     });
 });

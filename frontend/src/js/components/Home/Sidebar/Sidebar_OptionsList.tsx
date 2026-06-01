@@ -19,7 +19,11 @@ import { setSelectedSection } from '@/store/sectionReducer';
 // Icons
 import { RiDashboardLine } from 'react-icons/ri';
 import { BiSupport } from 'react-icons/bi';
+import { FaHome } from "react-icons/fa";
 
+
+// Permissions
+import { hasPermission } from '@/utils/permissions.ts';
 
 // SubMenus Components
 import SubMenuOptions_Almacen from './SubMenuOptions_Almacen';
@@ -39,6 +43,11 @@ const Sidebar_OptionsList: React.FC<Sidebar_OptionsListProps> = ({ role, departa
 
   const selectedSection = useSelector((state: RootState) => state.section.selectedSection); // Obtener sección seleccionada de Redux
 
+  const userPermissionsFromStore = useSelector((s: RootState) => s.auth.permissions);
+  const userPermissions = userPermissionsFromStore.length > 0
+    ? userPermissionsFromStore
+    : JSON.parse(localStorage.getItem('userRolPermissions') || '[]');
+
 
   // FEATURE QUE MANEJA LAS SECCIONES SELECCIONADAS
   const handleSelectSection = (section: string, path: string) => {
@@ -52,54 +61,57 @@ const Sidebar_OptionsList: React.FC<Sidebar_OptionsListProps> = ({ role, departa
 
     <ul className='Sidebar_Options'>
 
-      {/* AdminDashboard */}
-      {role === 'Admin' && (
+      {/* Home */}
+      {hasPermission(userPermissions, 'sidebar_menu_home') && (
         <li
-          className={selectedSection === 'AdminDashboard' ? 'sidebar_SectionSelected' : ''}
+          className={selectedSection === 'Home' ? 'sidebar_SectionSelected' : ''}
         >
+          <div onClick={() => handleSelectSection('Home', '/home')} className="divOption_IconTitle">
+            <FaHome className='iconOption_Sidebar' /> <span>Home</span>
+          </div>
+        </li>
+      )}
 
-          <div onClick={() => handleSelectSection('AdminDashboard', '/admin')}
-            className="divOption_IconTitle" >
+
+      {/* Helpdesk */}
+      {hasPermission(userPermissions, 'sidebar_menu_helpdesk') && (
+        <li
+          className={selectedSection === 'Helpdesk' ? 'sidebar_SectionSelected' : ''}
+        >
+          <div className="divOption_IconTitle">
+            <BiSupport className='iconOption_Sidebar' /> <span>Helpdesk</span>
+
+          </div>
+        </li>
+      )}
+
+
+      {/* AdminDashboard */}
+      {hasPermission(userPermissions, 'sidebar_menu_admindashboard') && (
+        <li className={selectedSection === 'AdminDashboard' ? 'sidebar_SectionSelected' : ''}>
+          <div onClick={() => handleSelectSection('AdminDashboard', '/admin')} className="divOption_IconTitle" >
             <RiDashboardLine className='iconOption_Sidebar' /> <span>Admin Dashboard</span>
           </div>
         </li>
       )}
 
-      <li
-        className={selectedSection === 'Home' ? 'sidebar_SectionSelected' : ''}
-      >
-        <div onClick={() => handleSelectSection('Home', '/home')} className="divOption_IconTitle">
-          <RiDashboardLine className='iconOption_Sidebar' /> <span>Home</span>
-        </div>
-      </li>
 
-
-      <li
-        className={selectedSection === 'Helpdesk' ? 'sidebar_SectionSelected' : ''}
-      >
-        {/* Helpdesk */}
-        <div className="divOption_IconTitle">
-          <BiSupport className='iconOption_Sidebar' /> <span>Helpdesk</span>
-
-        </div>
-      </li>
-
-
-      {(role === 'Admin' || role === 'JSistemas' || role === 'JAlmacenGeneral') && (
+      {/* Almacenes */}
+      {hasPermission(userPermissions, 'sidebar_menu_almacenes') && (
         <li>
           {/* Almacenes */}
           <div className="divOption_IconTitle">
-            <SubMenuOptions_Almacen selectedSection={selectedSection} role={role} departamento={departamento} />
+            <SubMenuOptions_Almacen selectedSection={selectedSection} departamento={departamento} />
           </div>
 
         </li>
       )}
 
 
-      {(role === 'Admin' || role === 'JContabilidad') && (
+      {/* Contabilidad */}
+      {hasPermission(userPermissions, 'sidebar_menu_contabilidad') && (
         <li
         >
-          {/* Contabilidad */}
           <div className="divOption_IconTitle" >
             <SubMenuOptions_Contabilidad selectedSection={selectedSection} role={role} departamento={departamento} />
           </div>
@@ -107,9 +119,9 @@ const Sidebar_OptionsList: React.FC<Sidebar_OptionsListProps> = ({ role, departa
       )}
 
 
-      {(role === 'Admin') && (
+      {/* Administrador */}
+      {hasPermission(userPermissions, 'sidebar_menu_administrador') && (
         <li>
-          {/* Administrador */}
           <div className="divOption_IconTitle">
             <SubMenuOptions_Administrador selectedSection={selectedSection} role={role} departamento={departamento} />
           </div>

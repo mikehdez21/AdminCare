@@ -48,6 +48,8 @@ const LoginFormInputs: React.FC = () => {
         localStorage.setItem('userData', JSON.stringify(resultAction.userData)); // Almacena el usuario en localStorage
         localStorage.setItem('userRol', JSON.stringify(resultAction.userRol)); // Almacena el rol en localStorage
         localStorage.setItem('userDepartamento', JSON.stringify(resultAction.userDepartamento)); // Almacena el departamento en localStorage
+        localStorage.setItem('userRolPermissions', JSON.stringify(resultAction.userRolPermissions)); // Almacena los permisos del rol en localStorage
+
 
         
         // Justo después de despachar las acciones de login

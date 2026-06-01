@@ -2,7 +2,7 @@ import axios from 'axios';
 import { User, Roles, Departamentos } from '@/@types/mainTypes';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { API_BASE_URL } from '@/variableApi';
-import { ensureCsrfCookie } from '@/utils/csrf';
+
 // Definiciones de tipos
 
 interface LoginCredentials {
@@ -14,7 +14,14 @@ interface LoginSuccessResponse {
   success: boolean;
   userData: User;
   userRol: Roles;
+  userRolPermissions: string[]; // Permisos específicos del rol del usuario
   userDepartamento: Departamentos;
+  message: string;
+}
+
+interface RefreshPermissionsResponse {
+  success: boolean;
+  permissions: string[];
   message: string;
 }
 
@@ -25,7 +32,7 @@ interface LoginError {
 
 // Acción para iniciar sesión
 export const login = createAsyncThunk<
-LoginSuccessResponse, // Tipos de datos retornados en caso de éxito
+  LoginSuccessResponse, // Tipos de datos retornados en caso de éxito
   LoginCredentials, // Tipos de datos esperados como parámetros
   { rejectValue: LoginError } // Tipos de datos retornados en caso de error
 >(
@@ -33,65 +40,72 @@ LoginSuccessResponse, // Tipos de datos retornados en caso de éxito
   async (credentials, { rejectWithValue }) => {
     console.log(credentials)
     try {
-      // 1. Obtener el CSRF cookie requerido por Sanctum SPA
-      await ensureCsrfCookie();
+      // Obtener CSRF cookie para la protección del servidor 
+      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
 
-      // 2. Realizar solicitud de inicio de sesión
+      // Obtener token CSRF de la metaetiqueta si está disponible
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      if (csrfToken) {
+        axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
+      }
+
+
+      // Realizar solicitud de inicio de sesión
       const response = await axios.post(
         `${API_BASE_URL}/api/HSS1/auth/login`,
         credentials,
         {
-          headers: { 
+          headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest', // Ayuda a Laravel a identificar petición AJAX
+            'X-CSRF-TOKEN': csrfToken || '',
           },
-          withCredentials: true, // Las cookies se manejan automáticamente
-          withXSRFToken: true,
+          withCredentials: true,
         }
       );
 
       console.log(response)
 
+
       // Retornar datos en caso de éxito
       return {
         success: response.data.success,
         userData: response.data.user as User,
-        userRol: response.data.rol as Roles,
-        userDepartamento: response.data.departamento as Departamentos,
+        userRol: response.data.rol as Roles, // Roles específicos del usuario logueado
+        userRolPermissions: response.data.permissions as string[], // Permisos específicos del rol del usuario
+        userDepartamento: response.data.departamento as Departamentos, // Departamento específico del usuario
         message: response.data.message,
       };
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const status = error.response?.status;
         const errorMessage = error.response?.data?.message;
-        
+
         // Manejar diferentes tipos de errores basados en el status code
         let message = '';
-        
+
         switch (status) {
-        case 401:
-          message = errorMessage || 'Credenciales inválidas';
-          break;
-        case 403:
-          message = errorMessage || 'Acceso denegado';
-          break;
-        case 422:
-          message = errorMessage || 'Datos inválidos';
-          break;
-        case 500:
-          // Para errores de servidor (incluye errores de base de datos)
-          message = errorMessage || 'Error interno del servidor';
-          break;
-        default:
-          // Para errores de red u otros no clasificados
-          if (error.code === 'NETWORK_ERROR' || error.code === 'ERR_NETWORK') {
-            message = 'Error de conexión. Verifica tu conexión a internet.';
-          } else {
-            message = errorMessage || 'Error en el servidor';
-          }
+          case 401:
+            message = errorMessage || 'Credenciales inválidas';
+            break;
+          case 403:
+            message = errorMessage || 'Acceso denegado';
+            break;
+          case 422:
+            message = errorMessage || 'Datos inválidos';
+            break;
+          case 500:
+            // Para errores de servidor (incluye errores de base de datos)
+            message = errorMessage || 'Error interno del servidor';
+            break;
+          default:
+            // Para errores de red u otros no clasificados
+            if (error.code === 'NETWORK_ERROR' || error.code === 'ERR_NETWORK') {
+              message = 'Error de conexión. Verifica tu conexión a internet.';
+            } else {
+              message = errorMessage || 'Error en el servidor';
+            }
         }
-        
+
         return rejectWithValue({
           success: false,
           message: message,
@@ -102,13 +116,47 @@ LoginSuccessResponse, // Tipos de datos retornados en caso de éxito
           message: 'Error de conexión',
         });
       }
-    
+
       return rejectWithValue({
         success: false,
         message: 'Error desconocido',
       });
     }
-    
+
+  }
+);
+
+// Acción para refrescar permisos del usuario autenticado
+export const refreshAuthPermissions = createAsyncThunk<
+  RefreshPermissionsResponse,
+  void,
+  { rejectValue: LoginError }
+>(
+  'auth/refreshPermissions',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/HSS1/auth/permissions`, {
+        withCredentials: true,
+      });
+
+      return {
+        success: response.data.success,
+        permissions: response.data.permissions as string[],
+        message: response.data.message,
+      };
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        return rejectWithValue({
+          success: false,
+          message: error.response?.data?.message || 'Error al refrescar permisos',
+        });
+      }
+
+      return rejectWithValue({
+        success: false,
+        message: 'Error desconocido al refrescar permisos',
+      });
+    }
   }
 );
 
@@ -124,13 +172,8 @@ export const logout = createAsyncThunk<
       const response = await axios.post(
         `${API_BASE_URL}/api/HSS1/auth/logout`,
         {},
-        {
-          withCredentials: true,
-          withXSRFToken: true,
-        }
+        { withCredentials: true }
       );
-
-      // Las cookies se limpian automáticamente en el servidor
 
       // Validar respuesta del backend
       if (response.data.success) {
