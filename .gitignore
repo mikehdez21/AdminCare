@@ -33,3 +33,4 @@ softcomputing.venv/
 softcomputing/.venv/
 softcomputing/**/__pycache__/
 *.py[cod]
+.tgrep
