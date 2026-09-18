@@ -30,6 +30,8 @@ services:
         value: "true"
       - key: SESSION_DRIVER
         value: file
+      - key: CACHE_STORE
+        value: file
       - key: SESSION_LIFETIME
         value: "30"
       - key: SESSION_SECURE_COOKIE

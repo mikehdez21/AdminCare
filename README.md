@@ -67,6 +67,7 @@ El repositorio incluye la configuración necesaria para un servicio web Docker:
 
 - Render construye el frontend y la imagen PHP mediante `Dockerfile`.
 - Durante cada release, y también justo antes de iniciar Laravel, ejecuta `migrate:fresh --seed --force`: borra la SQLite demo y la regenera con las migraciones y el `DemoSeeder` actuales. El arranque garantiza la inicialización aunque Render no ejecute `releaseCommand`.
+- La demo SQLite usa `CACHE_STORE=file` (y `SESSION_DRIVER=file`), incluido en Render, para que las migraciones no intenten acceder a la tabla `cache` antes de crearla. No se requiere `CACHE_DRIVER` porque Laravel 11 resuelve el store desde `CACHE_STORE` en `config/cache.php`.
 - El servicio inicia Laravel en el puerto que proporciona Render y verifica su estado en `/status`.
 - La base es SQLite en `database/database.sqlite`; el flujo destructivo está protegido por `DEMO_MODE=true`, SQLite, `DEMO_DATABASE_ALLOW_RESET=true`, la ruta SQLite exacta y un `DB_URL` vacío o ausente. No se configura persistent disk ni una base externa.
 - El filesystem estándar de Render es efímero. Un restart puede no ejecutar `releaseCommand`; `render-start.sh` regenera la base antes de atender tráfico.
