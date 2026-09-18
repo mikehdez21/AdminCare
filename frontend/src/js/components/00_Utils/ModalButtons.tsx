@@ -21,7 +21,7 @@ const ModalButtons: React.FC<ModalButtonsProps> = ({ buttons }) => {
         <button
           key={index}
           type={button.type || 'button'}
-          className={button.className}
+          className={button.className + (button.disabled ? ' disabled' : '')}
           onClick={button.onClick}
           disabled={button.disabled || false}
         >

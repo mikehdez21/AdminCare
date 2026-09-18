@@ -1,47 +1,13 @@
-import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '@/store/store';
-import { checkApiStatus } from '@/store/statusActions';
+import React from 'react'
 
-const Status: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const { success, message, statusCode, loading, error } = useSelector(
-    (state: RootState) => state.apiStatus
-  );
-
-  const handleRetry = () => {
-    dispatch(checkApiStatus());
-  };
-
-  useEffect(() => {
-    dispatch(checkApiStatus());
-  }, [dispatch]);
-
+const Status:  React.FC = () => {
   return (
     <div>
-      <h1>Estado de API AdminCare</h1>
-
-      {loading && <p>Verificando conexión...</p>}
-
-      {!loading && error && <p>Error: {error}</p>}
-
-      {!loading && !error && success && (
-        <p>
-          {message} (HTTP {statusCode})
-        </p>
-      )}
-
-      {!loading && !error && success === false && (
-        <p>No se recibió confirmación de estado correcto.</p>
-      )}
-
-      <button type="button" onClick={handleRetry} disabled={loading}>
-        {loading ? 'Verificando...' : 'Reintentar'}
-      </button>
+      <h1>AdminCare está en funcionamiento</h1>
+      <p>Demo SQLite activa. Los datos son sintéticos y pueden reiniciarse mediante el comando documentado.</p>
     </div>
-  );
-};
+  )
+}
 
-export default Status;
-
+export default Status
 

@@ -5,7 +5,9 @@
     padding: 10px 20px;
 
 
-    .button_addedit, .button_delete, .button_close {
+    .button_addedit,
+    .button_delete,
+    .button_close {
         padding: 8px 16px;
         border-radius: 4px;
         font-size: 14px;
@@ -14,10 +16,10 @@
 
     .button_addedit {
         background-color: #0056b3;
-        color: white;
+        color: #ffffff;
         border: 1px solid #cecece;
 
-        &:hover{
+        &:hover {
             background-color: #004085;
             border: 1px solid #757575;
 
@@ -25,28 +27,41 @@
 
     }
 
+    .button_addedit.disabled {
+        background-color: #c9c9c9;
+        color: #ffffff;
+        border: 1px solid #cecece;
+
+        &:hover {
+            background-color: #8d8b8b;
+            border: 1px solid #cecece;
+            cursor: not-allowed;
+        }
+
+    }
+
     .button_delete {
         background-color: #e71b0c;
-        color: white;
+        color: #ffffff;
         border: none;
 
-        &:hover{
+        &:hover {
             background-color: #b50e00;
 
         }
     }
 
-    
+
     .button_close {
         background-color: #6c757d;
         color: #ffffff;
         border: 1px solid #cecece;
 
-            &:hover{
+        &:hover {
             background-color: #5a6268;
         }
 
     }
 
-    
+
 }

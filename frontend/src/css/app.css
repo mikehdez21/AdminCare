@@ -12,6 +12,7 @@ html {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+    box-sizing: border-box;
     /* Permite que #root crezca para ocupar todo el espacio disponible */
 
 }
@@ -67,4 +68,41 @@ body {
     width: 0;
     height: 0;
     display: none;
+}
+.demo-unavailable {
+  max-width: 42rem;
+  margin: 7rem auto 2rem;
+  padding: 2rem;
+  border: 1px solid #e0a458;
+  border-radius: 0.75rem;
+  background: #fff8e8;
+  color: #3b2f20;
+}
+
+.demo-notice {
+  position: fixed;
+  z-index: 10000;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 0.45rem 1rem calc(0.45rem + env(safe-area-inset-bottom));
+  background: #143642;
+  color: #f4f1de;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.demo-notice strong { margin-right: 0.5rem; }
+
+@media (max-width: 600px) {
+  .demo-notice {
+    padding-right: 0.75rem;
+    padding-left: 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .demo-notice strong {
+    display: block;
+    margin-right: 0;
+  }
 }

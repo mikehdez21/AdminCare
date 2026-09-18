@@ -19,13 +19,9 @@ import fiscalReducer from '@/store/shared/fiscalReducer'
 import clasificacionesReducer from '@/store/almacengeneral/Clasificaciones/clasificacionesReducer'
 import depreciacionReducer from '@/store/almacengeneral/Activos/DepreciacionAF/depreciacionAFReducer';
 
-import sectionReducer from '@/store/sectionReducer'
 
 const store = configureStore({
   reducer: {
-
-    // Menu
-    section: sectionReducer,
 
     // Auth y Usuarios
     auth: authReducer,
