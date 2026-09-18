@@ -43,8 +43,8 @@ return [
 
     'demo_mode' => (bool) env('DEMO_MODE', false),
 
-    // This is intentionally separate from DEMO_MODE: it authorizes destructive
-    // recovery of a database that has not been marked as the demo database yet.
+    // This is intentionally separate from DEMO_MODE: Render's release script
+    // requires it before destructively rebuilding the demo SQLite database.
     'demo_database_allow_reset' => (bool) env('DEMO_DATABASE_ALLOW_RESET', false),
 
     /*

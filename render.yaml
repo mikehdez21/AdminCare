@@ -3,6 +3,7 @@ services:
     name: admincare-demo
     runtime: docker
     dockerfilePath: ./Dockerfile
+    # Destructive reset is intentionally limited to this DEMO_MODE SQLite service.
     releaseCommand: sh scripts/render-release.sh
     startCommand: sh scripts/render-start.sh
     healthCheckPath: /status

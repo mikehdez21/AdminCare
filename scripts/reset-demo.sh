@@ -1,8 +1,8 @@
 #!/bin/sh
 set -eu
 
-# The reset must prove that this is the same synthetic database accepted by
-# demo:seed-if-empty before allowing migrate:fresh to run.
+# The reset must prove that this is the intended synthetic database before
+# allowing migrate:fresh to run.
 php artisan tinker --execute='
 $tableExists = static fn (string $table): bool => DB::selectOne(
     "select 1 from sqlite_master where type = \"table\" and name = ? limit 1",
