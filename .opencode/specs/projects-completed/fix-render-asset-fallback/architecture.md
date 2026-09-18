@@ -9,7 +9,7 @@ eso el catch-all de `routes/web.php` debe excluir explícitamente el segmento
 El patrón final del parámetro `any` es:
 
 ```regex
-^(?!(?:api|HSS1|build)(?:/|$)).*
+^(?!(?:api|build)(?:/|$)).*
 ```
 
 Así se preserva el fallback SPA para las demás rutas, se mantienen las rutas

@@ -4,7 +4,7 @@
   `public/build` en Docker/Render.
 - [x] Revisar `public/.htaccess` y las reglas de bootstrap para descartar otra
   intercepción específica de `public/build`.
-- [x] Excluir `build` del catch-all junto con `api` y `HSS1`, conservando el
+- [x] Excluir `build` del catch-all junto con `api`, conservando el
   fallback frontend y los aliases legacy.
 - [x] Documentar que no se modifica MIME manualmente y que `auth/check` 401 sin
   sesión es esperado.
