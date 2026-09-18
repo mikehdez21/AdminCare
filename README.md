@@ -1,76 +1,87 @@
 # AdminCare
 
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/mikehdez21/AdminCare)
-
 AdminCare comenzó como un sistema para almacén general y control de activos, pero el desarrollo fue ampliando su alcance hasta convertirlo en una base tipo ERP pensada para crecer por microsistemas. Hoy sigue cubriendo almacén y activos, pero está planteado para integrar módulos como agenda de citas de consulta externa e imagen, etiquetado de instrumental de CEYE, helpdesk, intranet hospitalaria y otros proyectos en puerta, manteniendo una arquitectura preparada para expansión.
+
+## Historial del proyecto y evolución técnica
+
+AdminCare fue originalmente un proyecto escolar. En una etapa anterior, este mismo proyecto estuvo desplegado con el frontend en Vercel y con Railway ejecutando dos microservicios: una API Laravel y un servicio de Softcomputing basado en FastAPI, utilizado para la API de OpenAI y un servicio de ML. Con base de datos PostgreSQL mediante el SaaS Supabase.
+
+Los cambios actuales documentan y justifican decisiones de evolución técnica para presentar el proyecto en el portafolio del autor: [portfolio.mikehdez21.workers.dev](https://portfolio.mikehdez21.workers.dev/), alojado en Cloudflare.
 
 ## Qué resuelve
 
 - Centraliza procesos administrativos y de control operativo.
 - Administra usuarios, roles, empleados, departamentos y ubicaciones.
 - Da seguimiento a activos fijos, movimientos, facturas y almacén general.
-- Integra servicios de impresión de QR y etiquetas Zebra.
-- Añade capacidades de SoftComputing para predicción y análisis asistido.
+- Integra servicios de impresión de QR y etiquetas Zebra (No disponible en la demo).
 
 ## Stack principal
 
 | Capa | Tecnología | Dónde vive |
 | --- | --- | --- |
-| Frontend | React 18, Redux Toolkit, Vite | Vercel |
-| Backend | Laravel 11, Sanctum, Spatie Permission | Railway |
-| Microservicio IA | FastAPI, scikit-learn | Railway |
-| Base de Datos | PostgreSQL | Supabase |
+| Frontend | React 18, Redux Toolkit, Vite | Render |
+| Backend | Laravel 11, Sanctum, Spatie Permission | Render |
+| Base de Datos | SQLite | Render (demo) |
 
-## Arquitectura
+## Requisitos mínimos
 
-El flujo está pensado en tres piezas:
+- PHP 8.4 con la extensión `pdo_sqlite`.
+- Composer.
+- Node.js 22 y pnpm.
+- SQLite disponible para el entorno local.
 
-- Cliente web en React para la experiencia de usuario.
-- API en Laravel para autenticación, reglas de negocio y persistencia.
-- Servicio SoftComputing en Python para tareas de predicción y análisis.
+## Instalación local
 
-Además, el despliegue está desacoplado: el frontend publica en Vercel y las APIs se resuelven contra Railway con reglas de proxy/rewrite para evitar problemas de CORS. La base de datos del sistema se centraliza en Supabase.
+Desde la raíz del proyecto:
 
-## SoftComputing
+```sh
+cp .env.example .env
+composer install
+php artisan key:generate
+composer run setup:sqlite
+php artisan migrate --seed
+cd frontend && pnpm install
+```
 
-SoftComputing es la capa de inteligencia del sistema. Se usa para complementar la operación con análisis de datos, predicción de precios y detección de anomalías, conectando el backend Laravel con un microservicio Python especializado.
+La base local se guarda en `database/database.sqlite`. No se necesita una base de datos externa para probar la demo.
 
-En precios, el microservicio FastAPI trabaja con tres algoritmos principales:
+## Cómo ejecutar
 
-- `LinearRegression` para relaciones lineales simples.
-- `RandomForestRegressor` para combinar varios árboles y dar predicciones más robustas.
-- `KNeighborsRegressor` para estimar valores a partir de casos similares.
+En una terminal, inicia Laravel:
 
-La parte contextual usa OpenAI para análisis asistido sobre escenarios como predicción de precios, detección de anomalías, fraude y optimización de inventario. El flujo principal usa `gpt-5-search-api` y, si hace falta, cae a `gpt-4o-mini` como respaldo.
+```sh
+php artisan serve
+```
 
-## Deploys
+En otra terminal, inicia el frontend:
 
-- Frontend: Vercel.
-- Backend API: Railway.
-- Servicio SoftComputing: Railway.
-- Base de datos: Supabase.
+```sh
+cd frontend && pnpm run dev
+```
 
-## Módulos destacados
+Abre la dirección que muestre Vite, normalmente `http://localhost:5173`. El proxy local usa Laravel en `http://127.0.0.1:8000` por defecto.
 
-- Autenticación y autorización con SPA sessions y control de permisos.
-- Activos fijos y movimientos de inventario.
-- Almacén general y facturación.
-- Generación de QR y etiquetas para impresión.
-- Servicios de análisis y predicción para soporte operativo.
-- Análisis contextual con OpenAI para apoyo en decisiones.
+## Despliegue en Render
 
-## Acceso rápido por QR
+El repositorio incluye la configuración necesaria para un servicio web Docker:
 
-Este README está pensado para lectura rápida desde un QR. La idea es que el código apunte al repositorio o a esta documentación para que cualquier persona entienda en segundos:
+- Render construye el frontend y la imagen PHP mediante `Dockerfile`.
+- Durante el release ejecuta migraciones y siembra los datos de demo si la base está vacía.
+- El servicio inicia Laravel en el puerto que proporciona Render y verifica su estado en `/status`.
+- La base es SQLite en `database/database.sqlite`. El filesystem estándar de Render es efímero, por lo que los datos y la sesión pueden perderse tras un reinicio.
 
-1. Qué es AdminCare.
-2. Qué problemas resuelve.
-3. Qué stack usa.
-4. Cómo está desplegado.
-5. Dónde entra SoftComputing.
+Para desplegar, crea un servicio en Render conectado al repositorio y aplica `render.yaml` como Blueprint. No es necesario ejecutar manualmente los scripts de release o arranque.
 
-## Documentación extendida
+## Límites de la demo
 
-Si quieres profundizar, la documentación indexada en DeepWiki resume la arquitectura, módulos y despliegue del proyecto:
+- Usa datos sintéticos y no debe tratarse como almacenamiento de producción.
+- Las escrituras tienen una cuota global de 100 unidades de negocio.
+- Las subidas de archivos, fotos, QR persistente, impresión Zebra/QZ Tray y conexiones externas no están disponibles.
+- Un reinicio de Render puede cerrar la sesión y perder la base SQLite del filesystem efímero.
 
-- https://deepwiki.com/mikehdez21/AdminCare
+## Solución de problemas
+
+- **No inicia SQLite:** verifica que PHP tenga `pdo_sqlite` habilitado y que exista `database/database.sqlite`.
+- **El frontend no llega a la API:** ejecuta Laravel en el puerto 8000 o define `VITE_PROXY_TARGET`/`VITE_APP_API` con la dirección correcta.
+- **La demo alcanzó su límite:** las nuevas escrituras se rechazan al llegar a 100 unidades; no es un error del formulario.
+- **La sesión desapareció en Render:** puede ocurrir después de un reinicio porque la demo usa sesiones en archivo y almacenamiento efímero.
