@@ -238,6 +238,8 @@ use App\Http\Controllers\AlmacenGeneral\EstatusDepreciacionController;
         });
 
         // Rutas CRUD Ubicaciones
-        Route::middleware('permission:sidebar_submenu_administrador_gestionubicaciones')->group(function () {
-            Route::apiResource('/admin/ubicaciones', UbicacionController::class);
-        });
+         Route::middleware('permission:sidebar_submenu_administrador_gestionubicaciones')->group(function () {
+             Route::apiResource('/admin/ubicaciones', UbicacionController::class);
+         });
+
+    });
