@@ -27,12 +27,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         // Render terminates TLS before forwarding requests to the container.
-        // Its proxy IPs are dynamic, so trust the forwarded headers only in
-        // the production environment where the service is behind Render's
-        // proxy. Local HTTP requests do not trust client-supplied headers.
-        $middleware->trustProxies(
-            at: app()->environment('production') ? '*' : [],
-        );
+        // Its proxy IPs are dynamic, so use Laravel's supported wildcard
+        // configuration. This callback runs before the container has its env
+        // binding, so it must not call app()->environment() here.
+        $middleware->trustProxies(at: '*');
 
         $middleware->alias([
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,

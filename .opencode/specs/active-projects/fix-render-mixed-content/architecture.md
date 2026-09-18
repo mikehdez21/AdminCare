@@ -1,11 +1,11 @@
 # Arquitectura
 
 `bootstrap/app.php` configura el middleware global de Laravel 11 mediante
-`Middleware::trustProxies`. Render usa direcciones de proxy dinámicas, por lo
-que en producción se usa el valor convencional `'*'`; la confianza está
-limitada al entorno `production`, que es el entorno del servicio Render. En
-entornos locales se pasa una lista vacía y no se aceptan headers reenviados de
-clientes directos.
+`Middleware::trustProxies(at: '*')`. Render usa direcciones de proxy dinámicas,
+por lo que se usa el valor convencional soportado por Laravel. La configuración
+no consulta `app()->environment()` durante el bootstrap, cuando el binding
+`env` todavía no está disponible. También permite que la aplicación arranque
+localmente sin depender de un binding del contenedor todavía no registrado.
 
 La terminación TLS continúa ocurriendo en Render. Una vez que Laravel confía
 en el proxy, Symfony Request puede interpretar `X-Forwarded-Proto` y los
