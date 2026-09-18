@@ -49,11 +49,10 @@ const ImpresionAF: React.FC = () => {
 
   useEffect(() => {
     let mounted = true;
-    const codigo = activoSeleccionadoActual?.codigo_unico?.trim();
     setQrDataUrl(null);
-    if (!codigo) return () => { mounted = false; };
+    if (!activoSeleccionadoActual) return () => { mounted = false; };
 
-    QRCode.toDataURL(getActivoQrPayload(codigo), {
+    QRCode.toDataURL(getActivoQrPayload(activoSeleccionadoActual), {
       errorCorrectionLevel: 'M',
       margin: 2,
       width: 230,

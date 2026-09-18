@@ -13,7 +13,9 @@ use Endroid\QrCode\RoundBlockSizeMode;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\Encoding\Encoding;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\QueryException;
 
 
 class CodigosQRAF extends Model
@@ -66,7 +68,52 @@ class CodigosQRAF extends Model
     {
         // Verificar que el activo existe
         $activo = ActivosFijos::findOrFail($idActivo);
-        return (string) 'QR' . $activo->codigo_etiqueta;
+
+        return self::codigoCanonico($activo->codigo_etiqueta ?: ($activo->codigo_unico ?: "AF{$activo->id_activo_fijo}"));
+    }
+
+    /** Return a QR code with one, and only one, QR prefix. */
+    public static function codigoCanonico(?string $codigo): string
+    {
+        $codigo = trim((string) $codigo);
+        $codigo = preg_replace('/^(?:QR)+/i', '', $codigo) ?? $codigo;
+
+        return 'QR' . $codigo;
+    }
+
+    /** Stable label for an asset which has no invoice-derived codes yet. */
+    private static function codigoSinFactura(ActivosFijos $activo): string
+    {
+        $etiqueta = trim((string) $activo->codigo_etiqueta);
+        if ($etiqueta !== '') {
+            return $etiqueta;
+        }
+
+        $codigoUnico = trim((string) $activo->codigo_unico);
+        if ($codigoUnico !== '') {
+            return $codigoUnico . '-SINFACTURA';
+        }
+
+        return "AF{$activo->id_activo_fijo}-SINFACTURA";
+    }
+
+    /**
+     * Construir la URL pública que debe codificarse en el QR.
+     *
+     * La página pública vive en el frontend; APP_URL identifica al backend y
+     * no debe usarse para enlaces que se entregan a usuarios externos.
+     */
+    public static function urlPublica(string $codigoQR): string
+    {
+        $frontendUrl = rtrim((string) config('app.frontend_url'), '/');
+
+        return $frontendUrl . '/activosfijos/qraf/' . rawurlencode(self::codigoCanonico($codigoQR));
+    }
+
+    /** Always expose the current public URL, even for historical stored rows. */
+    public function getUrlDestinoAttribute($value): string
+    {
+        return self::urlPublica((string) ($this->attributes['codigo_qr'] ?? ''));
     }
 
     /**
@@ -84,22 +131,54 @@ class CodigosQRAF extends Model
             $activo = ActivosFijos::findOrFail($idActivo);
 
 
-            // Generar código único
-            $codigoQR = 'QR' . $activo->codigo_unico . '-SINFACTURA';
-            $appUrl = rtrim((string) config('app.url'), '/');
-            $urlDestino = $appUrl . '/activosfijos/qraf/' . rawurlencode($codigoQR);
+            // Usar un fallback seguro para activos sin etiqueta persistida.
+            $codigoEtiqueta = self::codigoSinFactura($activo);
+            $codigoQR = self::codigoCanonico($codigoEtiqueta);
+            $urlDestino = self::urlPublica($codigoQR);
 
-            // Crear registro en la base de datos
-            $qraf = self::create([
-                'id_activo_fijo' => $idActivo,
-                'codigo_qr' => $codigoQR,
-                'url_destino' => $urlDestino,
-                'fecha_generacion' => now(),
-                'activo' => true,
-            ]);
+            // La restricción única existente por activo protege el caso normal.
+            // La transacción/lock reduce carreras; SQLite puede aún serializar o
+            // rechazar una escritura concurrente, por lo que se reconsulta tras
+            // una violación de unicidad en lugar de crear un segundo QR.
+            $qraf = self::where('id_activo_fijo', $idActivo)->first();
+            $yaExistia = (bool) $qraf;
+            if (!$qraf) {
+                try {
+                    [$qraf, $yaExistia] = DB::transaction(function () use ($idActivo, $codigoQR, $urlDestino) {
+                        $existente = self::where('id_activo_fijo', $idActivo)->lockForUpdate()->first();
+                        if ($existente) {
+                            return [$existente, true];
+                        }
+
+                        return [self::create([
+                            'id_activo_fijo' => $idActivo,
+                            'codigo_qr' => $codigoQR,
+                            'url_destino' => $urlDestino,
+                            'fecha_generacion' => now(),
+                            'activo' => true,
+                        ]), false];
+                    });
+                } catch (QueryException $exception) {
+                    if (!self::esViolacionUnicidad($exception)) {
+                        throw $exception;
+                    }
+
+                    $qraf = self::where('id_activo_fijo', $idActivo)->first();
+                    if (!$qraf) {
+                        throw $exception;
+                    }
+                    $yaExistia = true;
+                }
+            }
+
+            // También corrige registros históricos y reactiva el único registro.
+            $qraf->codigo_qr = $codigoQR;
+            $qraf->url_destino = $urlDestino;
+            $qraf->activo = true;
+            $qraf->save();
 
             // Generar imagen QR con etiqueta
-            $label = $activo->codigo_etiqueta;
+            $label = $codigoEtiqueta;
             $imagenBase64 = $qraf->generarImagenQR(300, $label);
 
             // Guardar en storage
@@ -126,7 +205,7 @@ class CodigosQRAF extends Model
                     'imagen_base64' => $imagenBase64,
                     'url_imagen' => $qraf->url_imagen_qr,
                     'ruta_guardada' => $rutaGuardada,
-                    'ya_existia' => false,
+                    'ya_existia' => $yaExistia,
                 ],
             ];
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -187,8 +266,7 @@ class CodigosQRAF extends Model
 
             // Generar código único
             $codigoQR = self::generarCodigo($idActivo);
-            $appUrl = rtrim((string) config('app.url'), '/');
-            $urlDestino = $appUrl . '/activosfijos/qraf/' . rawurlencode($codigoQR);
+            $urlDestino = self::urlPublica($codigoQR);
 
             // Crear registro en la base de datos
             $qraf = self::create([
@@ -261,10 +339,10 @@ class CodigosQRAF extends Model
             $activo = ActivosFijos::findOrFail($idActivo);
 
 
-            // Generar código único
-            $codigoQR = 'QR' . $activo->codigo_unico . '-SINFACTURA';
-            $appUrl = rtrim((string) config('app.url'), '/');
-            $urlDestino = $appUrl . '/activosfijos/qraf/' . rawurlencode($codigoQR);
+            // Usar un fallback seguro para activos sin etiqueta persistida.
+            $codigoEtiqueta = self::codigoSinFactura($activo);
+            $codigoQR = self::codigoCanonico($codigoEtiqueta);
+            $urlDestino = self::urlPublica($codigoQR);
 
             // buscar QR en BD y actualizar solo el campo codigo_qr y url_destino
             // Verificar si ya existe un QR activo
@@ -272,12 +350,16 @@ class CodigosQRAF extends Model
                 ->where('activo', true)
                 ->first();
 
+            if (!$qrExistente) {
+                return self::generarQRActivoSinFactura($idActivo);
+            }
+
             $qrExistente->codigo_qr = $codigoQR;
             $qrExistente->url_destino = $urlDestino;
             $qrExistente->save();
 
             // Generar imagen QR con etiqueta
-            $label = $activo->codigo_etiqueta;
+            $label = $codigoEtiqueta;
             $imagenBase64 = $qrExistente->generarImagenQR(300, $label);
 
             // Guardar en storage
@@ -339,10 +421,9 @@ class CodigosQRAF extends Model
 
             // El código QR se genera basado en la etiqueta actual del activo, que ya debería tener el formato correcto
             // para el lote/factura actual, por ejemplo 'ABC123-F1-L5-C1-LT2' (generado en FacturaController@update)
-            $codigoQR = 'QR' . $activo->codigo_etiqueta; // Usa el codigo_etiqueta actualizado del activo
+            $codigoQR = self::codigoCanonico($activo->codigo_etiqueta ?: $activo->codigo_unico); // Usa la etiqueta actualizada
 
-            $appUrl = rtrim((string) config('app.url'), '/');
-            $urlDestino = $appUrl . '/activosfijos/qraf/' . rawurlencode($codigoQR);
+            $urlDestino = self::urlPublica($codigoQR);
 
             // Buscar el QR existente activo para este activo
             $qrExistente = self::where('id_activo_fijo', $idActivo)->where('activo', true)->first();
@@ -610,5 +691,10 @@ class CodigosQRAF extends Model
     public function scopeActivos($query)
     {
         return $query->where('activo', true);
+    }
+
+    private static function esViolacionUnicidad(QueryException $exception): bool
+    {
+        return in_array((string) $exception->getCode(), ['19', '23000', '23505'], true);
     }
 }

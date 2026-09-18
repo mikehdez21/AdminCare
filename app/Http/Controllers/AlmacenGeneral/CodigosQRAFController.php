@@ -374,12 +374,19 @@ class CodigosQRAFController extends Controller
                 ->where('id_activo_fijo', $assetId)
                 ->where('activo', true)
                 ->first([
-                    'id_qraf', 'id_activo_fijo', 'codigo_qr', 'url_destino',
+                    'id_qraf', 'id_activo_fijo', 'codigo_qr',
                     'fecha_generacion', 'fecha_ultimo_escaneo', 'activo',
                     'intentos_lectura', 'observaciones', 'created_at', 'updated_at',
                 ]);
 
-            return $row ? (array) $row : null;
+            if (!$row) {
+                return null;
+            }
+
+            $metadata = (array) $row;
+            $metadata['url_destino'] = CodigosQRAF::urlPublica($metadata['codigo_qr']);
+
+            return $metadata;
         } catch (\Throwable $exception) {
             // A demo/browser-only QR is valid without a persisted QR row.
             return null;
@@ -488,7 +495,7 @@ class CodigosQRAFController extends Controller
                 : new \Endroid\QrCode\Writer\SvgWriter();
 
             $qrCode = new \Endroid\QrCode\QrCode(
-                data: $qr->url_destino,
+                data: CodigosQRAF::urlPublica($qr->codigo_qr),
                 encoding: new \Endroid\QrCode\Encoding\Encoding('UTF-8'),
                 errorCorrectionLevel: \Endroid\QrCode\ErrorCorrectionLevel::High,
                 size: 400,

@@ -41,7 +41,7 @@ class PrinterController extends Controller
             if (!$qr) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'No hay código QR generado para este activo'
+                    'message' => 'Impresión ZEBRA NO DISPONIBLE en DEMO'
                 ], 404);
             }
 
@@ -50,7 +50,9 @@ class PrinterController extends Controller
 
             // Preparar datos para impresión
             $datosImpresion = [
-                'qr' => $qr->url_destino ?? url("/activosfijos/qraf/{$qr->codigo_qr}"),
+                // Siempre imprimir el destino canónico actual; url_destino puede
+                // conservar una URL histórica del backend.
+                'qr' => CodigosQRAF::urlPublica($qr->codigo_qr),
                 'codigo' => $activo->codigo_etiqueta,
                 'nombreaf' => $nombreaf,
             ];
@@ -114,7 +116,7 @@ class PrinterController extends Controller
                         $nombreaf = $activo->nombre_af ?? 'Sin nombre';
 
                         $datosImpresion = [
-                            'qr' => $qr->url_destino ?? url("/activosfijos/qraf/{$qr->codigo_qr}"),
+                            'qr' => CodigosQRAF::urlPublica($qr->codigo_qr),
                             'codigo' => $activo->codigo_etiqueta,
                             'nombreaf' => $nombreaf,
                         ];
@@ -244,7 +246,7 @@ class PrinterController extends Controller
                 ], 404);
             }
 
-            $urlQR = $qr->url_destino ?? url("/activosfijos/qraf/{$qr->codigo_qr}");
+            $urlQR = CodigosQRAF::urlPublica($qr->codigo_qr);
 
             // Generar ZPL con el servicio
             $zpl = $this->zebraService->generarZPL(
