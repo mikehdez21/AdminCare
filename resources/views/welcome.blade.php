@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/svg+xml" href="./img/logo/design3Color_x512.png" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>AdminCare</title>
 
@@ -24,17 +23,19 @@
                 $appJs = null;
                 $appCss = null;
             }
+            $appJsPath = $appJs && str_starts_with($appJs, 'build/') ? $appJs : ($appJs ? 'build/' . $appJs : null);
+            $appCssPath = $appCss && str_starts_with($appCss, 'build/') ? $appCss : ($appCss ? 'build/' . $appCss : null);
         @endphp
         
-        @if($appCss && file_exists(public_path('build/' . $appCss)))
-            <link rel="stylesheet" href="{{ asset('build/' . $appCss) }}">
+        @if($appCssPath && file_exists(public_path($appCssPath)))
+            <link rel="stylesheet" href="{{ asset($appCssPath) }}">
         @endif
         
-        @if($appJs && file_exists(public_path('build/' . $appJs)))
-            <script type="module" src="{{ asset('build/' . $appJs) }}"></script>
+        @if($appJsPath && file_exists(public_path($appJsPath)))
+            <script type="module" src="{{ asset($appJsPath) }}"></script>
         @else
             <p style="color: red; text-align: center; padding: 20px; font-size: 26px;">
-                Error: Los archivos compilados no se encontraron. Por favor ejecuta: <code>npm run build</code>
+                    Error: Los archivos compilados no se encontraron. Ejecuta el build de <code>frontend</code>.
             </p>
         @endif
     @endif
