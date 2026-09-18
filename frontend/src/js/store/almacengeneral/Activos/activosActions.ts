@@ -1,35 +1,43 @@
-import axios from 'axios';
+import { isAxiosError } from 'axios';
 import { ActivosFijos } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
+import {
+  type PaginacionConEntidadParams,
+  type PaginacionMeta,
+  type PaginacionParams,
+} from '@/@types/paginacionTypes';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { API_BASE_URL } from '@/variableApi';
+import api, { API_BASE_URL } from '@/variableApi';
+import { getBackendErrorMessage } from '@/store/shared/errorMessage';
+
+// ---------------------------------------------------------------------------
+// Resultado común de las consultas de activos fijos.
+// `meta` solo está presente cuando la consulta fue paginada (envía page/per_page).
+// ---------------------------------------------------------------------------
+export interface ResultadoActivosFijos {
+  success: boolean;
+  activosFijos?: ActivosFijos[];
+  meta?: PaginacionMeta | null;
+  message: string;
+}
 
 // Agregar un nuevo activo
 export const addActivoFijo = createAsyncThunk<{ success: boolean; activofijo?: ActivosFijos; message: string }, ActivosFijos>(
   'almacengeneral/addActivoFijo',
   async (nuevoActivo: ActivosFijos) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.post(
+      const response = await api.post(
         `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos`,
-        nuevoActivo,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+        nuevoActivo
       );
 
       return { success: response.data.success, activofijo: response.data.data as ActivosFijos, message: response.data.message, };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -41,21 +49,18 @@ export const addActivoFijo = createAsyncThunk<{ success: boolean; activofijo?: A
   },
 );
 
-// Obtener TODOS los activos registrados
-export const getActivosFijos = createAsyncThunk<{ success: boolean; activosFijos?: ActivosFijos[], message: string }>(
+// Obtener TODOS los activos registrados.
+// - Sin argumentos: devuelve la lista completa (comportamiento original).
+// - Con PaginacionParams: devuelve la página solicitada + `meta`.
+export const getActivosFijos = createAsyncThunk<ResultadoActivosFijos, PaginacionParams | void>(
   'almacengeneral/getActivos',
-  async () => {
+  async (params: PaginacionParams | void) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken || '',
-        },
-        withCredentials: true,
-      });
+      const response = await api.get(
+        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos`,
+        params ? { params } : undefined,
+      );
 
       const activosFormateados = response.data.data.map((activosFijos: ActivosFijos) => {
         return {
@@ -71,12 +76,12 @@ export const getActivosFijos = createAsyncThunk<{ success: boolean; activosFijos
         };
       });
 
-      return { success: true, activosFijos: activosFormateados, message: response.data.message };
+      return { success: true, activosFijos: activosFormateados, meta: response.data.meta ?? null, message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -93,29 +98,19 @@ export const editActivoFijo = createAsyncThunk<{ success: boolean; message: stri
   'almacengeneral/editActivoFijo',
   async (activoFijoEditado: ActivosFijos) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      console.log(csrfToken);
 
-      const response = await axios.put(
+      const response = await api.put(
         `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos/${activoFijoEditado.id_activo_fijo}`,
-        activoFijoEditado,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+        activoFijoEditado
       );
 
       return { success: response.data.success, message: response.data.message };
 
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -132,30 +127,19 @@ export const deleteActivoFijo = createAsyncThunk<{ success: boolean; message: st
   'almacengeneral/deleteActivoFijo',
   async (activoFijoEliminado: ActivosFijos) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      console.log(csrfToken);
 
       // Incluir el id del proveedor en la URL para hacer la eliminación correcta
-      const response = await axios.delete(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos/${activoFijoEliminado.id_activo_fijo}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+      const response = await api.delete(
+        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos/${activoFijoEliminado.id_activo_fijo}`
       );
 
-      console.log('deleteAction', response.data.success)
       return { success: response.data.success, message: response.data.message };
 
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -166,27 +150,24 @@ export const deleteActivoFijo = createAsyncThunk<{ success: boolean; message: st
     }
   }
 );
-
-
-
 
 //  Activos Fijos Filtrados //
 
-// Obtener ActivosFijos por Departamento
-export const getActivosFijosPorDepartamento = createAsyncThunk<{ success: boolean; activosFijos?: ActivosFijos[], message: string }, number>(
+// Obtener ActivosFijos por Departamento.
+// - Con número: devuelve la lista completa del departamento.
+// - Con { id, page, per_page, search }: devuelve la página solicitada + `meta`.
+export const getActivosFijosPorDepartamento = createAsyncThunk<ResultadoActivosFijos, PaginacionConEntidadParams | number>(
   'almacengeneral/getActivosFijosPorDepartamento',
-  async (id_departamento: number) => {
-    try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+  async (arg) => {
+    const idDepartamento = typeof arg === 'number' ? arg : arg.id;
+    const params = typeof arg === 'object' ? { page: arg.page, per_page: arg.per_page, search: arg.search } : undefined;
 
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos/departamento/${id_departamento}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken || '',
-        },
-        withCredentials: true,
-      });
+    try {
+
+      const response = await api.get(
+        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos/departamento/${idDepartamento}`,
+        params ? { params } : undefined,
+      );
 
       const activosFormateados = response.data.data.map((activosFijos: ActivosFijos) => {
         return {
@@ -205,12 +186,12 @@ export const getActivosFijosPorDepartamento = createAsyncThunk<{ success: boolea
         };
       });
 
-      return { success: response.data.success, activosFijos: activosFormateados, message: response.data.message };
+      return { success: response.data.success, activosFijos: activosFormateados, meta: response.data.meta ?? null, message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -222,21 +203,21 @@ export const getActivosFijosPorDepartamento = createAsyncThunk<{ success: boolea
   }
 );
 
-// Obtener ActivosFijos por Ubicacion
-export const getActivosFijosPorUbicacion = createAsyncThunk<{ success: boolean; activosFijos?: ActivosFijos[], message: string }, number>(
+// Obtener ActivosFijos por Ubicacion.
+// - Con número: devuelve la lista completa de la ubicación.
+// - Con { id, page, per_page, search }: devuelve la página solicitada + `meta`.
+export const getActivosFijosPorUbicacion = createAsyncThunk<ResultadoActivosFijos, PaginacionConEntidadParams | number>(
   'almacengeneral/getActivosFijosPorUbicacion',
-  async (id_ubicacion: number) => {
-    try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+  async (arg) => {
+    const idUbicacion = typeof arg === 'number' ? arg : arg.id;
+    const params = typeof arg === 'object' ? { page: arg.page, per_page: arg.per_page, search: arg.search } : undefined;
 
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos/ubicacion/${id_ubicacion}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken || '',
-        },
-        withCredentials: true,
-      });
+    try {
+
+      const response = await api.get(
+        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos/ubicacion/${idUbicacion}`,
+        params ? { params } : undefined,
+      );
 
       const activosFormateados = response.data.data.map((activosFijos: ActivosFijos) => {
         return {
@@ -255,12 +236,12 @@ export const getActivosFijosPorUbicacion = createAsyncThunk<{ success: boolean; 
         };
       });
 
-      return { success: response.data.success, activosFijos: activosFormateados, message: response.data.message };
+      return { success: response.data.success, activosFijos: activosFormateados, meta: response.data.meta ?? null, message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -272,21 +253,21 @@ export const getActivosFijosPorUbicacion = createAsyncThunk<{ success: boolean; 
   }
 );
 
-// Obtener ActivosFijos por Clasificacion
-export const getActivosFijosPorClasificacion = createAsyncThunk<{ success: boolean; activosFijos?: ActivosFijos[], message: string }, number>(
+// Obtener ActivosFijos por Clasificacion.
+// - Con número: devuelve la lista completa de la clasificación.
+// - Con { id, page, per_page, search }: devuelve la página solicitada + `meta`.
+export const getActivosFijosPorClasificacion = createAsyncThunk<ResultadoActivosFijos, PaginacionConEntidadParams | number>(
   'almacengeneral/getActivosFijosPorClasificacion',
-  async (id_clasificacion: number) => {
-    try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+  async (arg) => {
+    const idClasificacion = typeof arg === 'number' ? arg : arg.id;
+    const params = typeof arg === 'object' ? { page: arg.page, per_page: arg.per_page, search: arg.search } : undefined;
 
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos/clasificacion/${id_clasificacion}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken || '',
-        },
-        withCredentials: true,
-      });
+    try {
+
+      const response = await api.get(
+        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos/clasificacion/${idClasificacion}`,
+        params ? { params } : undefined,
+      );
 
       const activosFormateados = response.data.data.map((activosFijos: ActivosFijos) => {
         return {
@@ -305,12 +286,12 @@ export const getActivosFijosPorClasificacion = createAsyncThunk<{ success: boole
         };
       });
 
-      return { success: response.data.success, activosFijos: activosFormateados, message: response.data.message };
+      return { success: response.data.success, activosFijos: activosFormateados, meta: response.data.meta ?? null, message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -322,22 +303,21 @@ export const getActivosFijosPorClasificacion = createAsyncThunk<{ success: boole
   }
 );
 
-
-// Obtener ActivosFijos por Responsable
-export const getActivosFijosPorResponsable = createAsyncThunk<{ success: boolean; activosFijos?: ActivosFijos[], message: string }, number>(
+// Obtener ActivosFijos por Responsable.
+// - Con número: devuelve la lista completa del responsable.
+// - Con { id, page, per_page, search }: devuelve la página solicitada + `meta`.
+export const getActivosFijosPorResponsable = createAsyncThunk<ResultadoActivosFijos, PaginacionConEntidadParams | number>(
   'almacengeneral/getActivosFijosPorResponsable',
-  async (id_empleado: number) => {
-    try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+  async (arg) => {
+    const idEmpleado = typeof arg === 'number' ? arg : arg.id;
+    const params = typeof arg === 'object' ? { page: arg.page, per_page: arg.per_page, search: arg.search } : undefined;
 
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos/responsable/${id_empleado}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken || '',
-        },
-        withCredentials: true,
-      });
+    try {
+
+      const response = await api.get(
+        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos/responsable/${idEmpleado}`,
+        params ? { params } : undefined,
+      );
 
       const activosFormateados = response.data.data.map((activosFijos: ActivosFijos) => {
         return {
@@ -353,12 +333,12 @@ export const getActivosFijosPorResponsable = createAsyncThunk<{ success: boolean
         };
       });
 
-      return { success: response.data.success, activosFijos: activosFormateados, message: response.data.message };
+      return { success: response.data.success, activosFijos: activosFormateados, meta: response.data.meta ?? null, message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -370,22 +350,18 @@ export const getActivosFijosPorResponsable = createAsyncThunk<{ success: boolean
   }
 );
 
-
-// Obtener ActivosFijos dados de baja
-export const getActivosFijosDadosDeBaja = createAsyncThunk<{ success: boolean; activosFijos?: ActivosFijos[], message: string }>(
+// Obtener ActivosFijos dados de baja.
+// - Sin argumentos: devuelve la lista completa (comportamiento original).
+// - Con PaginacionParams: devuelve la página solicitada + `meta`.
+export const getActivosFijosDadosDeBaja = createAsyncThunk<ResultadoActivosFijos, PaginacionParams | void>(
   'almacengeneral/getActivosFijosDadosDeBaja',
-  async () => {
+  async (params: PaginacionParams | void) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos-bajas`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken || '',
-        },
-        withCredentials: true,
-      });
+      const response = await api.get(
+        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos-bajas`,
+        params ? { params } : undefined,
+      );
 
       const activosFormateados = response.data.data.map((activosFijos: ActivosFijos) => {
         return {
@@ -405,12 +381,12 @@ export const getActivosFijosDadosDeBaja = createAsyncThunk<{ success: boolean; a
         };
       });
 
-      return { success: response.data.success, activosFijos: activosFormateados, message: response.data.message };
+      return { success: response.data.success, activosFijos: activosFormateados, meta: response.data.meta ?? null, message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -422,22 +398,18 @@ export const getActivosFijosDadosDeBaja = createAsyncThunk<{ success: boolean; a
   }
 );
 
-
-// Obtener ActivosFijos no propios
-export const getActivosFijosNoPropios = createAsyncThunk<{ success: boolean; activosFijos?: ActivosFijos[], message: string }>(
+// Obtener ActivosFijos no propios.
+// - Sin argumentos: devuelve la lista completa (comportamiento original).
+// - Con PaginacionParams: devuelve la página solicitada + `meta`.
+export const getActivosFijosNoPropios = createAsyncThunk<ResultadoActivosFijos, PaginacionParams | void>(
   'almacengeneral/getActivosFijosNoPropios',
-  async () => {
+  async (params: PaginacionParams | void) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos-nopropios`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken || '',
-        },
-        withCredentials: true,
-      });
+      const response = await api.get(
+        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos-nopropios`,
+        params ? { params } : undefined,
+      );
 
       const activosFormateados = response.data.data.map((activosFijos: ActivosFijos) => {
         return {
@@ -453,12 +425,100 @@ export const getActivosFijosNoPropios = createAsyncThunk<{ success: boolean; act
         };
       });
 
-      return { success: response.data.success, activosFijos: activosFormateados, message: response.data.message };
+      return { success: response.data.success, activosFijos: activosFormateados, meta: response.data.meta ?? null, message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
+        };
+      }
+
+      return {
+        success: false,
+        message: 'Error inesperado',
+      };
+    }
+  }
+);
+
+// Obtener ActivosFijos marcados como activos menores.
+// - Sin argumentos: devuelve la lista completa (comportamiento original).
+// - Con PaginacionParams: devuelve la página solicitada + `meta`.
+export const getActivosFijosMenores = createAsyncThunk<ResultadoActivosFijos, PaginacionParams | void>(
+  'almacengeneral/getActivosFijosActivosMenores',
+  async (params: PaginacionParams | void) => {
+    try {
+
+      const response = await api.get(
+        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos-menores`,
+        params ? { params } : undefined,
+      );
+
+      const activosFormateados = response.data.data.map((activosFijos: ActivosFijos) => {
+        return {
+          ...activosFijos,
+
+          created_at: activosFijos.created_at
+            ? formatDateHorasToFrontend(activosFijos.created_at)
+            : null,
+
+          updated_at: activosFijos.updated_at
+            ? formatDateHorasToFrontend(activosFijos.updated_at)
+            : null,
+        };
+      });
+
+      return { success: response.data.success, activosFijos: activosFormateados, meta: response.data.meta ?? null, message: response.data.message };
+    } catch (error) {
+      if (isAxiosError(error) && error.response) {
+        return {
+          success: false,
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
+        };
+      }
+
+      return {
+        success: false,
+        message: 'Error inesperado',
+      };
+    }
+  }
+);
+
+// Obtener ActivosFijos sin factura asociada.
+// - Sin argumentos: devuelve la lista completa (comportamiento original).
+// - Con PaginacionParams: devuelve la página solicitada + `meta`.
+export const getActivosFijosSinFactura = createAsyncThunk<ResultadoActivosFijos, PaginacionParams | void>(
+  'almacengeneral/getActivosFijosSinFactura',
+  async (params: PaginacionParams | void) => {
+    try {
+
+      const response = await api.get(
+        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos-sinfactura`,
+        params ? { params } : undefined,
+      );
+
+      const activosFormateados = response.data.data.map((activosFijos: ActivosFijos) => {
+        return {
+          ...activosFijos,
+
+          created_at: activosFijos.created_at
+            ? formatDateHorasToFrontend(activosFijos.created_at)
+            : null,
+
+          updated_at: activosFijos.updated_at
+            ? formatDateHorasToFrontend(activosFijos.updated_at)
+            : null,
+        };
+      });
+
+      return { success: response.data.success, activosFijos: activosFormateados, meta: response.data.meta ?? null, message: response.data.message };
+    } catch (error) {
+      if (isAxiosError(error) && error.response) {
+        return {
+          success: false,
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 

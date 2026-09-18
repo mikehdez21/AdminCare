@@ -14,7 +14,15 @@ interface showPhotoEmpleadoProps {
 Modal.setAppElement('#root');
 
 const ShowPhotoEmpleado: React.FC<showPhotoEmpleadoProps> = ({ isOpen, onClose, empleadoToShow }) => {
-  
+
+  // Definir una imagen de respaldo por seguridad en el frontend también
+  const defaultImage = '/storage/fotosEmpleados/defaultProfile.png';
+
+  // Determinar la URL de la imagen
+  const imageUrl = empleadoToShow?.foto_empleado && typeof empleadoToShow.foto_empleado === 'string'
+    ? empleadoToShow.foto_empleado
+    : defaultImage;
+
   return (
     <Modal
       isOpen={isOpen}
@@ -29,15 +37,16 @@ const ShowPhotoEmpleado: React.FC<showPhotoEmpleadoProps> = ({ isOpen, onClose, 
 
         <div className="divImage">
           <img
-            src={
-              typeof empleadoToShow?.foto_empleado === 'string'
-                ? empleadoToShow.foto_empleado
-                : undefined
-            }
+            src={imageUrl}
+            alt={'Foto de perfil del empleado'}
+            onError={(e) => {
+              // Fallback adicional: si la URL de la BD falla, carga la default
+              e.currentTarget.src = defaultImage;
+            }}
           />
         </div>
 
-        <ModalButtons 
+        <ModalButtons
           buttons={[
             {
               text: 'Cancelar',
@@ -54,4 +63,3 @@ const ShowPhotoEmpleado: React.FC<showPhotoEmpleadoProps> = ({ isOpen, onClose, 
 };
 
 export default ShowPhotoEmpleado;
- 

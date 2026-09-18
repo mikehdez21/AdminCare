@@ -1,11 +1,13 @@
 // Bibliotecas
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AppDispatch, RootState } from '@/store/store'; // Asegúrate de importar AppDispatch
 import { useDispatch, useSelector } from 'react-redux';
 
 // Proveedores
 import { Proveedores } from '@/@types/AlmacenGeneralTypes/proveedorTypes';
+import type { PaginacionMeta, PaginacionParams } from '@/@types/paginacionTypes';
 import { getProveedores } from '@/store/almacengeneral/Proveedores/proveedoresActions';
+import { setListProveedor } from '@/store/almacengeneral/Proveedores/proveedoresReducer';
 
 // Almacen General Tipos
 import { getTiposProveedores, getTiposDescuento, } from '@/store/almacengeneral/Proveedores/proveedoresActions';
@@ -15,6 +17,7 @@ import { getTiposMoneda } from '@/store/almacengeneral/TipoMoneda/tipoMonedaActi
 
 // Componentes
 import Paginacion from '@/components/00_Utils/Paginacion';
+import { usePaginacionServidor } from '@/hooks/usePaginacionServidor';
 import AddProveedor from './AddProveedor';
 import EditProveedor from './EditProveedor';
 import DeleteProveedor from './DeleteProveedor';
@@ -35,8 +38,6 @@ const AlmacenGeneral_ControlProveedor: React.FC = () => {
 
   const dispatch = useDispatch<AppDispatch>(); // Tipar el dispatch aquí
   const proveedores = useSelector((state: RootState) => state.proveedor.proveedores);
-  const pagination = useSelector((state: RootState) => state.proveedor.pagination);
-  const totalProveedores = pagination?.total ?? proveedores.length;
   const [proveedorToEdit_Delete, setProveedorToEdit_Delete] = useState<Proveedores | null>(null); // Proveedor seleccionado para editar_eliminar
 
   const tiposProveedores = useSelector((state: RootState) => state.proveedor.tiposProveedores);
@@ -46,14 +47,43 @@ const AlmacenGeneral_ControlProveedor: React.FC = () => {
   const tiposFacturacion = useSelector((state: RootState) => state.fiscal.tiposFacturacion);
   const tiposMoneda = useSelector((state: RootState) => state.fiscal.tiposMoneda);
 
-  const [busqueda, setBusqueda] = useState<string>('');
-  const [paginaActual, setPaginaActual] = useState<number>(1);
-  const [proveedoresPorPagina, setProveedoresPorPagina] = useState<number>(5);
-
   const [isModalAddProveedorOpen, setModalAddProveedorOpen] = useState(false);
   const [isModalEditProveedorOpen, setModalEditProveedorOpen] = useState(false);
   const [isModalDeleteProveedorOpen, setModalDeleteProveedorOpen] = useState(false);
 
+  // ---------------------------------------------------------------------------
+  // Paginación servidor: fetcher que llama al thunk de proveedores con
+  // { page, per_page, search }. La tabla usa el estado local del hook; el
+  // store sigue cargando la lista completa en el useEffect de montaje para
+  // los selectores y flujos que la requieren.
+  // ---------------------------------------------------------------------------
+  const fetcher = useCallback(
+    async (params: PaginacionParams): Promise<{ data: Proveedores[]; meta: PaginacionMeta | null }> => {
+      const resultAction = await dispatch(getProveedores(params)).unwrap();
+      if (resultAction.success && resultAction.proveedores) {
+        return { data: resultAction.proveedores, meta: resultAction.meta ?? null };
+      }
+      throw new Error(resultAction.message || 'Error al obtener los proveedores');
+    },
+    [dispatch],
+  );
+
+  const {
+    busqueda,
+    paginaActual,
+    setPaginaActual,
+    perPage: proveedoresPorPagina,
+    items: proveedoresPaginaActual,
+    totalItems: totalProveedores,
+    numeroTotalPaginas,
+    loading,
+    refetch,
+    handleSearch,
+    handleChangePerPage: handleChangeProveedoresPorPagina,
+  } = usePaginacionServidor<Proveedores>({
+    fetcher,
+    perPageDefault: 5,
+  });
 
   // Añadir Proveedor
   const openModalAddProveedor = () => {
@@ -61,6 +91,8 @@ const AlmacenGeneral_ControlProveedor: React.FC = () => {
   };
   const closeModalAddProveedor = () => {
     setModalAddProveedorOpen(false);
+    // Recargar la tabla paginada tras crear un proveedor.
+    refetch();
   };
 
   // Editar Proveedor
@@ -71,7 +103,8 @@ const AlmacenGeneral_ControlProveedor: React.FC = () => {
   const closeModalEditProveedor = () => {
     setProveedorToEdit_Delete(null); // Establecer el proveedor seleccionado
     setModalEditProveedorOpen(false);
-
+    // Recargar la tabla paginada tras editar un proveedor.
+    refetch();
   };
 
   // Eliminar Proveedor
@@ -82,7 +115,8 @@ const AlmacenGeneral_ControlProveedor: React.FC = () => {
   const closeAlertDeleteProveedor = () => {
     setProveedorToEdit_Delete(null); // Establecer el proveedor seleccionado
     setModalDeleteProveedorOpen(false);
-
+    // Recargar la tabla paginada tras eliminar un proveedor.
+    refetch();
   };
 
 
@@ -90,15 +124,13 @@ const AlmacenGeneral_ControlProveedor: React.FC = () => {
   useEffect(() => {
     const cargarProveedores = async () => {
       try {
-        const resultAction = await dispatch(getProveedores({
-          paginated: true,
-          page: paginaActual,
-          perPage: proveedoresPorPagina,
-          search: busqueda.trim() || undefined,
-        })).unwrap();
+        const resultAction = await dispatch(getProveedores()).unwrap();
         console.log('Proveedores cargados:', resultAction);
 
-        if (!resultAction.success) {
+        if (resultAction.success) {
+          dispatch(setListProveedor(resultAction.proveedores!)); // Establece el proveedor en el estado
+
+        } else {
           console.log('Error', resultAction.message)
         }
 
@@ -200,29 +232,15 @@ const AlmacenGeneral_ControlProveedor: React.FC = () => {
     cargarTiposMoneda();
 
 
-  }, [dispatch, paginaActual, proveedoresPorPagina, busqueda]);
+  }, []); // Solo se ejecuta una vez al montar el componente
 
 
-  const proveedoresPaginaActual = Array.isArray(proveedores) ? proveedores : [];
 
-  const numeroTotalPaginas = pagination?.last_page ?? 1;
 
   // Crear nuevos proveedores
   const handleNuevoProveedor = () => {
     openModalAddProveedor();
     console.log(proveedores)
-  };
-
-  // Manejar cambio de búsqueda
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setBusqueda(e.target.value);
-    setPaginaActual(1); // Reiniciar a la primera página al hacer una búsqueda
-  };
-
-  // Manejar cambio en el número de proveedores por página
-  const handleChangeProveedoresPorPagina = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setProveedoresPorPagina(Number(e.target.value));
-    setPaginaActual(1); // Reiniciar a la primera página al cambiar el número de proveedores por página
   };
 
   return (
@@ -257,7 +275,7 @@ const AlmacenGeneral_ControlProveedor: React.FC = () => {
 
       <hr />
 
-      {proveedoresPaginaActual.length === 0 ? (
+      {!loading && proveedoresPaginaActual.length === 0 ? (
         <div className='noEntities'>
           <FiAlertTriangle /> <p>  No hay proveedores registrados </p> <FiAlertTriangle />
         </div>
@@ -265,11 +283,11 @@ const AlmacenGeneral_ControlProveedor: React.FC = () => {
         <>
           {/* Paginación */}
           <Paginacion
-            paginaActual={pagination?.current_page ?? paginaActual}
+            paginaActual={paginaActual}
             numeroTotalPaginas={numeroTotalPaginas}
             onPageChange={setPaginaActual}
-            onPaginaAnterior={() => setPaginaActual(Math.max(1, (pagination?.current_page ?? paginaActual) - 1))}
-            onPaginaSiguiente={() => setPaginaActual(Math.min(numeroTotalPaginas, (pagination?.current_page ?? paginaActual) + 1))}
+            onPaginaAnterior={() => setPaginaActual(paginaActual - 1)}
+            onPaginaSiguiente={() => setPaginaActual(paginaActual + 1)}
           />
 
           <div className='list_entitiesDiv'>

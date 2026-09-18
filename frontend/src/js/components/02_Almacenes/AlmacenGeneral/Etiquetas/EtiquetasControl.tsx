@@ -38,19 +38,19 @@ const AlmacenGeneral_Etiquetas: React.FC = () => {
   const [isOpenImprFactura, setOpenImprFactura] = useState(false);
 
   const handleRegresarImpresiones = () => {
-    navigate('/almacen_general/etiquetas');
+    navigate('/almacen-general/etiquetas');
     setOpenImprAF(false);
     setOpenImprFactura(false);
   }
 
   const handleOpcionImprAF = () => {
     setOpenImprAF(true);
-    navigate('/almacen_general/etiquetas/activofijo');
+    navigate('/almacen-general/etiquetas/activo-fijo');
   }
 
   const handleOpcionImprFactura = () => {
     setOpenImprFactura(true);
-    navigate('/almacen_general/etiquetas/factura');
+    navigate('/almacen-general/etiquetas/factura');
   }
 
   useEffect(() => {

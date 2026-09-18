@@ -5,7 +5,6 @@ import Swal from 'sweetalert2';
 
 import { AppDispatch } from '@/store/store';
 import { deleteTipoMoneda, getTiposMoneda } from '@/store/almacengeneral/TipoMoneda/tipoMonedaActions';
-import { setListTiposMoneda } from '@/store/almacengeneral/TipoMoneda/tipoMonedaReducer';
 import { TiposMoneda } from '@/@types/fiscalTypes';
 import ModalButtons from '@/components/00_Utils/ModalButtons';
 
@@ -20,81 +19,78 @@ interface DeleteTipoMonedaProps {
 Modal.setAppElement('#root');
 
 const DeleteTipoMoneda: React.FC<DeleteTipoMonedaProps> = ({ isOpen, onClose, tipoMonedaToDelete }) => {
-	const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useDispatch<AppDispatch>();
 
-	const handleDelete = async () => {
-		try {
-			const resultAction = await dispatch(deleteTipoMoneda(tipoMonedaToDelete!)).unwrap();
+  const handleDelete = async () => {
+    try {
+      const resultAction = await dispatch(deleteTipoMoneda(tipoMonedaToDelete!)).unwrap();
 
-			if (resultAction.success) {
-				const tiposActualizados = await dispatch(getTiposMoneda()).unwrap();
-				if (tiposActualizados.success) {
-					dispatch(setListTiposMoneda(tiposActualizados.tiposMoneda ?? []));
-				}
+      if (resultAction.success) {
+        await dispatch(getTiposMoneda()).unwrap();
 
-				Swal.fire({
-					icon: 'success',
-					title: 'Tipo de moneda eliminado',
-					text: 'El tipo de moneda ha sido eliminado exitosamente.',
-					confirmButtonText: 'OK',
-				});
+        Swal.fire({
+          icon: 'success',
+          title: 'Tipo de moneda eliminado',
+          text: 'El tipo de moneda ha sido eliminado exitosamente.',
+          confirmButtonText: 'OK',
+        });
 
-				onClose();
-				return;
-			}
+        onClose();
+        return;
+      }
 
-			Swal.fire({
-				icon: 'error',
-				title: 'Error',
-				text: resultAction.message || 'No se pudo eliminar el tipo de moneda.',
-				confirmButtonText: 'OK',
-			});
-		} catch (error) {
-			console.error('Error al eliminar el tipo de moneda:', error);
-			Swal.fire({
-				icon: 'error',
-				title: 'Error',
-				text: 'Hubo un problema al eliminar el tipo de moneda. Por favor, inténtalo de nuevo.',
-				confirmButtonText: 'OK',
-			});
-		}
-	};
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: resultAction.message || 'No se pudo eliminar el tipo de moneda.',
+        confirmButtonText: 'OK',
+      });
+    } catch (error) {
+      console.error('Error al eliminar el tipo de moneda:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Hubo un problema al eliminar el tipo de moneda. Por favor, inténtalo de nuevo.',
+        confirmButtonText: 'OK',
+      });
+    }
+  };
 
-	return (
-		<Modal
-			isOpen={isOpen}
-			onRequestClose={onClose}
-			contentLabel="Eliminar Tipo de Moneda"
-			className="modalTipoMoneda"
-		>
-			<div className="mainDiv_modalTipoMoneda">
-				<h2>Eliminar Tipo de Moneda</h2>
+  return (
+    <Modal
+      isOpen={isOpen}
+      onRequestClose={onClose}
+      contentLabel="Eliminar Tipo de Moneda"
+      className="modalTipoMoneda"
+    >
+      <div className="mainDiv_modalTipoMoneda">
+        <h2>Eliminar Tipo de Moneda</h2>
 
-				<div className='divDeleteTipoMoneda'>
-					<p>
+        <div className='divDeleteTipoMoneda'>
+          <p>
 						¿Quiere eliminar el tipo de moneda <br /> <strong>{tipoMonedaToDelete?.descripcion_tipomoneda}</strong>?
-					</p>
-				</div>
+          </p>
+        </div>
 
-				<ModalButtons
-					buttons={[
-						{
-							text: 'Eliminar',
-							type: 'button',
-							className: 'button_delete',
-							onClick: handleDelete,
-						},
-						{
-							text: 'Cancelar',
-							type: 'button',
-							className: 'button_close',
-							onClick: onClose,
-						},
-					]}
-				/>
-			</div>
-		</Modal>
-	);
+        <ModalButtons
+          buttons={[
+            {
+              text: 'Eliminar',
+              type: 'button',
+              className: 'button_delete',
+              onClick: handleDelete,
+            },
+            {
+              text: 'Cancelar',
+              type: 'button',
+              className: 'button_close',
+              onClick: onClose,
+            },
+          ]}
+        />
+      </div>
+    </Modal>
+  );
 };
 
 export default DeleteTipoMoneda;

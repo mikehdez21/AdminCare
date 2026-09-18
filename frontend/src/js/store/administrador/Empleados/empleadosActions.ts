@@ -1,32 +1,31 @@
-import axios from 'axios';
-import { API_BASE_URL } from '@/variableApi';
+import { isAxiosError } from 'axios';
 import { Empleados } from '@/@types/mainTypes';
+import { type PaginacionMeta, type PaginacionParams } from '@/@types/paginacionTypes';
 import { formatDateHorasToFrontend, formatDateNacimientoToFrontend, getFechaHoraActual } from '@/utils/dateFormat';
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import api, { API_BASE_URL } from '@/variableApi';
+import { getBackendErrorMessage } from '@/store/shared/errorMessage';
+
+// ---------------------------------------------------------------------------
+// Resultado común de las consultas de empleados.
+// `meta` solo está presente cuando la consulta fue paginada (page/per_page).
+// ---------------------------------------------------------------------------
+export interface ResultadoEmpleados {
+  success: boolean;
+  empleados?: Empleados[];
+  meta?: PaginacionMeta | null;
+  message: string;
+}
 
 // Agregar un nuevo empleado
 export const addEmpleado = createAsyncThunk<{ success: boolean; empleados?: Empleados[]; message: string }, FormData>(
   '/addEmpleado',
   async (nuevoEmpleado: FormData) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, {
-        withCredentials: true,
-      });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
       console.log('EmpleadoToAdd:', nuevoEmpleado);
 
-      const response = await axios.post(`${API_BASE_URL}/api/HSS1/admin/empleados`, nuevoEmpleado, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'X-CSRF-TOKEN': csrfToken || '',
-        },
-        withCredentials: true,
-      });
-
-
-
-
+      const response = await api.post(`${API_BASE_URL}/api/HSS1/admin/empleados`, nuevoEmpleado);
 
       return {
         success: response.data.success,
@@ -34,10 +33,10 @@ export const addEmpleado = createAsyncThunk<{ success: boolean; empleados?: Empl
         message: response.data.message,
       };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -50,22 +49,17 @@ export const addEmpleado = createAsyncThunk<{ success: boolean; empleados?: Empl
 );
 
 // Obtener todos los empleados
-export const getEmpleados = createAsyncThunk<{ success: boolean; empleados?: Empleados[]; message: string }, void>(
+// - Sin argumentos: devuelve la lista completa (comportamiento original).
+// - Con PaginacionParams: devuelve la página solicitada + `meta`.
+export const getEmpleados = createAsyncThunk<ResultadoEmpleados, PaginacionParams | void>(
   '/getEmpleados',
-  async () => {
+  async (params: PaginacionParams | void) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, {
-        withCredentials: true,
-      });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/admin/empleados`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken || '',
-        },
-        withCredentials: true,
-      });
+      const response = await api.get(
+        `${API_BASE_URL}/api/HSS1/admin/empleados`,
+        params ? { params } : undefined,
+      );
 
       const empleadosFormateados = response.data.data.map((empleado: Empleados) => {
         return {
@@ -83,13 +77,14 @@ export const getEmpleados = createAsyncThunk<{ success: boolean; empleados?: Emp
       return {
         success: response.data.success,
         empleados: empleadosFormateados as Empleados[],
+        meta: response.data.meta ?? null,
         message: response.data.message,
       };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -102,26 +97,17 @@ export const getEmpleados = createAsyncThunk<{ success: boolean; empleados?: Emp
 );
 
 // Editar un empleado existente
-export const editEmpleado = createAsyncThunk<{ success: boolean; message: string }, Empleados>(
+export const editEmpleado = createAsyncThunk<{ success: boolean; message: string }, FormData>(
   '/editEmpleado',
-  async (empleadoEditado: Empleados) => {
+  async (empleadoEditado: FormData) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, {
-        withCredentials: true,
-      });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      console.log(csrfToken);
 
-      const response = await axios.put(
-        `${API_BASE_URL}/api/HSS1/admin/empleados/${empleadoEditado.id_empleado}`,
-        empleadoEditado,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        },
+      // Agregar el método PUT para Laravel
+      empleadoEditado.append('_method', 'PUT');
+
+      const response = await api.post(
+        `${API_BASE_URL}/api/HSS1/admin/empleados/${empleadoEditado.get('id_empleado')}`,
+        empleadoEditado
       );
 
       return {
@@ -129,10 +115,10 @@ export const editEmpleado = createAsyncThunk<{ success: boolean; message: string
         message: response.data.message,
       };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -149,26 +135,15 @@ export const bajaEmpleado = createAsyncThunk<{ success: boolean; message: string
   '/bajaEmpleado',
   async (empleadoBaja: Empleados) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, {
-        withCredentials: true,
-      });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
       console.log('Empleado a dar de baja:', empleadoBaja);
 
-      const response = await axios.put(
+      const response = await api.put(
         `${API_BASE_URL}/api/HSS1/admin/empleados/${empleadoBaja.id_empleado}/bajaEmpleado`,
         {
           estatus_activo: false,
           fecha_baja: getFechaHoraActual(),
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        },
+        }
       );
 
       return {
@@ -176,10 +151,10 @@ export const bajaEmpleado = createAsyncThunk<{ success: boolean; message: string
         message: response.data.message,
       };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -197,25 +172,16 @@ export const deleteEmpleado = createAsyncThunk<{ success: boolean; message: stri
   '/deleteEmpleado',
   async (empleadoEliminado: Empleados) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      const response = await axios.delete(
-        `${API_BASE_URL}/api/HSS1/admin/empleados/${empleadoEliminado.id_empleado}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+      const response = await api.delete(
+        `${API_BASE_URL}/api/HSS1/admin/empleados/${empleadoEliminado.id_empleado}`
       );
     
       return { success: response.data.success, message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
     

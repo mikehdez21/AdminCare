@@ -1,37 +1,27 @@
-import axios from 'axios';
+import { isAxiosError } from 'axios';
 import { TiposMoneda } from '@/@types/fiscalTypes';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat';
-import { API_BASE_URL } from '@/variableApi';
-import type { RootState } from '@/store/store';
-
+import api, { API_BASE_URL } from '@/variableApi';
+import { getBackendErrorMessage } from '@/store/shared/errorMessage';
 
 // Agregar un nuevo Tipo de Moneda
 export const addTipoMoneda = createAsyncThunk<{ success: boolean; message: string }, TiposMoneda>(
   'almacengeneral/addTipoMoneda',
   async (nuevoTipo: TiposMoneda) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.post(
+      const response = await api.post(
         `${API_BASE_URL}/api/HSS1/almacengeneral/tiposmoneda`,
-        nuevoTipo,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+        nuevoTipo
       );
 
       return { success: response.data.success, message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -43,25 +33,13 @@ export const addTipoMoneda = createAsyncThunk<{ success: boolean; message: strin
   }
 );
 
-
 // Obtener los tipos de moneda registrados
 export const getTiposMoneda = createAsyncThunk<{ success: boolean; tiposMoneda?: []; message: string }>(
   'almacengeneral/getTiposMoneda',
-  async (_, { getState }) => {
-    const state = getState() as RootState;
-
-    if (state.fiscal.tiposMoneda.length > 0) {
-      return {
-        success: true,
-        tiposMoneda: state.fiscal.tiposMoneda as [],
-        message: 'Tipos de moneda cargados desde cache local',
-      };
-    }
-
+  async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/tiposmoneda`, {
-        withCredentials: true,
-      });
+
+      const response = await api.get(`${API_BASE_URL}/api/HSS1/almacengeneral/tiposmoneda`);
 
       const tiposFormateados = response.data.data.map((tipo: TiposMoneda) => ({
         ...tipo,
@@ -71,10 +49,10 @@ export const getTiposMoneda = createAsyncThunk<{ success: boolean; tiposMoneda?:
 
       return { success: response.data.success, tiposMoneda: tiposFormateados, message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -85,34 +63,24 @@ export const getTiposMoneda = createAsyncThunk<{ success: boolean; tiposMoneda?:
     }
   }
 );
-
 
 // Editar un Tipo de Moneda
 export const editTipoMoneda = createAsyncThunk<{ success: boolean; message: string }, TiposMoneda>(
   'almacengeneral/editTipoMoneda',
   async (tipoEditado: TiposMoneda) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.put(
+      const response = await api.put(
         `${API_BASE_URL}/api/HSS1/almacengeneral/tiposmoneda/${tipoEditado.id_tipomoneda}`,
-        tipoEditado,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+        tipoEditado
       );
 
       return { success: response.data.success, message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -124,32 +92,22 @@ export const editTipoMoneda = createAsyncThunk<{ success: boolean; message: stri
   }
 );
 
-
 // Eliminar un Tipo de Moneda
 export const deleteTipoMoneda = createAsyncThunk<{ success: boolean; message: string }, TiposMoneda>(
   'almacengeneral/deleteTipoMoneda',
   async (tipoEliminado: TiposMoneda) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.delete(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/tiposmoneda/${tipoEliminado.id_tipomoneda}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+      const response = await api.delete(
+        `${API_BASE_URL}/api/HSS1/almacengeneral/tiposmoneda/${tipoEliminado.id_tipomoneda}`
       );
 
       return { success: response.data.success, message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 

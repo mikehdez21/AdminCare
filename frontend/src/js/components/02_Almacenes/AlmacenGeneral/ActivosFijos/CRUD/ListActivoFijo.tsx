@@ -1,5 +1,5 @@
 // Bibliotecas
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { RootState, AppDispatch } from '@/store/store'; // Asegúrate de importar AppDispatch
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -7,7 +7,17 @@ import { useNavigate } from 'react-router-dom';
 
 // Activos Fijos
 import { ActivosFijos } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
-import { getActivosFijos, getActivosFijosDadosDeBaja, getActivosFijosNoPropios, getActivosFijosPorClasificacion, getActivosFijosPorDepartamento, getActivosFijosPorResponsable, getActivosFijosPorUbicacion } from '@/store/almacengeneral/Activos/activosActions';
+import type { PaginacionMeta, PaginacionParams } from '@/@types/paginacionTypes';
+import {
+  getActivosFijos,
+  getActivosFijosDadosDeBaja,
+  getActivosFijosNoPropios,
+  getActivosFijosPorClasificacion,
+  getActivosFijosPorDepartamento,
+  getActivosFijosPorResponsable,
+  getActivosFijosPorUbicacion,
+  getActivosFijosMenores
+} from '@/store/almacengeneral/Activos/activosActions';
 
 // Componentes
 import Paginacion from '@/components/00_Utils/Paginacion';
@@ -16,16 +26,15 @@ import EditActivoFijo from './EditActivoFijo';
 import DeleteActivoFijo from './DeleteActivoFijo';
 import CheckAF from '../CheckAFs';
 import ResumenAF from '../ResumenAF';
-import { formatDateHorasToFrontend } from '@/utils/dateFormat';
-import { formatMexicanCurrency } from '@/utils/numbersFormat';
+import TablaActivosFijos from './subcomponents/TablaActivosFijos';
+import { usePaginacionServidor } from '@/hooks/usePaginacionServidor';
 
 
 // Icons
 import { IoAddCircleOutline } from 'react-icons/io5';
-import { MdEdit, MdDeleteForever } from 'react-icons/md';
 import { FiAlertTriangle } from 'react-icons/fi';
-import { FaListCheck } from "react-icons/fa6";
-import { FaChartBar } from "react-icons/fa";
+import { FaListCheck } from 'react-icons/fa6';
+import { FaChartBar } from 'react-icons/fa';
 
 
 
@@ -39,10 +48,11 @@ interface ListActivoFijoProps {
   EmpleadoSeleccionado?: number;
   ActivosBajas?: boolean;
   ActivosNoPropios?: boolean;
+  ActivosMenores?: boolean;
 }
 
 
-const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccionado, UbicacionSeleccionada, ClasificacionSeleccionada, EmpleadoSeleccionado, ActivosBajas, ActivosNoPropios }) => {
+const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccionado, UbicacionSeleccionada, ClasificacionSeleccionada, EmpleadoSeleccionado, ActivosBajas, ActivosNoPropios, ActivosMenores }) => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
 
@@ -61,139 +71,79 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
   const [actualizarActivosFijos, setActualizarActivosFijos] = useState(false);
 
 
+  // -------------------------------------------------------------------------
+  // Carga de la lista COMPLETA de la variante (para los modales de Inventario
+  // y Resumen, y para poblar el store como se hacía antes de la paginación
+  // servidor). La tabla usa la paginación servidor por separado.
+  // -------------------------------------------------------------------------
   useEffect(() => {
+    // Helper único para el patrón dispatch(unwrap) + setActivosFiltrados de las 8 ramas,
+    // conservando el mensaje de error original de cada rama.
+    const ejecutarCargaActivos = async (
+      cargar: () => Promise<{ success: boolean; activosFijos?: ActivosFijos[] }>,
+      mensajeError: string,
+    ) => {
+      try {
+        const resultAction = await cargar();
+        if (resultAction.success && resultAction.activosFijos) {
+          setActivosFiltrados(resultAction.activosFijos);
+        } else {
+          setActivosFiltrados([]);
+        }
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.error(mensajeError, error);
+        }
+      }
+    };
 
     if (DepartamentoSeleccionado) {
-      const cargarAFporDepartamento = async () => {
-        try {
-
-          const resultAction = await dispatch(getActivosFijosPorDepartamento(DepartamentoSeleccionado!)).unwrap();
-          console.log('Activos Fijos por Departamento cargados:', resultAction.activosFijos);
-          if (resultAction.success && resultAction.activosFijos) {
-            setActivosFiltrados(resultAction.activosFijos);
-          } else {
-            setActivosFiltrados([]);
-          }
-
-        } catch (error) {
-          console.error('Error al cargar los activos fijos por departamento:', error);
-        }
-
-
-      };
-      cargarAFporDepartamento();
-
+      void ejecutarCargaActivos(
+        () => dispatch(getActivosFijosPorDepartamento(DepartamentoSeleccionado)).unwrap(),
+        'Error al cargar los activos fijos por departamento:',
+      );
     } else if (UbicacionSeleccionada) {
-      const cargarAFporUbicacion = async () => {
-        try {
-          const resultAction = await dispatch(getActivosFijosPorUbicacion(UbicacionSeleccionada!)).unwrap();
-          console.log('Activos Fijos por Ubicación cargados:', resultAction.activosFijos);
-          if (resultAction.success && resultAction.activosFijos) {
-            setActivosFiltrados(resultAction.activosFijos);
-          } else {
-            setActivosFiltrados([]);
-          }
-        } catch (error) {
-          console.error('Error al cargar los activos fijos por ubicación:', error);
-        }
-      };
-      cargarAFporUbicacion();
-
+      void ejecutarCargaActivos(
+        () => dispatch(getActivosFijosPorUbicacion(UbicacionSeleccionada)).unwrap(),
+        'Error al cargar los activos fijos por ubicación:',
+      );
     } else if (ClasificacionSeleccionada) {
-      const cargarAFporClasificacion = async () => {
-        try {
-          const resultAction = await dispatch(getActivosFijosPorClasificacion(ClasificacionSeleccionada!)).unwrap();
-          console.log('Activos Fijos por Clasificación cargados:', resultAction.activosFijos);
-          if (resultAction.success && resultAction.activosFijos) {
-            setActivosFiltrados(resultAction.activosFijos);
-          } else {
-            setActivosFiltrados([]);
-          }
-        } catch (error) {
-          console.error('Error al cargar los activos fijos por clasificación:', error);
-        }
-      };
-      cargarAFporClasificacion();
-
+      void ejecutarCargaActivos(
+        () => dispatch(getActivosFijosPorClasificacion(ClasificacionSeleccionada)).unwrap(),
+        'Error al cargar los activos fijos por clasificación:',
+      );
     } else if (EmpleadoSeleccionado) {
-      const cargarAFporEmpleado = async () => {
-        try {
-          const resultAction = await dispatch(getActivosFijosPorResponsable(EmpleadoSeleccionado!)).unwrap();
-          console.log('Activos Fijos por Empleado cargados:', resultAction.activosFijos);
-          if (resultAction.success && resultAction.activosFijos) {
-            setActivosFiltrados(resultAction.activosFijos);
-          } else {
-            setActivosFiltrados([]);
-          }
-        } catch (error) {
-          console.error('Error al cargar los activos fijos por empleado:', error);
-        }
-      };
-      cargarAFporEmpleado();
+      void ejecutarCargaActivos(
+        () => dispatch(getActivosFijosPorResponsable(EmpleadoSeleccionado)).unwrap(),
+        'Error al cargar los activos fijos por empleado:',
+      );
     } else if (ActivosBajas) {
-      navigate('/almacen_general/activosfijos-bajas');
-      const cargarAFBajas = async () => {
-        try {
-          const resultAction = await dispatch(getActivosFijosDadosDeBaja()).unwrap();
-          console.log('Activos Fijos dados de baja cargados:', resultAction.activosFijos);
-          if (resultAction.success && resultAction.activosFijos) {
-            setActivosFiltrados(resultAction.activosFijos);
-          } else {
-            setActivosFiltrados([]);
-          }
-        } catch (error) {
-          console.error('Error al cargar los activos fijos dados de baja:', error);
-        }
-      };
-      cargarAFBajas();
-
+      navigate('/almacen-general/activos-fijos-bajas');
+      void ejecutarCargaActivos(
+        () => dispatch(getActivosFijosDadosDeBaja()).unwrap(),
+        'Error al cargar los activos fijos dados de baja:',
+      );
     } else if (ActivosNoPropios) {
-      const cargarAFNoPropios = async () => {
-        try {
-          const resultAction = await dispatch(getActivosFijosNoPropios()).unwrap();
-          console.log('Activos Fijos no propios cargados:', resultAction.activosFijos);
-          if (resultAction.success && resultAction.activosFijos) {
-            setActivosFiltrados(resultAction.activosFijos);
-          } else {
-            setActivosFiltrados([]);
-          }
-        } catch (error) {
-          console.error('Error al cargar los activos fijos no propios:', error);
-        }
-      };
-      cargarAFNoPropios();
-    } else if (!DepartamentoSeleccionado && !UbicacionSeleccionada && !ClasificacionSeleccionada && !EmpleadoSeleccionado && !ActivosBajas && !ActivosNoPropios) {
-      const cargarActivosFijos = async () => {
-        navigate('/almacen_general/activosfijos');
-        try {
-          const resultAction = await dispatch(getActivosFijos()).unwrap();
-          console.log('Todos los Activos Fijos cargados:', resultAction.activosFijos);
-          if (resultAction.success && resultAction.activosFijos) {
-            setActivosFiltrados(resultAction.activosFijos);
-          } else {
-            setActivosFiltrados([]);
-          }
-        } catch (error) {
-          console.error('Error al cargar los activos fijos:', error);
-        }
-      };
-      cargarActivosFijos();
-
+      void ejecutarCargaActivos(
+        () => dispatch(getActivosFijosNoPropios()).unwrap(),
+        'Error al cargar los activos fijos no propios:',
+      );
+    } else if (ActivosMenores) {
+      void ejecutarCargaActivos(
+        () => dispatch(getActivosFijosMenores()).unwrap(),
+        'Error al cargar los activos fijos menores:',
+      );
+    } else if (!DepartamentoSeleccionado && !UbicacionSeleccionada && !ClasificacionSeleccionada && !EmpleadoSeleccionado && !ActivosBajas && !ActivosNoPropios && !ActivosMenores) {
+      navigate('/almacen-general/activos-fijos');
+      void ejecutarCargaActivos(
+        () => dispatch(getActivosFijos()).unwrap(),
+        'Error al cargar los activos fijos:',
+      );
     } else if (actualizarActivosFijos) {
-      const cargarActivosFijos = async () => {
-        try {
-          const resultAction = await dispatch(getActivosFijos()).unwrap();
-          console.log('Actualización: Todos los Activos Fijos cargados:', resultAction.activosFijos);
-          if (resultAction.success && resultAction.activosFijos) {
-            setActivosFiltrados(resultAction.activosFijos);
-          } else {
-            setActivosFiltrados([]);
-          }
-        } catch (error) {
-          console.error('Error al cargar los activos fijos:', error);
-        }
-      };
-      cargarActivosFijos();
+      void ejecutarCargaActivos(
+        () => dispatch(getActivosFijos()).unwrap(),
+        'Error al cargar los activos fijos:',
+      );
     }
 
   }, [
@@ -203,37 +153,146 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
     EmpleadoSeleccionado,
     ActivosBajas,
     ActivosNoPropios,
+    ActivosMenores,
     actualizarActivosFijos,
     dispatch,
     navigate,
   ]);
 
-  const infoDepartamento = useSelector((state: RootState) => {
-    if (DepartamentoSeleccionado) {
-      const nombreDepartamento = state.departamentos.departamentos.find(depto => depto.id_departamento === DepartamentoSeleccionado)?.nombre_departamento;
-      return { ...state.departamentos.departamentos.find(depto => depto.id_departamento === DepartamentoSeleccionado), nombre_departamento: nombreDepartamento };
-    } else {
-      return undefined;
-    }
+  // -------------------------------------------------------------------------
+  // Paginación servidor: fetcher que llama al thunk de la variante activa con
+  // { page, per_page, search } (mismo orden de prioridad que la carga completa).
+  // -------------------------------------------------------------------------
+  const fetcher = useCallback(
+    async (params: PaginacionParams): Promise<{ data: ActivosFijos[]; meta: PaginacionMeta | null }> => {
+      if (DepartamentoSeleccionado) {
+        const resultAction = await dispatch(getActivosFijosPorDepartamento({ id: DepartamentoSeleccionado, ...params })).unwrap();
+        if (resultAction.success && resultAction.activosFijos) {
+          return { data: resultAction.activosFijos, meta: resultAction.meta ?? null };
+        }
+        throw new Error(resultAction.message || 'Error al obtener los activos fijos por departamento');
+      }
+      if (UbicacionSeleccionada) {
+        const resultAction = await dispatch(getActivosFijosPorUbicacion({ id: UbicacionSeleccionada, ...params })).unwrap();
+        if (resultAction.success && resultAction.activosFijos) {
+          return { data: resultAction.activosFijos, meta: resultAction.meta ?? null };
+        }
+        throw new Error(resultAction.message || 'Error al obtener los activos fijos por ubicación');
+      }
+      if (ClasificacionSeleccionada) {
+        const resultAction = await dispatch(getActivosFijosPorClasificacion({ id: ClasificacionSeleccionada, ...params })).unwrap();
+        if (resultAction.success && resultAction.activosFijos) {
+          return { data: resultAction.activosFijos, meta: resultAction.meta ?? null };
+        }
+        throw new Error(resultAction.message || 'Error al obtener los activos fijos por clasificación');
+      }
+      if (EmpleadoSeleccionado) {
+        const resultAction = await dispatch(getActivosFijosPorResponsable({ id: EmpleadoSeleccionado, ...params })).unwrap();
+        if (resultAction.success && resultAction.activosFijos) {
+          return { data: resultAction.activosFijos, meta: resultAction.meta ?? null };
+        }
+        throw new Error(resultAction.message || 'Error al obtener los activos fijos por empleado');
+      }
+      if (ActivosBajas) {
+        const resultAction = await dispatch(getActivosFijosDadosDeBaja(params)).unwrap();
+        if (resultAction.success && resultAction.activosFijos) {
+          return { data: resultAction.activosFijos, meta: resultAction.meta ?? null };
+        }
+        throw new Error(resultAction.message || 'Error al obtener los activos fijos dados de baja');
+      }
+      if (ActivosNoPropios) {
+        const resultAction = await dispatch(getActivosFijosNoPropios(params)).unwrap();
+        if (resultAction.success && resultAction.activosFijos) {
+          return { data: resultAction.activosFijos, meta: resultAction.meta ?? null };
+        }
+        throw new Error(resultAction.message || 'Error al obtener los activos fijos no propios');
+      }
+      if (ActivosMenores) {
+        const resultAction = await dispatch(getActivosFijosMenores(params)).unwrap();
+        if (resultAction.success && resultAction.activosFijos) {
+          return { data: resultAction.activosFijos, meta: resultAction.meta ?? null };
+        }
+        throw new Error(resultAction.message || 'Error al obtener los activos fijos menores');
+      }
+
+      const resultAction = await dispatch(getActivosFijos(params)).unwrap();
+      if (resultAction.success && resultAction.activosFijos) {
+        return { data: resultAction.activosFijos, meta: resultAction.meta ?? null };
+      }
+      throw new Error(resultAction.message || 'Error al obtener los activos fijos');
+    },
+    [
+      DepartamentoSeleccionado,
+      UbicacionSeleccionada,
+      ClasificacionSeleccionada,
+      EmpleadoSeleccionado,
+      ActivosBajas,
+      ActivosNoPropios,
+      ActivosMenores,
+      dispatch,
+    ],
+  );
+
+  // Búsqueda + paginación servidor
+  const {
+    busqueda,
+    paginaActual,
+    setPaginaActual,
+    perPage: activosFijosPorPagina,
+    items: activosFijosPaginaActual,
+    totalItems: totalActivosFijos,
+    numeroTotalPaginas,
+    loading,
+    refetch,
+    handleSearch,
+    handleChangePerPage: handleChangeActivosFijosPorPagina,
+  } = usePaginacionServidor<ActivosFijos>({
+    fetcher,
+    perPageDefault: 5,
   });
 
-  const infoUbicacion = useSelector((state: RootState) => {
-    if (UbicacionSeleccionada) {
-      const nombreUbicacion = state.ubicaciones.ubicaciones.find(ubic => ubic.id_ubicacion === UbicacionSeleccionada)?.nombre_ubicacion;
-      return { ...state.ubicaciones.ubicaciones.find(ubic => ubic.id_ubicacion === UbicacionSeleccionada), nombre_ubicacion: nombreUbicacion };
-    } else {
-      return undefined;
+  // Refrescar la página actual de la tabla tras crear/editar desde los modales.
+  useEffect(() => {
+    if (actualizarActivosFijos) {
+      refetch();
     }
-  });
+  }, [actualizarActivosFijos, refetch]);
 
-  const infoClasificacion = useSelector((state: RootState) => {
-    if (ClasificacionSeleccionada) {
-      const nombreClasificacion = state.clasificacion.clasificacionesAF.find(clasif => clasif.id_clasificacion === ClasificacionSeleccionada)?.nombre_clasificacion;
-      return { ...state.clasificacion.clasificacionesAF.find(clasif => clasif.id_clasificacion === ClasificacionSeleccionada), nombre_clasificacion: nombreClasificacion };
-    } else {
+  // Listas base del store (referencias estables) para derivar el título del filtro activo.
+  const departamentos = useSelector((state: RootState) => state.departamentos.departamentos);
+  const ubicaciones = useSelector((state: RootState) => state.ubicaciones.ubicaciones);
+
+  // Información del filtro activo. Se memoiza para no crear objetos nuevos en cada render
+  // (antes eran selectores inline que retornaban objetos nuevos en cada render).
+  const infoDepartamento = useMemo(() => {
+    if (!DepartamentoSeleccionado) {
       return undefined;
     }
-  });
+
+    const departamento = departamentos.find((depto) => depto.id_departamento === DepartamentoSeleccionado);
+
+    return { ...departamento, nombre_departamento: departamento?.nombre_departamento };
+  }, [DepartamentoSeleccionado, departamentos]);
+
+  const infoUbicacion = useMemo(() => {
+    if (!UbicacionSeleccionada) {
+      return undefined;
+    }
+
+    const ubicacion = ubicaciones.find((ubic) => ubic.id_ubicacion === UbicacionSeleccionada);
+
+    return { ...ubicacion, nombre_ubicacion: ubicacion?.nombre_ubicacion };
+  }, [UbicacionSeleccionada, ubicaciones]);
+
+  const infoClasificacion = useMemo(() => {
+    if (!ClasificacionSeleccionada) {
+      return undefined;
+    }
+
+    const clasificacion = clasificacionActivoFijo.find((clasif) => clasif.id_clasificacion === ClasificacionSeleccionada);
+
+    return { ...clasificacion, nombre_clasificacion: clasificacion?.nombre_clasificacion };
+  }, [ClasificacionSeleccionada, clasificacionActivoFijo]);
 
   const infoLugarSeleccionado = () => {
     if (DepartamentoSeleccionado && infoDepartamento) {
@@ -251,50 +310,14 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
     if (ActivosNoPropios) {
       return 'Activos que No son Propios';
     }
+    if (ActivosMenores) {
+      return 'Activos Menores';
+    }
     return 'Todos los Activos';
   };
 
 
-  const totalActivosFijos = activosFiltrados.length;
   const [activoFijoToEdit_Delete, setActivoFijoToEdit_Delete] = useState<ActivosFijos | null>(null);
-
-  const [busqueda, setBusqueda] = useState<string>('');
-  const [paginaActual, setPaginaActual] = useState<number>(1);
-  const [activosFijosPorPagina, setActivosFijosPorPagina] = useState<number>(5);
-
-
-  // Filtrar y ordenar activos fijos basados en la búsqueda
-  const activosFijosFiltrados = Array.isArray(activosFiltrados)
-    ? activosFiltrados
-      .filter(activo =>
-        (activo.descripcion_af || '').toLowerCase().includes((busqueda || '').toLowerCase()) ||
-        activo.id_activo_fijo?.toString().includes(busqueda || '') ||
-        (activo.codigo_lote || '').toLowerCase().includes((busqueda || '').toLowerCase())
-      )
-      .sort((a, b) => a.id_activo_fijo! - b.id_activo_fijo!) // Orden ascendente por ID
-    : [];
-
-
-  // Obtener los activos para la página actual
-  const indexUltimoActivoFijo = paginaActual * activosFijosPorPagina;
-  const indexPrimerActivoFijo = indexUltimoActivoFijo - activosFijosPorPagina;
-  const activosFijosPaginaActual = activosFijosFiltrados.slice(indexPrimerActivoFijo, indexUltimoActivoFijo);
-
-  // Calcular el número total de páginas
-  const numeroTotalPaginas = Math.ceil(activosFijosFiltrados.length / activosFijosPorPagina);
-
-
-  // Manejar cambio de búsqueda
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setBusqueda(e.target.value);
-    setPaginaActual(1); // Reiniciar a la primera página al hacer una búsqueda
-  };
-
-  // Manejar cambio en el número de activos por página
-  const handleChangeActivosFijosPorPagina = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setActivosFijosPorPagina(Number(e.target.value));
-    setPaginaActual(1); // Reiniciar a la primera página al cambiar el número de activos por página
-  };
 
 
   // Añadir ActivoFijo
@@ -414,7 +437,7 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
 
 
           {/* Mostrar solo cuando es ver todos los activos */}
-          {(!DepartamentoSeleccionado && !UbicacionSeleccionada && !ClasificacionSeleccionada && !EmpleadoSeleccionado && !ActivosBajas && !ActivosNoPropios) && (
+          {(!DepartamentoSeleccionado && !UbicacionSeleccionada && !ClasificacionSeleccionada && !EmpleadoSeleccionado && !ActivosBajas && !ActivosNoPropios && !ActivosMenores) && (
             <button className='buttonAdd' onClick={openModalAddActivoFijo}>
               <IoAddCircleOutline className='iconAdd' /> <p>  Nuevo Activo Fijo </p>
             </button>
@@ -432,7 +455,7 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
       </div>
 
 
-      {activosFijosFiltrados && activosFijosFiltrados.length === 0 ? (
+      {!loading && activosFijosPaginaActual.length === 0 ? (
         <div className='noEntities'>
           <FiAlertTriangle /> <p>  No hay activos fijos registrados </p> <FiAlertTriangle />
         </div>
@@ -447,147 +470,13 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
             onPaginaSiguiente={() => setPaginaActual(paginaActual + 1)}
           />
 
-          <div className='list_entitiesDiv'>
-            <table>
-
-              <thead>
-                <tr>
-                  <th id='th_ID'>ID</th>
-                  <th id='th_CodigoUnico'>Código Único</th>
-                  <th id='th_CodigoLote'>Lote</th>
-                  <th id='th_NombreAF'>Nombre ActivoFijo</th>
-                  <th id='th_Descripcion'>Descripción</th>
-                  <th id='th_Modelo'>Modelo</th>
-                  <th id='th_Marca'>Marca</th>
-                  <th id='th_NumeroSerie'>Número de Serie</th>
-                  <th id='th_CostoUnitario'>Costo Unitario</th>
-                  <th id='th_AFPropio'>Activo Propio</th>
-                  <th id='th_EstadoAF'>Estado del Activo</th>
-                  <th id='th_ClasificacionAF'>Clasificación</th>
-                  <th id='th_FechaRegistro'>Fecha Registro</th>
-                  <th id='th_DepreciacionAplicada'>Depreciación</th>
-                  <th id='th_Observaciones'>Observaciones</th>
-                  <th id='th_FechaCreacion'>Fecha Creación</th>
-                  <th id='th_FechaModificacion'>Fecha Modificación</th>
-                  <th id='th_Acciones'>ACCIONES</th>
-
-                </tr>
-              </thead>
-
-              <tbody>
-                {activosFijosPaginaActual.map(activoFijo => (
-                  <tr key={activoFijo.id_activo_fijo}>
-
-                    <td id='td_ID'>{activoFijo.id_activo_fijo}</td>
-                    <td id='td_CodigoUnico'>{activoFijo.codigo_unico}</td>
-                    <td id='td_CodigoLote'>
-                      <p className='CodigoLote'>
-                        {activoFijo.codigo_lote
-                          ? `${activoFijo.codigo_lote} (${activoFijo.lote_afconsecutivo || '-'} / ${activoFijo.lote_total || '-'})`
-                          : '-'}
-
-                      </p>
-                    </td>
-
-
-                    <td id='td_NombreAF'>
-                      <p className='NombreAF'>
-                        {activoFijo.nombre_af} <strong>{activoFijo.af_propio === false ? ' (Comodato)' : ''}</strong>
-                      </p>
-                    </td>
-
-                    <td id='td_Descripcion'>
-                      <div className='divDescripcionAF'>
-                        {activoFijo.descripcion_af}
-                      </div>
-                    </td>
-
-                    <td id='td_Modelo'>
-                      <div className='divModeloAF'>
-                        {activoFijo.modelo_af}
-                      </div>
-                    </td>
-                    <td id='td_Marca'>{activoFijo.marca_af}</td>
-
-                    <td id='td_NumeroSerie'>
-                      <div className='divNumeroSerieAF'>
-                        {activoFijo.numero_serie_af}
-                      </div>
-                    </td>
-                    <td id='td_CostoUnitario'>{formatMexicanCurrency(activoFijo.costo_unitario_af)}</td>
-                    <td id='td_AFPropio'>{activoFijo.af_propio ? 'Sí' : 'No'}</td>
-
-                    <td id='td_EstadoAF'>
-                      {estatusActivoFijo.map((estatusAF) => {
-                        if (activoFijo.id_estado_af !== estatusAF.id_estatusaf) return null;
-
-                        const getEstatusClass = (descripcion: string) => {
-                          const estatus = descripcion.toLowerCase().trim();
-                          if (estatus === 'activo') return 'estatus-activo';
-                          if (estatus.includes('mantenimiento') || estatus.includes('revisión')) return 'estatus-mantenimiento-revision';
-                          if (estatus.includes('baja') || estatus === 'perdido') return 'estatus-baja-perdido';
-                          if (estatus === 'prestado') return 'estatus-prestado';
-                          return 'estatus-default';
-                        };
-
-                        return (
-                          <div key={estatusAF.id_estatusaf} className={`estatus-badge ${getEstatusClass(estatusAF.descripcion_estatusaf)}`}>
-                            {estatusAF.descripcion_estatusaf}
-                          </div>
-                        );
-                      })}
-                    </td>
-
-                    <td id='td_ClasificacionAF'>{clasificacionActivoFijo.map((clasificacionAF) => (
-                      <div key={clasificacionAF.id_clasificacion} className='divClasificacionAF'>
-                        {activoFijo.id_clasificacion === clasificacionAF.id_clasificacion ? clasificacionAF.nombre_clasificacion : ''}
-                      </div>
-                    ))}</td>
-
-
-                    <td id='td_FechaRegistro'>{formatDateHorasToFrontend(activoFijo.fecha_registro_af)}</td>
-
-                    <td id='td_DepreciacionAplicada'>
-                      {activoFijo.af_propio === false ? (
-                        <div className='badge depreciacion-aplicada-noaplica'>
-                          N/A
-                        </div>
-                      ) : (
-                        activoFijo.depreciacion_aplicada ? (
-
-                          <div className='badge depreciacion-aplicada-activa'>
-                            Activa
-                          </div>
-                        ) : (
-
-                          <div className='badge depreciacion-aplicada-inactiva'>
-                            Inactiva
-                          </div>
-                        )
-                      )}
-                    </td>
-
-                    <td id='td_Observaciones'>
-                      <div className='divObservacionesAF'>
-                        {activoFijo.observaciones_af}
-                      </div>
-                    </td>
-
-                    <td id='td_FechaCreacion'>{activoFijo.created_at}</td>
-                    <td id='td_FechaModificacion'>{activoFijo.updated_at}</td>
-
-                    <td id='td_Acciones'>
-                      <div className='divActions'>
-                        <button className='button_editEntity' onClick={() => openModalEditActivoFijo(activoFijo)}> <MdEdit /> </button>
-                        <button className='button_deleteEntity' onClick={() => openAlertDeleteActivoFijo(activoFijo)}><MdDeleteForever /> </button>
-                      </div>
-                    </td>
-
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <TablaActivosFijos
+            activosFijosPaginaActual={activosFijosPaginaActual}
+            estatusActivoFijo={estatusActivoFijo}
+            clasificacionActivoFijo={clasificacionActivoFijo}
+            onEdit={openModalEditActivoFijo}
+            onDelete={openAlertDeleteActivoFijo}
+          />
 
           {/* Paginación */}
           <Paginacion

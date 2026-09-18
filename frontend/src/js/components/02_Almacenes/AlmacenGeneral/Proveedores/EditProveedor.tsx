@@ -26,6 +26,8 @@ const EditProveedor: React.FC<EditProveedorProps> = ({ isOpen, onClose, proveedo
 
   const dispatch = useDispatch<AppDispatch>();
 
+  const upper = (value: string) => value.toUpperCase();
+
   const [nombreProveedor, setNombreProveedor] = useState<string>('');
   const [razonSocial, setRazonSocial] = useState<string>('');
   const [emailProveedor, setEmailProveedor] = useState<string>('');
@@ -137,7 +139,7 @@ const EditProveedor: React.FC<EditProveedorProps> = ({ isOpen, onClose, proveedo
         // Si el proveedor fue editado con éxito, recargar la lista de proveedores
         const proveedoresActualizados = await dispatch(getProveedores()).unwrap();
         if (proveedoresActualizados.success) {
-          dispatch(setListProveedor(proveedoresActualizados.proveedor!)); // Actualiza la lista de proveedores en el estado
+          dispatch(setListProveedor(proveedoresActualizados.proveedores!)); // Actualiza la lista de proveedores en el estado
         }
 
         Swal.fire({
@@ -190,7 +192,7 @@ const EditProveedor: React.FC<EditProveedorProps> = ({ isOpen, onClose, proveedo
                 <input
                   type="text"
                   value={nombreProveedor}
-                  onChange={(e) => setNombreProveedor(e.target.value)}
+                  onChange={(e) => setNombreProveedor(upper(e.target.value))}
                   required
                 />
               </label>
@@ -199,7 +201,7 @@ const EditProveedor: React.FC<EditProveedorProps> = ({ isOpen, onClose, proveedo
                 <input
                   type='text'
                   value={razonSocial}
-                  onChange={(e) => setRazonSocial(e.target.value)}
+                  onChange={(e) => setRazonSocial(upper(e.target.value))}
                   required
                 />
               </label>
@@ -239,7 +241,7 @@ const EditProveedor: React.FC<EditProveedorProps> = ({ isOpen, onClose, proveedo
                 <input
                   type="text"
                   value={RFCProveedor}
-                  onChange={(e) => setRFCProveedor(e.target.value)}
+                  onChange={(e) => setRFCProveedor(upper(e.target.value))}
                   required
                 />
               </label>

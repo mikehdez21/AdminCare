@@ -19,99 +19,99 @@ interface AddEstatusAFProps {
 Modal.setAppElement('#root');
 
 const AddEstatusAF: React.FC<AddEstatusAFProps> = ({ isOpen, onClose }) => {
-    const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useDispatch<AppDispatch>();
 
-    const [descripcionEstatusAF, setDescripcionEstatusAF] = useState<string>('');
+  const [descripcionEstatusAF, setDescripcionEstatusAF] = useState<string>('');
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-        try {
-            const nuevoEstatusAF: EstatusActivosFijos = {
-                descripcion_estatusaf: descripcionEstatusAF,
-            };
+    try {
+      const nuevoEstatusAF: EstatusActivosFijos = {
+        descripcion_estatusaf: descripcionEstatusAF,
+      };
 
-            const resultAction = await dispatch(addEstatusAF(nuevoEstatusAF)).unwrap();
+      const resultAction = await dispatch(addEstatusAF(nuevoEstatusAF)).unwrap();
 
-            if (resultAction.success) {
-                const estatusActualizados = await dispatch(getEstatusAF()).unwrap();
+      if (resultAction.success) {
+        const estatusActualizados = await dispatch(getEstatusAF()).unwrap();
 
-                if (estatusActualizados.success) {
-                    dispatch(setListEstatusAF(estatusActualizados.estatusAF ?? []));
-                }
-
-                setDescripcionEstatusAF('');
-
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Estatus de Activo Fijo añadido',
-                    text: 'El estatus de activo fijo ha sido añadido exitosamente.',
-                    confirmButtonText: 'OK',
-                });
-
-                onClose();
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: resultAction.message || 'No se pudo añadir el estatus de activo fijo.',
-                    confirmButtonText: 'OK',
-                });
-            }
-        } catch (error) {
-            console.error('Error al agregar el estatus de activo fijo: ', error);
-
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Hubo un problema al añadir el estatus de activo fijo. Por favor, inténtalo de nuevo.',
-                confirmButtonText: 'OK',
-            });
+        if (estatusActualizados.success) {
+          dispatch(setListEstatusAF(estatusActualizados.estatusAF ?? []));
         }
-    };
 
-    return (
-        <Modal
-            isOpen={isOpen}
-            onRequestClose={onClose}
-            contentLabel="Añadir Nuevo Estatus de Activo Fijo"
-            className="modalEstatusAF"
-        >
-            <div className="mainDiv_modalEstatusAF">
-                <h2>Añadir Nuevo Estatus de Activo Fijo</h2>
+        setDescripcionEstatusAF('');
 
-                <form className="formEstatusAF" onSubmit={handleSubmit}>
-                    <div className="dataInputs_EstatusAF">
-                        <label>
+        Swal.fire({
+          icon: 'success',
+          title: 'Estatus de Activo Fijo añadido',
+          text: 'El estatus de activo fijo ha sido añadido exitosamente.',
+          confirmButtonText: 'OK',
+        });
+
+        onClose();
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: resultAction.message || 'No se pudo añadir el estatus de activo fijo.',
+          confirmButtonText: 'OK',
+        });
+      }
+    } catch (error) {
+      console.error('Error al agregar el estatus de activo fijo: ', error);
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Hubo un problema al añadir el estatus de activo fijo. Por favor, inténtalo de nuevo.',
+        confirmButtonText: 'OK',
+      });
+    }
+  };
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onRequestClose={onClose}
+      contentLabel="Añadir Nuevo Estatus de Activo Fijo"
+      className="modalEstatusAF"
+    >
+      <div className="mainDiv_modalEstatusAF">
+        <h2>Añadir Nuevo Estatus de Activo Fijo</h2>
+
+        <form className="formEstatusAF" onSubmit={handleSubmit}>
+          <div className="dataInputs_EstatusAF">
+            <label>
                             *Descripción del Estatus:
-                            <input
-                                type="text"
-                                value={descripcionEstatusAF}
-                                onChange={(e) => setDescripcionEstatusAF(e.target.value)}
-                                required
-                            />
-                        </label>
+              <input
+                type="text"
+                value={descripcionEstatusAF}
+                onChange={(e) => setDescripcionEstatusAF(e.target.value)}
+                required
+              />
+            </label>
 
-                        <ModalButtons
-                            buttons={[
-                                {
-                                    text: 'Guardar',
-                                    type: 'submit',
-                                    className: 'button_addedit',
-                                },
-                                {
-                                    text: 'Cancelar',
-                                    type: 'button',
-                                    className: 'button_close',
-                                    onClick: onClose,
-                                },
-                            ]}
-                        />
-                    </div>
-                </form>
-            </div>
-        </Modal>
-    );
+            <ModalButtons
+              buttons={[
+                {
+                  text: 'Guardar',
+                  type: 'submit',
+                  className: 'button_addedit',
+                },
+                {
+                  text: 'Cancelar',
+                  type: 'button',
+                  className: 'button_close',
+                  onClick: onClose,
+                },
+              ]}
+            />
+          </div>
+        </form>
+      </div>
+    </Modal>
+  );
 };
 
 export default AddEstatusAF;

@@ -1,59 +1,38 @@
-import axios from 'axios';
-import { API_BASE_URL } from '@/variableApi';
+import { isAxiosError } from 'axios';
 import { Proveedores } from '@/@types/AlmacenGeneralTypes/proveedorTypes';
+import { type PaginacionMeta, type PaginacionParams } from '@/@types/paginacionTypes';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import type { RootState } from '@/store/store';
+import api, { API_BASE_URL } from '@/variableApi';
+import { getBackendErrorMessage } from '@/store/shared/errorMessage';
 
-export interface ProveedoresPagination {
-  current_page: number;
-  per_page: number;
-  total: number;
-  last_page: number;
-  from: number | null;
-  to: number | null;
-}
-
-export interface GetProveedoresOptions {
-  paginated?: boolean;
-  page?: number;
-  perPage?: number;
-  search?: string;
-}
-
-export interface GetProveedoresResult {
+// ---------------------------------------------------------------------------
+// Resultado común de las consultas de proveedores.
+// `meta` solo está presente cuando la consulta fue paginada (page/per_page).
+// ---------------------------------------------------------------------------
+export interface ResultadoProveedores {
   success: boolean;
-  proveedor?: Proveedores[];
-  pagination?: ProveedoresPagination;
+  proveedores?: Proveedores[];
+  meta?: PaginacionMeta | null;
   message: string;
 }
-
 
 // Agregar un nuevo proveedor
 export const addProveedor = createAsyncThunk<{ success: boolean; message: string }, Proveedores>(
   'almacengeneral/addProveedor',
   async (nuevoProveedor: Proveedores) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      const response = await axios.post(
+      const response = await api.post(
         `${API_BASE_URL}/api/HSS1/almacengeneral/proveedores`,
-        nuevoProveedor,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+        nuevoProveedor
       );
 
       return { success: response.data.success, message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -65,37 +44,18 @@ export const addProveedor = createAsyncThunk<{ success: boolean; message: string
   }
 );
 
-// Obtener los proveedores registrados
-export const getProveedores = createAsyncThunk<GetProveedoresResult, GetProveedoresOptions | void>(
+// Obtener los proveedores registrados.
+// - Sin argumentos: devuelve la lista completa (comportamiento original).
+// - Con PaginacionParams: devuelve la página solicitada + `meta`.
+export const getProveedores = createAsyncThunk<ResultadoProveedores, PaginacionParams | void>(
   'almacengeneral/getProveedores',
-  async (options, { getState }) => {
-    const state = getState() as RootState;
-    const shouldPaginate = Boolean(options?.paginated);
-
-    if (!shouldPaginate && state.proveedor.pagination === null && state.proveedor.proveedores.length > 0) {
-      return {
-        success: true,
-        proveedor: state.proveedor.proveedores,
-        message: 'Proveedores cargados desde cache local',
-      };
-    }
-
+  async (params: PaginacionParams | void) => {
     try {
-      const queryParams = new URLSearchParams();
 
-      if (shouldPaginate) {
-        queryParams.set('paginated', '1');
-        queryParams.set('page', String(options?.page ?? 1));
-        queryParams.set('per_page', String(options?.perPage ?? 10));
-
-        if (options?.search) {
-          queryParams.set('search', options.search);
-        }
-      }
-
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/proveedores${queryParams.toString() ? `?${queryParams.toString()}` : ''}`, {
-        withCredentials: true,
-      });
+      const response = await api.get(
+        `${API_BASE_URL}/api/HSS1/almacengeneral/proveedores`,
+        params ? { params } : undefined,
+      );
 
       const proveedoresFormateados = response.data.data.map((proveedor: Proveedores) => {
         return {
@@ -110,24 +70,22 @@ export const getProveedores = createAsyncThunk<GetProveedoresResult, GetProveedo
         };
       });
 
-      return {
-        success: response.data.success,
-        proveedor: proveedoresFormateados as Proveedores[],
-        pagination: response.data.pagination,
-        message: response.data.message,
-      };
+      return { success: response.data.success, proveedores: proveedoresFormateados as Proveedores[], meta: response.data.meta ?? null, message: response.data.message };
+
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        return {
+      // Manejo de errores
+      if (isAxiosError(error) && error.response) {
+        // Retornar la respuesta del backend como parte del error
+        return ({
           success: false,
-          message: error.response.data.message || 'Error inesperado',
-        };
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
+        });
       }
 
-      return {
+      return ({
         success: false,
         message: 'Error inesperado',
-      };
+      });
     }
   }
 )
@@ -137,27 +95,20 @@ export const editProveedor = createAsyncThunk<{ success: boolean; message: strin
   'almacengeneral/editProveedor',
   async (proveedorEditado: Proveedores) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.put(
+      // Incluir el id del proveedor en la URL para hacer la actualización correcta
+      const response = await api.put(
         `${API_BASE_URL}/api/HSS1/almacengeneral/proveedores/${proveedorEditado.id_proveedor}`,
-        proveedorEditado,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+        proveedorEditado
       );
 
       return { success: response.data.success, message: response.data.message };
+
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -174,26 +125,20 @@ export const deleteProveedor = createAsyncThunk<{ success: boolean; message: str
   'almacengeneral/deleteProveedor',
   async (proveedorEliminado: Proveedores) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.delete(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/proveedores/${proveedorEliminado.id_proveedor}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+      // Incluir el id del proveedor en la URL para hacer la eliminación correcta
+      const response = await api.delete(
+        `${API_BASE_URL}/api/HSS1/almacengeneral/proveedores/${proveedorEliminado.id_proveedor}`
       );
 
+      console.log('deleteAction', response.data.success)
       return { success: response.data.success, message: response.data.message };
+
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -210,50 +155,53 @@ export const getTiposProveedores = createAsyncThunk<{ success: boolean; tiposPro
   'almacengeneral/getTiposProveedores',
   async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/tipos-proveedor`, {
-        withCredentials: true,
-      });
+
+      const response = await api.get(`${API_BASE_URL}/api/HSS1/almacengeneral/tipos-proveedor`);
 
       return { success: response.data.success, tiposProveedores: response.data.API_Response || [], message: response.data.message };
+
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        return {
+      // Manejo de errores
+      if (isAxiosError(error) && error.response) {
+        // Retornar la respuesta del backend como parte del error
+        return ({
           success: false,
-          message: error.response.data.message || 'Error inesperado',
-        };
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
+        });
       }
 
-      return {
+      return ({
         success: false,
         message: 'Error inesperado',
-      };
+      });
     }
   }
-);
+)
 
 // Obtener los tipos de descuento registrados
 export const getTiposDescuento = createAsyncThunk<{ success: boolean; descuentosProveedor?: []; message: string }>(
   'almacengeneral/getTiposDescuento',
   async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/descuentos-proveedor`, {
-        withCredentials: true,
-      });
+
+      const response = await api.get(`${API_BASE_URL}/api/HSS1/almacengeneral/descuentos-proveedor`);
 
       return { success: response.data.success, descuentosProveedor: response.data.API_Response || [], message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        return {
+      // Manejo de errores
+      if (isAxiosError(error) && error.response) {
+        // Retornar la respuesta del backend como parte del error
+        return ({
           success: false,
-          message: error.response.data.message || 'Error inesperado',
-        };
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
+        });
       }
 
-      return {
+      return ({
         success: false,
         message: 'Error inesperado',
-      };
+      });
     }
   }
-);
+)
 

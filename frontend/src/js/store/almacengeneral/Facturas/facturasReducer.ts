@@ -1,5 +1,6 @@
 import { FacturasAF, TiposFacturasAF } from '@/@types/AlmacenGeneralTypes/facturasTypes';
 import { ActivoEntityResponse } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
+import type { PaginacionMeta } from '@/@types/paginacionTypes';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import {
   addFactura,
@@ -9,21 +10,44 @@ import {
   addActivosToFactura,
   updateActivosFactura,
   removeActivoFromFactura,
-  updateFactura
+  updateFactura,
+  ResultadoFacturas,
 } from './facturasActions';
+import {
+  addTipoFactura,
+  editTipoFactura,
+  deleteTipoFactura,
+  getTiposFacturas as getTiposFacturasCatalog,
+  TipoFacturaMutationResult,
+} from '../TipoFactura/tiposFacturasActions';
 
 export interface FacturaState {
+  /** Lista completa de facturas (consultas sin paginación). */
   facturasaf: FacturasAF[];
+  /** Página devuelta por las consultas paginadas (page/per_page). */
+  facturasafPagina: FacturasAF[];
+  /** Metadatos de la última consulta paginada. */
+  meta: PaginacionMeta | null;
   tiposFacturas: TiposFacturasAF[];
   activosFactura: ActivoEntityResponse[];
   error: string | null;
+  tiposFacturasLoading: boolean;
+  tiposFacturasError: string | null;
+  tiposFacturasMutationLoading: boolean;
+  tiposFacturasMutationError: string | null;
 }
 
 const initialState: FacturaState = {
   facturasaf: [],
+  facturasafPagina: [],
+  meta: null,
   tiposFacturas: [],
   activosFactura: [],
   error: null,
+  tiposFacturasLoading: false,
+  tiposFacturasError: null,
+  tiposFacturasMutationLoading: false,
+  tiposFacturasMutationError: null,
 }
 
 const facturaSlice = createSlice({
@@ -43,16 +67,21 @@ const facturaSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getFacturas.fulfilled, (state, action: PayloadAction<{ success: boolean, facturasaf?: FacturasAF[], message: string }>) => {
-        if (action.payload.success && action.payload.facturasaf) {
-          state.facturasaf = action.payload.facturasaf
+      .addCase(getFacturas.fulfilled, (state, action: PayloadAction<ResultadoFacturas>) => {
+        if (action.payload.success && action.payload.facturas) {
+          if (action.payload.meta) {
+            state.facturasafPagina = action.payload.facturas;
+            state.meta = action.payload.meta;
+          } else {
+            state.facturasaf = action.payload.facturas;
+          }
+          state.error = null;
         } else {
-          state.facturasaf = []
-          state.error = action.payload.message ? (action.payload.message as string) : 'Error al obtener facturas';
+          state.error = action.payload.message || 'Error al obtener facturas';
         }
       })
       .addCase(getFacturas.rejected, (state, action) => {
-        state.error = action.payload as string
+        state.error = action.error.message || 'Error al obtener facturas';
       })
       .addCase(addFactura.fulfilled, (state, action: PayloadAction<{ success: boolean, facturasaf?: FacturasAF[], message: string }>) => {
         if (action.payload.success && action.payload.facturasaf) {
@@ -61,9 +90,6 @@ const facturaSlice = createSlice({
           state.facturasaf = []
           state.error = action.payload.message || 'Error al añadir el proveedor'; // Manejo de errores
         }
-      })
-      .addCase(addFactura.rejected, (state, action) => {
-        state.error = action.payload as string
       })
 
       // Actualizar factura
@@ -74,18 +100,79 @@ const facturaSlice = createSlice({
           state.error = action.payload.message;
         }
       })
-      .addCase(updateFactura.rejected, (state, action) => {
-        state.error = action.payload as string;
-      })
 
       // Tipos de facturas
-      .addCase(getTiposFacturas.fulfilled, (state, action: PayloadAction<{ success: boolean, tiposFacturas?: [], message: string }>) => {
-        if (action.payload.success && action.payload.tiposFacturas) {
-          state.tiposFacturas = action.payload.tiposFacturas
+      .addCase(getTiposFacturas.pending, (state) => {
+        state.tiposFacturasLoading = true;
+        state.tiposFacturasError = null;
+      })
+      .addCase(getTiposFacturas.fulfilled, (state, action) => {
+        state.tiposFacturasLoading = false;
+        if (action.payload.success) {
+          state.tiposFacturas = Array.isArray(action.payload.tiposFacturas) ? action.payload.tiposFacturas : [];
+          state.tiposFacturasError = null;
         } else {
-          state.tiposFacturas = []
-          state.error = action.payload.message ? (action.payload.message as string) : 'Error al obtener tipos de facturas';
+          state.tiposFacturas = [];
+          state.tiposFacturasError = action.payload.message || 'Error al obtener tipos de facturas';
         }
+      })
+      .addCase(getTiposFacturas.rejected, (state, action) => {
+        state.tiposFacturasLoading = false;
+        state.tiposFacturas = [];
+        state.tiposFacturasError = action.error.message || 'Error al obtener tipos de facturas';
+      })
+      .addCase(getTiposFacturasCatalog.pending, (state) => {
+        state.tiposFacturasLoading = true;
+        state.tiposFacturasError = null;
+      })
+      .addCase(getTiposFacturasCatalog.fulfilled, (state, action) => {
+        state.tiposFacturasLoading = false;
+        if (action.payload.success) {
+          state.tiposFacturas = Array.isArray(action.payload.tiposFacturas) ? action.payload.tiposFacturas : [];
+          state.tiposFacturasError = null;
+        } else {
+          state.tiposFacturasError = action.payload.message || 'Error al obtener tipos de facturas';
+        }
+      })
+      .addCase(getTiposFacturasCatalog.rejected, (state, action) => {
+        state.tiposFacturasLoading = false;
+        state.tiposFacturasError = action.error.message || 'Error al obtener tipos de facturas';
+      })
+      .addCase(addTipoFactura.pending, (state) => {
+        state.tiposFacturasMutationLoading = true;
+        state.tiposFacturasMutationError = null;
+      })
+      .addCase(editTipoFactura.pending, (state) => {
+        state.tiposFacturasMutationLoading = true;
+        state.tiposFacturasMutationError = null;
+      })
+      .addCase(deleteTipoFactura.pending, (state) => {
+        state.tiposFacturasMutationLoading = true;
+        state.tiposFacturasMutationError = null;
+      })
+      .addCase(addTipoFactura.fulfilled, (state, action: PayloadAction<TipoFacturaMutationResult>) => {
+        state.tiposFacturasMutationLoading = false;
+        state.tiposFacturasMutationError = action.payload.success ? null : action.payload.message;
+      })
+      .addCase(editTipoFactura.fulfilled, (state, action: PayloadAction<TipoFacturaMutationResult>) => {
+        state.tiposFacturasMutationLoading = false;
+        state.tiposFacturasMutationError = action.payload.success ? null : action.payload.message;
+      })
+      .addCase(deleteTipoFactura.fulfilled, (state, action: PayloadAction<TipoFacturaMutationResult>) => {
+        state.tiposFacturasMutationLoading = false;
+        state.tiposFacturasMutationError = action.payload.success ? null : action.payload.message;
+      })
+      .addCase(addTipoFactura.rejected, (state, action) => {
+        state.tiposFacturasMutationLoading = false;
+        state.tiposFacturasMutationError = action.error.message || 'Error al añadir el tipo de factura';
+      })
+      .addCase(editTipoFactura.rejected, (state, action) => {
+        state.tiposFacturasMutationLoading = false;
+        state.tiposFacturasMutationError = action.error.message || 'Error al editar el tipo de factura';
+      })
+      .addCase(deleteTipoFactura.rejected, (state, action) => {
+        state.tiposFacturasMutationLoading = false;
+        state.tiposFacturasMutationError = action.error.message || 'Error al eliminar el tipo de factura';
       })
 
       // Activos de factura
@@ -97,10 +184,6 @@ const facturaSlice = createSlice({
           state.error = action.payload.message;
         }
       })
-      .addCase(getActivosFactura.rejected, (state, action) => {
-        state.activosFactura = [];
-        state.error = action.payload as string;
-      })
 
       // Agregar activos a factura
       .addCase(addActivosToFactura.fulfilled, (state, action) => {
@@ -110,9 +193,6 @@ const facturaSlice = createSlice({
         } else {
           state.error = action.payload.message;
         }
-      })
-      .addCase(addActivosToFactura.rejected, (state, action) => {
-        state.error = action.payload as string;
       })
 
       // Actualizar activos de factura
@@ -124,9 +204,6 @@ const facturaSlice = createSlice({
           state.error = action.payload.message;
         }
       })
-      .addCase(updateActivosFactura.rejected, (state, action) => {
-        state.error = action.payload as string;
-      })
 
       // Remover activo de factura
       .addCase(removeActivoFromFactura.fulfilled, (state, action) => {
@@ -136,9 +213,6 @@ const facturaSlice = createSlice({
         } else {
           state.error = action.payload.message;
         }
-      })
-      .addCase(removeActivoFromFactura.rejected, (state, action) => {
-        state.error = action.payload as string;
       })
   }
 })

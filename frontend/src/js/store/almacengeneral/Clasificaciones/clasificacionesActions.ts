@@ -1,36 +1,27 @@
-import axios from 'axios';
-import { API_BASE_URL } from '@/variableApi';
+import { isAxiosError } from 'axios';
 import { ClasificacionesAF } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat';
-
+import api, { API_BASE_URL } from '@/variableApi';
+import { getBackendErrorMessage } from '@/store/shared/errorMessage';
 
 // Agregar una nueva Clasificacion
 export const addClasificacion = createAsyncThunk<{ success: boolean; message: string }, ClasificacionesAF>(
   'almacengeneral/addClasificacion',
   async (nuevaClasificacion: ClasificacionesAF) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       console.log(nuevaClasificacion)
-      const response = await axios.post(
+      const response = await api.post(
         `${API_BASE_URL}/api/HSS1/almacengeneral/clasificaciones`,
-        nuevaClasificacion,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+        nuevaClasificacion
       );
 
       return { success: response.data.success, message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -47,20 +38,18 @@ export const getClasificaciones = createAsyncThunk<{ success: boolean; clasifica
   'almacengeneral/getClasificaciones',
   async () => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/clasificaciones`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken || '',
-        },
-        withCredentials: true,
-      });
+      const response = await api.get(`${API_BASE_URL}/api/HSS1/almacengeneral/clasificaciones`);
 
-      const clasificacionesFormateadas = response.data.data.map((clasificacion: ClasificacionesAF) => {
+      const clasificacionesFormateadas = (Array.isArray(response.data.data) ? response.data.data : []).map((clasificacion: Partial<ClasificacionesAF>) => {
         return {
           ...clasificacion,
+          nombre_clasificacion: typeof clasificacion.nombre_clasificacion === 'string'
+            ? clasificacion.nombre_clasificacion
+            : '',
+          cuenta_contable: typeof clasificacion.cuenta_contable === 'string'
+            ? clasificacion.cuenta_contable
+            : '',
           created_at: clasificacion.created_at
             ? formatDateHorasToFrontend(clasificacion.created_at)
             : null,
@@ -71,15 +60,15 @@ export const getClasificaciones = createAsyncThunk<{ success: boolean; clasifica
         };
       });
 
-      return { success: response.data.success, clasificacion: clasificacionesFormateadas, message: response.data.message };
+      return { success: response.data.success, clasificacion: clasificacionesFormateadas as ClasificacionesAF[], message: response.data.message };
 
     } catch (error) {
       // Manejo de errores
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         // Retornar la respuesta del backend como parte del error
         return ({
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         });
       }
 
@@ -96,31 +85,21 @@ export const editClasificacion = createAsyncThunk<{ success: boolean; message: s
   'almacengeneral/editClasificacion',
   async (clasificacionEditada: ClasificacionesAF) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      console.log(csrfToken);
 
       // Incluir el id de la clasificación en la URL para hacer la actualización correcta
-      const response = await axios.put(
+      const response = await api.put(
         `${API_BASE_URL}/api/HSS1/almacengeneral/clasificaciones/${clasificacionEditada.id_clasificacion}`,
-        clasificacionEditada,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+        clasificacionEditada
       );
 
       console.log('updateAction', response.data.success)
       return { success: response.data.success, message: response.data.message };
 
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -137,29 +116,19 @@ export const deleteClasificacion = createAsyncThunk<{ success: boolean; message:
   'almacengeneral/deleteClasificacion',
   async (clasificacionEliminada: ClasificacionesAF) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      console.log(csrfToken);
 
       // Incluir el id de la clasificación en la URL para hacer la eliminación correcta
-      const response = await axios.delete(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/clasificaciones/${clasificacionEliminada.id_clasificacion}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+      const response = await api.delete(
+        `${API_BASE_URL}/api/HSS1/almacengeneral/clasificaciones/${clasificacionEliminada.id_clasificacion}`
       );
 
       return { success: response.data.success, message: response.data.message };
 
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 

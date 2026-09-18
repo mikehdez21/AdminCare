@@ -13,8 +13,9 @@ import {
   FaTags,
   FaTrashAlt
 } from 'react-icons/fa';
-import { PiHandCoinsLight } from "react-icons/pi";
-import { IoMdPerson } from "react-icons/io";
+import { PiHandCoinsLight, PiBoxArrowDownFill } from 'react-icons/pi';
+import { IoMdPerson } from 'react-icons/io';
+
 
 
 // Componentes
@@ -62,6 +63,7 @@ const AlmacenGeneral_ActivosFijos: React.FC = () => {
   const [isOpenAFDeBaja, setOpenAFDeBaja] = useState(false);
   const [isOpenAFEmpleado, setOpenAFEmpleado] = useState(false);
   const [isOpenAFNoPropios, setOpenAFNoPropios] = useState(false);
+  const [isOpenAFActivosMenores, setOpenAFActivosMenores] = useState(false);
   const [isOpenTodosAF, setOpenTodosAF] = useState(false);
 
   const [departamentoSeleccionadoId, setDepartamentoSeleccionadoId] = useState<number | null>(null);
@@ -181,13 +183,14 @@ const AlmacenGeneral_ActivosFijos: React.FC = () => {
 
 
   const handleRegresarFiltrosAF = () => {
-    navigate('/almacen_general/activos');
+    navigate('/almacen-general/activos');
     setOpenAFDepartamentos(false);
     setOpenAFUbicacion(false);
     setOpenAFClasificacion(false);
     setOpenAFDeBaja(false);
     setOpenAFEmpleado(false);
     setOpenAFNoPropios(false);
+    setOpenAFActivosMenores(false);
 
     setOpenTodosAF(false);
 
@@ -205,8 +208,9 @@ const AlmacenGeneral_ActivosFijos: React.FC = () => {
     setOpenAFDeBaja(false);
     setOpenAFEmpleado(false);
     setOpenAFNoPropios(false);
+    setOpenAFActivosMenores(false);
     setOpenTodosAF(false);
-    navigate('/almacen_general/activos/departamentos');
+    navigate('/almacen-general/activos/departamentos');
   }
 
   const handleOpcionAFUbicacion = () => {
@@ -216,8 +220,9 @@ const AlmacenGeneral_ActivosFijos: React.FC = () => {
     setOpenAFDeBaja(false);
     setOpenAFEmpleado(false);
     setOpenAFNoPropios(false);
+    setOpenAFActivosMenores(false);
     setOpenTodosAF(false);
-    navigate('/almacen_general/activos/ubicaciones');
+    navigate('/almacen-general/activos/ubicaciones');
   }
 
   const handleOpcionAFClasificacion = () => {
@@ -227,8 +232,9 @@ const AlmacenGeneral_ActivosFijos: React.FC = () => {
     setOpenAFDeBaja(false);
     setOpenAFEmpleado(false);
     setOpenAFNoPropios(false);
+    setOpenAFActivosMenores(false);
     setOpenTodosAF(false);
-    navigate('/almacen_general/activos/clasificaciones');
+    navigate('/almacen-general/activos/clasificaciones');
   }
 
   const handleOpcionAFEmpleado = () => {
@@ -238,9 +244,10 @@ const AlmacenGeneral_ActivosFijos: React.FC = () => {
     setOpenAFDeBaja(false);
     setOpenAFEmpleado(true);
     setOpenAFNoPropios(false);
+    setOpenAFActivosMenores(false);
     setOpenTodosAF(false);
     setEmpleadoSeleccionadoId(null);
-    navigate('/almacen_general/activos/empleados');
+    navigate('/almacen-general/activos/empleados');
   }
 
   const handleOpcionAFBajas = () => {
@@ -250,8 +257,9 @@ const AlmacenGeneral_ActivosFijos: React.FC = () => {
     setOpenAFDeBaja(true);
     setOpenAFEmpleado(false);
     setOpenAFNoPropios(false);
+    setOpenAFActivosMenores(false);
     setOpenTodosAF(false);
-    navigate('/almacen_general/activosfijos-bajas');
+    navigate('/almacen-general/activos-fijos-bajas');
   }
 
   const handleOpcionAFNoPropios = () => {
@@ -261,8 +269,21 @@ const AlmacenGeneral_ActivosFijos: React.FC = () => {
     setOpenAFDeBaja(false);
     setOpenAFEmpleado(false);
     setOpenAFNoPropios(true);
+    setOpenAFActivosMenores(false);
     setOpenTodosAF(false);
-    navigate('/almacen_general/activosfijos-nopropios');
+    navigate('/almacen-general/activos-fijos-no-propios');
+  }
+
+  const handleOpcionAFActivosMenores = () => {
+    setOpenAFDepartamentos(false);
+    setOpenAFUbicacion(false);
+    setOpenAFClasificacion(false);
+    setOpenAFDeBaja(false);
+    setOpenAFEmpleado(false);
+    setOpenAFNoPropios(false);
+    setOpenAFActivosMenores(true);
+    setOpenTodosAF(false);
+    navigate('/almacen-general/activos-fijos-menores');
   }
 
 
@@ -311,22 +332,16 @@ const AlmacenGeneral_ActivosFijos: React.FC = () => {
           <p>Consultar activos asociados a un empleado</p>
         </div>
 
-        <div className='divOption' onClick={() => handleOpcionAFNoPropios()}>
-          <PiHandCoinsLight className='iconFiltro' />
-          <h2> Activos No Propios </h2>
-          <p>Consultar activos que son a "Comodato"</p>
-        </div>
-
-        <div className='divOption' onClick={() => handleOpcionAFClasificacion()}>
-          <FaTags className='iconFiltro' />
-          <h2> AF por Clasificación </h2>
-          <p>Consultar activos por clasificación específica</p>
-        </div>
-
         <div className='divOption' onClick={() => handleOpcionAFUbicacion()}>
           <FaMapMarkerAlt className='iconFiltro' />
           <h2> AF por Ubicación </h2>
           <p>Consultar activos por ubicación específica</p>
+        </div>
+
+        <div className='divOption' onClick={() => handleOpcionAFNoPropios()}>
+          <PiHandCoinsLight className='iconFiltro' />
+          <h2> Activos No Propios </h2>
+          <p>Consultar activos que son a &quot;Comodato&quot;</p>
         </div>
 
         <div className='divOption' onClick={() => handleOpcionAFBajas()}>
@@ -335,7 +350,17 @@ const AlmacenGeneral_ActivosFijos: React.FC = () => {
           <p>Consultar activos marcados como dados de baja</p>
         </div>
 
+        <div className='divOption' onClick={() => handleOpcionAFActivosMenores()}>
+          <PiBoxArrowDownFill className='iconFiltro' />
+          <h2> Activos Menores </h2>
+          <p>Consultar activos marcados como menores</p>
+        </div>
 
+        <div className='divOption' onClick={() => handleOpcionAFClasificacion()}>
+          <FaTags className='iconFiltro' />
+          <h2> AF por Clasificación </h2>
+          <p>Consultar activos por clasificación específica</p>
+        </div>
 
 
       </section>
@@ -553,12 +578,40 @@ const AlmacenGeneral_ActivosFijos: React.FC = () => {
     </>
   )
 
+  const renderAFActivosMenores = () => (
+    <>
+      <header>
+
+        <div className='returnButton'>
+          {isOpenAFClasificacion || isOpenAFDeBaja || isOpenAFUbicacion || isOpenAFDepartamentos || isOpenAFEmpleado || isOpenAFNoPropios || isOpenAFActivosMenores ?
+            <button onClick={handleRegresarFiltrosAF}>
+              <FaArrowCircleRight className='iconAdd' style={
+                { transform: 'rotate(180deg)' }
+              } /> Volver
+            </button>
+            : null
+          }
+        </div>
+
+        <h1>Activos Fijos Menores</h1>
+
+      </header>
+
+      <hr />
+
+      <div className='mainDiv_AF'>
+        <ListActivosFijos ActivosMenores={true} />
+      </div>
+
+    </>
+  )
+
   const renderTodosAF = () => (
     <>
       <header>
 
         <div className='returnButton'>
-          {isOpenAFClasificacion || isOpenAFDeBaja || isOpenAFUbicacion || isOpenAFDepartamentos || isOpenTodosAF ?
+          {isOpenAFClasificacion || isOpenAFDeBaja || isOpenAFUbicacion || isOpenAFDepartamentos || isOpenTodosAF || isOpenAFEmpleado || isOpenAFNoPropios || isOpenAFActivosMenores ?
             <button onClick={handleRegresarFiltrosAF}>
               <FaArrowCircleRight className='iconAdd' style={
                 { transform: 'rotate(180deg)' }
@@ -592,8 +645,9 @@ const AlmacenGeneral_ActivosFijos: React.FC = () => {
             isOpenAFEmpleado ? renderAFEmpleados() :
               isOpenAFDeBaja ? renderAFBajas() :
                 isOpenAFNoPropios ? renderAFNoPropios() :
-                  isOpenTodosAF ? renderTodosAF() :
-                    renderOpcionesFiltrosAF()}
+                  isOpenAFActivosMenores ? renderAFActivosMenores() :
+                    isOpenTodosAF ? renderTodosAF() :
+                      renderOpcionesFiltrosAF()}
 
     </div>
 

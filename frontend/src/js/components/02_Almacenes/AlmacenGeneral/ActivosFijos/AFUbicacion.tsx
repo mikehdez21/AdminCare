@@ -1,5 +1,5 @@
-import React from 'react';
-import { RootState } from '@/store/store'; // Asegúrate de importar AppDispatch
+import React, { useState } from 'react';
+import { RootState } from '@/store/store';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
@@ -18,20 +18,28 @@ interface AFUbicacionesProps {
 }
 
 const AFUbicacion: React.FC<AFUbicacionesProps> = ({ ubicacionSeleccionadaId, onSelectUbicacion }) => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const ubicaciones = useSelector((state: RootState) => state.ubicaciones.ubicaciones);
+
+  const [busqueda, setBusqueda] = useState('');
 
   const handleUbicacionSelected = (ubicacion: Ubicaciones) => {
     onSelectUbicacion(ubicacion.id_ubicacion ?? null);
-    navigate(`/almacen_general/activos/ubicacion/${ubicacion.id_ubicacion}`);
+    navigate(`/almacen-general/activos/ubicacion/${ubicacion.id_ubicacion}`);
   }
 
   const renderAFUbicacion = () => (
     <ListActivosFijos
       UbicacionSeleccionada={ubicacionSeleccionadaId ?? 0}
     />
-
   )
+
+  const ubicacionesFiltradas = React.useMemo(() => {
+    const ordenadas = [...ubicaciones].sort((a, b) => a.nombre_ubicacion.localeCompare(b.nombre_ubicacion));
+    if (!busqueda.trim()) return ordenadas;
+    const termino = busqueda.toLowerCase();
+    return ordenadas.filter(u => u.nombre_ubicacion.toLowerCase().includes(termino));
+  }, [ubicaciones, busqueda]);
 
   const renderListadoUbicaciones = () => (
     <>
@@ -40,25 +48,34 @@ const AFUbicacion: React.FC<AFUbicacionesProps> = ({ ubicacionSeleccionadaId, on
           <p>No hay ubicaciones disponibles</p>
         </div>
       ) : (
-        <div className='cardsUbicaciones'>
-          {ubicaciones.map((ubicacion) => (
-            <article
-              key={ubicacion.id_ubicacion ?? ubicacion.nombre_ubicacion}
-              className='cardUbicacion'
-              onClick={() => handleUbicacionSelected(ubicacion)}
-            >
-              <h3>
-                <span className='nombreUbicacion'>{ubicacion.nombre_ubicacion}</span>
-
-              </h3>
-              <p>{ubicacion.descripcion_ubicacion}</p>
-              <span className={ubicacion.estatus_activo ? 'estado activo' : 'estado inactivo'}>
-                {ubicacion.estatus_activo ? 'Activo' : 'Inactivo'}
-              </span>
-
-            </article>
-          ))}
-        </div>
+        <>
+          <div className='searchField'>
+            <input
+              type='text'
+              placeholder='Buscar ubicación...'
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              className='inputSearch'
+            />
+          </div>
+          <div className='cardsUbicaciones'>
+            {ubicacionesFiltradas.map((ubicacion) => (
+              <article
+                key={ubicacion.id_ubicacion ?? ubicacion.nombre_ubicacion}
+                className='cardUbicacion'
+                onClick={() => handleUbicacionSelected(ubicacion)}
+              >
+                <h3>
+                  <span className='nombreUbicacion'>{ubicacion.nombre_ubicacion}</span>
+                </h3>
+                <p>{ubicacion.descripcion_ubicacion}</p>
+                <span className={ubicacion.estatus_activo ? 'estado activo' : 'estado inactivo'}>
+                  {ubicacion.estatus_activo ? 'Activo' : 'Inactivo'}
+                </span>
+              </article>
+            ))}
+          </div>
+        </>
       )}
     </>
   )

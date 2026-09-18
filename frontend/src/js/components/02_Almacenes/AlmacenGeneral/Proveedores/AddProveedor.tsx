@@ -25,6 +25,8 @@ Modal.setAppElement('#root');
 const AddProveedor: React.FC<AddProveedorProps> = ({ isOpen, onClose }) => {
   const dispatch = useDispatch<AppDispatch>();
 
+  const upper = (value: string) => value.toUpperCase();
+
   // Estados locales solo para los valores del formulario
   const [nombreProveedor, setNombreProveedor] = useState<string>('');
   const [razonSocial, setRazonSocial] = useState<string>('');
@@ -85,7 +87,7 @@ const AddProveedor: React.FC<AddProveedorProps> = ({ isOpen, onClose }) => {
         // Si el proveedor fue agregado con éxito, recargar la lista de proveedores
         const proveedoresActualizados = await dispatch(getProveedores()).unwrap();
         if (proveedoresActualizados.success) {
-          dispatch(setListProveedor(proveedoresActualizados.proveedor!));
+          dispatch(setListProveedor(proveedoresActualizados.proveedores!));
           setNombreProveedor('');
           setRazonSocial('');
           setEmailProveedor('');
@@ -144,7 +146,7 @@ const AddProveedor: React.FC<AddProveedorProps> = ({ isOpen, onClose }) => {
                 <input
                   type="text"
                   value={nombreProveedor}
-                  onChange={(e) => setNombreProveedor(e.target.value)}
+                  onChange={(e) => setNombreProveedor(upper(e.target.value))}
                   required
                 />
               </label>
@@ -153,7 +155,7 @@ const AddProveedor: React.FC<AddProveedorProps> = ({ isOpen, onClose }) => {
                 <input
                   type='text'
                   value={razonSocial}
-                  onChange={(e) => setRazonSocial(e.target.value)}
+                  onChange={(e) => setRazonSocial(upper(e.target.value))}
                   required
                 />
               </label>
@@ -193,7 +195,7 @@ const AddProveedor: React.FC<AddProveedorProps> = ({ isOpen, onClose }) => {
                 <input
                   type="text"
                   value={RFCProveedor}
-                  onChange={(e) => setRFCProveedor(e.target.value)}
+                  onChange={(e) => setRFCProveedor(upper(e.target.value))}
                   required
                 />
               </label>

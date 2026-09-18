@@ -1,11 +1,12 @@
 // Bibliotecas
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AppDispatch, RootState } from '@/store/store'; // Asegúrate de importar AppDispatch
 import { useDispatch, useSelector } from 'react-redux';
 
 
 // Roles
 import { Roles } from '@/@types/mainTypes';
+import type { PaginacionMeta, PaginacionParams } from '@/@types/paginacionTypes';
 import { getRoles } from '@/store/administrador/Roles/rolesActions';
 import { setListRoles } from '@/store/administrador/Roles/rolesReducer';
 import { getPermisos } from '@/store/administrador/Permisos/permisosActions';
@@ -13,6 +14,7 @@ import { setListPermisos } from '@/store/administrador/Permisos/permisosReducer'
 
 // Componentes
 import Paginacion from '@/components/00_Utils/Paginacion';
+import { usePaginacionServidor } from '@/hooks/usePaginacionServidor';
 import AddRolesControl from './AddRol';
 import DeleteRoles from './DeleteRol';
 import EditRol from './EditRol';
@@ -33,19 +35,45 @@ const Main_RolesControl: React.FC = () => {
   const [rolesToEdit_Delete, setRolesToEdit_Delete] = useState<Roles | null>(null); // Usuario seleccionado para editar_eliminar
 
 
-
-  const [busqueda, setBusqueda] = useState<string>('');
-  const [paginaActual, setPaginaActual] = useState<number>(1);
-  const [rolesPorPagina, setRolesPorPagina] = useState<number>(5);
-
-
   const [isModalAddRolesOpen, setModalAddRolesOpen] = useState(false);
   const [isModalEditRolesOpen, setModalEditRolesOpen] = useState(false);
   const [isModalDeleteRolesOpen, setModalDeleteRolesOpen] = useState(false);
 
   const [isModalViewPermisosOpen, setModalViewPermisosOpen] = useState(false);
 
+  // ---------------------------------------------------------------------------
+  // Paginación servidor: fetcher que llama al thunk de roles con
+  // { page, per_page, search }. La tabla usa el estado local del hook; el
+  // store sigue cargando la lista completa en el useEffect de montaje para
+  // los flujos que la requieren.
+  // ---------------------------------------------------------------------------
+  const fetcher = useCallback(
+    async (params: PaginacionParams): Promise<{ data: Roles[]; meta: PaginacionMeta | null }> => {
+      const resultAction = await dispatch(getRoles(params)).unwrap();
+      if (resultAction.success && resultAction.roles) {
+        return { data: resultAction.roles, meta: resultAction.meta ?? null };
+      }
+      throw new Error(resultAction.message || 'Error al obtener los roles');
+    },
+    [dispatch],
+  );
 
+  const {
+    busqueda,
+    paginaActual,
+    setPaginaActual,
+    perPage: rolesPorPagina,
+    items: rolesPaginaActual,
+    totalItems: totalRoles,
+    numeroTotalPaginas,
+    loading,
+    refetch,
+    handleSearch,
+    handleChangePerPage: handleChangeRolesPorPagina,
+  } = usePaginacionServidor<Roles>({
+    fetcher,
+    perPageDefault: 5,
+  });
 
   // Añadir Roles
   const openModalAddRoles = () => {
@@ -53,6 +81,8 @@ const Main_RolesControl: React.FC = () => {
   };
   const closeModalAddRoles = () => {
     setModalAddRolesOpen(false);
+    // Recargar la tabla paginada tras crear un rol.
+    refetch();
   };
 
   // Editar Roles
@@ -63,6 +93,8 @@ const Main_RolesControl: React.FC = () => {
   const closeModalEditRoles = () => {
     setModalEditRolesOpen(false);
     setRolesToEdit_Delete(null)
+    // Recargar la tabla paginada tras editar un rol.
+    refetch();
   };
 
   // Eliminar Roles
@@ -74,6 +106,8 @@ const Main_RolesControl: React.FC = () => {
   const closeAlertDeleteRoles = () => {
     setModalDeleteRolesOpen(false);
     setRolesToEdit_Delete(null)
+    // Recargar la tabla paginada tras eliminar un rol.
+    refetch();
   };
 
   // Vista de Permisos del Rol
@@ -109,44 +143,12 @@ const Main_RolesControl: React.FC = () => {
     cargarRolesYPermisos();
   }, [dispatch]); // Solo ejecuta el effect si los roles no están en el store
 
-  const roles = useSelector((state: RootState) => state.roles?.roles || []);
   const permisos = useSelector((state: RootState) => state.permisos?.permisos || []);
-
-
-  // Filtrar y ordenar roles basados en la búsqueda
-  const rolesFiltrados = roles
-    .filter(rol =>
-      rol.name.toLowerCase().includes(busqueda.toLowerCase()) ||
-      rol.name?.toString().includes(busqueda)
-    )
-    .sort((a, b) => a.id! - b.id!);
-
-  // Obtener los roles para la página actual
-  const indexUltimoRol = paginaActual * rolesPorPagina;
-  const indexPrimerRol = indexUltimoRol - rolesPorPagina;
-  const rolesPaginaActual = rolesFiltrados.slice(indexPrimerRol, indexUltimoRol);
-
-  // Calcular el número total de páginas
-  const numeroTotalPaginas = Math.ceil(rolesFiltrados.length / rolesPorPagina);
-
 
   // Crear nuevos roles
   const handleNuevoRol = () => {
     openModalAddRoles();
   };
-
-  // Manejar cambio de búsqueda
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setBusqueda(e.target.value);
-    setPaginaActual(1); // Reiniciar a la primera página al hacer una búsqueda
-  };
-
-  // Manejar cambio en el número de roles por página
-  const handleChangeRolesPorPagina = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setRolesPorPagina(Number(e.target.value));
-    setPaginaActual(1); // Reiniciar a la primera página al cambiar el número de roles por página
-  };
-
 
   return (
     <div className='mainDiv_RolControl'>
@@ -155,7 +157,7 @@ const Main_RolesControl: React.FC = () => {
 
         <div className='text_Div'>
           <h1>Roles de Usuario</h1>
-          <p>Mostrando {rolesPaginaActual.length} de {roles.length} roles</p>
+          <p>Mostrando {rolesPaginaActual.length} de {totalRoles} roles</p>
         </div>
 
         <div className='buttons_Div'>
@@ -183,7 +185,7 @@ const Main_RolesControl: React.FC = () => {
 
       <hr />
 
-      {rolesFiltrados && rolesFiltrados.length === 0 ? (
+      {!loading && rolesPaginaActual.length === 0 ? (
         <div className='noEntities'>
           <FiAlertTriangle /> <p>  No hay roles registrados </p> <FiAlertTriangle />
         </div>

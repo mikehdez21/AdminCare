@@ -50,9 +50,6 @@ const fiscalSlice = createSlice({
           state.error = action.payload.message ? (action.payload.message as string) : 'Error al obtener formas de pago';
         }
       })
-      .addCase(getFormasPago.rejected, (state, action) => {
-        state.error = action.payload as string
-      })
 
 
       // Regimenes fiscales
@@ -63,9 +60,6 @@ const fiscalSlice = createSlice({
           state.regimenesFiscales = []
           state.error = action.payload.message ? (action.payload.message as string) : 'Error al obtener regimenes fiscales';
         }
-      })
-      .addCase(getTiposRegimen.rejected, (state, action) => {
-        state.error = action.payload as string
       })
 
 
@@ -78,9 +72,6 @@ const fiscalSlice = createSlice({
           state.error = action.payload.message ? (action.payload.message as string) : 'Error al obtener tipos de moneda';
         }
       })
-      .addCase(getTiposMoneda.rejected, (state, action) => {
-        state.error = action.payload as string
-      })
 
 
       // Tipos de facturacion
@@ -91,9 +82,6 @@ const fiscalSlice = createSlice({
           state.tiposFacturacion = []
           state.error = action.payload.message ? (action.payload.message as string) : 'Error al obtener tipos de facturacion';
         }
-      })
-      .addCase(getTiposFacturacion.rejected, (state, action) => {
-        state.error = action.payload as string
       })
   },
 });

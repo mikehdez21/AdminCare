@@ -5,15 +5,23 @@ import Swal from 'sweetalert2';
 // Components
 import AddActivoFijo from '../ActivosFijos/CRUD/AddActivoFijo';
 import ModalButtons from '@/components/00_Utils/ModalButtons';
+import AsociarActivosFactura from './AsociarActivosFactura';
+
 
 // Types
-import { ActivoFactura } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
+import { ActivoFactura, ActivosFijos } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
+import { FacturasAF } from '@/@types/AlmacenGeneralTypes/facturasTypes';
 
 // Utils
 import { formatMexicanCurrency } from '@/utils/numbersFormat';
+import { validateWizardSinActivos, validateSeriesWizard } from '@/utils/validators';
+
+// Hooks
+import { useBusquedaActivos } from '@/hooks/useBusquedaActivos';
 
 // Icons
 import { FaList, FaPlus, FaTrash } from 'react-icons/fa';
+
 
 // Styles
 import '@styles/02_Almacenes/AlmacenGeneral/Facturas/modalAddActivosFactura.css';
@@ -23,6 +31,7 @@ interface AddActivosFacturaProps {
   onClose: () => void;
   onActivosCreados?: (activos: ActivoFactura[]) => void;
   activosExistentes?: ActivoFactura[];
+  factura?: FacturasAF;
 }
 
 Modal.setAppElement('#root');
@@ -32,17 +41,20 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
   onClose,
   onActivosCreados,
   activosExistentes = [],
+  factura,
+
 }) => {
 
   console.log('ADDActivosFactura')
-
-
 
   // Estados locales
   const [activosAgregados, setActivosSeleccionados] = useState<ActivoFactura[]>([]);
   const [seriesPorActivo, setSeriesPorActivo] = useState<Record<string, string[]>>({});
   const [isAddActivoFijoOpen, setIsAddActivoFijoOpen] = useState(false);
-  const [busquedaSeleccionados, setBusquedaSeleccionados] = useState<string>('');
+  const [isAsociarActivosOpen, setIsAsociarActivosOpen] = useState(false);
+
+  const [activosAsociadosPendientes, setActivosAsociadosPendientes] = useState<ActivosFijos[]>([]);
+
   const tempSequenceRef = useRef<number>(0);
   const resumenInicialRef = useRef<{ totalTipos: number; totalUnidades: number }>({
     totalTipos: 0,
@@ -118,6 +130,7 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
 
     return seriesAjustadas;
   };
+
 
   const calcularResumenActivos = (activos: ActivoFactura[]) => {
     const { activosAgrupados } = agruparActivos(activos);
@@ -222,31 +235,54 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
     return { tempId, tempCodigoUnico };
   };
 
-  // Filtros de búsqueda (memorizado)
-  const activosSeleccionadosFiltrados = React.useMemo(() => activosAgregados.filter(activo => {
-    if (!activo || !activo.nombre_af) return false;
-    const searchTerm = busquedaSeleccionados.toLowerCase();
-    return activo.nombre_af.toLowerCase().includes(searchTerm) ||
-      (activo.codigo_unico && activo.codigo_unico.toLowerCase().includes(searchTerm)) ||
-      (activo.marca_af && activo.marca_af.toLowerCase().includes(searchTerm)) ||
-      (activo.modelo_af && activo.modelo_af.toLowerCase().includes(searchTerm));
-  }), [activosAgregados, busquedaSeleccionados]);
+  // Filtros de búsqueda (compartidos con AsociarActivosFactura vía useBusquedaActivos)
+  const {
+    busqueda: busquedaSeleccionados,
+    setBusqueda: setBusquedaSeleccionados,
+    activosFiltrados: activosSeleccionadosFiltrados,
+  } = useBusquedaActivos(activosAgregados);
 
   // Remover activo de la lista seleccionada
   const handleRemoverActivo = (codigoUnico: string) => {
-    const activoARemover = activosAgregados.find(activo => activo.codigo_unico === codigoUnico);
 
-    setActivosSeleccionados(activosAgregados.filter(activo => activo.codigo_unico !== codigoUnico));
+    Swal.fire({
+      icon: 'warning',
+      title: '¿Estás seguro?',
+      text: 'Se eliminará el activo de la factura. Esta acción no se puede deshacer.',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const activoARemover = activosAgregados.find(activo => activo.codigo_unico === codigoUnico);
 
-    if (activoARemover) {
-      const clave = obtenerClaveActivo(activoARemover);
-      setSeriesPorActivo((prev) => {
-        const actualizado = { ...prev };
-        delete actualizado[clave];
-        return actualizado;
-      });
-    }
+        if (activoARemover) {
+          setActivosSeleccionados(activosAgregados.filter(activo => activo.codigo_unico !== codigoUnico));
+
+          if (activoARemover.id_activo_fijo && activoARemover.id_activo_fijo > 0) {
+            const idRemovido = activoARemover.id_activo_fijo;
+            setActivosAsociadosPendientes(prev => prev.filter(pendiente => pendiente.id_activo_fijo !== idRemovido));
+          }
+
+          const clave = obtenerClaveActivo(activoARemover);
+          setSeriesPorActivo((prev) => {
+            const actualizado = { ...prev };
+            delete actualizado[clave];
+            return actualizado;
+          });
+        }
+        Swal.fire({
+          icon: 'success',
+          title: 'Activo eliminado',
+          text: 'El activo ha sido eliminado de la factura.'
+        });
+      }
+    });
+
   };
+
 
   // Actualizar cantidad o costo de activo seleccionado
   const handleActualizarActivo = (
@@ -318,7 +354,13 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
   // Manejar cierre del modal AddActivoFijo
   const handleAddActivoFijoClose = () => {
     setIsAddActivoFijoOpen(false);
+    setActivosAsociadosPendientes([]);
+
   };
+
+  const handleAsociarActivosClose = () => {
+    setIsAsociarActivosOpen(false);
+  }
 
   // Manejar cuando se recolectan datos de un nuevo activo (sin crear en BD aún)
   const handleAFToFactura = (ActivoFijoFactura: ActivoFactura) => {
@@ -355,20 +397,21 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
 
   // Confirmar selección
   const handleConfirmar = async () => {
-    if (activosAgregados.length === 0) {
-      // Cerrar modal antes de mostrar alerta
+    const errorSinActivos = validateWizardSinActivos(activosAgregados);
 
+    if (errorSinActivos) {
+      // Cerrar modal antes de mostrar alerta
       onClose();
       Swal.fire({
         icon: 'warning',
-        title: 'Sin activos en la factura',
-        text: 'Debe agregar al menos un activo para continuar.',
+        title: errorSinActivos.title,
+        text: errorSinActivos.text,
         confirmButtonText: 'OK'
       });
       return;
     }
 
-    const erroresSeries: string[] = [];
+    const erroresSeries = validateSeriesWizard(activosAgregados, seriesPorActivo, normalizarCantidad);
 
     // Expandir cada línea por cantidad para crear activos individuales con serie propia
     const activosCopia = activosAgregados.flatMap((activo) => {
@@ -386,17 +429,6 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
           ...activo,
           cantidad: 1,
         });
-      }
-
-      const seriesLlenas = seriesCapturadas.filter((serie) => !!serie);
-      const seriesUnicas = new Set(seriesLlenas);
-
-      if (seriesLlenas.length !== cantidad) {
-        erroresSeries.push(`Completa ${cantidad} serie(s) para "${activo.nombre_af}".`);
-      }
-
-      if (seriesUnicas.size !== seriesLlenas.length) {
-        erroresSeries.push(`Las series de "${activo.nombre_af}" no pueden repetirse.`);
       }
 
       return itemsNormalizados.map((itemBase, index) => ({
@@ -537,6 +569,60 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
     0
   ), [activosAgregados]);
 
+  // Función para manejar cuando se asocian activos existentes desde el sub-modal (AsociarActivosFactura)
+  const handleActivosAsociados = (activosAsociados: ActivosFijos[]) => {
+    console.log('Activos asociados recibidos en AddActivosFactura:', activosAsociados);
+
+    // Convertir ActivosFijos a ActivoFactura para que coincidan con el estado local y la estructura esperada por el padre
+    const nuevosActivosFactura: ActivoFactura[] = activosAsociados.map(af => ({
+      // Campos de ActivosFijos
+      id_activo_fijo: af.id_activo_fijo,
+      nombre_af: af.nombre_af,
+      descripcion_af: af.descripcion_af,
+      modelo_af: af.modelo_af,
+      marca_af: af.marca_af,
+      numero_serie_af: af.numero_serie_af,
+      costo_unitario_af: af.costo_unitario_af,
+      af_propio: af.af_propio,
+      id_estado_af: af.id_estado_af,
+      id_clasificacion: af.id_clasificacion,
+      af_menor: af.af_menor,
+      fecha_registro_af: af.fecha_registro_af,
+      depreciacion_aplicada: af.depreciacion_aplicada,
+      observaciones_af: af.observaciones_af,
+      codigo_lote: af.codigo_lote,
+      lote_afconsecutivo: af.lote_afconsecutivo,
+      lote_total: af.lote_total,
+      codigo_etiqueta: af.codigo_etiqueta,
+      // Campos adicionales requeridos por ActivoFactura (asumiendo estructura extendida)
+      cantidad: 1, // Por defecto 1
+      descuento_af: 0,
+      descuento_porcentajeaf: 0,
+      id_tipo_movimiento: null, // Pendiente de definir o dejar vacío si es opcional
+      motivo_movimiento: 'Asociado desde modal de edición de factura',
+      fecha_movimiento: new Date().toISOString(), // Fecha actual
+      id_responsable_anterior: null, // Pendiente de definir o dejar vacío si es opcional
+      id_responsable_actual: null, // Pendiente de definir o dejar vacío si es opcional
+      id_ubicacion_anterior: null, // Pendiente de definir o dejar vacío si es opcional
+      id_ubicacion_actual: null, // Pendiente de definir o dejar vacío si es opcional
+    }));
+
+    // Agregar los nuevos activos al estado local del modal
+    setActivosSeleccionados(prev => [...prev, ...nuevosActivosFactura]);
+    setActivosAsociadosPendientes(prev => [...prev, ...activosAsociados]);
+
+
+    // Mantener NoSeries para los nuevos activos agregados, inicializando con la cantidad correspondiente
+    const seriesIniciales: Record<string, string[]> = {};
+    nuevosActivosFactura.forEach((activo) => {
+      const cantidad = normalizarCantidad(Number(activo.cantidad || 1));
+      seriesIniciales[obtenerClaveActivo(activo)] = crearSeriesIniciales(activo, cantidad);
+    });
+
+    setSeriesPorActivo(prev => ({ ...prev, ...seriesIniciales }));
+
+
+  };
   return (
     <Modal
       isOpen={isOpen}
@@ -564,6 +650,14 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
             <FaPlus /> Crear Nuevo Activo Fijo
           </button>
 
+          <button
+            className="buttonCrearActivo"
+            onClick={() => setIsAsociarActivosOpen(true)}
+          >
+            <FaPlus /> Asociar Activos
+          </button>
+
+
         </header>
 
         <section className="divActivosFactura">
@@ -588,13 +682,19 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
                             {activo.nombre_af} <strong>{activo.af_propio === false ? ' (Comodato)' : ''}</strong>
                           </p>
 
-                          <button
-                            className="buttonRemover"
-                            onClick={() => handleRemoverActivo(activo.codigo_unico!)}
-                            title="Remover de factura"
-                          >
-                            <FaTrash />
-                          </button>
+                          <div className="divButtons">
+
+                            <button
+                              className="buttonRemover"
+                              onClick={() => handleRemoverActivo(activo.codigo_unico!)}
+                              title="Remover de factura"
+                            >
+                              <FaTrash />
+                            </button>
+
+                          </div>
+
+
 
                         </section>
 
@@ -699,6 +799,7 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
             <h4 className="totalFinal">Total: {formatMexicanCurrency(totalSeleccionados)}</h4>
             <p className="totalInfo">({activosAgregados.length} activos, {activosAgregados.reduce((t, a) => t + a.cantidad, 0)} unidades totales)</p>
           </div>
+
         </div>
 
         {/* Footer con botones */}
@@ -729,6 +830,21 @@ const AddActivosFactura: React.FC<AddActivosFacturaProps> = ({
             soloDatos={true}
             onAddAFToFactura={handleAFToFactura}
             onAddSinFactura={() => { }}
+
+          />
+        )
+      }
+
+      {/* Modal para asociar activos existentes a la factura */}
+      {
+        isAsociarActivosOpen && (
+          <AsociarActivosFactura
+            isOpen={isAsociarActivosOpen}
+            onClose={handleAsociarActivosClose}
+            factura={factura || undefined}
+            onActivosAsociados={handleActivosAsociados}
+            activosConfirmados={[...activosExistentes, ...activosAsociadosPendientes]}
+
 
           />
         )

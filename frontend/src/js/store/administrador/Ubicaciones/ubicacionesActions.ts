@@ -1,35 +1,38 @@
-import axios from 'axios';
-import { API_BASE_URL } from '@/variableApi';
-import { Ubicaciones, ActivosUbicacionApiResponse} from '@/@types/mainTypes';
-import { formatDateHorasToFrontend } from '@/utils/dateFormat'; 
+import { isAxiosError } from 'axios';
+import { Ubicaciones, ActivosUbicacionApiResponse } from '@/@types/mainTypes';
+import { type PaginacionMeta, type PaginacionParams } from '@/@types/paginacionTypes';
+import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import api, { API_BASE_URL } from '@/variableApi';
+import { getBackendErrorMessage } from '@/store/shared/errorMessage';
 
+// ---------------------------------------------------------------------------
+// Resultado común de las consultas de ubicaciones.
+// `meta` solo está presente cuando la consulta fue paginada (page/per_page).
+// ---------------------------------------------------------------------------
+export interface ResultadoUbicaciones {
+  success: boolean;
+  ubicaciones?: Ubicaciones[];
+  meta?: PaginacionMeta | null;
+  message: string;
+}
 
 // Agregar una nueva Ubicación
 export const addUbicacion = createAsyncThunk<{ success: boolean; message: string }, Ubicaciones>(
   '/addUbicacion',
   async (nuevaUbicacion: Ubicaciones) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      const response = await axios.post(
+      const response = await api.post(
         `${API_BASE_URL}/api/HSS1/admin/ubicaciones`,
-        nuevaUbicacion,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+        nuevaUbicacion
       );
 
       return { success: response.data.success, message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -42,20 +45,17 @@ export const addUbicacion = createAsyncThunk<{ success: boolean; message: string
 );
 
 // Obtener las ubicaciones registradas
-export const getUbicaciones = createAsyncThunk<{success: boolean; ubicaciones?: Ubicaciones[]; message: string }>(
+// - Sin argumentos: devuelve la lista completa (comportamiento original).
+// - Con PaginacionParams: devuelve la página solicitada + `meta`.
+export const getUbicaciones = createAsyncThunk<ResultadoUbicaciones, PaginacionParams | void>(
   '/getUbicaciones',
-  async () => {
-    try{
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/admin/ubicaciones`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken || '',
-        },
-        withCredentials: true,
-      });
+  async (params: PaginacionParams | void) => {
+    try {
+
+      const response = await api.get(
+        `${API_BASE_URL}/api/HSS1/admin/ubicaciones`,
+        params ? { params } : undefined,
+      );
 
       const ubicacionesFormateadas = response.data.data.map((ubicacion: Ubicaciones) => {
         return {
@@ -64,24 +64,24 @@ export const getUbicaciones = createAsyncThunk<{success: boolean; ubicaciones?: 
             ? formatDateHorasToFrontend(ubicacion.created_at)
             : null,
           updated_at: ubicacion.updated_at
-            ? formatDateHorasToFrontend(ubicacion   .updated_at)
+            ? formatDateHorasToFrontend(ubicacion.updated_at)
             : null,
 
         };
       });
 
-      return { success: response.data.success, ubicaciones: ubicacionesFormateadas as Ubicaciones[], message: response.data.message };
+      return { success: response.data.success, ubicaciones: ubicacionesFormateadas as Ubicaciones[], meta: response.data.meta ?? null, message: response.data.message };
 
     } catch (error) {
       // Manejo de errores
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         // Retornar la respuesta del backend como parte del error
         return ({
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         });
       }
-      
+
       return ({
         success: false,
         message: 'Error inesperado',
@@ -95,31 +95,21 @@ export const editUbicacion = createAsyncThunk<{ success: boolean; message: strin
   '/editUbicacion',
   async (ubicacionEditada: Ubicaciones) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      console.log(csrfToken);
-      
+
       // Incluir el id de la ubicación en la URL para hacer la actualización correcta
-      const response = await axios.put(
+      const response = await api.put(
         `${API_BASE_URL}/api/HSS1/admin/ubicaciones/${ubicacionEditada.id_ubicacion}`,
-        ubicacionEditada,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+        ubicacionEditada
       );
 
       console.log('updateAction', response.data.success)
       return { success: response.data.success, message: response.data.message };
 
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -136,30 +126,20 @@ export const deleteUbicacion = createAsyncThunk<{ success: boolean; message: str
   '/deleteUbicacion',
   async (ubicacionEliminada: Ubicaciones) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      console.log(csrfToken);
-      
+
       // Incluir el id de la ubicación en la URL para hacer la eliminación correcta
-      const response = await axios.delete(
-        `${API_BASE_URL}/api/HSS1/admin/ubicaciones/${ubicacionEliminada.id_ubicacion}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+      const response = await api.delete(
+        `${API_BASE_URL}/api/HSS1/admin/ubicaciones/${ubicacionEliminada.id_ubicacion}`
       );
 
       console.log('deleteAction', response.data.success)
       return { success: response.data.success, message: response.data.message };
-      
+
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -176,26 +156,18 @@ export const getActivosUbicacion = createAsyncThunk<ActivosUbicacionApiResponse,
   'almacengeneral/getActivosUbicacion',
   async (idUbicacion: number) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos/ubicacion/${idUbicacion}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken || '',
-        },
-        withCredentials: true,
-      });
-    
+
+      const response = await api.get(`${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos/ubicacion/${idUbicacion}`);
+
       return { success: response.data.success, activosUbicacion: response.data.data || [], message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
-    
+
       return {
         success: false,
         message: 'Error inesperado',

@@ -95,11 +95,23 @@ const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+
+    if (!rolesUsuario || rolesUsuario.length === 0) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Debes asignar al menos un rol al usuario.',
+        confirmButtonText: 'OK',
+
+      });
+      return;
+    }
+
     try {
       const nuevoUsuario: User = {
         nombre_usuario: nombreUsuario,
         email_usuario: emailUsuario,
-        password: passwordUsuario,
         estatus_activo: estatusActivo,
         fecha_baja: getFechaHoraActual(),
         usuario_compartido: userCompartido,
@@ -111,7 +123,7 @@ const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
       };
 
       console.log('dataUserADD_Enviada: ', nuevoUsuario);
-      const resultAction = await dispatch(addUser(nuevoUsuario)).unwrap();
+      const resultAction = await dispatch(addUser({ ...nuevoUsuario, password: passwordUsuario })).unwrap();
       console.log('Respuesta del servidor:', resultAction);
 
       if (resultAction.success) {

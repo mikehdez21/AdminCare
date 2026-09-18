@@ -1,5 +1,5 @@
 import React from 'react';
-import Modal from 'react-modal';
+import Modal from '@/components/00_Utils/ui/Modal';
 import { AppDispatch } from '@/store/store';
 import { useDispatch } from 'react-redux';
 import { deleteActivoFijo, getActivosFijos } from '@/store/almacengeneral/Activos/activosActions';
@@ -15,8 +15,6 @@ interface DeleteActivoFijoProps {
   onClose: () => void;
   activoFijoToDelete: ActivosFijos | null;
 }
-
-Modal.setAppElement('#root');
 
 const DeleteActivoFijo: React.FC<DeleteActivoFijoProps> = ({ isOpen, onClose, activoFijoToDelete }) => {
   const dispatch = useDispatch<AppDispatch>();
@@ -34,23 +32,28 @@ const DeleteActivoFijo: React.FC<DeleteActivoFijoProps> = ({ isOpen, onClose, ac
           dispatch(setListActivosFijos(activosFijosActualizados.activosFijos!));
 
           console.log('ActivoFijo eliminado y lista recargada:', activosFijosActualizados.activosFijos);
+
+          Swal.fire({
+            icon: 'success',
+            title: 'Activo Fijo Eliminado',
+            text: 'El activo fijo ha sido eliminado exitosamente.',
+            confirmButtonText: 'OK',
+          });
         }
       } else {
-        console.log('Error al eliminar el activo fijo:', resultAction.message);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: resultAction.message || 'Hubo un problema al eliminar el activo fijo. Por favor, inténtalo de nuevo.',
+          confirmButtonText: 'OK',
+        });
       }
 
-      Swal.fire({
-        icon: 'success',
-        title: 'Activo Fijo Eliminado',
-        text: 'El activo fijo ha sido eliminado exitosamente.',
-        confirmButtonText: 'OK',
-      });
+
 
       onClose(); // Cerrar el modal al completar cualquier acción
 
-    } catch (error) {
-      console.error('Error al eliminar el activo fijo:', error);
-
+    } catch {
       Swal.fire({
         icon: 'error',
         title: 'Error',

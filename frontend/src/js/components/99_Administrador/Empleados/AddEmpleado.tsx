@@ -31,17 +31,14 @@ const AddEmpleado: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
   const [nombreEmpleado, setNombreEmpleado] = useState<string>('');
   const [apellidoPaterno, setApellidoPaterno] = useState<string>('');
   const [apellidoMaterno, setApellidoMaterno] = useState<string>('');
-  const [emailEmpleado, setEmailEmpleado] = useState<string>('');
-  const [telefonoEmpleado, setTelefonoEmpleado] = useState<string>('');
   const [generoEmpleado, setGeneroEmpleado] = useState<string>('');
   const [fechaNacimiento, setFechaNacimiento] = useState<string>('');
   const [estatusActivo, setEstatusActivo] = useState<boolean>(true);
+  const [jefaturaEmpleado, setJefaturaEmpleado] = useState<boolean>(false);
   const [fechaAlta, setFechaAlta] = useState<string>(getFechaHoraActual);
   const [fechaBaja, setFechaBaja] = useState<string>('');
   const [fotoEmpleado, setFotoEmpleado] = useState<File | null>(null);
   const [imagenEmpleadoPreview, setImagenEmpleadoPreview] = useState<string | null>(null)
-  const [firmaMovimientos, setFirmaMovimientos] = useState('');
-  const [confirmarFirmaMov, setConfirmarFirmaMov] = useState('');
   const [departamentoSeleccionado, setDepartamentoSeleccionado] = useState<string>('');
 
   // Cargar departamentos si no están disponibles
@@ -74,33 +71,19 @@ const AddEmpleado: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (firmaMovimientos !== confirmarFirmaMov) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Las Firmas no coinciden',
-        text: 'Verifica que coincidan las firmas',
-        confirmButtonText: 'OK',
-
-      });
-      setFirmaMovimientos('');
-      setConfirmarFirmaMov('');
-      return;
-    }
 
     try {
       const nuevoEmpleado: Empleados = {
         nombre_empleado: nombreEmpleado,
         apellido_paterno: apellidoPaterno,
         apellido_materno: apellidoMaterno,
-        email_empleado: emailEmpleado,
-        telefono_empleado: telefonoEmpleado,
         genero: generoEmpleado,
         fecha_nacimiento: fechaNacimiento,
         estatus_activo: estatusActivo,
+        jefatura_empleado: jefaturaEmpleado,
         fecha_alta: fechaAlta,
         fecha_baja: estatusActivo ? '' : fechaBaja || getFechaHoraActual(),
         foto_empleado: fotoEmpleado,
-        firma_movimientos: firmaMovimientos,
         id_departamento: Number(departamentoSeleccionado),
       };
 
@@ -109,14 +92,13 @@ const AddEmpleado: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
       formData.append('nombre_empleado', nuevoEmpleado.nombre_empleado);
       formData.append('apellido_paterno', nuevoEmpleado.apellido_paterno);
       formData.append('apellido_materno', nuevoEmpleado.apellido_materno);
-      formData.append('email_empleado', nuevoEmpleado.email_empleado);
-      formData.append('telefono_empleado', nuevoEmpleado.telefono_empleado);
       formData.append('genero', nuevoEmpleado.genero);
       formData.append(
         'fecha_nacimiento',
         nuevoEmpleado.fecha_nacimiento ? nuevoEmpleado.fecha_nacimiento.toString() : '',
       );
       formData.append('estatus_activo', nuevoEmpleado.estatus_activo ? '1' : '0');
+      formData.append('jefatura_empleado', nuevoEmpleado.jefatura_empleado ? '1' : '0');
       formData.append(
         'fecha_alta',
         nuevoEmpleado.fecha_alta ? nuevoEmpleado.fecha_alta.toString() : '',
@@ -127,7 +109,6 @@ const AddEmpleado: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
       if (fotoEmpleado) {
         formData.append('foto_empleado', fotoEmpleado);
       }
-      formData.append('firma_movimientos', nuevoEmpleado.firma_movimientos);
       formData.append('id_departamento', nuevoEmpleado.id_departamento!.toString());
 
       console.log('FormData preparado para envío:', formData);
@@ -143,14 +124,12 @@ const AddEmpleado: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
           setNombreEmpleado('');
           setApellidoPaterno('');
           setApellidoMaterno('');
-          setEmailEmpleado('');
           setEstatusActivo(true);
+          setJefaturaEmpleado(false);
           setFechaAlta('');
           setFechaBaja('');
           setFotoEmpleado(null);
           setImagenEmpleadoPreview(null);
-          setFirmaMovimientos('');
-          setConfirmarFirmaMov('');
 
           console.log('Empleado agregado y lista recargada:', empleadosActualizados.empleados);
         }
@@ -190,7 +169,7 @@ const AddEmpleado: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
       contentLabel="Añadir Nueva Entity"
       className="modalEmpleados"
     >
-      <div className="mainDiv_modalDepartamentos">
+      <div className="mainDiv_modalEmpleados">
         <h2>Añadir Empleado</h2>
 
         <form onSubmit={handleSubmit} className='formEmpleados'>
@@ -223,35 +202,6 @@ const AddEmpleado: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
                 onChange={(e) => setApellidoMaterno(e.target.value)}
               />
 
-              <label htmlFor="email_empleado">Email*:
-                <div className='emailInput'>
-                  <input
-                    type="text"
-                    value={emailEmpleado.split('@')[0]}
-                    id='emailUsuario'
-                    name='emailUsuario'
-                    onChange={(e) => {
-                      const domain = emailEmpleado.split('@')[1] || '';
-                      setEmailEmpleado(`${e.target.value}@${domain}`);
-                    }}
-                    required
-                    placeholder="email"
-                  />
-                  <span> @ </span>
-                  <input
-                    type="text"
-                    value={emailEmpleado.split('@')[1] || ''}
-                    id='emailDomain'
-                    name='emailDomain'
-                    onChange={(e) => {
-                      const firstPart = emailEmpleado.split('@')[0];
-                      setEmailEmpleado(`${firstPart}@${e.target.value}`);
-                    }}
-                    required
-                    placeholder="dominio.com"
-                  />
-                </div>
-              </label>
 
               <label htmlFor="fecha_nacimiento">Fecha Nacimiento*:</label>
               <input
@@ -262,9 +212,6 @@ const AddEmpleado: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
                 required
               />
 
-            </section>
-
-            <section className='secondColumn_Inputs'>
               <label htmlFor="genero_empleado">Género*:</label>
               <select
                 id="genero_empleado"
@@ -277,15 +224,24 @@ const AddEmpleado: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
                 <option value="Femenino">Femenino</option>
               </select>
 
-              <label htmlFor="telefono_empleado">Teléfono:</label>
-              <input
-                type="number"
-                id="telefono_empleado"
-                value={telefonoEmpleado}
-                onChange={(e) => setTelefonoEmpleado(e.target.value)}
-              />
+            </section>
 
+            <section className='secondColumn_Inputs'>
 
+              <label htmlFor="departamento">Departamento*:</label>
+              <select
+                id="departamento"
+                value={departamentoSeleccionado}
+                onChange={(e) => setDepartamentoSeleccionado(e.target.value)}
+                required
+              >
+                <option value="">Seleccionar</option>
+                {departamentos.map((departamento) => (
+                  <option key={departamento.id_departamento} value={departamento.id_departamento}>
+                    {departamento.nombre_departamento}
+                  </option>
+                ))}
+              </select>
 
               <label> Estatus del Empleado: </label>
               <div className='checkDiv'>
@@ -295,6 +251,19 @@ const AddEmpleado: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
                 </span>
 
               </div>
+
+              <label> Asignar Jefatura: </label>
+              <div className='checkDiv'>
+
+                <span> {jefaturaEmpleado ? 'Jefatura Asignada' : 'Sin Jefatura'}
+                  <input name="cuentaActiva" id="cuentaActiva" type="checkbox" onChange={(e) => setJefaturaEmpleado(e.target.checked)} checked={jefaturaEmpleado} />
+                </span>
+
+              </div>
+
+            </section>
+
+            <section className='thirdColumn_Inputs'>
 
               <label htmlFor="fecha_alta">Fecha Alta:</label>
               <input
@@ -314,9 +283,6 @@ const AddEmpleado: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
                 onChange={(e) => setFechaBaja(e.target.value)}
               />
 
-            </section>
-
-            <section className='thirdColumn_Inputs'>
               <label htmlFor="foto_empleado">Foto Empleado:</label>
               <input
                 type="file"
@@ -326,38 +292,6 @@ const AddEmpleado: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
                 onChange={handleImageChange}
               />
 
-              <label htmlFor="departamento">Departamento*:</label>
-              <select
-                id="departamento"
-                value={departamentoSeleccionado}
-                onChange={(e) => setDepartamentoSeleccionado(e.target.value)}
-                required
-              >
-                <option value="">Seleccionar</option>
-                {departamentos.map((departamento) => (
-                  <option key={departamento.id_departamento} value={departamento.id_departamento}>
-                    {departamento.nombre_departamento}
-                  </option>
-                ))}
-              </select>
-
-              <label htmlFor="firma_movimientos">Firma Movimientos:</label>
-              <input
-                type="text"
-                id="firma_movimientos"
-                value={firmaMovimientos}
-                onChange={(e) => setFirmaMovimientos(e.target.value)}
-                required
-              />
-
-              <label htmlFor="firma_movimientos">Confirmar Firma Movimientos:</label>
-              <input
-                type="text"
-                id="confirmarfirma_movimientos"
-                value={confirmarFirmaMov}
-                onChange={(e) => setConfirmarFirmaMov(e.target.value)}
-                required
-              />
 
 
             </section>

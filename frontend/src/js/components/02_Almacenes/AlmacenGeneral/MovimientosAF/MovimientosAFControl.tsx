@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 // Icons
 import { FaArrowCircleRight } from 'react-icons/fa';
-import { FaBoxArchive, FaBoxesStacked } from "react-icons/fa6";
+import { FaBoxArchive, FaBoxesStacked } from 'react-icons/fa6';
 
 
 
@@ -14,6 +14,7 @@ import '@styles/02_Almacenes/AlmacenGeneral/MovimientosAF/movimientosAFControl.c
 import AlmacenGeneral_MovimientoIndividual from './MovimientoIndividual';
 import AlmacenGeneral_MovimientoMasivo from './TraspasoAF';
 
+
 const AlmacenGeneral_MovimientosAF: React.FC = () => {
   const navigate = useNavigate();
 
@@ -21,20 +22,20 @@ const AlmacenGeneral_MovimientosAF: React.FC = () => {
   const [isOpenMovimientoMasivo, setOpenMovimientoMasivo] = useState(false);
 
   const handleRegresarOpcionesMovimientos = () => {
-    navigate('/almacen_general/movimientos_activos');
+    navigate('/almacen-general/movimientos-activos');
     setOpenMovimientoIndividual(false);
     setOpenMovimientoMasivo(false);
 
   }
 
   const handleOpcionMovimientoIndividual = () => {
-    navigate('/almacen_general/movimientos_activos/individual');
+    navigate('/almacen-general/movimientos-activos/individual');
     setOpenMovimientoIndividual(true);
     setOpenMovimientoMasivo(false);
   }
 
   const handleOpcionMovimientoMasivo = () => {
-    navigate('/almacen_general/movimientos_activos/masivo');
+    navigate('/almacen-general/movimientos-activos/masivo');
     setOpenMovimientoIndividual(false);
     setOpenMovimientoMasivo(true);
   }
@@ -65,13 +66,13 @@ const AlmacenGeneral_MovimientosAF: React.FC = () => {
         <div className='divOption' onClick={() => handleOpcionMovimientoIndividual()}>
           <FaBoxArchive className='iconFiltro' />
           <h2> Movimiento Individual </h2>
-          <p>Manejo de movimientos individuales de activos</p>
+          <p>Mover un solo activo (Traspaso, Reubicación, etc.)</p>
         </div>
 
         <div className='divOption' onClick={() => handleOpcionMovimientoMasivo()}>
           <FaBoxesStacked className='iconFiltro' />
-          <h2> Traspaso de Activos </h2>
-          <p>Traspasar de un Empleado a Otro</p>
+          <h2> Traspaso Masivo de Activos </h2>
+          <p>Traspasar todos los activos de un empleado a otro</p>
         </div>
 
       </section>

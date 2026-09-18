@@ -1,29 +1,28 @@
 import { Proveedores, TiposProveedores, DescuentosProveedor } from '@/@types/AlmacenGeneralTypes/proveedorTypes';
+import type { PaginacionMeta } from '@/@types/paginacionTypes';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { addProveedor, getProveedores, getTiposDescuento, getTiposProveedores } from './proveedoresActions';
+import { addProveedor, getProveedores, getTiposDescuento, getTiposProveedores, ResultadoProveedores } from './proveedoresActions';
 
 
-export interface ProveedorState{
-    proveedores: Proveedores[];
-    tiposProveedores: TiposProveedores[];
-    descuentosProveedor: DescuentosProveedor[];
-    pagination: {
-      current_page: number;
-      per_page: number;
-      total: number;
-      last_page: number;
-      from: number | null;
-      to: number | null;
-    } | null;
-    error: string | null; // Agregar un campo para manejar errores
+export interface ProveedorState {
+  /** Lista completa de proveedores (consultas sin paginación). */
+  proveedores: Proveedores[];
+  /** Página devuelta por las consultas paginadas (page/per_page). */
+  proveedoresPagina: Proveedores[];
+  /** Metadatos de la última consulta paginada. */
+  meta: PaginacionMeta | null;
+  tiposProveedores: TiposProveedores[];
+  descuentosProveedor: DescuentosProveedor[];
+  error: string | null; // Agregar un campo para manejar errores
 
 }
 
 const initialState: ProveedorState = {
   proveedores: [],
+  proveedoresPagina: [],
+  meta: null,
   tiposProveedores: [],
   descuentosProveedor: [],
-  pagination: null,
   error: null, // Agregar un campo para manejar errores
 }
 
@@ -44,61 +43,52 @@ const proveedorSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getProveedores.fulfilled, (state, action: PayloadAction<{success: boolean, proveedor?: Proveedores[], pagination?: ProveedorState['pagination'], message: string}>) => {
-        if (action.payload.success && action.payload.proveedor){
-          state.proveedores = action.payload.proveedor
-          state.pagination = action.payload.pagination ?? null
+      .addCase(getProveedores.fulfilled, (state, action: PayloadAction<ResultadoProveedores>) => {
+        if (action.payload.success && action.payload.proveedores) {
+          if (action.payload.meta) {
+            state.proveedoresPagina = action.payload.proveedores;
+            state.meta = action.payload.meta;
+          } else {
+            state.proveedores = action.payload.proveedores;
+          }
+          state.error = null;
         } else {
-          state.proveedores = []
-          state.pagination = null
-          state.error = action.payload.message ? (action.payload.message as string) : 'Error al obtener proveedores';
+          state.error = action.payload.message || 'Error al obtener proveedores';
         }
       })
-      .addCase(getProveedores.rejected, (state, action) => {
-        state.error = action.payload as string
-      })
-      .addCase(addProveedor.fulfilled, (state, action: PayloadAction<{success: boolean, proveedores?: Proveedores[], message: string}>) => {
-        if (action.payload.success && action.payload.proveedores){
+      .addCase(addProveedor.fulfilled, (state, action: PayloadAction<{ success: boolean, proveedores?: Proveedores[], message: string }>) => {
+        if (action.payload.success && action.payload.proveedores) {
           state.proveedores = [...state.proveedores, ...action.payload.proveedores]; // Mantener proveedores anteriores y añadir nuevos
         } else {
           state.proveedores = []
           state.error = action.payload.message || 'Error al añadir el proveedor'; // Manejo de errores
         }
       })
-      .addCase(addProveedor.rejected, (state, action) => {
-        state.error = action.payload as string
-      })
 
       // Tipos de proveedores
-      .addCase(getTiposProveedores.fulfilled, (state, action: PayloadAction<{success: boolean, tiposProveedores?: [], message: string}>) => {
-        if (action.payload.success && action.payload.tiposProveedores){
+      .addCase(getTiposProveedores.fulfilled, (state, action: PayloadAction<{ success: boolean, tiposProveedores?: [], message: string }>) => {
+        if (action.payload.success && action.payload.tiposProveedores) {
           state.tiposProveedores = action.payload.tiposProveedores
         } else {
           state.tiposProveedores = []
           state.error = action.payload.message ? (action.payload.message as string) : 'Error al obtener tipos de proveedores';
         }
       })
-      .addCase(getTiposProveedores.rejected, (state, action) => {
-        state.error = action.payload as string
-      })
 
-    
+
       // Descuentos Proveedores
-      .addCase(getTiposDescuento.fulfilled, (state, action: PayloadAction<{success: boolean, descuentosProveedor?: [], message: string}>) => {
-        if (action.payload.success && action.payload.descuentosProveedor){
+      .addCase(getTiposDescuento.fulfilled, (state, action: PayloadAction<{ success: boolean, descuentosProveedor?: [], message: string }>) => {
+        if (action.payload.success && action.payload.descuentosProveedor) {
           state.descuentosProveedor = action.payload.descuentosProveedor
         } else {
           state.descuentosProveedor = []
           state.error = action.payload.message ? (action.payload.message as string) : 'Error al obtener tipos de descuento';
         }
       })
-      .addCase(getTiposDescuento.rejected, (state, action) => {
-        state.error = action.payload as string
-      })
 
-      
+
   }
 })
 
-export const {setListProveedor, updateProveedor} = proveedorSlice.actions
+export const { setListProveedor, updateProveedor } = proveedorSlice.actions
 export default proveedorSlice.reducer;

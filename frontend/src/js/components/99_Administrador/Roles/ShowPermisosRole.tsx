@@ -14,37 +14,37 @@ Modal.setAppElement('#root');
 
 const ShowPermisosRole: React.FC<showPermisosRoleProps> = ({ isOpen, onClose, rolToShow }) => {
 
-    return (
-        <Modal
-            isOpen={isOpen}
-            onRequestClose={onClose}
-            className="modalPermisosRole"
-            contentLabel="Permisos del Rol"
-        >
+  return (
+    <Modal
+      isOpen={isOpen}
+      onRequestClose={onClose}
+      className="modalPermisosRole"
+      contentLabel="Permisos del Rol"
+    >
 
-            <div className="mainDiv_modalViewPermisos">
-                <h2>Permisos del Rol: <br /> {rolToShow?.name}</h2>
-                <ul>
-                    {rolToShow?.permissions?.map(permiso => (
-                        <li key={permiso.id}>{permiso.name}</li>
-                    ))}
-                </ul>
+      <div className="mainDiv_modalViewPermisos">
+        <h2>Permisos del Rol: <br /> {rolToShow?.name}</h2>
+        <ul>
+          {rolToShow?.permissions?.map(permiso => (
+            <li key={permiso.id}>{permiso.name}</li>
+          ))}
+        </ul>
 
 
-                <ModalButtons
-                    buttons={[
-                        {
-                            text: 'Cancelar',
-                            type: 'button',
-                            className: 'button_close',
-                            onClick: onClose
-                        }
-                    ]}
-                />
-            </div>
+        <ModalButtons
+          buttons={[
+            {
+              text: 'Cancelar',
+              type: 'button',
+              className: 'button_close',
+              onClick: onClose
+            }
+          ]}
+        />
+      </div>
 
-        </Modal >
-    );
+    </Modal >
+  );
 };
 
 export default ShowPermisosRole;

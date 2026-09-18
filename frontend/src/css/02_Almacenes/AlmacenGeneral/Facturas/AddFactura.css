@@ -1,159 +1,11 @@
-.swal2-html-container .recommendationPanel{
-    text-align: left;
-    max-height: 420px;
-    overflow: auto;
-    background: #fafafa;
-    border: 1px solid #ececec;
-    border-radius: 10px;
-    padding: 12px;
-}
+.AddEditFactura {
 
-.swal2-html-container .recommendationPanel--raw{
-    padding: 6px;
-}
-
-.swal2-html-container .recommendationPanel__title{
-    margin: 0 0 10px 0;
-    color: #1f2937;
-}
-
-.swal2-html-container .recommendationPanel__line{
-    margin: 0 0 8px 0;
-    color: #253041;
-}
-
-.swal2-html-container .recommendationPanel__divider{
-    border: none;
-    border-top: 1px solid #e5e7eb;
-    margin: 10px 0 12px 0;
-}
-
-.swal2-html-container .recommendationPanel__empty{
-    margin: 0;
-    color: #6b7280;
-    font-style: italic;
-}
-
-.swal2-html-container .recommendationPanel__pre{
-    margin: 0;
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid #e1e1e1;
-    background: #f7f9fb;
-    color: #1f2937;
-    font-size: 12px;
-    line-height: 1.45;
-    white-space: pre-wrap;
-    word-break: break-word;
-    font-family: Consolas, 'Courier New', monospace;
-}
-
-
-.swal2-html-container .recommendationSummary__item{
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    background: #ffffff;
-    padding: 8px 10px;
-}
-
-.swal2-html-container .recommendationSummary__key{
-    font-size: 11px;
-    text-transform: capitalize;
-    color: #6b7280;
-}
-
-.swal2-html-container .recommendationSummary__value{
-    font-size: 13px;
-    font-weight: 700;
-    color: #111827;
-}
-
-.swal2-html-container .recommendationSummary__text{
-    margin: 0;
-    color: #1f2937;
-}
-
-.swal2-html-container .recommendationCard{
-    padding: 10px 12px;
-    border: 1px solid #e8e8e8;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    background: #ffffff;
-}
-
-.swal2-html-container .recommendationCard__title{
-    margin: 0 0 6px 0;
-}
-
-.swal2-html-container .recommendationCard__meta,
-.swal2-html-container .recommendationCard__line{
-    margin: 0 0 4px 0;
-    color: #374151;
-}
-
-.swal2-html-container .recommendationCard__notes{
-    margin: 0;
-    color: #4b5563;
-}
-
-.swal2-html-container .mlRecommendationItem{
-    border: 1px solid #e5e7eb;
-    background: #ffffff;
-    border-radius: 8px;
-    padding: 8px 10px;
-    margin-bottom: 8px;
-    font-family: Consolas, 'Courier New', monospace;
-    font-size: 12px;
-    line-height: 1.4;
-}
-
-.AddEditFactura{
-
-    .recommendationButtonsRow{
-        justify-content: flex-start !important;
-        gap: 10px !important;
-        margin-bottom: 10px;
-    }
-
-    .recommendationButton{
-        border: 1px solid #c8cdd4;
-        background: #f8f9fb;
-        color: #253041;
-        border-radius: 8px;
-        padding: 7px 12px;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all .15s ease;
-    }
-
-    .recommendationButton:hover:not(:disabled){
-        background: #eef2f6;
-        border-color: #b7c0cb;
-    }
-
-    .recommendationButton:disabled{
-        opacity: .55;
-        cursor: not-allowed;
-    }
-
-    .recommendationButton--openai{
-        color: #1f4f8a;
-    }
-
-    .recommendationButton--ml{
-        color: #155f3c;
-    }
-
-    form{
+    form {
         display: flex;
         flex-direction: column;
         gap: 15px;
 
-        section{
+        section {
             display: flex;
             flex-direction: column;
             background-color: #ece7f1;
@@ -161,11 +13,11 @@
             border-radius: 10px;
             padding: 10px;
 
-            .title_Container{
+            .title_Container {
                 display: flex;
                 padding: 10px;
-                
-                h2{
+
+                h2 {
                     display: flex;
                     align-items: center;
                     gap: 10px;
@@ -173,34 +25,34 @@
                     font-size: 20px;
                     color: #495057;
 
-                    .infoIcon{
+                    .infoIcon {
                         font-size: 24px;
                         color: #458cd8;
                     }
 
-                    .fechasIcon{
+                    .fechasIcon {
                         font-size: 24px;
                         color: #45d85d;
                     }
 
-                    .infoPago{
+                    .infoPago {
                         font-size: 24px;
                         color: #d84545;
                     }
 
-                    .valoresIcon{
+                    .valoresIcon {
                         font-size: 24px;
                         color: #d8a245;
                     }
 
-                    .observacionIcon{
+                    .observacionIcon {
                         font-size: 24px;
                         color: #d845d8;
                     }
                 }
 
 
-                .agregarActivos{
+                .agregarActivos {
                     display: flex;
                     gap: 10px;
                     margin-left: auto;
@@ -210,34 +62,34 @@
                     border: none;
                     border-radius: 5px;
                     cursor: pointer;
-                    
 
-                    .addActivoIcon{
+
+                    .addActivoIcon {
                         display: flex;
                         align-self: center;
                         font-size: 24px;
                     }
 
-                    
+
                 }
 
-                .agregarActivos:hover{
+                .agregarActivos:hover {
                     background-color: #0056b3;
                 }
             }
 
-            .inputs_Container{
+            .inputs_Container {
                 display: flex;
                 justify-content: space-around;
-                gap: 20px;
 
-                label{
+                label {
                     display: flex;
                     flex-direction: column;
                     width: 100%;
                     padding: 0px 10px;
 
-                    select, input{
+                    select,
+                    input {
                         padding: 8px;
                         margin: 5px 0;
                         border: 2px groove #df67f7;
@@ -245,10 +97,27 @@
                         font-size: 16px;
                     }
 
-                    
+                    div {
+
+                        display: flex;
+                        align-items: center;
+                        gap: 5px;
+
+                        input:first-child {
+                            width: 40px;
+                            text-align: center;
+                        }
+
+                        input[type="number"] {
+                            width: 60px;
+                            text-align: center;
+
+                        }
+                    }
+
                 }
 
-                table{
+                table {
                     width: 95%;
                     background-color: #ece7f1;
                     border: 2px solid #b4adad;
@@ -283,6 +152,8 @@
                         }
                     }
 
+
+
                     #th_Asignaciones,
                     #td_Asignaciones,
                     #th_Cantidad,
@@ -314,9 +185,12 @@
 
                     }
 
+
+
+
                 }
 
-                textarea{
+                textarea {
                     width: 95%;
                     padding: 8px;
                     margin: 0px 0px 20px 0px;
@@ -327,10 +201,10 @@
                     resize: none;
                 }
 
-                
+
             }
 
-            .totalFactura{
+            .totalFactura {
                 display: flex;
                 margin-top: 10px;
                 align-items: center;
@@ -360,31 +234,34 @@
 
                 }
 
-                .totalFacturaCalculado{
+                .totalFacturaCalculado {
                     flex: 1;
                     text-align: right;
                     font-weight: bold;
 
-                    #subTotalSinIVAValue, #subTotalFacturaConDescuentoValue, #subTotalFacturaConFleteValue{
+                    #subTotalSinIVAValue,
+                    #subTotalFacturaConDescuentoValue,
+                    #subTotalFacturaConFleteValue {
                         margin: 0;
                         font-size: 16px;
                         color: #3f7cee;
                     }
 
-                    #totalFacturaFinalValue{
+                    #totalFacturaFinalValue {
                         margin: 0;
                         font-size: 24px;
                         color: #13a332;
                     }
 
-                    
+
                 }
 
             }
 
         }
 
-        section.id_FechaFactura{
+
+        section.id_FechaFactura {
             display: flex;
             flex-direction: row;
             justify-content: space-between;
@@ -392,13 +269,14 @@
             padding-right: 20vw;
             max-height: 80px;
 
-            
-            label{
+
+            label {
                 display: flex;
                 flex-direction: column;
                 padding: 0px 10px;
 
-                select, input{
+                select,
+                input {
                     padding: 8px;
                     margin: 5px 0;
                     border: 2px groove #df67f7;
@@ -406,28 +284,28 @@
                     font-size: 16px;
                 }
 
-                
+
             }
 
-            .idFactura{
+            .idFactura {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
 
-                h2{
+                h2 {
                     gap: 10px;
                     margin: 0;
                     font-size: 20px;
                     color: #495057;
                 }
 
-                p{
+                p {
                     display: flex;
                     align-items: center;
                     margin: 0px;
                     font-size: 40px;
 
-                    .idIcon{
+                    .idIcon {
                         font-size: 40px;
                         margin-right: 2px;
                     }
@@ -436,19 +314,19 @@
 
             }
 
-            .fechaRecepcion{
+            .fechaRecepcion {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
 
-                h2{
+                h2 {
                     display: flex;
                     align-items: center;
                     margin: 0px;
                     font-size: 20px;
 
-                    .icon_FechaRecepcion{
+                    .icon_FechaRecepcion {
                         font-size: 24px;
                         color: #45d85d;
                         margin-right: 8px;
@@ -459,9 +337,11 @@
             }
         }
 
-        
 
-        
+
+
+
+
 
     }
 }
@@ -530,5 +410,3 @@
     gap: 10px;
     margin-top: 18px;
 }
-
-

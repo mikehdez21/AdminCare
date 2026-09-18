@@ -1,16 +1,17 @@
 // Bibliotecas
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AppDispatch, RootState } from '@/store/store'; // Asegúrate de importar AppDispatch
 import { useDispatch, useSelector } from 'react-redux';
 
 // Ubicaciones
 import { Ubicaciones } from '@/@types/mainTypes';
+import type { PaginacionMeta, PaginacionParams } from '@/@types/paginacionTypes';
 import { getUbicaciones } from '@/store/administrador/Ubicaciones/ubicacionesActions';
 import { setListUbicaciones } from '@/store/administrador/Ubicaciones/ubicacionesReducer';
 
 // Componentes
 import Paginacion from '@/components/00_Utils/Paginacion';
-
+import { usePaginacionServidor } from '@/hooks/usePaginacionServidor';
 import AddUbicacionControl from './AddUbicacion';
 import EditUbicacion from './EditUbicacion';
 import DeleteUbicacion from './DeleteUbicacion';
@@ -31,25 +32,55 @@ const Main_UbicacionesControl: React.FC = () => {
   const [ubicacionToEdit_Delete, setUbicacionToEdit_Delete] = useState<Ubicaciones | null>(null); // Usuario seleccionado para editar_eliminar
 
   
-  const [busqueda, setBusqueda] = useState<string>('');
-  const [paginaActual, setPaginaActual] = useState<number>(1);
-  const [ubicacionesPorPagina, setUbicacionesPorPagina] = useState<number>(5);
-
-    
   const [isModalAddUbicacionOpen, setModalAddUbicacionOpen] = useState(false);
   const [isModalEditUbicacionOpen, setModalEditUbicacionOpen] = useState(false);
   const [isModalDeleteUbicacionOpen, setModalDeleteUbicacionOpen] = useState(false);
 
+  // ---------------------------------------------------------------------------
+  // Paginacion servidor: fetcher que llama al thunk de ubicaciones con
+  // { page, per_page, search }. La tabla usa el estado local del hook; el
+  // store sigue cargando la lista completa en el useEffect de montaje para
+  // los flujos que la requieren.
+  // ---------------------------------------------------------------------------
+  const fetcher = useCallback(
+    async (params: PaginacionParams): Promise<{ data: Ubicaciones[]; meta: PaginacionMeta | null }> => {
+      const resultAction = await dispatch(getUbicaciones(params)).unwrap();
+      if (resultAction.success && resultAction.ubicaciones) {
+        return { data: resultAction.ubicaciones, meta: resultAction.meta ?? null };
+      }
+      throw new Error(resultAction.message || 'Error al obtener las ubicaciones');
+    },
+    [dispatch],
+  );
 
-  // Añadir Ubicación
+  const {
+    busqueda,
+    paginaActual,
+    setPaginaActual,
+    perPage: ubicacionesPorPagina,
+    items: ubicacionesPaginaActual,
+    totalItems: totalUbicaciones,
+    numeroTotalPaginas,
+    loading,
+    refetch,
+    handleSearch,
+    handleChangePerPage: handleChangeUbicacionesPorPagina,
+  } = usePaginacionServidor<Ubicaciones>({
+    fetcher,
+    perPageDefault: 5,
+  });
+
+  // Anadir Ubicacion
   const openModalAddUbicacion = () => {
     setModalAddUbicacionOpen(true);
   };
   const closeModalAddUbicacion = () => {
     setModalAddUbicacionOpen(false);
+    // Recargar la tabla paginada tras crear una ubicacion.
+    refetch();
   };
-  
-  // Editar Ubicación
+
+  // Editar Ubicacion
   const openModalEditUbicacion = (ubicacion: Ubicaciones) => {
     setUbicacionToEdit_Delete(ubicacion)
     setModalEditUbicacionOpen(true);
@@ -57,9 +88,11 @@ const Main_UbicacionesControl: React.FC = () => {
   const closeModalEditUbicacion = () => {
     setModalEditUbicacionOpen(false);
     setUbicacionToEdit_Delete(null)
+    // Recargar la tabla paginada tras editar una ubicacion.
+    refetch();
   };
-  
-  // Eliminar Ubicación
+
+  // Eliminar Ubicacion
   const openAlertDeleteUbicacion = (ubicacion: Ubicaciones) => {
     setUbicacionToEdit_Delete(ubicacion)
     setModalDeleteUbicacionOpen(true);
@@ -68,7 +101,8 @@ const Main_UbicacionesControl: React.FC = () => {
   const closeAlertDeleteUbicacion = () => {
     setModalDeleteUbicacionOpen(false);
     setUbicacionToEdit_Delete(null)
-
+    // Recargar la tabla paginada tras eliminar una ubicacion.
+    refetch();
   };  
 
   // Cargar las ubicaciones desde la API solo si no están cargados en el store
@@ -92,48 +126,18 @@ const Main_UbicacionesControl: React.FC = () => {
   const ubicaciones = useSelector((state: RootState) => state.ubicaciones?.ubicaciones || []);
   console.log(ubicaciones)
 
-
-  // Filtrar y ordenar ubicaciones basados en la búsqueda
-  const ubicacionesFiltradas = ubicaciones
-    .filter(ubicacion =>
-      ubicacion.nombre_ubicacion.toLowerCase().includes(busqueda.toLowerCase()) ||
-      ubicacion.id_ubicacion?.toString().includes(busqueda)
-    )
-    .sort((a, b) => a.id_ubicacion! - b.id_ubicacion!);
-
-  // Obtener las ubicaciones para la página actual
-  const indexUltimoUbicacion = paginaActual * ubicacionesPorPagina;
-  const indexPrimerUbicacion = indexUltimoUbicacion - ubicacionesPorPagina;
-  const ubicacionesPaginaActual = ubicacionesFiltradas.slice(indexPrimerUbicacion, indexUltimoUbicacion);
-
-  // Calcular el número total de páginas
-  const numeroTotalPaginas = Math.ceil(ubicacionesFiltradas.length / ubicacionesPorPagina);
-
   // Crear nuevas ubicaciones
   const handleNuevoUbicacion = () => {
     openModalAddUbicacion();
   };
 
-  // Manejar cambio de búsqueda
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setBusqueda(e.target.value);
-    setPaginaActual(1); // Reiniciar a la primera página al hacer una búsqueda
-  };
-
-  // Manejar cambio en el número de ubicaciones por página
-  const handleChangeUbicacionesPorPagina = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setUbicacionesPorPagina(Number(e.target.value));
-    setPaginaActual(1); // Reiniciar a la primera página al cambiar el número de ubicaciones por página
-  };
-
-
-  return(
+  return (
     <div className='mainDiv_UbicacionControl'>
       <div className='searchAdd_ButtonDiv'>
  
         <div className='text_Div'>
           <h1>Ubicaciones</h1>
-          <p>Mostrando {ubicacionesPaginaActual.length} de {ubicaciones.length} ubicaciones</p>
+          <p>Mostrando {ubicacionesPaginaActual.length} de {totalUbicaciones} ubicaciones</p>
         </div>
         
         <div className='buttons_Div'>
@@ -161,7 +165,7 @@ const Main_UbicacionesControl: React.FC = () => {
 
       <hr />
 
-      {ubicacionesFiltradas && ubicacionesFiltradas.length === 0 ? (
+      {!loading && ubicacionesPaginaActual.length === 0 ? (
         <div className='noEntities'>
           <FiAlertTriangle /> <p>  No hay ubicaciones registradas </p> <FiAlertTriangle />
         </div>

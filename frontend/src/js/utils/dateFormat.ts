@@ -14,6 +14,17 @@ export const formatDateHorasToFrontend = (dateString: string | Date | number | n
   }
 };
 
+export const formatOnlyHorasToFrontend = (dateString: string | Date | number | null): string | null => {
+  if (!dateString) return null;
+  try {
+    const date = dayjs(dateString);
+    return date.isValid() ? date.format('h:mm A') : null;
+  } catch (error) {
+    console.error('Fecha inválida:', dateString, error);
+    return null;
+  }
+};
+
 export const formatDateHorasToBackend = (dateString: string | Date | number | null): string | null => {
   if (!dateString) return null;
   try {
@@ -107,3 +118,7 @@ export const getFechaHoraActual = (): string => {
   const localDate = new Date(date.getTime() - offset * 60 * 1000);
   return localDate.toISOString().slice(0, 16);
 };
+
+export const getAñoActual = (): number => {
+  return new Date().getFullYear();
+}

@@ -50,9 +50,6 @@ const MovimientosActivosSlice = createSlice({
           state.error = action.payload.message || 'Error al obtener los movimientos de activos';
         }
       })
-      .addCase(getMovimientosActivosFijos.rejected, (state, action) => {
-        state.error = action.payload as string;
-      })
 
 
       .addCase(getVWmovimientosActivosFijos.fulfilled, (state, action: PayloadAction<{ success: boolean; vwMovimientosAF?: VwMovimientosAF[]; message: string }>) => {
@@ -62,9 +59,6 @@ const MovimientosActivosSlice = createSlice({
           state.vwMovimientosAF = [];
           state.error = action.payload.message || 'Error al obtener la vista de activos fijos';
         }
-      })
-      .addCase(getVWmovimientosActivosFijos.rejected, (state, action) => {
-        state.error = action.payload as string;
       })
 
 
@@ -76,9 +70,6 @@ const MovimientosActivosSlice = createSlice({
           state.error = action.payload.message || 'Error al añadir el activo';
         }
       })
-      .addCase(addMovimientoActivoFijo.rejected, (state, action) => {
-        state.error = action.payload as string;
-      })
 
       .addCase(getTipoMovimientosActivosFijos.fulfilled, (state, action: PayloadAction<{ success: boolean; tipoMovimientoAF?: TipoMovimientoAF[]; message: string }>) => {
         if (action.payload.success && action.payload.tipoMovimientoAF) {
@@ -88,9 +79,6 @@ const MovimientosActivosSlice = createSlice({
           state.error = action.payload.message || 'Error al obtener tipos de movimiento';
         }
       })
-      .addCase(getTipoMovimientosActivosFijos.rejected, (state, action) => {
-        state.error = action.payload as string;
-      });
   }
 });
 

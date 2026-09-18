@@ -74,7 +74,7 @@ const DeleteEmpleado: React.FC<DeleteEmpleadoProps> = ({ isOpen, onClose, emplea
       className="modalEmpleados"
       id="modal_CRUD_AdminDeleteEntity"
     >
-      <div className="mainDiv_modalDepartamentos">
+      <div className="mainDiv_modalEmpleados">
         <h2>Baja de Empleado</h2>
 
         <div className="mainInputs_Delete_AdminEntity">

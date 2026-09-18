@@ -34,9 +34,9 @@ const DeleteProveedor: React.FC<DeleteProveedorProps> = ({ isOpen, onClose, prov
         // Si el proveedor fue eliminado con éxito, recargar la lista de proveedores
         const proveedoresActualizados = await dispatch(getProveedores()).unwrap();
         if (proveedoresActualizados.success) {
-          dispatch(setListProveedor(proveedoresActualizados.proveedor!)); // Actualiza la lista de proveedores en el estado
+          dispatch(setListProveedor(proveedoresActualizados.proveedores!)); // Actualiza la lista de proveedores en el estado
 
-          console.log('Proveedor eliminado y lista recargada:', proveedoresActualizados.proveedor);
+          console.log('Proveedor eliminado y lista recargada:', proveedoresActualizados.proveedores);
 
         }
 

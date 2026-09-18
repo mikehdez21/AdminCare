@@ -2,9 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { AppDispatch, RootState } from '@/store/store';
 import { useDispatch, useSelector } from 'react-redux';
-import axios, { AxiosError } from 'axios';
-import { API_BASE_URL } from '@/variableApi';
-import Swal from 'sweetalert2';
 
 // Styles
 import '@styles/02_Almacenes/AlmacenGeneral/Etiquetas/ImpresionFactura.css';
@@ -24,34 +21,23 @@ import { setListProveedor } from '@/store/almacengeneral/Proveedores/proveedores
 import { getActivosFactura } from '@/store/almacengeneral/Facturas/facturasActions';
 
 // Interface para respuesta de impresión Zebra
-interface PrinterApiResponse {
-  success: boolean;
-  message: string;
-  bytes_enviados?: number;
-}
-
 interface ImpresionFacturaProps {
   facturaNuevaID?: number;
   onImpresionExit?: () => void;
 }
 
-const ImpresionFactura: React.FC<ImpresionFacturaProps> = ({ facturaNuevaID, onImpresionExit }) => {
+const ImpresionFactura: React.FC<ImpresionFacturaProps> = ({ facturaNuevaID }) => {
   const dispatch = useDispatch<AppDispatch>();
 
   // Estados locales
   const [facturasDisponibles, setFacturasDisponibles] = useState<FacturasAF[]>([]);
   const [busquedaFacturas, setBusquedaFacturas] = useState<string>('');
   const [activosFactura, setActivosFacturas] = useState<ActivoEntityResponse[]>([]);
-  const [cantidadActivosTotal, setCantidadActivosTotal] = useState<number>(0);
 
   // Estados para factura seleccionada
   const [facturaSeleccionada, setFacturaSeleccionada] = useState<FacturasAF | null>(null);
 
-  // Estados para impresión Zebra
   const [loadingActivos, setLoadingActivos] = useState<boolean>(false);
-  const [loadingZebra, setLoadingZebra] = useState<boolean>(false);
-  const [errorZebra, setErrorZebra] = useState<string | null>(null);
-  const [successZebra, setSuccessZebra] = useState<string | null>(null);
 
   // Store
   const facturas = useSelector((state: RootState) => state.facturasaf.facturasaf);
@@ -61,7 +47,6 @@ const ImpresionFactura: React.FC<ImpresionFacturaProps> = ({ facturaNuevaID, onI
 
   useEffect(() => {
     setFacturasDisponibles(facturas);
-    setActivosFacturas([...activosFactura]);
   }, [facturas]);
 
   useEffect(() => {
@@ -70,7 +55,7 @@ const ImpresionFactura: React.FC<ImpresionFacturaProps> = ({ facturaNuevaID, onI
         const resultAction = await dispatch(getProveedores()).unwrap();
 
         if (resultAction.success) {
-          dispatch(setListProveedor(resultAction.proveedor!)); // Establece el proveedor en el estado
+          dispatch(setListProveedor(resultAction.proveedores!)); // Establece el proveedor en el estado
 
         } else {
           console.log('Error', resultAction.message)
@@ -89,7 +74,8 @@ const ImpresionFactura: React.FC<ImpresionFacturaProps> = ({ facturaNuevaID, onI
     if (!factura || !factura.num_factura) return false;
     return (
       factura.num_factura.toLowerCase().includes(busquedaFacturas.toLowerCase()) ||
-      (factura.id_factura?.toString().includes(busquedaFacturas) || false)
+      (factura.id_factura?.toString().includes(busquedaFacturas) || false) ||
+      proveedores.find(prov => prov.id_proveedor === factura.id_proveedor)?.razon_social.toLowerCase().includes(busquedaFacturas.toLowerCase()) || false
     );
   });
 
@@ -106,8 +92,6 @@ const ImpresionFactura: React.FC<ImpresionFacturaProps> = ({ facturaNuevaID, onI
       if (resultados.success) {
         setActivosFacturas(resultados.activosFactura || []);
 
-        const cantidadTotal = resultados.activosFactura?.length || 0;
-        setCantidadActivosTotal(cantidadTotal);
       } else {
         setActivosFacturas([]);
       }
@@ -128,135 +112,21 @@ const ImpresionFactura: React.FC<ImpresionFacturaProps> = ({ facturaNuevaID, onI
       (factura) => factura.id_factura === facturaNuevaID
     );
 
-    if (facturaNueva) {
+    const proveedorFacturaNueva = proveedores.find(
+      prov => prov.id_proveedor === facturaNueva?.id_proveedor
+    );
+
+    if (facturaNueva && proveedorFacturaNueva) {
       setBusquedaFacturas(facturaNueva.num_factura || '');
       handleSeleccionarFactura(facturaNueva);
     }
-  }, [facturaNuevaID, facturasDisponibles]);
+  }, [facturaNuevaID, facturasDisponibles, proveedores]);
 
-
-  // Función para imprimir todos los activos en Zebra
-  const handleImprimirTodosEnZebra = async () => {
-    if (cantidadActivosTotal === 0) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Sin activos',
-        text: 'No hay activos disponibles para imprimir en esta factura',
-        confirmButtonText: 'Aceptar',
-      });
-      return;
-    }
-
-    // Mostrar alerta de confirmación con cantidad de etiquetas
-    const result = await Swal.fire({
-      icon: 'info',
-      title: 'Confirmar impresión',
-      html: `<p>Se van a imprimir <strong>${cantidadActivosTotal} etiqueta(s)</strong> por la cantidad de activos totales. ¿Deseas continuar?</p>`,
-      showCancelButton: true,
-      confirmButtonText: 'Sí, imprimir',
-      cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#667eea',
-      cancelButtonColor: '#d33',
-    });
-
-    if (!result.isConfirmed) {
-      return;
-    }
-
-    setLoadingZebra(true);
-
-    try {
-      // Obtener CSRF token
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, {
-        withCredentials: true,
-      });
-
-      let activosImpresos = 0;
-      let activosConError = 0;
-      const erroresDetallados: string[] = [];
-
-      // Imprimir cada activo
-      for (const activo of activosFactura) {
-        try {
-          const response = await axios.post(
-            `${API_BASE_URL}/api/HSS1/almacengeneral/printer/etiqueta/${activo.id_activo_fijo}`,
-            {},
-            { withCredentials: true }
-          );
-
-          if (response.data.success) {
-            activosImpresos++;
-          } else {
-            activosConError++;
-            erroresDetallados.push(`${activo.codigo_unico}: ${response.data.message}`);
-          }
-        } catch (error: unknown) {
-          activosConError++;
-          let errorMsg = 'Error desconocido';
-          if (axios.isAxiosError(error)) {
-            errorMsg = error.response?.data?.message || 'Error al conectar';
-          }
-          erroresDetallados.push(`${activo.codigo_unico}: ${errorMsg}`);
-        }
-      }
-
-      // Mostrar resultado
-      if (activosImpresos > 0) {
-        let mensajeExito = `Se imprimieron ${activosImpresos} etiqueta(s) exitosamente`;
-        if (activosConError > 0) {
-          mensajeExito += ` (${activosConError} con error)`;
-          Swal.fire({
-            icon: 'warning',
-            title: 'Impresión parcial',
-            html: `<p>${mensajeExito}</p><p style="color: #d33; font-size: 0.9em; margin-top: 10px;">${erroresDetallados.join('<br>')}</p>`,
-            confirmButtonText: 'Aceptar',
-          });
-        } else {
-          await Swal.fire({
-            icon: 'success',
-            title: 'Impresión exitosa',
-            text: mensajeExito,
-            confirmButtonText: 'Aceptar',
-            confirmButtonColor: '#667eea',
-          });
-
-          if (onImpresionExit) {
-            onImpresionExit();
-          }
-        }
-        setSuccessZebra(mensajeExito);
-      } else {
-        setErrorZebra('Error al imprimir todas las etiquetas');
-        Swal.fire({
-          icon: 'error',
-          title: 'Error en la impresión',
-          html: `<p>No se pudo imprimir ninguna etiqueta</p><p style="color: #666; font-size: 0.9em; margin-top: 10px;">${erroresDetallados.join('<br>')}</p>`,
-          confirmButtonText: 'Aceptar',
-          confirmButtonColor: '#d33',
-        });
-      }
-    } catch (error: unknown) {
-      console.error('Error al imprimir en Zebra:', error);
-      let errorMessage = 'Error al conectar con la impresora Zebra';
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as AxiosError<PrinterApiResponse>;
-        errorMessage = axiosError.response?.data?.message || errorMessage;
-      }
-      setErrorZebra(errorMessage);
-    } finally {
-      setLoadingZebra(false);
-      // Limpiar mensajes después de 5 segundos
-      setTimeout(() => {
-        setSuccessZebra(null);
-        setErrorZebra(null);
-      }, 5000);
-    }
-  };
 
   // Obtener nombre de clasificación
-  const getNombreClasificacion = (id_clasificacion: number) => {
+  const getNombreClasificacion = (id_clasificacion: number | null) => {
     const clasificacion = clasificaciones.find(c => c.id_clasificacion === id_clasificacion);
-    return clasificacion?.nombre_clasificacion || 'Sin clasificación';
+    return clasificacion ? clasificacion.nombre_clasificacion : 'Activo Menor';
   };
 
   return (
@@ -284,7 +154,7 @@ const ImpresionFactura: React.FC<ImpresionFacturaProps> = ({ facturaNuevaID, onI
         <div className="divSearch">
           <input
             type="text"
-            placeholder="Buscar por número de factura..."
+            placeholder="Buscar por número de factura o razón social"
             value={busquedaFacturas}
             onChange={(e) => setBusquedaFacturas(e.target.value)}
             className="inputSearch"
@@ -299,7 +169,7 @@ const ImpresionFactura: React.FC<ImpresionFacturaProps> = ({ facturaNuevaID, onI
                 className={`facturaItem disponible ${facturaSeleccionada?.id_factura === factura.id_factura
                   ? 'seleccionado'
                   : ''
-                  }`}
+                }`}
                 onClick={() => handleSeleccionarFactura(factura)}
               >
                 <div className="facturaInfo">
@@ -345,30 +215,12 @@ const ImpresionFactura: React.FC<ImpresionFacturaProps> = ({ facturaNuevaID, onI
 
                 <button
                   className="btnImprimirZebra"
-                  onClick={handleImprimirTodosEnZebra}
-                  disabled={loadingZebra}
+                  disabled
+                  title="No disponible en la demo"
                 >
-                  {loadingZebra ? (
-                    <>⏳ Imprimiendo...</>
-                  ) : (
-                    <>
-                      <FaPrint /> Imprimir Etiquetas ({cantidadActivosTotal})
-                    </>
-
-                  )}
+                  <><FaPrint /> No disponible en la demo</>
                 </button>
 
-                {/* Indicadores de estado para impresión Zebra */}
-                {successZebra && (
-                  <div className="alertaExito">
-                    <span>✅ {successZebra}</span>
-                  </div>
-                )}
-                {errorZebra && (
-                  <div className="alertaError">
-                    <span>❌ {errorZebra}</span>
-                  </div>
-                )}
               </div>
             )}
           </div>
@@ -392,7 +244,7 @@ const ImpresionFactura: React.FC<ImpresionFacturaProps> = ({ facturaNuevaID, onI
                         {activo.nombre_af}{' '}
                       </h4>
 
-                      <p className="clasificacion">{getNombreClasificacion(activo.id_clasificacion!)}</p>
+                      <p className="clasificacion">{getNombreClasificacion(activo.id_clasificacion)}</p>
 
                       <p style={{ fontSize: '0.9em', color: '#999' }}>Unidad: 1</p>
                     </div>

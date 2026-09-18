@@ -1,6 +1,7 @@
-import React from 'react';
-import { RootState } from '@/store/store'; // Asegúrate de importar AppDispatch
+import React, { useState } from 'react';
+import { RootState } from '@/store/store';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 
 // Types
@@ -18,20 +19,30 @@ interface AFDepartamentosProps {
 }
 
 const AFDepartamentos: React.FC<AFDepartamentosProps> = ({ departamentoSeleccionadoId, onSelectDepartamento }) => {
+  const navigate = useNavigate();
   const departamentos = useSelector((state: RootState) => state.departamentos.departamentos);
+
+  const [busqueda, setBusqueda] = useState('');
 
   const handleDepartamentoSelected = (departamento: Departamentos) => {
     onSelectDepartamento(departamento.id_departamento ?? null);
-
+    navigate(`/almacen-general/activos/departamento/${departamento.id_departamento}`);
   }
 
 
   const renderAFDepartamento = () => (
-    <ListActivosFijos 
+    <ListActivosFijos
       DepartamentoSeleccionado={departamentoSeleccionadoId ?? 0}
     />
-      
   )
+
+
+  const departamentosFiltrados = React.useMemo(() => {
+    const ordenados = [...departamentos].sort((a, b) => a.nombre_departamento.localeCompare(b.nombre_departamento));
+    if (!busqueda.trim()) return ordenados;
+    const termino = busqueda.toLowerCase();
+    return ordenados.filter(d => d.nombre_departamento.toLowerCase().includes(termino));
+  }, [departamentos, busqueda]);
 
   const renderListadoDepartamentos = () => (
 
@@ -41,25 +52,34 @@ const AFDepartamentos: React.FC<AFDepartamentosProps> = ({ departamentoSeleccion
           <p>No hay departamentos disponibles</p>
         </div>
       ) : (
-        <div className='cardsDepartamentos'>
-          {departamentos.map((departamento) => (
-            <article
-              key={departamento.id_departamento ?? departamento.nombre_departamento}
-              className='cardDepartamento'
-              onClick={() => handleDepartamentoSelected(departamento)}
-            >
-              <h3>
-                <span className='nombreDepartamento'>{departamento.nombre_departamento}</span>
-                
-              </h3>
-              <p>{departamento.descripcion}</p>
-              <span className={departamento.estatus_activo ? 'estado activo' : 'estado inactivo'}>
-                {departamento.estatus_activo ? 'Activo' : 'Inactivo'}
-              </span>
-              
-            </article>
-          ))}
-        </div>
+        <>
+          <div className='searchField'>
+            <input
+              type='text'
+              placeholder='Buscar departamento...'
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              className='inputSearch'
+            />
+          </div>
+          <div className='cardsDepartamentos'>
+            {departamentosFiltrados.map((departamento) => (
+              <article
+                key={departamento.id_departamento ?? departamento.nombre_departamento}
+                className='cardDepartamento'
+                onClick={() => handleDepartamentoSelected(departamento)}
+              >
+                <h3>
+                  <span className='nombreDepartamento'>{departamento.nombre_departamento}</span>
+                </h3>
+                <p>{departamento.descripcion}</p>
+                <span className={departamento.estatus_activo ? 'estado activo' : 'estado inactivo'}>
+                  {departamento.estatus_activo ? 'Activo' : 'Inactivo'}
+                </span>
+              </article>
+            ))}
+          </div>
+        </>
       )}
     </>
   )
@@ -67,9 +87,8 @@ const AFDepartamentos: React.FC<AFDepartamentosProps> = ({ departamentoSeleccion
   return (
     <div className='mainDiv_AFDepartamentos'>
       {departamentoSeleccionadoId !== null ? renderAFDepartamento() : renderListadoDepartamentos()}
-
     </div>
-  )  
+  )
 }
 
 export default AFDepartamentos;

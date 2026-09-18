@@ -21,6 +21,17 @@ export interface Permission {
   guard_name?: string;
   created_at?: string;
   updated_at?: string | null;
+
+  action: 'lectura' | 'escritura' | 'control'; // Nuevo campo para indicar el tipo de permiso
+
+}
+
+export interface GroupedPermission {
+  [module: string]: {
+    lectura?: Permission;
+    escritura?: Permission;
+    control?: Permission;
+  };
 }
 
 // Departamentos
@@ -32,6 +43,7 @@ export interface Departamentos {
   estatus_activo: boolean;
   created_at?: string;
   updated_at?: string | null;
+
 }
 
 // Empleados
@@ -40,15 +52,13 @@ export interface Empleados {
   nombre_empleado: string;
   apellido_paterno: string;
   apellido_materno: string;
-  email_empleado: string;
-  telefono_empleado: string;
   genero: string;
   fecha_nacimiento: string | null;
   estatus_activo: boolean;
+  jefatura_empleado: boolean;
   fecha_alta: string | null;
   fecha_baja: string | null;
   foto_empleado: string | File | null;
-  firma_movimientos: string;
   created_at?: string;
   updated_at?: string | null;
   id_departamento?: number;
@@ -59,7 +69,6 @@ export interface User {
   id_usuario?: number;
   nombre_usuario: string;
   email_usuario: string;
-  password: string;
   estatus_activo: boolean;
   fecha_baja: string | null;
   usuario_compartido: boolean;

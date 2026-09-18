@@ -1,35 +1,38 @@
-import axios from 'axios';
-import { API_BASE_URL } from '@/variableApi';
+import { isAxiosError } from 'axios';
 import { Roles } from '@/@types/mainTypes';
-import { formatDateHorasToFrontend } from '@/utils/dateFormat'; 
+import { type PaginacionMeta, type PaginacionParams } from '@/@types/paginacionTypes';
+import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import api, { API_BASE_URL } from '@/variableApi';
+import { getBackendErrorMessage } from '@/store/shared/errorMessage';
 
+// ---------------------------------------------------------------------------
+// Resultado común de las consultas de roles.
+// `meta` solo está presente cuando la consulta fue paginada (page/per_page).
+// ---------------------------------------------------------------------------
+export interface ResultadoRoles {
+  success: boolean;
+  roles?: Roles[];
+  meta?: PaginacionMeta | null;
+  message: string;
+}
 
 // Agregar un nuevo Rol
 export const addRol = createAsyncThunk<{ success: boolean; message: string }, Roles>(
   '/addRol',
   async (nuevoRol: Roles) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      const response = await axios.post(
+      const response = await api.post(
         `${API_BASE_URL}/api/HSS1/admin/roles`,
-        nuevoRol,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+        nuevoRol
       );
 
       return { success: response.data.success, message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -42,20 +45,17 @@ export const addRol = createAsyncThunk<{ success: boolean; message: string }, Ro
 );
 
 // Obtener los roles registrados
-export const getRoles = createAsyncThunk<{success: boolean; roles?: Roles[]; message: string }>(
+// - Sin argumentos: devuelve la lista completa (comportamiento original).
+// - Con PaginacionParams: devuelve la página solicitada + `meta`.
+export const getRoles = createAsyncThunk<ResultadoRoles, PaginacionParams | void>(
   '/getRoles',
-  async () => {
-    try{
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/admin/roles`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken || '',
-        },
-        withCredentials: true,
-      });
+  async (params: PaginacionParams | void) => {
+    try {
+
+      const response = await api.get(
+        `${API_BASE_URL}/api/HSS1/admin/roles`,
+        params ? { params } : undefined,
+      );
 
       // Transforma las fechas aquí
       const rolesFormateados = response.data.data.map((rol: Roles) => {
@@ -67,23 +67,23 @@ export const getRoles = createAsyncThunk<{success: boolean; roles?: Roles[]; mes
           updated_at: rol.updated_at
             ? formatDateHorasToFrontend(rol.updated_at)
             : null,
-            
+
           // Si hay más campos de fecha, agrégalos aquí
         };
       });
 
-      return { success: response.data.success, roles: rolesFormateados as Roles[], message: response.data.message };
+      return { success: response.data.success, roles: rolesFormateados as Roles[], meta: response.data.meta ?? null, message: response.data.message };
 
     } catch (error) {
       // Manejo de errores
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         // Retornar la respuesta del backend como parte del error
         return ({
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         });
       }
-      
+
       return ({
         success: false,
         message: 'Error inesperado',
@@ -97,31 +97,21 @@ export const editRol = createAsyncThunk<{ success: boolean; message: string }, R
   '/editRol',
   async (rolEditado: Roles) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      console.log(csrfToken);
-      
+
       // Incluir el id del rol en la URL para hacer la actualización correcta
-      const response = await axios.put(
+      const response = await api.put(
         `${API_BASE_URL}/api/HSS1/admin/roles/${rolEditado.id}`,
-        rolEditado,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+        rolEditado
       );
 
       console.log('updateAction', response.data.success)
       return { success: response.data.success, message: response.data.message };
 
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -138,30 +128,20 @@ export const deleteRol = createAsyncThunk<{ success: boolean; message: string },
   '/deleteDepartamento',
   async (rolEliminado: Roles) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      console.log(csrfToken);
-      
+
       // Incluir el id del rol en la URL para hacer la eliminación correcta
-      const response = await axios.delete(
-        `${API_BASE_URL}/api/HSS1/admin/roles/${rolEliminado.id}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+      const response = await api.delete(
+        `${API_BASE_URL}/api/HSS1/admin/roles/${rolEliminado.id}`
       );
 
       console.log('deleteAction', response.data.success)
       return { success: response.data.success, message: response.data.message };
-      
+
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 

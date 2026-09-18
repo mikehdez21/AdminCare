@@ -1,77 +1,50 @@
-import axios from 'axios';
-import { API_BASE_URL } from '@/variableApi';
-import { FacturasAF, ActivosFacturaApiResponse, ActivoFacturaInput } from '@/@types/AlmacenGeneralTypes/facturasTypes';
+import { isAxiosError } from 'axios';
+import { FacturasAF, TiposFacturasAF, ActivosFacturaApiResponse, ActivoFacturaInput } from '@/@types/AlmacenGeneralTypes/facturasTypes';
 import { ActivoEntityResponse } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
+import { type PaginacionMeta, type PaginacionParams } from '@/@types/paginacionTypes';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import api, { API_BASE_URL } from '@/variableApi';
+import { TIPOS_FACTURAS_ENDPOINT } from '../TipoFactura/tiposFacturasApi';
+import { getBackendErrorMessage } from '@/store/shared/errorMessage';
 
-const buildBackendErrorMessage = (payload: unknown): string => {
-  if (typeof payload === 'string') {
-    const cleaned = payload.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-    if (cleaned.length > 0) {
-      return cleaned.slice(0, 300);
+// ---------------------------------------------------------------------------
+// Resultado común de las consultas de facturas.
+// `meta` solo está presente cuando la consulta fue paginada (page/per_page).
+// ---------------------------------------------------------------------------
+export interface ResultadoFacturas {
+  success: boolean;
+  facturas?: FacturasAF[];
+  meta?: PaginacionMeta | null;
+  message: string;
+}
+
+/** API responses have existed in several shapes (data, API_Response or a raw array). */
+const responseArray = <T>(payload: unknown, keys: string[] = ['data', 'API_Response']): T[] => {
+  if (Array.isArray(payload)) return payload as T[];
+  if (!payload || typeof payload !== 'object') return [];
+  const record = payload as Record<string, unknown>;
+  for (const key of keys) {
+    if (Array.isArray(record[key])) return record[key] as T[];
+    if (record[key] && typeof record[key] === 'object') {
+      const nested = responseArray<T>(record[key], keys);
+      if (nested.length > 0) return nested;
     }
   }
-
-  if (!payload || typeof payload !== 'object') {
-    return '';
-  }
-
-  const data = payload as {
-    message?: string;
-    error?: string;
-    data?: Record<string, string[] | string>;
-    errors?: Record<string, string[] | string>;
-  };
-
-  const baseMessage = data.message || data.error || '';
-  const validationBag = data.data || data.errors;
-
-  if (!validationBag || typeof validationBag !== 'object') {
-    return baseMessage;
-  }
-
-  const validationLines = Object.entries(validationBag)
-    .flatMap(([field, value]) => {
-      if (Array.isArray(value)) {
-        return value.map((msg) => `${field}: ${msg}`);
-      }
-
-      if (typeof value === 'string') {
-        return [`${field}: ${value}`];
-      }
-
-      return [];
-    })
-    .filter(Boolean);
-
-  if (validationLines.length === 0) {
-    return baseMessage;
-  }
-
-  return `${baseMessage}\n${validationLines.join('\n')}`;
+  return [];
 };
-
 
 // Agregar una nueva factura
 export const addFactura = createAsyncThunk<{ success: boolean; message: string; id_factura?: number }, FacturasAF>(
   'almacengeneral/addFactura',
   async (nuevaFactura: FacturasAF) => {
     try {
-      console.log('Nueva factura a agregar:', nuevaFactura),
-        await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      console.log('Nueva factura a agregar:', nuevaFactura);
+      console.log('Factura a agregar:', nuevaFactura);
 
-      const response = await axios.post(
+      const response = await api.post(
         `${API_BASE_URL}/api/HSS1/almacengeneral/facturas`,
-        nuevaFactura,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+        nuevaFactura
       );
 
       return {
@@ -80,30 +53,24 @@ export const addFactura = createAsyncThunk<{ success: boolean; message: string; 
         id_factura: response.data?.data?.id_factura,
       };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        const backendMessage = buildBackendErrorMessage(error.response.data);
+      if (isAxiosError(error) && error.response) {
+        const backendMessage = getBackendErrorMessage(error.response.data, '');
         const status = error.response.status;
         const statusText = error.response.statusText;
         const axiosMessage = error.message;
 
-        const debugMessage = [
-          backendMessage,
-          `HTTP ${status}${statusText ? ` ${statusText}` : ''}`,
-          axiosMessage,
-        ]
-          .filter(Boolean)
-          .join('\n');
-
-        console.error('addFactura error detail:', {
-          status,
-          statusText,
-          axiosMessage,
-          responseData: error.response.data,
-        });
+        if (import.meta.env.DEV) {
+          console.error('addFactura error detail:', {
+            status,
+            statusText,
+            axiosMessage,
+            responseData: error.response.data,
+          });
+        }
 
         return {
           success: false,
-          message: debugMessage || 'Error en addFactura Action',
+          message: backendMessage || 'No se pudo registrar la factura',
           id_factura: undefined,
         };
       }
@@ -116,48 +83,46 @@ export const addFactura = createAsyncThunk<{ success: boolean; message: string; 
     }
   }
 );
-
-// Obtener las facturas registradas
-export const getFacturas = createAsyncThunk<{ success: boolean; facturas?: FacturasAF[], message: string }>(
+// Obtener las facturas registradas.
+// - Sin argumentos: devuelve la lista completa (comportamiento original).
+// - Con PaginacionParams: devuelve la página solicitada + `meta`.
+export const getFacturas = createAsyncThunk<ResultadoFacturas, PaginacionParams | void>(
   'almacengeneral/getFacturas',
-  async () => {
+  async (params: PaginacionParams | void) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/facturas`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken || '',
-        },
-        withCredentials: true,
-      });
+      const response = await api.get(
+        `${API_BASE_URL}/api/HSS1/almacengeneral/facturas`,
+        params ? { params } : undefined,
+      );
 
-      const facturasFormateadas = response.data.data.map((factura: FacturasAF) => {
+      const facturasFormateadas = responseArray<FacturasAF>(response.data).map((factura: FacturasAF) => {
         return {
           ...factura,
 
           created_at: factura.created_at
-            ? formatDateHorasToFrontend(factura.created_at)
-            : null,
+            ? (formatDateHorasToFrontend(factura.created_at) || undefined)
+            : undefined,
 
           updated_at: factura.updated_at
-            ? formatDateHorasToFrontend(factura.updated_at)
-            : null,
+            ? (formatDateHorasToFrontend(factura.updated_at) || undefined)
+            : undefined,
         };
       });
 
-      return { success: true, facturas: facturasFormateadas, message: response.data.message };
+      return { success: true, facturas: facturasFormateadas, meta: response.data.meta ?? null, message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          facturas: [],
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
       return {
         success: false,
+        facturas: [],
         message: 'Error inesperado',
       };
     }
@@ -172,26 +137,19 @@ export const updateFactura = createAsyncThunk<
   'almacengeneral/updateFactura',
   async ({ id, factura }) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      const response = await axios.put(
+      console.log('Factura a actualizar:', factura);
+
+      const response = await api.put(
         `${API_BASE_URL}/api/HSS1/almacengeneral/facturas/${id}`,
-        factura,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+        factura
       );
 
       return { success: response.data.success, message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -206,34 +164,29 @@ export const updateFactura = createAsyncThunk<
 // Eliminar una factura
 
 // Obtener los tipos de facturas registrados
-export const getTiposFacturas = createAsyncThunk<{ success: boolean; tiposFacturas?: []; message: string }>(
+export const getTiposFacturas = createAsyncThunk<{ success: boolean; tiposFacturas: TiposFacturasAF[]; message: string }>(
   'almacengeneral/getTiposFacturas',
   async () => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/tipos-facturas`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken || '',
-        },
-        withCredentials: true,
-      });
+      // Los tipos de factura tienen un único recurso CRUD canónico.
+      const response = await api.get(`${API_BASE_URL}${TIPOS_FACTURAS_ENDPOINT}`);
 
-      return { success: response.data.success, tiposFacturas: response.data.API_Response || [], message: response.data.message };
+      return { success: response.data?.success !== false, tiposFacturas: responseArray(response.data, ['API_Response', 'data']), message: response.data?.message || '' };
     } catch (error) {
       // Manejo de errores
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         // Retornar la respuesta del backend como parte del error
         return ({
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          tiposFacturas: [],
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         });
       }
 
       return ({
         success: false,
+        tiposFacturas: [],
         message: 'Error inesperado',
       });
     }
@@ -245,23 +198,15 @@ export const getActivosFactura = createAsyncThunk<ActivosFacturaApiResponse, num
   'almacengeneral/getActivosFactura',
   async (idFactura: number) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/facturas/${idFactura}/activos`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken || '',
-        },
-        withCredentials: true,
-      });
+      const response = await api.get(`${API_BASE_URL}/api/HSS1/almacengeneral/facturas/${idFactura}/activos`);
 
       return { success: response.data.success, activosFactura: response.data.data || [], message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -281,27 +226,18 @@ export const addActivosToFactura = createAsyncThunk<
   'almacengeneral/addActivosToFactura',
   async ({ id_factura, activos }) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.post(
+      const response = await api.post(
         `${API_BASE_URL}/api/HSS1/almacengeneral/facturas/activos`,
-        { id_factura, activos },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+        { id_factura, activos }
       );
 
       return { success: response.data.success, message: response.data.message, data: response.data.data };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -321,27 +257,18 @@ export const updateActivosFactura = createAsyncThunk<
   'almacengeneral/updateActivosFactura',
   async ({ id_factura, activos }) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.put(
+      const response = await api.put(
         `${API_BASE_URL}/api/HSS1/almacengeneral/facturas/${id_factura}/activos`,
-        { activos },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+        { activos }
       );
 
       return { success: response.data.success, message: response.data.message, data: response.data.data };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -361,26 +288,17 @@ export const removeActivoFromFactura = createAsyncThunk<
   'almacengeneral/removeActivoFromFactura',
   async ({ id_factura, id_activo }) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.delete(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/facturas/${id_factura}/activos/${id_activo}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+      const response = await api.delete(
+        `${API_BASE_URL}/api/HSS1/almacengeneral/facturas/${id_factura}/activos/${id_activo}`
       );
 
       return { success: response.data.success, message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 

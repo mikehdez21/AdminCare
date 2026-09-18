@@ -24,17 +24,14 @@ const EditEmpleado: React.FC<EditEmpleadoProps> = ({ isOpen, onClose, empleadoTo
   const [nombreEmpleado, setNombreEmpleado] = useState('');
   const [apellidoPaterno, setApellidoPaterno] = useState('');
   const [apellidoMaterno, setApellidoMaterno] = useState('');
-  const [emailEmpleado, setEmailEmpleado] = useState('');
-  const [telefonoEmpleado, setTelefonoEmpleado] = useState('');
   const [generoEmpleado, setGeneroEmpleado] = useState('');
   const [fechaNacimiento, setFechaNacimiento] = useState('');
   const [estatusActivo, setEstatusActivo] = useState<boolean>(true);
+  const [jefaturaEmpleado, setJefaturaEmpleado] = useState<boolean>(false);
   const [fechaAlta, setFechaAlta] = useState('');
   const [fechaBaja, setFechaBaja] = useState('');
   const [fotoEmpleado, setFotoEmpleado] = useState<File | null>(null);
   const [imagenEmpleadoPreview, setImagenEmpleadoPreview] = useState<string | null>(null);
-  const [firmaMovimientos, setFirmaMovimientos] = useState('');
-  const [confirmarFirmaMov, setConfirmarFirmaMov] = useState('');
   const [tipoDepartamento, setTipoDepartamento] = useState<number>(0);
 
   const tiposDepartamentos = useSelector((state: RootState) => state.departamentos.departamentos);
@@ -89,8 +86,6 @@ const EditEmpleado: React.FC<EditEmpleadoProps> = ({ isOpen, onClose, empleadoTo
       setNombreEmpleado(empleadoToEdit.nombre_empleado || '');
       setApellidoPaterno(empleadoToEdit.apellido_paterno || '');
       setApellidoMaterno(empleadoToEdit.apellido_materno || '');
-      setEmailEmpleado(empleadoToEdit.email_empleado || '');
-      setTelefonoEmpleado(empleadoToEdit.telefono_empleado || '');
       setGeneroEmpleado(empleadoToEdit.genero || '');
 
       setFechaNacimiento(formatDateNacimientoToInputs(empleadoToEdit.fecha_nacimiento) || '');
@@ -100,15 +95,12 @@ const EditEmpleado: React.FC<EditEmpleadoProps> = ({ isOpen, onClose, empleadoTo
 
       setFotoEmpleado(null); // No se puede asignar string, solo File o null
       setImagenEmpleadoPreview(typeof empleadoToEdit.foto_empleado === 'string' ? empleadoToEdit.foto_empleado : null); // Si tienes la URL/base64, úsala como preview
-      setFirmaMovimientos('');
       setTipoDepartamento(empleadoToEdit.id_departamento || 0);
     } else {
       console.log('Reseteando los estados del formulario porque no hay usuario a editar.');
       setNombreEmpleado('');
       setApellidoPaterno('');
       setApellidoMaterno('');
-      setEmailEmpleado('');
-      setTelefonoEmpleado('');
       setGeneroEmpleado('');
       setFechaNacimiento('');
       setEstatusActivo(true);
@@ -116,25 +108,12 @@ const EditEmpleado: React.FC<EditEmpleadoProps> = ({ isOpen, onClose, empleadoTo
       setFechaBaja('');
       setFotoEmpleado(null);
       setImagenEmpleadoPreview(null);
-      setFirmaMovimientos('');
-      setConfirmarFirmaMov('');
       setTipoDepartamento(0);
     }
   }, [empleadoToEdit]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (firmaMovimientos !== confirmarFirmaMov) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Las Firmas no coinciden',
-        text: 'Verifica que coincidan las firmas',
-        confirmButtonText: 'OK',
-      });
-      setFirmaMovimientos('');
-      setConfirmarFirmaMov('');
-      return;
-    }
 
     try {
       const empleadoEditado: Empleados = {
@@ -142,44 +121,43 @@ const EditEmpleado: React.FC<EditEmpleadoProps> = ({ isOpen, onClose, empleadoTo
         nombre_empleado: nombreEmpleado,
         apellido_paterno: apellidoPaterno,
         apellido_materno: apellidoMaterno,
-        email_empleado: emailEmpleado,
-        telefono_empleado: telefonoEmpleado,
         genero: generoEmpleado,
         fecha_nacimiento: fechaNacimiento,
         estatus_activo: estatusActivo,
+        jefatura_empleado: jefaturaEmpleado,
         fecha_alta: fechaAlta,
         fecha_baja: fechaBaja,
         foto_empleado: fotoEmpleado,
-        firma_movimientos: firmaMovimientos,
         id_departamento: tipoDepartamento,
       };
 
       const formData = new FormData();
 
-      formData.append('id_empleado', empleadoToEdit?.id_empleado!.toString() || '');
-      formData.append('nombre_empleado', nombreEmpleado);
-      formData.append('apellido_paterno', apellidoPaterno);
-      formData.append('apellido_materno', apellidoMaterno);
-      formData.append('email_empleado', emailEmpleado);
-      formData.append('telefono_empleado', telefonoEmpleado);
-      formData.append('genero_empleado', generoEmpleado);
-      formData.append('fecha_nacimiento', fechaNacimiento);
-      formData.append('estatus_activo', estatusActivo ? '1' : '0');
-      formData.append('fecha_alta', fechaAlta);
-      formData.append('fecha_baja', fechaBaja);
+      formData.append('id_empleado', String(empleadoEditado.id_empleado));
+      formData.append('nombre_empleado', empleadoEditado.nombre_empleado);
+      formData.append('apellido_paterno', empleadoEditado.apellido_paterno);
+      formData.append('apellido_materno', empleadoEditado.apellido_materno);
+      formData.append('genero', empleadoEditado.genero);
+      formData.append(
+        'fecha_nacimiento',
+        empleadoEditado.fecha_nacimiento ? empleadoEditado.fecha_nacimiento.toString() : '',
+      );
+      formData.append('estatus_activo', String(empleadoEditado.estatus_activo));
+      formData.append('jefatura_empleado', String(empleadoEditado.jefatura_empleado));
+      formData.append(
+        'fecha_alta',
+        empleadoEditado.fecha_alta ? empleadoEditado.fecha_alta.toString() : '',
+      );
+      formData.append('fecha_baja', empleadoEditado.fecha_baja || '');
       if (fotoEmpleado) {
-        formData.append('foto_empleado', fotoEmpleado);
+        formData.append('foto_empleado', fotoEmpleado); // Solo agregar si hay un archivo
       }
+      formData.append('id_departamento', String(empleadoEditado.id_departamento));
 
-      if (empleadoToEdit?.firma_movimientos) {
-        formData.append('firma_movimientos', empleadoToEdit.firma_movimientos);
-      } else {
-        formData.append('firma_movimientos', firmaMovimientos);
-      }
 
-      formData.append('id_departamento', tipoDepartamento.toString());
 
-      const resultAction = await dispatch(editEmpleado(empleadoEditado)).unwrap();
+      // Despachar la acción para editar el empleado
+      const resultAction = await dispatch(editEmpleado(formData)).unwrap();
 
       if (resultAction.success) {
         const empleadosActualizados = await dispatch(getEmpleados()).unwrap();
@@ -189,14 +167,12 @@ const EditEmpleado: React.FC<EditEmpleadoProps> = ({ isOpen, onClose, empleadoTo
           setNombreEmpleado('');
           setApellidoPaterno('');
           setApellidoMaterno('');
-          setEmailEmpleado('');
           setEstatusActivo(true);
+          setJefaturaEmpleado(false);
           setFechaAlta('');
           setFechaBaja('');
           setFotoEmpleado(null);
           setImagenEmpleadoPreview(null);
-          setFirmaMovimientos('');
-          setConfirmarFirmaMov('');
         }
       } else {
         console.log('Error al agregar al empleado:', resultAction.message);
@@ -211,13 +187,13 @@ const EditEmpleado: React.FC<EditEmpleadoProps> = ({ isOpen, onClose, empleadoTo
       });
       onClose(); // Cerrar modal al completar el envío
     } catch (error) {
-      console.error('Error al agregar el usuario: ', error);
+      console.error('Error al actualizar el empleado: ', error);
 
       // Mostrar SweetAlert para error
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'Hubo un problema al añadir el usuario. Por favor, inténtalo de nuevo.',
+        text: 'Hubo un problema al actualizar el empleado. Por favor, inténtalo de nuevo.',
         confirmButtonText: 'OK',
       });
     }
@@ -232,7 +208,7 @@ const EditEmpleado: React.FC<EditEmpleadoProps> = ({ isOpen, onClose, empleadoTo
       shouldCloseOnEsc={false}
       shouldCloseOnOverlayClick={false}
     >
-      <div className="mainDiv_modalDepartamentos">
+      <div className="mainDiv_modalEmpleados">
         <h2>Editar Empleado </h2>
 
         <form onSubmit={handleSubmit} className="formEmpleados">
@@ -264,37 +240,6 @@ const EditEmpleado: React.FC<EditEmpleadoProps> = ({ isOpen, onClose, empleadoTo
                 onChange={(e) => setApellidoMaterno(e.target.value)}
               />
 
-              <label htmlFor="email_empleado">
-                Email:
-                <div className="emailInput">
-                  <input
-                    type="text"
-                    value={emailEmpleado.split('@')[0]}
-                    id="emailUsuario"
-                    name="emailUsuario"
-                    onChange={(e) => {
-                      const domain = emailEmpleado.split('@')[1] || '';
-                      setEmailEmpleado(`${e.target.value}@${domain}`);
-                    }}
-                    required
-                    placeholder="email"
-                  />
-                  <span> @ </span>
-                  <input
-                    type="text"
-                    value={emailEmpleado.split('@')[1] || ''}
-                    id="emailDomain"
-                    name="emailDomain"
-                    onChange={(e) => {
-                      const firstPart = emailEmpleado.split('@')[0];
-                      setEmailEmpleado(`${firstPart}@${e.target.value}`);
-                    }}
-                    required
-                    placeholder="dominio.com"
-                  />
-                </div>
-              </label>
-
               <label htmlFor="fecha_nacimiento">Fecha Nacimiento:</label>
               <input
                 type="date"
@@ -312,13 +257,6 @@ const EditEmpleado: React.FC<EditEmpleadoProps> = ({ isOpen, onClose, empleadoTo
                 <option value="Femenino">Femenino</option>
               </select>
 
-              <label htmlFor="telefono_empleado">Teléfono:</label>
-              <input
-                type="number"
-                id="telefono_empleado"
-                value={telefonoEmpleado}
-                onChange={(e) => setTelefonoEmpleado(e.target.value)}
-              />
 
               <label> Estatus del Empleado: </label>
               <div className="checkDiv">
@@ -333,6 +271,15 @@ const EditEmpleado: React.FC<EditEmpleadoProps> = ({ isOpen, onClose, empleadoTo
                     checked={estatusActivo}
                   />
                 </span>
+              </div>
+
+              <label> Asignar Jefatura: </label>
+              <div className='checkDiv'>
+
+                <span> {jefaturaEmpleado ? 'Empleado Jefe' : 'Empleado No Jefe'}
+                  <input name="cuentaActiva" id="cuentaActiva" type="checkbox" onChange={(e) => setJefaturaEmpleado(e.target.checked)} checked={jefaturaEmpleado} />
+                </span>
+
               </div>
 
               <label htmlFor="fecha_alta">Fecha Alta:</label>
@@ -380,21 +327,6 @@ const EditEmpleado: React.FC<EditEmpleadoProps> = ({ isOpen, onClose, empleadoTo
                   ))}
               </select>
 
-              <label htmlFor="firma_movimientos">Firma Movimientos:</label>
-              <input
-                type="text"
-                id="firma_movimientos"
-                value={firmaMovimientos}
-                onChange={(e) => setFirmaMovimientos(e.target.value)}
-              />
-
-              <label htmlFor="firma_movimientos">Confirmar Firma Movimientos:</label>
-              <input
-                type="text"
-                id="confirmarfirma_movimientos"
-                value={confirmarFirmaMov}
-                onChange={(e) => setConfirmarFirmaMov(e.target.value)}
-              />
             </div>
 
             <div className="fourthColumn_Inputs">

@@ -1,10 +1,11 @@
 // Bibliotecas
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AppDispatch, RootState } from '@/store/store';
 import { useSelector, useDispatch } from 'react-redux';
 
 // Empleados
 import { Empleados } from '@/@types/mainTypes';
+import type { PaginacionMeta, PaginacionParams } from '@/@types/paginacionTypes';
 import { getEmpleados } from '@/store/administrador/Empleados/empleadosActions';
 import { setListEmpleados } from '@/store/administrador/Empleados/empleadosReducer';
 
@@ -18,6 +19,7 @@ import AddEmpleado from './AddEmpleado';
 import EditEmpleado from './EditEmpleado';
 import DeleteEmpleado from './DeleteEmpleado';
 import Paginacion from '@/components/00_Utils/Paginacion';
+import { usePaginacionServidor } from '@/hooks/usePaginacionServidor';
 import ShowPhotoEmpleado from './ShowPhotoEmpleado';
 
 // Icons
@@ -37,10 +39,6 @@ const Main_EmpleadosControl: React.FC = () => {
 
   const departamentos = useSelector((state: RootState) => state.departamentos.departamentos);
 
-  const [busqueda, setBusqueda] = useState<string>('');
-  const [paginaActual, setPaginaActual] = useState<number>(1);
-  const [empleadosPorPagina, setEmpleadosPorPagina] = useState<number>(5);
-
   const [isModalFotoEmpleadoOpen, setIsFotoEmpleadoOpen] = useState(false);
   const [empleadoToShow, setEmpleadoToShow] = useState<Empleados | null>(null);
   const [empleadoToEdit_Delete, setEmpleadoToEdit_Delete] = useState<Empleados | null>(null);
@@ -48,6 +46,40 @@ const Main_EmpleadosControl: React.FC = () => {
   const [isModalAddEmpleadoOpen, setModalAddEmpleadoOpen] = useState(false);
   const [isModalEditEmpleadoOpen, setModalEditEmpleadoOpen] = useState(false);
   const [isModalDeleteEmpeladoOpen, setModalDeleteEmpleadoOpen] = useState(false);
+
+  // ---------------------------------------------------------------------------
+  // Paginación servidor: fetcher que llama al thunk de empleados con
+  // { page, per_page, search }. La tabla usa el estado local del hook; el
+  // store sigue cargando la lista completa en el useEffect de montaje para
+  // los flujos que la requieren (reportes, charts, etc.).
+  // ---------------------------------------------------------------------------
+  const fetcher = useCallback(
+    async (params: PaginacionParams): Promise<{ data: Empleados[]; meta: PaginacionMeta | null }> => {
+      const resultAction = await dispatch(getEmpleados(params)).unwrap();
+      if (resultAction.success && resultAction.empleados) {
+        return { data: resultAction.empleados, meta: resultAction.meta ?? null };
+      }
+      throw new Error(resultAction.message || 'Error al obtener los empleados');
+    },
+    [dispatch],
+  );
+
+  const {
+    busqueda,
+    paginaActual,
+    setPaginaActual,
+    perPage: empleadosPorPagina,
+    items: empleadosPaginaActual,
+    totalItems: totalEmpleados,
+    numeroTotalPaginas,
+    loading,
+    refetch,
+    handleSearch,
+    handleChangePerPage: handleChangeEmpleadosPorPagina,
+  } = usePaginacionServidor<Empleados>({
+    fetcher,
+    perPageDefault: 5,
+  });
 
   // Abrir y cerrar modal de foto de empleado
   const openModalFotoEmpleado = (empleado: Empleados) => {
@@ -65,6 +97,8 @@ const Main_EmpleadosControl: React.FC = () => {
   }
   const closeModalAddEmpleado = () => {
     setModalAddEmpleadoOpen(false);
+    // Recargar la tabla paginada tras crear un empleado.
+    refetch();
   }
 
   // Editar Empleado
@@ -75,6 +109,8 @@ const Main_EmpleadosControl: React.FC = () => {
   const closeModalEditEmpleado = () => {
     setModalEditEmpleadoOpen(false);
     setEmpleadoToEdit_Delete(null);
+    // Recargar la tabla paginada tras editar un empleado.
+    refetch();
   }
 
   // Eliminar Empleado
@@ -85,11 +121,12 @@ const Main_EmpleadosControl: React.FC = () => {
   const closeAlertDeleteEmpleado = () => {
     setModalDeleteEmpleadoOpen(false);
     setEmpleadoToEdit_Delete(null); // Limpiar el empleado seleccionado
+    // Recargar la tabla paginada tras eliminar un empleado.
+    refetch();
   }
 
 
   const empleados = useSelector((state: RootState) => state.empleados.empleados || []);
-  const totalEmpleados = empleados.length;
 
   // Cargar los empleados desde la API solo si no están cargados en el store
   useEffect(() => {
@@ -127,46 +164,10 @@ const Main_EmpleadosControl: React.FC = () => {
     }
   }, [dispatch, empleados.length]);
 
-  // Filtrar y ordenar empleados basados en la busqueda
-  const empleadosFiltrados = empleados
-    .filter((empleado): empleado is Empleados => {
-      // Filtramos solo empleados válidos
-      return !!empleado && typeof empleado.nombre_empleado === 'string';
-    })
-    .filter((empleado) => {
-      const nombre = empleado.nombre_empleado.toLowerCase();
-      const idStr = String(empleado.id_empleado ?? '');
-      return nombre.includes(busqueda.toLowerCase()) || idStr.includes(busqueda);
-    })
-    .sort((a, b) => {
-      const idA = a.id_empleado ?? 0;
-      const idB = b.id_empleado ?? 0;
-      return idA - idB;
-    });
-
-  // Obtener los empleados para la pagina actual
-  const indexUltimoEmpleado = paginaActual * empleadosPorPagina;
-  const indexPrimerEmpleado = indexUltimoEmpleado - empleadosPorPagina;
-  const empleadosPaginaActual = empleadosFiltrados.slice(indexPrimerEmpleado, indexUltimoEmpleado);
-
-  // Calcular el número total de páginas
-  const numeroTotalPaginas = Math.ceil(empleadosFiltrados.length / empleadosPorPagina);
-
+  // Crear nuevos empleados
   const handleNuevoEmpleado = () => {
     openModalAddEmpleado();
   }
-
-  // Manejar cambio de búsqueda
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setBusqueda(e.target.value);
-    setPaginaActual(1); // Reiniciar a la primera página al hacer una búsqueda
-  };
-
-  // Manejar cambio en el número de usuarios por página
-  const handleChangeEmpleadosPorPagina = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setEmpleadosPorPagina(Number(e.target.value));
-    setPaginaActual(1); // Reiniciar a la primera página al cambiar el número de proveedores por página
-  };
 
   return (
     <div className='mainDiv_EmpleadosControl'>
@@ -202,7 +203,7 @@ const Main_EmpleadosControl: React.FC = () => {
 
       <hr />
 
-      {empleadosFiltrados && empleadosFiltrados.length === 0 ? (
+      {!loading && empleadosPaginaActual.length === 0 ? (
         <div className='noEntities'>
           <FiAlertTriangle /> <p>  No hay empleados registrados </p> <FiAlertTriangle />
         </div>
@@ -224,11 +225,10 @@ const Main_EmpleadosControl: React.FC = () => {
                   <th id='th_EmpleadoID'>ID</th>
                   <th id='th_NombreEmpleado'>Nombre</th>
 
-                  <th id='th_EmailEmpleado'>Email</th>
-                  <th id='th_TelefonoEmpleado'>Teléfono</th>
                   <th id='th_Genero'>Género</th>
                   <th id='th_FechaNacimiento'>Fecha Nacimiento</th>
                   <th id='th_EstatusActivo'>Estatus</th>
+                  <th id='th_EstatusActivo'>Jefatura</th>
                   <th id='th_FechaAlta'>Fecha Alta</th>
                   <th id='th_FechaBaja'>Fecha Baja</th>
                   <th id='th_Departamento'>Departamento</th>
@@ -247,11 +247,10 @@ const Main_EmpleadosControl: React.FC = () => {
                   <tr key={empleados.id_empleado}>
                     <td id='td_EmpleadoID'>{empleados.id_empleado}</td>
                     <td id='td_NombreEmpleado'><p>{empleados.nombre_empleado} {empleados.apellido_paterno} {empleados.apellido_materno}</p></td>
-                    <td id='td_EmailEmpleado'>{empleados.email_empleado}</td>
-                    <td id='td_TelefonoEmpleado'>{empleados.telefono_empleado || 'Sin Registro'}</td>
                     <td id='td_Genero'>{empleados.genero}</td>
                     <td id='td_FechaNacimiento'>{empleados.fecha_nacimiento}</td>
                     <td id='td_EstatusActivo' className={empleados.estatus_activo ? 'status-activo' : 'status-inactivo'}> {empleados.estatus_activo ? 'Activo' : 'Inactivo'}</td>
+                    <td id='td_JefaturaEmpleado' className={empleados.jefatura_empleado ? 'status-jefe' : 'status-no-jefe'}> {empleados.jefatura_empleado ? 'Si' : 'No'}</td>
                     <td id='td_FechaAlta'>{formatDateHorasToFrontend(empleados.fecha_alta) || 'Sin Registro'}</td>
 
                     <td id='td_FechaBaja' className={empleados.estatus_activo ? '' : 'status-inactivo'}>

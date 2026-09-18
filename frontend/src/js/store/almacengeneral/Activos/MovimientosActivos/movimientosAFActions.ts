@@ -1,34 +1,38 @@
-import axios from 'axios';
+import { isAxiosError } from 'axios';
 import { MovimientosActivosFijos, VwMovimientosAF } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
+import { type PaginacionMeta, type PaginacionParams } from '@/@types/paginacionTypes';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { API_BASE_URL } from '@/variableApi';
+import api, { API_BASE_URL } from '@/variableApi';
+import { getBackendErrorMessage } from '@/store/shared/errorMessage';
+
+// ---------------------------------------------------------------------------
+// Resultado común de las consultas de movimientos de activos fijos (vista).
+// `meta` solo está presente cuando la consulta fue paginada (page/per_page).
+// ---------------------------------------------------------------------------
+export interface ResultadoVwMovimientosAF {
+  success: boolean;
+  vwMovimientosAF?: VwMovimientosAF[];
+  meta?: PaginacionMeta | null;
+  message: string;
+}
 
 // Agregar un nuevo movimiento del activo fijo registrado en AddActivoFijo
 export const addMovimientoActivoFijo = createAsyncThunk<{ success: boolean; message: string }, MovimientosActivosFijos>(
   'almacengeneral/addMovimientoActivoFijo',
   async (nuevoMovimientoActivo: MovimientosActivosFijos) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      const response = await axios.post(
+      const response = await api.post(
         `${API_BASE_URL}/api/HSS1/almacengeneral/movimientos-activosfijos`,
-        nuevoMovimientoActivo,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+        nuevoMovimientoActivo
       );
 
       return { success: response.data.success, message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -45,16 +49,8 @@ export const getMovimientosActivosFijos = createAsyncThunk<{ success: boolean; m
   'almacengeneral/movimientosActivosFijos',
   async () => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/movimientos-activosfijos`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken || '',
-        },
-        withCredentials: true,
-      });
+      const response = await api.get(`${API_BASE_URL}/api/HSS1/almacengeneral/movimientos-activosfijos`);
 
       const movimientosAFFormateados = response.data.data.map((movimientoAF: MovimientosActivosFijos) => {
         return {
@@ -73,10 +69,10 @@ export const getMovimientosActivosFijos = createAsyncThunk<{ success: boolean; m
 
       return { success: true, movimientosAF: movimientosAFFormateados, message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
       return {
@@ -92,28 +88,19 @@ export const editMovimientoActivoFijo = createAsyncThunk<{ success: boolean; mes
   'almacengeneral/editMovimientoActivoFijo',
   async (MovimientoActivoFijoEditado: MovimientosActivosFijos) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.put(
+      const response = await api.put(
         `${API_BASE_URL}/api/HSS1/almacengeneral/movimientos-activosfijos/${MovimientoActivoFijoEditado.id_movimientoAF}`,
-        MovimientoActivoFijoEditado,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+        MovimientoActivoFijoEditado
       );
 
       return { success: response.data.success, message: response.data.message };
 
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -130,30 +117,20 @@ export const deleteMovimientoActivoFijo = createAsyncThunk<{ success: boolean; m
   'almacengeneral/deleteMovimientoActivoFijo',
   async (MovimientoActivoFijoEliminado: MovimientosActivosFijos) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      console.log(csrfToken);
 
       // Incluir el id del proveedor en la URL para hacer la eliminación correcta
-      const response = await axios.delete(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/movimientos-activosfijos/${MovimientoActivoFijoEliminado.id_movimientoAF}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+      const response = await api.delete(
+        `${API_BASE_URL}/api/HSS1/almacengeneral/movimientos-activosfijos/${MovimientoActivoFijoEliminado.id_movimientoAF}`
       );
 
       console.log('deleteAction', response.data.success)
       return { success: response.data.success, message: response.data.message };
 
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -165,23 +142,18 @@ export const deleteMovimientoActivoFijo = createAsyncThunk<{ success: boolean; m
   }
 );
 
-
-
-// Obtener los movimientos de los activos registrados (VIEW)
-export const getVWmovimientosActivosFijos = createAsyncThunk<{ success: boolean; vwMovimientosAF?: [], message: string }>(
+// Obtener los movimientos de los activos registrados (VIEW).
+// - Sin argumentos: devuelve la lista completa (comportamiento original).
+// - Con PaginacionParams: devuelve la página solicitada + `meta`.
+export const getVWmovimientosActivosFijos = createAsyncThunk<ResultadoVwMovimientosAF, PaginacionParams | void>(
   'almacengeneral/view-activosfijos',
-  async () => {
+  async (params: PaginacionParams | void) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/view-activosfijos`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken || '',
-        },
-        withCredentials: true,
-      });
+      const response = await api.get(
+        `${API_BASE_URL}/api/HSS1/almacengeneral/view-activosfijos`,
+        params ? { params } : undefined,
+      );
 
       const vwMovimientosAFFormateados = response.data.data.map((vwMovimientosAF: VwMovimientosAF) => {
         return {
@@ -201,12 +173,12 @@ export const getVWmovimientosActivosFijos = createAsyncThunk<{ success: boolean;
         };
       });
 
-      return { success: true, vwMovimientosAF: vwMovimientosAFFormateados, message: response.data.message };
+      return { success: true, vwMovimientosAF: vwMovimientosAFFormateados, meta: response.data.meta ?? null, message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -218,29 +190,19 @@ export const getVWmovimientosActivosFijos = createAsyncThunk<{ success: boolean;
   }
 );
 
-
-
 // Obtener los tipos de movimientos de los activos fijos
 export const getTipoMovimientosActivosFijos = createAsyncThunk<{ success: boolean; tipoMovimientoAF?: [], message: string }>(
   'almacengeneral/tipo-movimientosActivosFijos',
   async () => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/almacengeneral/tipos-movimientosaf`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken || '',
-        },
-        withCredentials: true,
-      });
+      const response = await api.get(`${API_BASE_URL}/api/HSS1/almacengeneral/tipos-movimientosaf`);
       return { success: true, tipoMovimientoAF: response.data.data, message: response.data.message };
     }
     catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
       return {

@@ -14,7 +14,8 @@
 
     .modalHeader {
       display: grid;
-      grid-template-columns: .8fr 3fr 1.2fr;
+      grid-template-columns: .8fr 3fr auto auto;
+      gap: 5px;
       align-items: center;
       padding: 8px 20px;
       background: #f8f9fa;
@@ -158,8 +159,8 @@
 
               .nameActivo {
                 display: flex;
-                justify-content: space-between;
                 align-items: center;
+                justify-content: space-between;
 
                 p {
                   margin: 0 0 2px 0;
@@ -168,38 +169,46 @@
                   font-weight: 600;
                 }
 
-                .buttonRemover {
-                  padding: 8px 8px;
-                  border: none;
-                  border-radius: 6px;
-                  cursor: pointer;
-                  font-size: 0.6rem;
-                  transition: all 0.3s;
+                .divButtons {
                   display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  background: #dc3545;
-                  color: white;
+                  gap: 4px;
+
+
+                  .buttonRemover {
+                    padding: 8px 8px;
+                    border: none;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 0.6rem;
+                    transition: all 0.3s;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: #dc3545;
+                    color: #ffffff;
+                  }
+
+
+
+                  .buttonRemover:hover {
+                    background: #c82333;
+                    transform: scale(1.05);
+                  }
+
+                  .buttonRemover.disabled {
+                    background: #c82333;
+                    cursor: not-allowed;
+                    opacity: 0.6;
+                  }
+
+                  .buttonRemover.disabled:hover {
+                    background: #494848;
+                    cursor: not-allowed;
+                    opacity: 0.6;
+                  }
                 }
 
 
-
-                .buttonRemover:hover {
-                  background: #c82333;
-                  transform: scale(1.05);
-                }
-
-                .buttonRemover.disabled {
-                  background: #c82333;
-                  cursor: not-allowed;
-                  opacity: 0.6;
-                }
-
-                .buttonRemover.disabled:hover {
-                  background: #494848;
-                  cursor: not-allowed;
-                  opacity: 0.6;
-                }
               }
 
               .datosActivo {
@@ -341,6 +350,8 @@
     }
 
     .divTotal {
+      display: flex;
+      justify-content: space-between;
       padding: 5px 20px 0px 20px;
       border-top: 1px solid #d1d1d1;
 
@@ -362,7 +373,6 @@
           font-weight: 700;
         }
       }
-
 
     }
   }

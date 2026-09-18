@@ -1,0 +1,15 @@
+/* Clase base del Modal reutilizable (solo se usa cuando NO se pasa className propio).
+   Reutiliza las CSS variables definidas en resources/css/app.css (--modal-*). */
+.ui-modal {
+    width: var(--modal-width, 95vw);
+    height: var(--modal-height, 95vh);
+    max-width: var(--modal-max-width, 1600px);
+    max-height: var(--modal-max-height, 900px);
+    min-width: var(--modal-min-width, 800px);
+    min-height: var(--modal-min-height, 600px);
+    margin: auto;
+    padding: 16px;
+    background-color: #ffffff;
+    border-radius: 16px;
+    overflow: auto;
+}

@@ -211,11 +211,11 @@
     .qr-header h1 {
         font-size: 22px;
     }
-    
+
     .info-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .qr-content {
         padding: 20px;
     }

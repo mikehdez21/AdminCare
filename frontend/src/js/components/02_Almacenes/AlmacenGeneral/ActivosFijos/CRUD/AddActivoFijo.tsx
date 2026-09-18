@@ -1,21 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import Modal from 'react-modal';
-import { AppDispatch, RootState } from '@/store/store';
-import { useDispatch, useSelector } from 'react-redux';
+import React from 'react';
+import { AppDispatch } from '@/store/store';
+import { useDispatch } from 'react-redux';
 import Swal from 'sweetalert2';
 import { addActivoFijo, getActivosFijos } from '@/store/almacengeneral/Activos/activosActions';
-import { getEstatusAF } from '@/store/almacengeneral/Activos/EstatusAF/estatusAFActions';
 import { setListActivosFijos } from '@/store/almacengeneral/Activos/activosReducer';
-
 import { ActivoFactura, ActivosFijos, MovimientosActivosFijos } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
-
-import { getClasificaciones } from '@/store/almacengeneral/Clasificaciones/clasificacionesActions';
-import { getEmpleados } from '@/store/administrador/Empleados/empleadosActions';
-import { getUbicaciones } from '@/store/administrador/Ubicaciones/ubicacionesActions';
-import { addMovimientoActivoFijo, getMovimientosActivosFijos, getTipoMovimientosActivosFijos } from '@/store/almacengeneral/Activos/MovimientosActivos/movimientosAFActions';
+import { addMovimientoActivoFijo, getMovimientosActivosFijos } from '@/store/almacengeneral/Activos/MovimientosActivos/movimientosAFActions';
 import { setListMovimientosAF } from '@/store/almacengeneral/Activos/MovimientosActivos/movimientosAFReducer';
 import ModalButtons from '@/components/00_Utils/ModalButtons';
+import Modal from '@/components/00_Utils/ui/Modal';
 import { getFechaHoraActual } from '@/utils/dateFormat';
+import { validateClasificacionActivoFijo } from '@/utils/validators';
+import { useActivoFijoForm } from '@/hooks/useActivoFijoForm';
+import ActivoFijoFormFields from './subcomponents/ActivoFijoFormFields';
+import ActivoFijoAsignacionFields from './subcomponents/ActivoFijoAsignacionFields';
 
 import '@styles/02_Almacenes/AlmacenGeneral/ActivosFijos/modalActivosFijos.css';
 
@@ -26,10 +24,7 @@ interface AddActivoFijoProps {
   soloDatos?: boolean;
   onAddAFToFactura?: (activoFijo: ActivoFactura) => void;
   onAddSinFactura: () => void;
-
 }
-
-Modal.setAppElement('#root');
 
 const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
   isOpen,
@@ -37,111 +32,51 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
   onActivoCreado,
   soloDatos = false,
   onAddAFToFactura,
-  onAddSinFactura
+  onAddSinFactura,
 }) => {
   const dispatch = useDispatch<AppDispatch>();
 
-  // Estados para los campos del formulario de Activo Fijo
-  const [nombreAF, setNombreAF] = useState<string>('');
-  const [descripcionAF, setDescripcionAF] = useState<string>('');
-  const [modeloAF, setModeloAF] = useState<string>('');
-  const [marcaAF, setMarcaAF] = useState<string>('');
-  const [noSerieAF, setNoSerieAF] = useState<string>('');
-  const [costoUnitarioAF, setCostoUnitarioAF] = useState<number>(0.00);
-  const [afPropio, setAFPropio] = useState<boolean>(true);
-  const [tipoEstatusAF, setTipoEstatusAF] = useState<number>(0);
-  const [tipoClasificacionAF, setTipoClasificacionAF] = useState<number>(0);
-  const [fechaRegistroAF, setFechaRegistroAF] = useState<string>(getFechaHoraActual);
-  const [depreciacionAplicada, setDepreciacionAplicada] = useState<boolean>(false);
-  const [observacionesAF, setObservacionesAF] = useState<string>('');
+  const {
+    valores,
+    setters,
+    opciones,
+    upper,
+    construirActivoFijo,
+    limpiarFormulario,
+    enviarSoloDatos,
+  } = useActivoFijoForm({ modo: 'add', soloDatos, onAddAFToFactura });
 
-  // Estados para los campos del formulario de Asignación del Activo Fijo
-  const [tipoMovimiento, setTipoMovimiento] = useState<number>(0);
-  const [responsableActual, setResponsableActual] = useState<number>(0);
-  const [ubicacionActual, setUbicacionActual] = useState<number>(0);
-  const [motivoMovimiento, setMotivoMovimiento] = useState<string>('');
-
-  // Datos de empleados y ubicaciones desde el store
-  const empleados = useSelector((state: RootState) => state.empleados.empleados);
-  const ubicaciones = useSelector((state: RootState) => state.ubicaciones.ubicaciones);
-  const tiposClasificacionAF = useSelector((state: RootState) => state.clasificacion.clasificacionesAF);
-  const tiposEstatusAF = useSelector((state: RootState) => state.estatusAF.estatusAF);
-  const tipoMovimientoAF = useSelector((state: RootState) => state.movimientosAF.tipoMovimientoAF);
-
-
-  useEffect(() => {
-    if (!tiposEstatusAF?.length) dispatch(getEstatusAF());
-    if (!tiposClasificacionAF?.length) dispatch(getClasificaciones());
-    if (!empleados?.length) dispatch(getEmpleados());
-    if (!ubicaciones?.length) dispatch(getUbicaciones());
-    if (!tipoMovimientoAF?.length) dispatch(getTipoMovimientosActivosFijos());
-  }, [dispatch, tiposEstatusAF, tiposClasificacionAF, empleados, ubicaciones, tipoMovimientoAF]);
-
-  useEffect(() => {
-    if (!afPropio && costoUnitarioAF !== 0) {
-      setCostoUnitarioAF(0);
-    }
-  }, [afPropio, costoUnitarioAF]);
-
+  const bindings = { valores, setters, opciones, upper };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     try {
 
-      const nuevoActivoFijo: ActivosFijos = {
-        nombre_af: nombreAF,
-        descripcion_af: descripcionAF,
-        modelo_af: modeloAF,
-        marca_af: marcaAF,
-        numero_serie_af: noSerieAF,
-        costo_unitario_af: afPropio ? costoUnitarioAF : 0,
-        af_propio: afPropio,
-        id_estado_af: tipoEstatusAF,
-        id_clasificacion: tipoClasificacionAF,
-        fecha_registro_af: fechaRegistroAF,
-        depreciacion_aplicada: depreciacionAplicada,
-        observaciones_af: observacionesAF,
+      const nuevoActivoFijo: ActivosFijos = construirActivoFijo();
 
-      };
+      console.log('AddActivoFijo', nuevoActivoFijo);
 
-      console.log('AddActivoFijo', nuevoActivoFijo)
+      const errorClasificacion = validateClasificacionActivoFijo(valores.afMenor, valores.tipoClasificacionAF);
 
-      const nuevoActivoFactura: ActivoFactura = {
-        ...nuevoActivoFijo,
-        cantidad: 1,
-        descuento_af: 0,
-        descuento_porcentajeaf: 0,
-        id_tipo_movimiento: tipoMovimiento,
-        motivo_movimiento: motivoMovimiento,
-        fecha_movimiento: getFechaHoraActual(),
-        id_responsable_anterior: 0,
-        id_responsable_actual: responsableActual,
-        id_ubicacion_anterior: 0,
-        id_ubicacion_actual: ubicacionActual,
-      };
+      if (errorClasificacion) {
+        Swal.fire({
+          icon: 'warning',
+          title: errorClasificacion.title,
+          text: errorClasificacion.text,
+          showCancelButton: errorClasificacion.showCancelButton,
+          confirmButtonText: errorClasificacion.confirmButtonText,
+          cancelButtonText: errorClasificacion.cancelButtonText,
+        }).then((result) => {
+          if (!result.isConfirmed) {
+            return;
+          }
+        });
+      }
 
       // Si solo se requieren los datos sin crear en BD
       if (soloDatos && onAddAFToFactura) {
-        onAddAFToFactura(nuevoActivoFactura);
-
-        // Limpiar formulario
-        setNombreAF('');
-        setDescripcionAF('');
-        setModeloAF('');
-        setMarcaAF('');
-        setNoSerieAF('');
-        setCostoUnitarioAF(0.00);
-        setAFPropio(true);
-        setFechaRegistroAF(getFechaHoraActual());
-        setTipoEstatusAF(0);
-        setTipoClasificacionAF(0);
-        setDepreciacionAplicada(false);
-        setObservacionesAF('');
-        setTipoMovimiento(0);
-        setResponsableActual(0);
-        setUbicacionActual(0);
-        setMotivoMovimiento('');
+        enviarSoloDatos();
 
         Swal.fire({
           icon: 'success',
@@ -165,19 +100,18 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
 
         const asignacionActivoFijo: MovimientosActivosFijos = {
           id_activo_fijo: resultAction.activofijo!.id_activo_fijo, // Asegurar que se pasa el ID correcto del activo creado
-          id_tipo_movimiento: tipoMovimiento,
-          motivo_movimiento: motivoMovimiento,
+          id_tipo_movimiento: valores.tipoMovimiento,
+          motivo_movimiento: valores.motivoMovimiento,
           fecha_movimiento: getFechaHoraActual(),
           id_responsable_anterior: 0,
-          id_responsable_actual: responsableActual,
+          id_responsable_actual: valores.responsableActual,
           id_ubicacion_anterior: 0,
-          id_ubicacion_actual: ubicacionActual,
+          id_ubicacion_actual: valores.ubicacionActual,
         };
 
         console.log('Asignación:', asignacionActivoFijo);
 
         const resultActionAsignacion = await dispatch(addMovimientoActivoFijo(asignacionActivoFijo)).unwrap();
-
 
         if (resultActionAsignacion.success) {
           const activosFijosActualizados = await dispatch(getActivosFijos()).unwrap();
@@ -186,23 +120,8 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
           if (activosFijosActualizados.success && movimientosAFActualizados.success) {
             dispatch(setListActivosFijos(activosFijosActualizados.activosFijos || []));
             dispatch(setListMovimientosAF(movimientosAFActualizados.movimientosAF || []));
-            setNombreAF('');
-            setDescripcionAF('');
-            setModeloAF('');
-            setMarcaAF('');
-            setNoSerieAF('');
-            setCostoUnitarioAF(0.00);
-            setAFPropio(true);
-            setTipoEstatusAF(0);
-            setTipoClasificacionAF(0);
-            setFechaRegistroAF(getFechaHoraActual());
-            setDepreciacionAplicada(false);
-            setObservacionesAF('');
 
-            setTipoMovimiento(0);
-            setResponsableActual(0);
-            setUbicacionActual(0);
-            setMotivoMovimiento('');
+            limpiarFormulario();
 
             // Llamar callback si existe - PASAR EL ACTIVO CREADO
             if (onActivoCreado) {
@@ -221,7 +140,6 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
 
             onAddSinFactura()
             onClose();
-
 
           } else {
             console.log('Error al actualizar los datos!');
@@ -248,39 +166,6 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
     }
   };
 
-
-
-  // Memoized options for selects
-  const opcionesEstatusAF = React.useMemo(() => Array.isArray(tiposEstatusAF) ? tiposEstatusAF.map((tipoEstatusAF) => (
-    <option key={tipoEstatusAF.id_estatusaf} value={tipoEstatusAF.id_estatusaf}>
-      {tipoEstatusAF.descripcion_estatusaf}
-    </option>
-  )) : null, [tiposEstatusAF]);
-
-  const opcionesClasificacionAF = React.useMemo(() => Array.isArray(tiposClasificacionAF) ? tiposClasificacionAF.map((tipoClasificacionAF) => (
-    <option key={tipoClasificacionAF.id_clasificacion} value={tipoClasificacionAF.id_clasificacion}>
-      {tipoClasificacionAF.nombre_clasificacion}
-    </option>
-  )) : null, [tiposClasificacionAF]);
-
-  const opcionesTipoMovimiento = React.useMemo(() => Array.isArray(tipoMovimientoAF) ? tipoMovimientoAF.map((tipomovimiento) => (
-    <option key={tipomovimiento.id_tipomovimientoaf} value={tipomovimiento.id_tipomovimientoaf}>
-      {tipomovimiento.nombre_tipomovimientoaf}
-    </option>
-  )) : null, [tipoMovimientoAF]);
-
-  const opcionesEmpleados = React.useMemo(() => Array.isArray(empleados) ? empleados.map((empleado) => (
-    <option key={empleado.id_empleado} value={empleado.id_empleado}>
-      {empleado.nombre_empleado} {empleado.apellido_paterno} {empleado.apellido_materno}
-    </option>
-  )) : null, [empleados]);
-
-  const opcionesUbicaciones = React.useMemo(() => Array.isArray(ubicaciones) ? ubicaciones.map((ubicacion) => (
-    <option key={ubicacion.id_ubicacion} value={ubicacion.id_ubicacion}>
-      {ubicacion.nombre_ubicacion}
-    </option>
-  )) : null, [ubicaciones]);
-
   return (
     <Modal
       isOpen={isOpen}
@@ -295,208 +180,17 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
 
             <div className='dataInputs_ActivoFijo'>
 
-              <div className='addActivoFijo_FirstColumn'>
-
-                <h2> Datos del Activo Fijo </h2>
-
-                <section className='inputs_addActivoFijo'>
-
-                  <label>
-                    *Nombre del Activo Fijo:
-                    <input
-                      type="text"
-                      value={nombreAF}
-                      placeholder='Nombre del AF'
-                      onChange={(e) => setNombreAF(e.target.value)}
-                      required
-                    />
-                  </label>
-
-                  <label>
-                    Descripción:
-                    <input
-                      value={descripcionAF}
-                      placeholder='Descripción física del AF'
-                      onChange={(e) => setDescripcionAF(e.target.value)}
-                      type="text"
-                    />
-                  </label>
-
-                  <label>
-                    *Modelo:
-                    <input
-                      type="text"
-                      value={modeloAF}
-                      placeholder='Modelo del AF'
-                      onChange={(e) => setModeloAF(e.target.value)}
-                    />
-                  </label>
-
-                  <label>
-                    *Marca:
-                    <input
-                      type="text"
-                      value={marcaAF}
-                      placeholder='Marca del AF'
-                      onChange={(e) => setMarcaAF(e.target.value)}
-                    />
-                  </label>
-
-                  <label>
-                    *No. de Serie:
-                    <input
-                      type="text"
-                      value={noSerieAF}
-                      placeholder='Número de Serie del AF'
-                      onChange={(e) => setNoSerieAF(e.target.value)}
-                    />
-                  </label>
-
-                  <label htmlFor="">
-                    *Activo Propio:
-                    <select
-                      required
-                      value={afPropio ? '1' : '0'}
-                      onChange={(e) => {
-                        const esPropio = e.target.value === '1';
-                        setAFPropio(esPropio);
-                        if (!esPropio) {
-                          setCostoUnitarioAF(0);
-                        }
-                      }}
-                    >
-                      <option value="" disabled>Seleccione una opción</option>
-                      <option value="1">Sí</option>
-                      <option value="0">No</option>
-                    </select>
-                  </label>
-
-                  <label>
-                    *Costo Unitario{afPropio ? '' : ' (Comodato)'}:
-                    <input
-                      type="number"
-                      min={'0'}
-                      placeholder='0.00'
-                      value={costoUnitarioAF}
-                      disabled={!afPropio}
-                      onChange={(e) => {
-                        const valor = e.target.value;
-                        if (valor === '') {
-                          setCostoUnitarioAF(0);
-                        } else {
-                          setCostoUnitarioAF(parseFloat(valor) || 0);
-                        }
-                      }}
-                      onFocus={(e) => {
-                        if (costoUnitarioAF === 0) {
-                          e.target.select();
-                        }
-                      }} />
-                  </label>
-
-                  <label>
-                    *Estatus del Activo Fijo:
-                    <select
-                      required
-                      value={tipoEstatusAF || ''}
-                      onChange={(e) => setTipoEstatusAF(Number(e.target.value))}
-                    >
-                      <option value="" disabled>Seleccione una opción</option>
-                      {opcionesEstatusAF}
-                    </select>
-                  </label>
-
-                  <label>
-                    *Clasificación del Activo Fijo:
-                    <select
-                      required
-                      value={tipoClasificacionAF || ''}
-                      onChange={(e) => setTipoClasificacionAF(Number(e.target.value))}
-                    >
-                      <option value="" disabled>Seleccione una opción</option>
-                      {opcionesClasificacionAF}
-                    </select>
-                  </label>
-
-                  <label>
-                    *Fecha de Registro:
-                    <input
-                      type="datetime-local"
-                      value={fechaRegistroAF}
-                      onChange={(e) => setFechaRegistroAF(e.target.value)}
-                    />
-                  </label>
-
-                  <label>
-                    Observaciones:
-                    <input
-                      type="text"
-                      className='observacionesAF'
-                      value={observacionesAF}
-                      placeholder='Observaciones sobre el AF'
-                      onChange={(e) => setObservacionesAF(e.target.value)}
-                    />
-                  </label>
-
-                </section>
-
-              </div>
+              <ActivoFijoFormFields
+                bindings={bindings}
+                textareaFields
+                placeholders
+              />
 
               {!soloDatos ? (
-                <div className='asignacionAF_SecondColumn'>
-                  <h2> Asignación del Activo Fijo </h2>
-
-                  <section className='inputs_asignacionAF'>
-
-                    <label>
-                      *Tipo de Movimiento:
-                      <select
-                        value={tipoMovimiento || ''}
-                        onChange={(e) => setTipoMovimiento(Number(e.target.value))}
-                        required
-                      >
-                        <option value="" disabled>Seleccione un tipo de movimiento</option>
-                        {opcionesTipoMovimiento}
-                      </select>
-                    </label>
-
-                    <label>
-                      *Responsable Actual:
-                      <select
-                        value={responsableActual || ''}
-                        onChange={(e) => setResponsableActual(Number(e.target.value))}
-                      >
-                        <option value="" disabled>Seleccione un responsable</option>
-                        {opcionesEmpleados}
-                      </select>
-                    </label>
-
-                    <label>
-                      *Ubicación Actual:
-                      <select
-                        value={ubicacionActual || ''}
-                        onChange={(e) => setUbicacionActual(Number(e.target.value))}
-                      >
-                        <option value="" disabled>Seleccione una ubicación</option>
-                        {opcionesUbicaciones}
-                      </select>
-                    </label>
-
-                    <label>
-                      Motivo de movimiento:
-                      <textarea
-                        value={motivoMovimiento}
-                        className='textarea_motivoMovimientoAF'
-                        onChange={(e) => setMotivoMovimiento(e.target.value)}
-                        placeholder="Ej: Movimiento de ubicación, reasignación, etc."
-                      />
-                    </label>
-                  </section>
-
-                </div>
+                <ActivoFijoAsignacionFields
+                  bindings={bindings}
+                />
               ) : null}
-
-
 
             </div>
 
@@ -521,10 +215,8 @@ const AddActivoFijo: React.FC<AddActivoFijoProps> = ({
 
       </div>
 
-
     </Modal>
   );
 };
 
 export default AddActivoFijo;
-

@@ -106,8 +106,6 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, usuarioToEdit }) =
 
       setEmail(usuarioToEdit.email_usuario || '@');
 
-      setPassword(usuarioToEdit.password || '');
-
       setEstatusActivo(usuarioToEdit.estatus_activo || false);
 
       setFechaBaja(formatDateHorasToInputs(usuarioToEdit.fecha_baja) || '');
@@ -151,7 +149,6 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, usuarioToEdit }) =
         id_usuario: usuarioToEdit?.id_usuario, // Mantener el ID del usuario
         nombre_usuario: nombreUsuario,
         email_usuario: emailUsuario,
-        password: passwordUsuario,
         estatus_activo: estatusActivo,
         fecha_baja: fechaBaja ? fechaBaja : null,
         usuario_compartido: userCompartido,
@@ -160,31 +157,8 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, usuarioToEdit }) =
         id_departamento: departamentoSeleccionado,
       };
 
-      const formData = new FormData();
-
-      formData.append('id_usuario', usuarioEditado.id_usuario!.toString());
-      formData.append('nombre_usuario', usuarioEditado.nombre_usuario);
-
-      if (usuarioToEdit?.password) {
-        formData.append('password', usuarioToEdit.password);
-      } else {
-        formData.append('firma_movimientos', passwordUsuario);
-      }
-
-      formData.append('password', usuarioEditado.password);
-      formData.append('is_active', usuarioEditado.estatus_activo ? '1' : '0');
-      if (usuarioEditado.id_empleado) {
-        formData.append('id_empleado', usuarioEditado.id_empleado.toString());
-      }
-      formData.append('id_departamento', usuarioEditado.id_departamento!.toString());
-
-      // Agregar roles (puedes hacer lo mismo si el usuario tiene roles asociados)
-      usuarioEditado.roles.forEach((role) => {
-        formData.append('roles[]', role.name);
-      });
-
       console.log('dataUserEDIT_Enviada: ', usuarioEditado);
-      const resultAction = await dispatch(editUsuario(usuarioEditado)).unwrap();
+      const resultAction = await dispatch(editUsuario({ ...usuarioEditado, password: passwordUsuario })).unwrap();
       console.log('Respuesta del servidor:', resultAction);
 
       if (resultAction.success) {

@@ -1,5 +1,5 @@
 // Bibliotecas
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AppDispatch, RootState } from '@/store/store'; // Asegúrate de importar AppDispatch
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -8,6 +8,7 @@ import Swal from 'sweetalert2';
 
 // Facturas
 import { FacturasAF } from '@/@types/AlmacenGeneralTypes/facturasTypes';
+import type { PaginacionMeta, PaginacionParams } from '@/@types/paginacionTypes';
 import { getFacturas } from '@/store/almacengeneral/Facturas/facturasActions';
 import { setFacturas } from '@/store/almacengeneral/Facturas/facturasReducer';
 
@@ -26,6 +27,7 @@ import { getTiposFacturas } from '@/store/almacengeneral/Facturas/facturasAction
 
 // Componentes
 import Paginacion from '@/components/00_Utils/Paginacion';
+import { usePaginacionServidor } from '@/hooks/usePaginacionServidor';
 import AddFactura from './AddFactura';
 import EditFactura from './EditFactura';
 import ImpresionFactura from '../Etiquetas/ImpresionFactura';
@@ -37,7 +39,7 @@ import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 import { FaArrowCircleRight } from 'react-icons/fa';
 import { FiAlertTriangle } from 'react-icons/fi';
 import { MdEdit } from 'react-icons/md';
-import { FaFilePdf } from "react-icons/fa6";
+import { FaFilePdf } from 'react-icons/fa6';
 
 
 Modal.setAppElement('#root');
@@ -53,7 +55,6 @@ const AlmacenGeneral_Facturas: React.FC = () => {
   const facturas = useSelector((state: RootState) => state.facturasaf.facturasaf);
   const proveedores = useSelector((state: RootState) => state.proveedor.proveedores);
 
-  const totalFacturas = facturas.length;
   const [facturaToEdit_Delete, setFacturaToEdit_Delete] = useState<FacturasAF | null>(null);
   const [showObsModal, setShowObsModal] = useState(false);
   const [obsSeleccionada, setObsSeleccionada] = useState<string>('');
@@ -63,10 +64,6 @@ const AlmacenGeneral_Facturas: React.FC = () => {
   const formasPago = useSelector((state: RootState) => state.fiscal.formasPago);
   const tiposMoneda = useSelector((state: RootState) => state.fiscal.tiposMoneda);
 
-  const [busqueda, setBusqueda] = useState<string>('');
-  const [paginaActual, setPaginaActual] = useState<number>(1);
-  const [facturasPorPagina, setFacturasPorPagina] = useState<number>(5);
-
   const [showAddFacturaForm, setShowAddFacturaForm] = useState<boolean>(false);
   const [showEditFacturaForm, setShowEditFacturaForm] = useState<boolean>(false);
   const [showImpresionFactura, setShowImpresionFactura] = useState<boolean>(false);
@@ -74,47 +71,48 @@ const AlmacenGeneral_Facturas: React.FC = () => {
   const [facturaCreadaId, setFacturaCreadaId] = useState<number | null>(null);
   /*const [isModalDeleteFacturaOpen, setModalDeleteFacturaOpen] = useState<boolean>(false);*/
 
+  // ---------------------------------------------------------------------------
+  // Paginación servidor: fetcher que llama al thunk de facturas con
+  // { page, per_page, search }. La tabla usa el estado local del hook; el
+  // store sigue cargando la lista completa en el useEffect de montaje para
+  // los flujos que la requieren (AddFactura, EditFactura, Impresion, charts).
+  // ---------------------------------------------------------------------------
+  const fetcher = useCallback(
+    async (params: PaginacionParams): Promise<{ data: FacturasAF[]; meta: PaginacionMeta | null }> => {
+      const resultAction = await dispatch(getFacturas(params)).unwrap();
+      if (resultAction.success && resultAction.facturas) {
+        return { data: resultAction.facturas, meta: resultAction.meta ?? null };
+      }
+      throw new Error(resultAction.message || 'Error al obtener las facturas');
+    },
+    [dispatch],
+  );
 
-  // Filtrar y ordenar facturas basados en la búsqueda (memorizado)
-  const facturasFiltradas = React.useMemo(() => {
-    if (!Array.isArray(facturas)) return [];
-    return facturas
-      .filter(factura =>
-        factura.id_factura?.toString().includes(busqueda)
-      )
-      .sort((a, b) => a.id_factura! - b.id_factura!);
-  }, [facturas, busqueda]);
-
-  // Obtener las facturas para la página actual (memorizado)
-  const facturasPaginaActual = React.useMemo(() => {
-    const indexUltimaFactura = paginaActual * facturasPorPagina;
-    const indexPrimerFactura = indexUltimaFactura - facturasPorPagina;
-    return facturasFiltradas.slice(indexPrimerFactura, indexUltimaFactura);
-  }, [facturasFiltradas, paginaActual, facturasPorPagina]);
-
-  // Calcular el número total de páginas
-  const numeroTotalPaginas = React.useMemo(() => Math.ceil(facturasFiltradas.length / facturasPorPagina), [facturasFiltradas.length, facturasPorPagina]);
-
-  // Manejar cambio de búsqueda
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setBusqueda(e.target.value);
-    setPaginaActual(1);
-  };
-
-  // Manejar cambio en el número de facturas por página
-  const handleChangeFacturasPorPagina = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFacturasPorPagina(Number(e.target.value));
-    setPaginaActual(1);
-  };
+  const {
+    busqueda,
+    paginaActual,
+    setPaginaActual,
+    perPage: facturasPorPagina,
+    items: facturasPaginaActual,
+    totalItems: totalFacturas,
+    numeroTotalPaginas,
+    loading,
+    refetch,
+    handleSearch,
+    handleChangePerPage: handleChangeFacturasPorPagina,
+  } = usePaginacionServidor<FacturasAF>({
+    fetcher,
+    perPageDefault: 5,
+  });
 
   // Añadir Factura - Control de Rutas
   const handleNuevaFactura = () => {
-    navigate('/almacen_general/facturas/nuevaFactura');
+    navigate('/almacen-general/facturas/nueva-factura');
   };
 
   // Editar Factura - Control de Rutas
   const handleEditarFactura = (factura: FacturasAF) => {
-    navigate(`/almacen_general/facturas/editarFactura/${factura.id_factura}`);
+    navigate(`/almacen-general/facturas/editar-factura/${factura.id_factura}`);
     setFacturaToEdit_Delete(factura);
     setShowAddFacturaForm(false);
     setShowEditFacturaForm(true);
@@ -149,7 +147,7 @@ const AlmacenGeneral_Facturas: React.FC = () => {
         setShowImpresionFactura(false);
         setShowResponsivasAF(false);
         setFacturaCreadaId(null);
-        navigate('/almacen_general/facturas');
+        navigate('/almacen-general/facturas');
       }
     });
   };
@@ -169,7 +167,7 @@ const AlmacenGeneral_Facturas: React.FC = () => {
       if (result.isConfirmed) {
         setShowImpresionFactura(false);
         setFacturaCreadaId(null);
-        navigate('/almacen_general/facturas');
+        navigate('/almacen-general/facturas');
       }
     });
 
@@ -179,7 +177,7 @@ const AlmacenGeneral_Facturas: React.FC = () => {
   const handleRegresarDesdeResponsivas = () => {
     setShowResponsivasAF(false);
     setFacturaCreadaId(null);
-    navigate('/almacen_general/facturas');
+    navigate('/almacen-general/facturas');
   }
 
   const handleImpresionCompletadaDesdeFactura = () => {
@@ -187,11 +185,11 @@ const AlmacenGeneral_Facturas: React.FC = () => {
     setFacturaCreadaId(null);
     setShowAddFacturaForm(false);
     setShowEditFacturaForm(false);
-    navigate('/almacen_general/facturas');
+    navigate('/almacen-general/facturas');
   }
 
   const handleImprimirResponsivas = (factura: FacturasAF) => {
-    navigate(`/almacen_general/facturas/impresionResponsivas/${factura.id_factura}`);
+    navigate(`/almacen-general/facturas/impresion-responsivas/${factura.id_factura}`);
     setFacturaToEdit_Delete(factura);
     setShowAddFacturaForm(false);
     setShowEditFacturaForm(false);
@@ -212,15 +210,28 @@ const AlmacenGeneral_Facturas: React.FC = () => {
   };
   */
 
+  // Recordar la ruta previa para refrescar la tabla paginada al regresar al
+  // listado (después de crear/editar/imprimir/ver responsivas).
+  const rutaPreviaRef = useRef<string>(location.pathname);
+
   useEffect(() => {
-    const isNuevaFacturaRoute = location.pathname === '/almacen_general/facturas/nuevaFactura';
+    const rutaPrevia = rutaPreviaRef.current;
+    rutaPreviaRef.current = location.pathname;
+
+    const isNuevaFacturaRoute = location.pathname === '/almacen-general/facturas/nueva-factura';
     setShowAddFacturaForm(isNuevaFacturaRoute);
 
     if (isNuevaFacturaRoute) {
       setShowEditFacturaForm(false);
       setShowImpresionFactura(false);
     }
-  }, [location.pathname]);
+
+    // Al volver al listado desde cualquier otra ruta, recargar la tabla paginada.
+    const esListado = location.pathname === '/almacen-general/facturas';
+    if (esListado && rutaPrevia !== location.pathname) {
+      refetch();
+    }
+  }, [location.pathname, refetch]);
 
   useEffect(() => {
     const cargarFacturas = async () => {
@@ -245,7 +256,7 @@ const AlmacenGeneral_Facturas: React.FC = () => {
         console.log('Proveedores cargados:', resultAction);
 
         if (resultAction.success) {
-          dispatch(setListProveedor(resultAction.proveedor!)); // Establece el proveedor en el estado
+          dispatch(setListProveedor(resultAction.proveedores!)); // Establece el proveedor en el estado
 
         } else {
           console.log('Error', resultAction.message)
@@ -352,7 +363,7 @@ const AlmacenGeneral_Facturas: React.FC = () => {
 
       <hr />
 
-      {facturasFiltradas && facturasFiltradas.length === 0 ? (
+      {!loading && facturasPaginaActual.length === 0 ? (
         <div className='noEntities'>
           <FiAlertTriangle /> <p>  No hay facturas registradas </p> <FiAlertTriangle />
         </div>

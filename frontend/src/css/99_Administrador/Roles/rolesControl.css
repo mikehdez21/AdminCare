@@ -1,4 +1,6 @@
 .mainDiv_RolControl {
+    width: 100%;
+
 
     .searchAdd_ButtonDiv {
         display: flex;

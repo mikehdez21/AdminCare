@@ -11,35 +11,53 @@
     align-items: center;
     z-index: 2000;
 
-    h2{
+    h2 {
         justify-self: center;
         margin: 0 0 10px 0;
     }
 
-    .modalMovimientosAF{
+    .modalMovimientosAF {
         background-color: #ffffff;
         border-radius: 15px;
-        padding: 15px;
 
-        .titleCódigoÚnicoAF{
-            margin: 0;
-            color: #666;
-            font-weight: 600;
-            text-align: center;
+        .divInfoAF_MovimientoAF {
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+            margin-bottom: 10px;
 
-            .textCódigoUnico{
-                margin: 0;
-                font-size: 20px;
-                color: #a412dd;
-                font-weight: 700;
+            div {
+                border: 1px solid #ccc;
+
             }
+
+            .titleCódigoÚnicoAF {
+                margin: 0;
+                color: #666;
+                font-weight: 600;
+                text-align: center;
+
+                .textCódigoUnico {
+                    margin: 0;
+                    font-size: 18px;
+                    color: #a412dd;
+                    font-weight: 700;
+                }
+
+
+            }
+
+
+
         }
 
-        .divInputs_AddEdit_MovimientosAF{
 
-            .form_AddEdit_MovimientosAF{
 
-                label{
+        .divInputs_AddEdit_MovimientosAF {
+            padding: 10px;
+
+            .form_AddEdit_MovimientosAF {
+
+                label {
                     display: flex;
                     flex-direction: column;
                     font-size: 13px;
@@ -47,19 +65,20 @@
                     margin-top: 10px;
                     font-weight: bold;
 
-                    .emailInput{
+                    .emailInput {
                         display: flex;
                         gap: 5px;
                         align-items: center;
-                        
-                        input{
+
+                        input {
                             flex: 1;
                         }
-                        
+
                     }
                 }
 
-                input, select{
+                input,
+                select {
                     padding: 8px;
                     margin-top: 5px;
                     border: 1px solid #ccc;
@@ -68,21 +87,23 @@
                     text-align: center;
                 }
 
-                .dataInputs_MovimientoAF{
+                .dataInputs_MovimientoAF {
                     display: flex;
                     gap: 10px;
 
-                    .editMovimientoInfo_FirstColumn, .editMovimientoInfo_SecondColumn{
+                    .editMovimientoInfo_FirstColumn,
+                    .editMovimientoInfo_SecondColumn {
                         background-color: #80808046;
                         padding: 10px;
                         border-radius: 10px;
                         gap: 15px;
-                        
-                        .inputs_InfoAFMovimiento, .inputs_ResponsableAFMovimiento {
+
+                        .inputs_InfoAFMovimiento,
+                        .inputs_ResponsableAFMovimiento {
                             display: grid;
                             grid-template-rows: repeat(2, .6fr);
 
-                            .textarea_motivoMovimientoAF{
+                            .textarea_motivoMovimientoAF {
                                 font-family: system-ui;
                                 height: 150px;
                                 width: 350px;
@@ -92,14 +113,14 @@
                                 font-size: 14px;
                             }
                         }
-                        
 
-                        
 
-                        
+
+
+
                     }
 
-                    
+
 
                 }
 
@@ -107,38 +128,36 @@
 
         }
 
-        
+
     }
 
-    .modalDetalleMovimientoAF{
+    .modalDetalleMovimientoAF {
         background-color: #ffffff;
         border-radius: 15px;
         padding: 15px;
 
-        .divTitle{
+        .divTitle {
             margin-bottom: 1rem;
             text-align: center;
 
-            h2{
+            h2 {
                 margin: 0;
             }
         }
 
-        .divInfoAF{
-            display: flex;
-            max-height: 70vh;
+        .divInfoAF {
+
 
             .detalleInfo {
                 display: flex;
-                flex-direction: column;
-                flex: 1;
+                max-width: 60vw;
 
-                .DivDetalleSections{
+                .DivDetalleSections {
                     display: grid;
-                    grid-template-columns: repeat(3, 1fr);
-                    gap: 2rem;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 1rem;
 
-                    .SectionsAF{
+                    .SectionsAF {
                         background: #f8f9fa;
                         padding: 1rem;
                         border-radius: 8px;
@@ -146,29 +165,33 @@
                         border-right: 4px solid #c42fd8;
 
 
-                        h3{
+                        h3 {
                             text-align: center;
                             margin: 0 0 1rem 0;
                             color: #333;
                             font-size: 1.1rem;
                         }
 
-                        .rowsInfo{
+                        #h3_ultimoMovimiento {
+                            margin-top: 1rem;
+                        }
+
+                        .rowsInfo {
                             display: grid;
                             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
                             gap: 0.75rem;
-                        
-                            li{
+
+                            li {
                                 list-style: none;
                                 font-size: 0.95rem;
                                 background-color: #ffffff;
                                 padding: 0.5rem;
                                 border-radius: 5px;
 
-                                
+
                             }
 
-                            #li_estatusAF{
+                            #li_estatusAF {
                                 display: flex;
                                 align-items: center;
                                 gap: 10px;
@@ -182,25 +205,70 @@
                                     display: inline-block;
                                 }
 
-                                .estatus-activo { background-color: #22c55e; }      /* Verde */
-                                .estatus-mantenimiento-revision { background-color: #f97316; } /* Naranja */
-                                .estatus-baja-perdido { background-color: #ef4444; }        /* Rojo */
-                                .estatus-prestado { background-color: #3b82f6; }    /* Azul */
-                                .estatus-default { background-color: #6b7280; }     /* Gris */
-                                
+                                .estatus-activo {
+                                    background-color: #22c55e;
+                                }
+
+                                /* Verde */
+                                .estatus-mantenimiento-revision {
+                                    background-color: #f97316;
+                                }
+
+                                /* Naranja */
+                                .estatus-baja-perdido {
+                                    background-color: #ef4444;
+                                }
+
+                                /* Rojo */
+                                .estatus-prestado {
+                                    background-color: #3b82f6;
+                                }
+
+                                /* Azul */
+                                .estatus-default {
+                                    background-color: #6b7280;
+                                }
+
+                                /* Gris */
+
                             }
                         }
+
+
                     }
+
+                    .SectionsAF.infoAF {
+
+                        .rowsInfo {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+
+                            li {
+                                list-style: none;
+                                font-size: 0.95rem;
+                                background-color: #ffffff;
+                                padding: 0.5rem;
+                                border-radius: 5px;
+
+
+                            }
+                        }
+
+                    }
+
+
+
+
                 }
             }
         }
 
-        .divButtons{
+        .divButtons {
             display: flex;
             justify-content: flex-end;
             margin-top: 1rem;
 
-            button{
+            button {
                 padding: 6px 10px;
                 border: none;
                 border-radius: 4px;
@@ -209,11 +277,11 @@
                 font-size: 1rem;
                 cursor: pointer;
 
-                &:hover{
+                &:hover {
                     background-color: #5a6268;
                 }
             }
-        
+
 
         }
     }

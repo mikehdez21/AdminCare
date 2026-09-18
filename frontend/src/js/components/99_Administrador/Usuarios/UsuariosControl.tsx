@@ -1,10 +1,11 @@
 // Bibliotecas
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AppDispatch, RootState } from '@/store/store'; // Asegúrate de importar AppDispatch
 import { useDispatch, useSelector } from 'react-redux';
 
 // Usuarios
 import { User } from '@/@types/mainTypes';
+import type { PaginacionMeta, PaginacionParams } from '@/@types/paginacionTypes';
 import { getUsers } from '@/store/administrador/Users/usersActions';
 import { setListUsuarios } from '@/store/administrador/Users/usersReducer';
 
@@ -23,6 +24,7 @@ import DeleteUser from './DeleteUser';
 
 import ShowUserRoles from '@/components/99_Administrador/Usuarios/ShowUserRoles'
 import Paginacion from '@/components/00_Utils/Paginacion';
+import { usePaginacionServidor } from '@/hooks/usePaginacionServidor';
 
 // Icons
 import { IoAddCircleOutline } from 'react-icons/io5';
@@ -43,15 +45,9 @@ const Main_UsuariosControl: React.FC = () => {
   const departamentos = useSelector((state: RootState) => state.departamentos.departamentos);
   const empleados = useSelector((state: RootState) => state.empleados.empleados);
   const usuarios = useSelector((state: RootState) => state.users.users || []);
-  const totalUsuarios = usuarios.length;
 
   const [usuarioToEdit_Delete, setUsuarioToEdit_Delete] = useState<User | null>(null); // Usuario seleccionado para editar_eliminar
   const [usuarioToShow, setUsuarioToShow] = useState<User | null>(null); // Usuario seleccionado para editar_eliminar
-
-  const [busqueda, setBusqueda] = useState<string>('');
-  const [paginaActual, setPaginaActual] = useState<number>(1);
-  const [usuariosPorPagina, setUsuariosPorPagina] = useState<number>(5);
-
 
   const [isModalAddUsuarioOpen, setModalAddUsuarioOpen] = useState(false);
   const [isModalEditUsuarioOpen, setModalEditUsuarioOpen] = useState(false);
@@ -61,6 +57,39 @@ const Main_UsuariosControl: React.FC = () => {
   const [isModalFotoOpen, setModalFotoOpen] = useState(false);
   const [fotoUsuario, setFotoUsuario] = useState<string | null>(null);
 
+  // ---------------------------------------------------------------------------
+  // Paginación servidor: fetcher que llama al thunk de usuarios con
+  // { page, per_page, search }. La tabla usa el estado local del hook; el
+  // store sigue cargando la lista completa en el useEffect de montaje para
+  // los flujos que la requieren (selección de empleados, roles, etc.).
+  // ---------------------------------------------------------------------------
+  const fetcher = useCallback(
+    async (params: PaginacionParams): Promise<{ data: User[]; meta: PaginacionMeta | null }> => {
+      const resultAction = await dispatch(getUsers(params)).unwrap();
+      if (resultAction.success && resultAction.users) {
+        return { data: resultAction.users, meta: resultAction.meta ?? null };
+      }
+      throw new Error(resultAction.message || 'Error al obtener los usuarios');
+    },
+    [dispatch],
+  );
+
+  const {
+    busqueda,
+    paginaActual,
+    setPaginaActual,
+    perPage: usuariosPorPagina,
+    items: usuariosPaginaActual,
+    totalItems: totalUsuarios,
+    numeroTotalPaginas,
+    loading,
+    refetch,
+    handleSearch,
+    handleChangePerPage: handleChangeUsuariosPorPagina,
+  } = usePaginacionServidor<User>({
+    fetcher,
+    perPageDefault: 5,
+  });
 
   // Añadir Usuario
   const openModalAddUsuario = () => {
@@ -68,6 +97,8 @@ const Main_UsuariosControl: React.FC = () => {
   };
   const closeModalAddUsuario = () => {
     setModalAddUsuarioOpen(false);
+    // Recargar la tabla paginada tras crear un usuario.
+    refetch();
   };
 
   // Editar Usuario
@@ -78,6 +109,8 @@ const Main_UsuariosControl: React.FC = () => {
   const closeModalEditUsuario = () => {
     setModalEditUsuarioOpen(false);
     setUsuarioToEdit_Delete(null)
+    // Recargar la tabla paginada tras editar un usuario.
+    refetch();
   };
 
   // Eliminar Usuario
@@ -89,7 +122,8 @@ const Main_UsuariosControl: React.FC = () => {
   const closeAlertDeleteUsuario = () => {
     setModalDeleteUsuarioOpen(false);
     setUsuarioToEdit_Delete(null)
-
+    // Recargar la tabla paginada tras eliminar un usuario.
+    refetch();
   };
 
   // Mostrar Roles del Usuario
@@ -164,40 +198,10 @@ const Main_UsuariosControl: React.FC = () => {
   }, [dispatch, usuarios.length, departamentos.length, empleados.length]); // Solo ejecuta el effect si los usuarios no están en el store
 
 
-  // Filtrar y ordenar usuarios basados en la búsqueda
-  const usuariosFiltrados = usuarios
-    .filter(usuario =>
-      usuario.nombre_usuario.toLowerCase().includes(busqueda.toLowerCase()) ||
-      usuario.id_usuario?.toString().includes(busqueda)
-    )
-    .sort((a, b) => a.id_usuario! - b.id_usuario!);
-
-  // Obtener los usuarios para la página actual
-  const indexUltimoUsuario = paginaActual * usuariosPorPagina;
-  const indexPrimerUsuario = indexUltimoUsuario - usuariosPorPagina;
-  const usuariosPaginaActual = usuariosFiltrados.slice(indexPrimerUsuario, indexUltimoUsuario);
-
-  // Calcular el número total de páginas
-  const numeroTotalPaginas = Math.ceil(usuariosFiltrados.length / usuariosPorPagina);
-
-
   // Crear nuevos usuarios
   const handleNuevoUsuario = () => {
     openModalAddUsuario();
   };
-
-  // Manejar cambio de búsqueda
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setBusqueda(e.target.value);
-    setPaginaActual(1); // Reiniciar a la primera página al hacer una búsqueda
-  };
-
-  // Manejar cambio en el número de usuarios por página
-  const handleChangeUsuariosPorPagina = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setUsuariosPorPagina(Number(e.target.value));
-    setPaginaActual(1); // Reiniciar a la primera página al cambiar el número de proveedores por página
-  };
-
 
   return (
     <div className='mainDiv_UserControl'>
@@ -233,7 +237,7 @@ const Main_UsuariosControl: React.FC = () => {
 
       <hr />
 
-      {usuariosFiltrados && usuariosFiltrados.length === 0 ? (
+      {!loading && usuariosPaginaActual.length === 0 ? (
         <div className='noEntities'>
           <FiAlertTriangle /> <p>  No hay usuarios registrados </p> <FiAlertTriangle />
         </div>

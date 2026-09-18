@@ -1,15 +1,22 @@
 import { Empleados } from '@/@types/mainTypes';
+import type { PaginacionMeta } from '@/@types/paginacionTypes';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { addEmpleado, getEmpleados, editEmpleado, bajaEmpleado } from './empleadosActions';
+import { addEmpleado, getEmpleados, bajaEmpleado, ResultadoEmpleados } from './empleadosActions';
 
 export interface EmpleadosState {
-    empleados: Empleados[]; // Lista completa de empleados
-    currentEmpleado: Empleados | null; // Empleado Logeado en Especifico
-    error: string | null; // Agregar un campo para manejar errores
+  empleados: Empleados[]; // Lista completa de empleados
+  /** Página devuelta por las consultas paginadas (page/per_page). */
+  empleadosPagina: Empleados[];
+  /** Metadatos de la última consulta paginada. */
+  meta: PaginacionMeta | null;
+  currentEmpleado: Empleados | null; // Empleado Logeado en Especifico
+  error: string | null; // Agregar un campo para manejar errores
 }
 
 const initialState: EmpleadosState = {
   empleados: [], // Lista completa de empleados
+  empleadosPagina: [],
+  meta: null,
   currentEmpleado: null, // Empleado Logeado en Especifico
   error: null, // Agregar un campo para manejar errores
 }
@@ -44,17 +51,19 @@ const empleadosSlice = createSlice({
 
   extraReducers: (builder) => {
     builder
-    // Manejo de la lista completa de empleados
-      .addCase(getEmpleados.fulfilled, (state, action) => {
+      // Manejo de la lista completa de empleados
+      .addCase(getEmpleados.fulfilled, (state, action: PayloadAction<ResultadoEmpleados>) => {
         if (action.payload.success && action.payload.empleados) {
-          state.empleados = action.payload.empleados; // Carga la lista de empleados obtenida
+          if (action.payload.meta) {
+            state.empleadosPagina = action.payload.empleados; // Carga la página de empleados obtenida
+            state.meta = action.payload.meta;
+          } else {
+            state.empleados = action.payload.empleados; // Carga la lista de empleados obtenida
+          }
           state.error = null; // Limpia errores previos
         } else {
           state.error = action.payload.message || 'Error al obtener empleados'; // Maneja errores al obtener empleados
         }
-      })
-      .addCase(getEmpleados.rejected, (state, action) => {
-        state.error = action.error.message || 'Error inesperado'; // Manejo de errores inesperados
       })
       .addCase(addEmpleado.fulfilled, (state, action) => {
         if (action.payload.success && action.payload.empleados) {
@@ -64,17 +73,7 @@ const empleadosSlice = createSlice({
           state.error = action.payload.message || 'Error al agregar empleado'; // Maneja errores al agregar empleado
         }
       })
-      .addCase(editEmpleado.fulfilled, (state, action) => {
-        if (action.payload.success && action.payload.message) {
-          const updateEmpleado = action.meta.arg; // Usuario actualizado enviado como argumento
-          const index = state.empleados.findIndex((empleado) => empleado.id_empleado === updateEmpleado.id_empleado);
-          if (index !== -1) {
-            state.empleados[index] = updateEmpleado; // Actualiza el empleado en la lista
-          }
-        } else {
-          state.error = action.payload.message || 'Error al editar empleado'; // Maneja errores al editar empleado
-        }
-      })
+
 
       .addCase(bajaEmpleado.fulfilled, (state, action) => {
         if (action.payload.success) {

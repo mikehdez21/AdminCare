@@ -12,20 +12,20 @@ export const toSafeNumber = (value: number | string | null | undefined, defaultV
   if (value === null || value === undefined || value === '') {
     return defaultValue;
   }
-  
+
   const num = Number(value);
   return isNaN(num) ? defaultValue : num;
 };
 
 /**
- * Formatea un número como moneda con 2 decimales
+ * Formatea un número como moneda con 4 decimales
  * @param value - Valor a formatear
  * @param defaultValue - Valor por defecto si la conversión falla
- * @returns String formateado con 2 decimales
+ * @returns String formateado con 4 decimales
  */
 export const formatCurrency = (value: number | string | null | undefined, defaultValue: number = 0): string => {
   const safeNumber = toSafeNumber(value, defaultValue);
-  return safeNumber.toFixed(2);
+  return safeNumber.toFixed(4);
 };
 
 /**
@@ -41,13 +41,13 @@ export const formatPeso = (value: number | string | null | undefined, defaultVal
 /**
  * Formatea un número con separadores de miles
  * @param value - Valor a formatear
- * @param decimals - Número de decimales (por defecto 2)
+ * @param decimals - Número de decimales (por defecto 4)
  * @param defaultValue - Valor por defecto si la conversión falla
  * @returns String formateado con separadores de miles
  */
 export const formatNumberWithSeparators = (
-  value: number | string | null | undefined, 
-  decimals: number = 2, 
+  value: number | string | null | undefined,
+  decimals: number = 4,
   defaultValue: number = 0
 ): string => {
   const safeNumber = toSafeNumber(value, defaultValue);
@@ -67,6 +67,7 @@ export const formatMexicanCurrency = (value: number | string | null | undefined,
   const safeNumber = toSafeNumber(value, defaultValue);
   return safeNumber.toLocaleString('es-MX', {
     style: 'currency',
+    maximumFractionDigits: 6,
     currency: 'MXN'
   });
 };

@@ -180,7 +180,7 @@
                     .divResponsableAF {
                         width: 250px;
                         overflow: hidden;
-                        text-align: start;
+                        text-align: center;
                         text-overflow: ellipsis;
                     }
                 }

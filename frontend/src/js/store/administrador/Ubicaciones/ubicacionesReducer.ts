@@ -1,15 +1,22 @@
 import { Ubicaciones } from '@/@types/mainTypes';
+import type { PaginacionMeta } from '@/@types/paginacionTypes';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { addUbicacion, getUbicaciones } from './ubicacionesActions';
+import { addUbicacion, getUbicaciones, ResultadoUbicaciones } from './ubicacionesActions';
 
 export interface UbicacionesState{
     ubicaciones: Ubicaciones[];
+    /** Página devuelta por las consultas paginadas (page/per_page). */
+    ubicacionesPagina: Ubicaciones[];
+    /** Metadatos de la última consulta paginada. */
+    meta: PaginacionMeta | null;
     error: string | null; // Agregar un campo para manejar errores
 
 }
 
 const initialState: UbicacionesState = {
   ubicaciones: [],
+  ubicacionesPagina: [],
+  meta: null,
   error: null, // Agregar un campo para manejar errores
 }
 
@@ -32,16 +39,18 @@ const ubicacionesSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getUbicaciones.fulfilled, (state, action) => {
+      .addCase(getUbicaciones.fulfilled, (state, action: PayloadAction<ResultadoUbicaciones>) => {
         if (action.payload.success && action.payload.ubicaciones) {
-          state.ubicaciones = action.payload.ubicaciones; // Carga la lista de ubicaciones obtenida
+          if (action.payload.meta) {
+            state.ubicacionesPagina = action.payload.ubicaciones; // Carga la página de ubicaciones obtenida
+            state.meta = action.payload.meta;
+          } else {
+            state.ubicaciones = action.payload.ubicaciones; // Carga la lista de ubicaciones obtenida
+          }
           state.error = null; // Limpia errores previos
         } else {
           state.error = action.payload.message || 'Error al obtener ubicaciones'; // Maneja errores al obtener usuarios
         }
-      })
-      .addCase(getUbicaciones.rejected, (state, action) => {
-        state.error = action.error.message || 'Error inesperado'; // Manejo de errores inesperados
       })
       .addCase(addUbicacion.fulfilled, (state, action: PayloadAction<{success: boolean, ubicaciones?: Ubicaciones[], message: string}>) => {
         if (action.payload.success && action.payload.ubicaciones){
@@ -50,9 +59,6 @@ const ubicacionesSlice = createSlice({
           state.ubicaciones = []
           state.error = action.payload.message || 'Error al añadir la ubicacion'; // Manejo de errores
         }
-      })
-      .addCase(addUbicacion.rejected, (state, action) => {
-        state.error = action.payload as string
       })
   }
 })

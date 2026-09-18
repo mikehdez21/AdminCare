@@ -33,6 +33,7 @@ export interface ActivosFijos {
   af_propio: boolean;
   id_estado_af: number | null;
   id_clasificacion: number | null;
+  af_menor: boolean;
   fecha_registro_af: string | null;
   depreciacion_aplicada: boolean;
   observaciones_af: string;
@@ -74,6 +75,7 @@ export interface VwMovimientosAF {
   costo_unitario_af: number;
   fecha_registro_af: string;
   af_propio: boolean;
+  af_menor: boolean;
   codigo_etiqueta: string | null;
   observaciones_af: string;
   estado_actual: string | null;
@@ -135,6 +137,7 @@ export interface ActivoEntityResponse {
   id_clasificacion: number | null;
   fecha_registro_af: string | null;
   af_propio: boolean;
+  af_menor: boolean;
   numero_serie_af: string;
   costo_unitario_af: number;
   descuento_af: number;

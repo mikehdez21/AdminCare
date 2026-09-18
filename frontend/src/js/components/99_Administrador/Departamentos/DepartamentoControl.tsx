@@ -1,15 +1,17 @@
 // Bibliotecas
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AppDispatch, RootState } from '@/store/store'; // Asegúrate de importar AppDispatch
 import { useDispatch, useSelector } from 'react-redux';
 
 // Departamentos
 import { Departamentos } from '@/@types/mainTypes';
+import type { PaginacionMeta, PaginacionParams } from '@/@types/paginacionTypes';
 import { getDepartamentos } from '@/store/administrador/Departamentos/departamentosActions';
 import { setListDepartamentos } from '@/store/administrador/Departamentos/departamentosReducer';
 
 // Componentes
 import Paginacion from '@/components/00_Utils/Paginacion';
+import { usePaginacionServidor } from '@/hooks/usePaginacionServidor';
 import AddDepartamento from './AddDepartamento';
 import EditDepartamento from './EditDepartamento';
 import DeleteDepartamentos from './DeleteDepartamento';
@@ -29,16 +31,43 @@ const Main_DepartamentosControl: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>(); // Tipar el dispatch aquí
   const [departamentoToEdit_Delete, setDepartamentoToEdit_Delete] = useState<Departamentos | null>(null); // Usuario seleccionado para editar_eliminar
 
-  
-  const [busqueda, setBusqueda] = useState<string>('');
-  const [paginaActual, setPaginaActual] = useState<number>(1);
-  const [departamentosPorPagina, setDepartamentosPorPagina] = useState<number>(5);
-
-    
   const [isModalAddDepartamentoOpen, setModalAddDepartamentoOpen] = useState(false);
   const [isModalEditDepartamentoOpen, setModalEditDepartamentoOpen] = useState(false);
   const [isModalDeleteDepartamentoOpen, setModalDeleteDepartamentoOpen] = useState(false);
 
+  // ---------------------------------------------------------------------------
+  // Paginación servidor: fetcher que llama al thunk de departamentos con
+  // { page, per_page, search }. La tabla usa el estado local del hook; el
+  // store sigue cargando la lista completa en el useEffect de montaje para
+  // los flujos que la requieren.
+  // ---------------------------------------------------------------------------
+  const fetcher = useCallback(
+    async (params: PaginacionParams): Promise<{ data: Departamentos[]; meta: PaginacionMeta | null }> => {
+      const resultAction = await dispatch(getDepartamentos(params)).unwrap();
+      if (resultAction.success && resultAction.departamentos) {
+        return { data: resultAction.departamentos, meta: resultAction.meta ?? null };
+      }
+      throw new Error(resultAction.message || 'Error al obtener los departamentos');
+    },
+    [dispatch],
+  );
+
+  const {
+    busqueda,
+    paginaActual,
+    setPaginaActual,
+    perPage: departamentosPorPagina,
+    items: departamentosPaginaActual,
+    totalItems: totalDepartamentos,
+    numeroTotalPaginas,
+    loading,
+    refetch,
+    handleSearch,
+    handleChangePerPage: handleChangeDepartamentosPorPagina,
+  } = usePaginacionServidor<Departamentos>({
+    fetcher,
+    perPageDefault: 5,
+  });
 
   // Añadir Departamento
   const openModalAddDepartamento = () => {
@@ -46,6 +75,8 @@ const Main_DepartamentosControl: React.FC = () => {
   };
   const closeModalAddDepartamento = () => {
     setModalAddDepartamentoOpen(false);
+    // Recargar la tabla paginada tras crear un departamento.
+    refetch();
   };
   
   // Editar Departamento
@@ -56,6 +87,8 @@ const Main_DepartamentosControl: React.FC = () => {
   const closeModalEditDepartamento = () => {
     setModalEditDepartamentoOpen(false);
     setDepartamentoToEdit_Delete(null)
+    // Recargar la tabla paginada tras editar un departamento.
+    refetch();
   };
   
   // Eliminar Departamento
@@ -67,7 +100,8 @@ const Main_DepartamentosControl: React.FC = () => {
   const closeAlertDeleteDepartamento = () => {
     setModalDeleteDepartamentoOpen(false);
     setDepartamentoToEdit_Delete(null)
-
+    // Recargar la tabla paginada tras eliminar un departamento.
+    refetch();
   };
 
   // Cargar los departamentos desde la API solo si no están cargados en el store
@@ -91,49 +125,18 @@ const Main_DepartamentosControl: React.FC = () => {
   const departamentos = useSelector((state: RootState) => state.departamentos?.departamentos || []);
   console.log(departamentos)
 
-
-  // Filtrar y ordenar departamentos basados en la búsqueda
-  const departamentosFiltrados = departamentos
-    .filter(departamento =>
-      departamento.nombre_departamento.toLowerCase().includes(busqueda.toLowerCase()) ||
-      departamento.id_departamento?.toString().includes(busqueda)
-    )
-    .sort((a, b) => a.id_departamento! - b.id_departamento!);
-
-  // Obtener los departamentos para la página actual
-  const indexUltimoDepartamento = paginaActual * departamentosPorPagina;
-  const indexPrimerDepartamento = indexUltimoDepartamento - departamentosPorPagina;
-  const departamentosPaginaActual = departamentosFiltrados.slice(indexPrimerDepartamento, indexUltimoDepartamento);
-
-  // Calcular el número total de páginas
-  const numeroTotalPaginas = Math.ceil(departamentosFiltrados.length / departamentosPorPagina);
-
-
   // Crear nuevos departamentos
   const handleNuevoDepartamento = () => {
     openModalAddDepartamento();
   };
 
-  // Manejar cambio de búsqueda
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setBusqueda(e.target.value);
-    setPaginaActual(1); // Reiniciar a la primera página al hacer una búsqueda
-  };
-
-  // Manejar cambio en el número de departamentos por página
-  const handleChangeDepartamentosPorPagina = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setDepartamentosPorPagina(Number(e.target.value));
-    setPaginaActual(1); // Reiniciar a la primera página al cambiar el número de departamentos por página
-  };
-
-
-  return(
+  return (
     <div className='mainDiv_DepartamentoControl'>
       <div className='searchAdd_ButtonDiv'>
  
         <div className='text_Div'>
           <h1>Departamentos</h1>
-          <p>Mostrando {departamentosPaginaActual.length} de {departamentos.length} departamentos</p>
+          <p>Mostrando {departamentosPaginaActual.length} de {totalDepartamentos} departamentos</p>
         </div>
         
         <div className='buttons_Div'>
@@ -161,7 +164,7 @@ const Main_DepartamentosControl: React.FC = () => {
 
       <hr />
 
-      {departamentosFiltrados && departamentosFiltrados.length === 0 ? (
+      {!loading && departamentosPaginaActual.length === 0 ? (
         <div className='noEntities'>
           <FiAlertTriangle /> <p>  No hay departamentos registrados </p> <FiAlertTriangle />
         </div>

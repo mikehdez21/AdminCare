@@ -96,7 +96,7 @@ const AlmacenGeneral_ControlClasificacion: React.FC = () => {
   const clasificacionesFiltradas = Array.isArray(clasificaciones)
     ? clasificaciones
       .filter(clasificacion =>
-        clasificacion.nombre_clasificacion.toLowerCase().includes(busqueda.toLowerCase()) ||
+        (clasificacion.nombre_clasificacion ?? '').toLowerCase().includes(busqueda.toLowerCase()) ||
         clasificacion.id_clasificacion?.toString().includes(busqueda)
       )
       .sort((a, b) => a.id_clasificacion! - b.id_clasificacion!) // Orden ascendente por ID
@@ -128,7 +128,6 @@ const AlmacenGeneral_ControlClasificacion: React.FC = () => {
       <div className='searchAdd_ButtonDiv'>
 
         <div className='text_Div'>
-          <h1>Clasificaciones Activo Fijo</h1>
           <p>Mostrando {clasificacionesPaginaActual.length} de {totalClasificaciones} clasificaciones</p>
         </div>
 
@@ -236,5 +235,4 @@ const AlmacenGeneral_ControlClasificacion: React.FC = () => {
 };
 
 export default AlmacenGeneral_ControlClasificacion;
-
 

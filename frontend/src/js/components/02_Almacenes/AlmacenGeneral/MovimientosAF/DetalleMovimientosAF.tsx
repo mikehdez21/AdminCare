@@ -40,7 +40,7 @@ const ModalAFDetails: React.FC<DetalleActivoModalProps> = ({ isOpen, onClose, ac
             <div className='DivDetalleSections'>
 
               {/* Información Básica */}
-              <section className='SectionsAF'>
+              <section className='SectionsAF infoAF'>
                 <h3>Información Básica</h3>
                 <div className='rowsInfo'>
                   <li><strong>Código:</strong> {activoDetalle.codigo_unico}</li>
@@ -49,6 +49,9 @@ const ModalAFDetails: React.FC<DetalleActivoModalProps> = ({ isOpen, onClose, ac
                   <li><strong>Marca:</strong> {activoDetalle.marca_af}</li>
                   <li><strong>No. Serie:</strong> {activoDetalle.numero_serie_af}</li>
                   <li><strong>Costo Unitario:</strong> ${activoDetalle.costo_unitario_af.toLocaleString()}</li>
+                  <li><strong>Activo Propio:</strong> {activoDetalle.af_propio ? 'Sí' : 'No'}</li>
+                  <li><strong>Activo Menor:</strong> {activoDetalle.af_menor ? 'Sí' : 'No'}</li>
+                  <li><strong>Fecha Registro:</strong> {formatDateHorasToFrontend(activoDetalle.fecha_registro_af)}</li>
                   <li id='li_estatusAF'><strong>Estado:</strong>
                     {estatusActivoFijo.map((estatusAF) => {
                       if (activoDetalle.estado_actual !== estatusAF.descripcion_estatusaf) return null;
@@ -81,17 +84,17 @@ const ModalAFDetails: React.FC<DetalleActivoModalProps> = ({ isOpen, onClose, ac
                   <li><strong>Responsable Anterior:</strong> {activoDetalle.responsable_anterior_completo}</li>
                   <li><strong>Ubicación Anterior:</strong> {activoDetalle.ubicacion_anterior}</li>
                 </div>
-              </section>
 
-              {/* Último Movimiento */}
-              <section className='SectionsAF'>
-                <h3>Último Movimiento</h3>
+                {/* Último Movimiento */}
+                <h3 id='h3_ultimoMovimiento'>Último Movimiento</h3>
                 <div className='rowsInfo'>
                   <li><strong>Fecha:</strong> {formatDateHorasToFrontend(activoDetalle.fecha_ultimo_movimiento)}</li>
                   <li><strong>Motivo:</strong> {activoDetalle.ultimo_motivo_movimiento}</li>
                   <li><strong>Tipo de Movimiento:</strong> {activoDetalle.tipo_movimiento}</li>
                 </div>
               </section>
+
+
             </div>
 
           </div>

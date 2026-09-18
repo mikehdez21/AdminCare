@@ -1,35 +1,38 @@
-import axios from 'axios';
-import { API_BASE_URL } from '@/variableApi';
+import { isAxiosError } from 'axios';
 import { Departamentos } from '@/@types/mainTypes';
-import { formatDateHorasToFrontend } from '@/utils/dateFormat'; 
+import { type PaginacionMeta, type PaginacionParams } from '@/@types/paginacionTypes';
+import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import api, { API_BASE_URL } from '@/variableApi';
+import { getBackendErrorMessage } from '@/store/shared/errorMessage';
 
+// ---------------------------------------------------------------------------
+// Resultado común de las consultas de departamentos.
+// `meta` solo está presente cuando la consulta fue paginada (page/per_page).
+// ---------------------------------------------------------------------------
+export interface ResultadoDepartamentos {
+  success: boolean;
+  departamentos?: Departamentos[];
+  meta?: PaginacionMeta | null;
+  message: string;
+}
 
 // Agregar un nuevo Departamento
 export const addDepartamento = createAsyncThunk<{ success: boolean; message: string }, Departamentos>(
   '/addDepartamento',
   async (nuevoDepartamento: Departamentos) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      const response = await axios.post(
+      const response = await api.post(
         `${API_BASE_URL}/api/HSS1/admin/departamentos`,
-        nuevoDepartamento,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+        nuevoDepartamento
       );
 
       return { success: response.data.success, message: response.data.message };
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -42,20 +45,17 @@ export const addDepartamento = createAsyncThunk<{ success: boolean; message: str
 );
 
 // Obtener los departamentos registrados
-export const getDepartamentos = createAsyncThunk<{success: boolean; departamentos?: Departamentos[]; message: string }>(
+// - Sin argumentos: devuelve la lista completa (comportamiento original).
+// - Con PaginacionParams: devuelve la página solicitada + `meta`.
+export const getDepartamentos = createAsyncThunk<ResultadoDepartamentos, PaginacionParams | void>(
   '/getDepartamentos',
-  async () => {
-    try{
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/admin/departamentos`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken || '',
-        },
-        withCredentials: true,
-      });
+  async (params: PaginacionParams | void) => {
+    try {
+
+      const response = await api.get(
+        `${API_BASE_URL}/api/HSS1/admin/departamentos`,
+        params ? { params } : undefined,
+      );
 
       const departamentosFormateados = response.data.data.map((departamento: Departamentos) => {
         return {
@@ -69,19 +69,19 @@ export const getDepartamentos = createAsyncThunk<{success: boolean; departamento
 
         };
       });
-      
-      return { success: response.data.success, departamentos: departamentosFormateados as Departamentos[], message: response.data.message };
+
+      return { success: response.data.success, departamentos: departamentosFormateados as Departamentos[], meta: response.data.meta ?? null, message: response.data.message };
 
     } catch (error) {
       // Manejo de errores
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         // Retornar la respuesta del backend como parte del error
         return ({
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         });
       }
-      
+
       return ({
         success: false,
         message: 'Error inesperado',
@@ -95,31 +95,21 @@ export const editDepartamento = createAsyncThunk<{ success: boolean; message: st
   '/editDepartamento',
   async (departamentoEditado: Departamentos) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      console.log(csrfToken);
-      
+
       // Incluir el id del departamento en la URL para hacer la actualización correcta
-      const response = await axios.put(
+      const response = await api.put(
         `${API_BASE_URL}/api/HSS1/admin/departamentos/${departamentoEditado.id_departamento}`,
-        departamentoEditado,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+        departamentoEditado
       );
 
       console.log('updateAction', response.data.success)
       return { success: response.data.success, message: response.data.message };
 
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 
@@ -136,30 +126,20 @@ export const deleteDepartamento = createAsyncThunk<{ success: boolean; message: 
   '/deleteDepartamento',
   async (departamentoEliminado: Departamentos) => {
     try {
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      console.log(csrfToken);
-      
+
       // Incluir el id del rol en la URL para hacer la eliminación correcta
-      const response = await axios.delete(
-        `${API_BASE_URL}/api/HSS1/admin/departamentos/${departamentoEliminado.id_departamento}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
+      const response = await api.delete(
+        `${API_BASE_URL}/api/HSS1/admin/departamentos/${departamentoEliminado.id_departamento}`
       );
 
       console.log('deleteAction', response.data.success)
       return { success: response.data.success, message: response.data.message };
-      
+
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response) {
         return {
           success: false,
-          message: error.response.data.message || 'Error inesperado',
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
         };
       }
 

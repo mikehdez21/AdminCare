@@ -3,9 +3,9 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { addClasificacion, getClasificaciones } from './clasificacionesActions';
 
 
-export interface ClasificacionState{
-    clasificacionesAF: ClasificacionesAF[];
-    error: string | null; // Agregar un campo para manejar errores
+export interface ClasificacionState {
+  clasificacionesAF: ClasificacionesAF[];
+  error: string | null; // Agregar un campo para manejar errores
 
 }
 
@@ -31,29 +31,23 @@ const clasificacionSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getClasificaciones.fulfilled, (state, action: PayloadAction<{success: boolean, clasificacion?: ClasificacionesAF[], message: string}>) => {
-        if (action.payload.success && Array.isArray(action.payload.clasificacion)){
+      .addCase(getClasificaciones.fulfilled, (state, action: PayloadAction<{ success: boolean, clasificacion?: ClasificacionesAF[], message: string }>) => {
+        if (action.payload.success && Array.isArray(action.payload.clasificacion)) {
           state.clasificacionesAF = action.payload.clasificacion;
           state.error = null;
         } else {
           state.error = action.payload.message ? (action.payload.message as string) : 'Error al obtener clasificacionessss';
         }
       })
-      .addCase(getClasificaciones.rejected, (state, action) => {
-        state.error = action.error.message || 'Error al obtener clasificaciones';
-      })
-      .addCase(addClasificacion.fulfilled, (state, action: PayloadAction<{success: boolean, message: string}>) => {
-        if (action.payload.success){
+      .addCase(addClasificacion.fulfilled, (state, action: PayloadAction<{ success: boolean, message: string }>) => {
+        if (action.payload.success) {
           state.error = null;
         } else {
           state.error = action.payload.message || 'Error al añadir la clasificación'; // Manejo de errores
         }
       })
-      .addCase(addClasificacion.rejected, (state, action) => {
-        state.error = action.error.message || 'Error al añadir la clasificación';
-      })
   }
 })
 
-export const {setListClasificacion, updateClasificacion} = clasificacionSlice.actions
+export const { setListClasificacion, updateClasificacion } = clasificacionSlice.actions
 export default clasificacionSlice.reducer;

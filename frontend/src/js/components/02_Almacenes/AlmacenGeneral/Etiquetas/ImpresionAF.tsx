@@ -1,10 +1,10 @@
-import { API_BASE_URL } from '@/variableApi';
-
 // Bibliotecas
 import React, { useState, useEffect } from 'react';
+import api, { API_BASE_URL } from '@/variableApi';
 import { AppDispatch, RootState } from '@/store/store';
 import { useDispatch, useSelector } from 'react-redux';
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
+import QRCode from 'qrcode';
 
 // Styles
 import '@styles/02_Almacenes/AlmacenGeneral/Etiquetas/ImpresionAF.css';
@@ -14,19 +14,18 @@ import { ActivosFijos } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 
 // Icons
 import { FaList, FaPrint, FaQrcode } from 'react-icons/fa';
+import { getActivoQrPayload } from '@/utils/activoQr';
 
-// Interface para respuesta de impresión Zebra
 interface PrinterApiResponse {
   success: boolean;
   message: string;
   bytes_enviados?: number;
 }
 
-
-
+// La preview es browser-only: qrcode genera el Data URL en memoria.
+// Este flujo no invoca endpoints de generación QR ni guardarImagenQR.
 const ImpresionAF: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-
   // Estados locales
   const [activosDisponibles, setActivosDisponibles] = useState<ActivosFijos[]>([]);
   const [activosSeleccionados, setActivosSeleccionados] = useState<ActivosFijos[]>([]);
@@ -35,12 +34,8 @@ const ImpresionAF: React.FC = () => {
 
   // Estados para impresión
   const [activoSeleccionadoActual, setActivoSeleccionadoActual] = useState<ActivosFijos | null>(null);
-  const [imagenQRBase64, setImagenQRBase64] = useState<string | null>(null);
-  const [loadingQR, setLoadingQR] = useState<boolean>(false);
-  const [errorQR, setErrorQR] = useState<string | null>(null);
-
-  // Estados para impresión Zebra
-  const [loadingZebra, setLoadingZebra] = useState<boolean>(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [loadingZebra, setLoadingZebra] = useState(false);
   const [errorZebra, setErrorZebra] = useState<string | null>(null);
   const [successZebra, setSuccessZebra] = useState<string | null>(null);
 
@@ -51,6 +46,26 @@ const ImpresionAF: React.FC = () => {
   useEffect(() => {
     setActivosSeleccionados([...activosExistentes]);
   }, [dispatch, activosExistentes]);
+
+  useEffect(() => {
+    let mounted = true;
+    const codigo = activoSeleccionadoActual?.codigo_unico?.trim();
+    setQrDataUrl(null);
+    if (!codigo) return () => { mounted = false; };
+
+    QRCode.toDataURL(getActivoQrPayload(codigo), {
+      errorCorrectionLevel: 'M',
+      margin: 2,
+      width: 230,
+      color: { dark: '#111827', light: '#ffffff' },
+    }).then((url) => {
+      if (mounted) setQrDataUrl(url);
+    }).catch(() => {
+      if (mounted) setQrDataUrl(null);
+    });
+
+    return () => { mounted = false; };
+  }, [activoSeleccionadoActual]);
 
   useEffect(() => {
     // Filtrar activos disponibles (excluir los ya seleccionados)
@@ -74,36 +89,8 @@ const ImpresionAF: React.FC = () => {
     return clasificacion?.nombre_clasificacion || 'Sin clasificación';
   };
 
-  // Función para seleccionar un activo y cargar su QR
-  const handleSeleccionarActivo = async (activo: ActivosFijos) => {
+  const handleSeleccionarActivo = (activo: ActivosFijos) => {
     setActivoSeleccionadoActual(activo);
-    setLoadingQR(true);
-    setErrorQR(null);
-    setImagenQRBase64(null);
-
-    try {
-      // Obtener la imagen existente del QR
-      const response = await axios.get(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/qraf/descargar/${activo.id_activo_fijo}`,
-        {
-          withCredentials: true,
-          responseType: 'blob'
-        }
-      );
-
-      const blobUrl = URL.createObjectURL(response.data);
-      setImagenQRBase64(blobUrl);
-      setErrorQR(null);
-    } catch (error: unknown) {
-      console.error('Error al cargar QR:', error);
-      if (axios.isAxiosError(error)) {
-        setErrorQR(error.response?.data?.message || 'Error al cargar el código QR. Intenta nuevamente.');
-      } else {
-        setErrorQR('Error al cargar el código QR. Intenta nuevamente.');
-      }
-    } finally {
-      setLoadingQR(false);
-    }
   };
 
   // Función para imprimir la etiqueta
@@ -120,7 +107,7 @@ const ImpresionAF: React.FC = () => {
         ventanaImpresion.document.write(`
           <html>
             <head>
-              <title>Etiqueta - ${activoSeleccionadoActual.codigo_unico}</title>
+          <title>Etiqueta de activo fijo</title>
               <style>
                 body {
                   margin: 0;
@@ -174,7 +161,6 @@ const ImpresionAF: React.FC = () => {
     }
   };
 
-  // Función para imprimir en Zebra
   const handleImprimirEnZebra = async () => {
     if (!activoSeleccionadoActual) {
       alert('Selecciona un activo primero');
@@ -184,28 +170,17 @@ const ImpresionAF: React.FC = () => {
     setLoadingZebra(true);
     setErrorZebra(null);
     setSuccessZebra(null);
-
     try {
-      // Obtener CSRF token
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, {
-        withCredentials: true
-      });
-
-      // Enviar solicitud de impresión a Zebra
-      const response = await axios.post(
+      const response = await api.post(
         `${API_BASE_URL}/api/HSS1/almacengeneral/printer/etiqueta/${activoSeleccionadoActual.id_activo_fijo}`,
         {},
-        { withCredentials: true }
       );
-
       if (response.data.success) {
         setSuccessZebra(response.data.message || 'Etiqueta impresa exitosamente en Zebra');
-        console.log('Impresión Zebra exitosa:', response.data);
       } else {
         setErrorZebra(response.data.message || 'Error al imprimir en Zebra');
       }
     } catch (error: unknown) {
-      console.error('Error al imprimir en Zebra:', error);
       let errorMessage = 'Error al conectar con la impresora Zebra';
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as AxiosError<PrinterApiResponse>;
@@ -214,11 +189,7 @@ const ImpresionAF: React.FC = () => {
       setErrorZebra(errorMessage);
     } finally {
       setLoadingZebra(false);
-      // Limpiar mensajes después de 5 segundos
-      setTimeout(() => {
-        setSuccessZebra(null);
-        setErrorZebra(null);
-      }, 5000);
+      setTimeout(() => { setSuccessZebra(null); setErrorZebra(null); }, 5000);
     }
   };
 
@@ -280,28 +251,15 @@ const ImpresionAF: React.FC = () => {
               <button className="btnImprimir" onClick={handleImprimir}>
                 <FaPrint /> Imprimir PDF
               </button>
-              <button
-                className="btnImprimirZebra"
-                onClick={handleImprimirEnZebra}
-                disabled={loadingZebra}
-              >
+              <button className="btnImprimirZebra" onClick={handleImprimirEnZebra} disabled={loadingZebra}>
                 {loadingZebra ? '⏳ Imprimiendo...' : <><FaPrint /> Imprimir Zebra</>}
               </button>
             </div>
           )}
         </div>
 
-        {/* Indicadores de estado para impresión Zebra */}
-        {successZebra && (
-          <div className="alertaExito">
-            <span>✅ {successZebra}</span>
-          </div>
-        )}
-        {errorZebra && (
-          <div className="alertaError">
-            <span>❌ {errorZebra}</span>
-          </div>
-        )}
+        {successZebra && <div className="alertaExito"><span>✅ {successZebra}</span></div>}
+        {errorZebra && <div className="alertaError"><span>❌ {errorZebra}</span></div>}
 
         {!activoSeleccionadoActual ? (
           <div className="sinSeleccion">
@@ -320,22 +278,15 @@ const ImpresionAF: React.FC = () => {
                 </div>
 
                 <div className="etiquetaQR">
-                  {loadingQR ? (
-                    <div className="loadingQR">
-                      <div className="spinner"></div>
-                      <p>Generando código QR...</p>
-                    </div>
-                  ) : errorQR ? (
-                    <div className="errorQR">
-                      <p>⚠️ {errorQR}</p>
-                    </div>
-                  ) : imagenQRBase64 ? (
+                  {qrDataUrl ? (
                     <img
-                      src={imagenQRBase64}
-                      alt="Código QR"
                       className="imagenQR"
+                      src={qrDataUrl}
+                      alt={`Código QR para ${activoSeleccionadoActual.codigo_unico}`}
                     />
-                  ) : null}
+                  ) : (
+                    <div className="loadingQR" role="status"><p>Generando código QR…</p></div>
+                  )}
                 </div>
               </div>
             </div>

@@ -30,26 +30,37 @@ const EditMovimientoAF: React.FC<EditMovimientoAFProps> = ({ isOpen, onClose, mo
 
   // Estados para los campos del formulario
   const [idMovimientoAF, setIdMovimientoAF] = useState<number>(0);
+  const [nombreAF, setNombreAF] = useState<string>('');
   const [codigoUnico, setCodigoUnico] = useState<string>('');
   const [tipoMovimiento, setTipoMovimiento] = useState<number>(0);
   const [motivoMovimiento, setMotivoMovimiento] = useState<string>('');
   const [fechaMovimientoAF, setFechaMovimientoAF] = useState('');
 
-  const [responsableAnterior, setResponsableAnterior] = useState<number>(0);
-  const [responsableActual, setResponsableActual] = useState<number>(0);
-  const [ubicacionAnterior, setUbicacionAnterior] = useState<number>(0);
-  const [ubicacionActual, setUbicacionActual] = useState<number>(0);
+  const [responsableAnterior, setResponsableAnterior] = useState<number | null>(null);
+  const [responsableActual, setResponsableActual] = useState<number | null>(0);
+  const [ubicacionAnterior, setUbicacionAnterior] = useState<number | null>(null);
+  const [ubicacionActual, setUbicacionActual] = useState<number | null>(0);
 
   // Estados para almacenar los valores originales
-  const [responsableOriginal, setResponsableOriginal] = useState<number>(0);
-  const [ubicacionOriginal, setUbicacionOriginal] = useState<number>(0);
+  const [responsableOriginal, setResponsableOriginal] = useState<number | null>(0);
+  const [ubicacionOriginal, setUbicacionOriginal] = useState<number | null>(0);
 
 
   // Datos desde el store
   const MovimientosAF = useSelector((state: RootState) => state.movimientosAF.movimientosAF);
   const tipoMovimientoAF = useSelector((state: RootState) => state.movimientosAF.tipoMovimientoAF);
+
   const empleados = useSelector((state: RootState) => state.empleados.empleados);
+  const empleadosOrdeyby = React.useMemo(() => {
+    if (!empleados) return [];
+    return [...empleados].sort((a, b) => a.nombre_empleado.localeCompare(b.nombre_empleado));
+  }, [empleados]);
+
   const ubicaciones = useSelector((state: RootState) => state.ubicaciones.ubicaciones);
+  const ubicacionesOrderby = React.useMemo(() => {
+    if (!ubicaciones) return [];
+    return [...ubicaciones].sort((a, b) => a.nombre_ubicacion.localeCompare(b.nombre_ubicacion));
+  }, [ubicaciones]);
 
   useEffect(() => {
 
@@ -88,6 +99,7 @@ const EditMovimientoAF: React.FC<EditMovimientoAFProps> = ({ isOpen, onClose, mo
 
       if (ultimoMovimiento) {
         setIdMovimientoAF(ultimoMovimiento.id_movimientoAF || 0);
+        setNombreAF(movimientoAFToEdit.nombre_af);
         setCodigoUnico(movimientoAFToEdit.codigo_unico);
         setTipoMovimiento(ultimoMovimiento.id_tipo_movimiento || 0);
         setMotivoMovimiento(ultimoMovimiento.motivo_movimiento || '');
@@ -97,8 +109,8 @@ const EditMovimientoAF: React.FC<EditMovimientoAFProps> = ({ isOpen, onClose, mo
 
         setResponsableActual(ultimoMovimiento.id_responsable_actual || 0);
         setUbicacionActual(ultimoMovimiento.id_ubicacion_actual || 0);
-        setResponsableAnterior(ultimoMovimiento.id_responsable_anterior || 0);
-        setUbicacionAnterior(ultimoMovimiento.id_ubicacion_anterior || 0);
+        setResponsableAnterior(ultimoMovimiento.id_responsable_anterior || null);
+        setUbicacionAnterior(ultimoMovimiento.id_ubicacion_anterior || null);
 
         // Almacenar los valores originales
         setResponsableOriginal(ultimoMovimiento.id_responsable_actual || 0);
@@ -238,7 +250,17 @@ const EditMovimientoAF: React.FC<EditMovimientoAFProps> = ({ isOpen, onClose, mo
     >
       <div className="modalMovimientosAF">
         <h2>Editar Movimiento del Activo Fijo</h2>
-        <h3 className='titleCódigoÚnicoAF'>Código Único Consecutivo: <br /> <p className='textCódigoUnico'> {codigoUnico}</p></h3>
+
+        <section className='divInfoAF_MovimientoAF'>
+          <div>
+            <h3 className='titleCódigoÚnicoAF'>Código Único: <br /> <p className='textCódigoUnico'> {codigoUnico}</p></h3>
+          </div>
+
+          <div>
+            <h3 className='titleCódigoÚnicoAF'>ActivoFijo: <br /> <p className='textCódigoUnico'> {nombreAF}</p></h3>
+          </div>
+
+        </section>
 
         <div className='divInputs_AddEdit_MovimientosAF'>
           <form onSubmit={handleSubmit} className="form_AddEdit_MovimientosAF">
@@ -301,8 +323,8 @@ const EditMovimientoAF: React.FC<EditMovimientoAFProps> = ({ isOpen, onClose, mo
                       onChange={(e) => handleResponsableActualChange(Number(e.target.value))}
                     >
                       <option value="" disabled>Seleccione un responsable</option>
-                      {Array.isArray(empleados) && empleados.map((empleado, index) => (
-                        <option key={`resp-actual-${empleado.id_empleado}-${index}`} value={empleado.id_empleado}>
+                      {empleadosOrdeyby.map((empleado) => (
+                        <option key={empleado.id_empleado} value={empleado.id_empleado}>
                           {empleado.nombre_empleado} {empleado.apellido_paterno} {empleado.apellido_materno}
                         </option>
                       ))}
@@ -316,8 +338,8 @@ const EditMovimientoAF: React.FC<EditMovimientoAFProps> = ({ isOpen, onClose, mo
                       onChange={(e) => handleUbicacionActualChange(Number(e.target.value))}
                     >
                       <option value="" disabled>Seleccione una ubicación</option>
-                      {Array.isArray(ubicaciones) && ubicaciones.map((ubicacion, index) => (
-                        <option key={`ubic-actual-${ubicacion.id_ubicacion}-${index}`} value={ubicacion.id_ubicacion}>
+                      {ubicacionesOrderby.map((ubicacion) => (
+                        <option key={ubicacion.id_ubicacion} value={ubicacion.id_ubicacion}>
                           {ubicacion.nombre_ubicacion}
                         </option>
                       ))}

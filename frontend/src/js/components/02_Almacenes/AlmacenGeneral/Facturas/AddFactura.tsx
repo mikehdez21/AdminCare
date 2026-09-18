@@ -4,29 +4,30 @@ import { useDispatch, useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
 
 // Facturas
-import { addFactura, getFacturas, getTiposFacturas } from '@/store/almacengeneral/Facturas/facturasActions';
+import { getTiposFacturas, addFactura, getFacturas } from '@/store/almacengeneral/Facturas/facturasActions';
 import { setFacturas } from '@/store/almacengeneral/Facturas/facturasReducer';
 import AddActivosFactura from './AddActivosFactura';
+import AsignacionesAF from './AsignacionesAF';
 import { ActivoFactura, ActivoAgrupado } from '@/@types/AlmacenGeneralTypes/activosFijosTypes';
 import { FacturasAF, ActivoFacturaInput } from '@/@types/AlmacenGeneralTypes/facturasTypes';
 
-// SoftComputing
-import { analyzeSoftComputing } from '@/store/softcomputing/openAIActions';
-import { trainPricingModelFromDb, predictPricingModel } from '@/store/softcomputing/pricingModelActions';
-
 // Icons
-import { FaCircleInfo, FaBoxesPacking } from 'react-icons/fa6';
-import { FaCalendar, FaCalculator } from 'react-icons/fa';
-import { IoIosCard } from 'react-icons/io';
 import { SiGooglemessages } from 'react-icons/si';
-import { IoAddCircleOutline } from 'react-icons/io5';
-import { AiOutlineNumber } from 'react-icons/ai';
 
 // Components
-import AsignacionesAF from './AsignacionesAF';
-import { getFechaHoraActual } from '@/utils/dateFormat';
-import { formatCurrency, toSafeNumber, parseInputNumber, formatMexicanCurrency } from '@/utils/numbersFormat';
+import { getFechaHoraActual, getAñoActual } from '@/utils/dateFormat';
 import ModalButtons from '@/components/00_Utils/ModalButtons';
+import { useCatalogData } from '@/hooks/useCatalogData';
+import { useFacturaCalculos } from '@/hooks/useFacturaCalculos';
+import { useSeriesAgrupadas } from '@/hooks/useSeriesAgrupadas';
+import {
+  validateFacturaCompleta,
+  validateSeriesActivos,
+} from '@/utils/validators';
+import FacturaDatosGenerales from './subcomponents/FacturaDatosGenerales';
+import FacturaDatosPago from './subcomponents/FacturaDatosPago';
+import FacturaTotales from './subcomponents/FacturaTotales';
+import TablaActivosFactura from './subcomponents/TablaActivosFactura';
 
 // Store
 import { getProveedores } from '@/store/almacengeneral/Proveedores/proveedoresActions';
@@ -34,10 +35,9 @@ import { getFormasPago } from '@/store/almacengeneral/FormaPago/formaPagoActions
 import { getTiposMoneda } from '@/store/almacengeneral/TipoMoneda/tipoMonedaActions';
 import { getClasificaciones } from '@/store/almacengeneral/Clasificaciones/clasificacionesActions';
 
-// Styles
-import '@styles/02_Almacenes/AlmacenGeneral/Facturas/AddFactura.css';
 
 
+import '@styles/02_Almacenes/AlmacenGeneral/Facturas/AddFactura.css'
 
 interface AddFacturaProps {
   onClose?: () => void;
@@ -50,6 +50,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
   // Estados para los campos del formulario de AddFactura
   const [proveedorFactura, setProveedorFactura] = useState<number>(0);
   const [numeroFactura, setNumeroFactura] = useState<string>('');
+  const [añoFactura, setAñoFactura] = useState<number>(getAñoActual());
   const [tipoFactura, setTipoFactura] = useState<number>(0);
   const [fechaRecepcion, setFechaRecepcion] = useState<string>(getFechaHoraActual());
   const [formaPago, setFormaPago] = useState<number>(0);
@@ -61,10 +62,11 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
   const [ivaFactura, setIvaFactura] = useState<number>(0.16);
   const [totalFactura, setTotalFactura] = useState<number>(0);
 
-  // SoftComputing - Recomendaciones
-  const [loadingOpenAIRecommendation, setLoadingOpenAIRecommendation] = useState(false);
-  const [loadingMLRecommendation, setLoadingMLRecommendation] = useState(false);
-  
+  //
+  //    SoftComputing - OpenAI
+  //
+
+
   const [isAsignacionesOpen, setIsAsignacionesOpen] = useState(false);
   const [isModalAddActivosFacturaOpen, setIsModalAddActivosFacturaOpen] = useState(false);
 
@@ -73,10 +75,17 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
 
   const facturas = useSelector((state: RootState) => state.facturasaf.facturasaf);
   const proveedores = useSelector((state: RootState) => state.proveedor.proveedores);
+
+  const proveedoresOrderby = React.useMemo(() => {
+    if (!proveedores) return [];
+    return [...proveedores].sort((a, b) => a.nombre_proveedor.localeCompare(b.nombre_proveedor));
+  }, [proveedores]);
+
   const tiposFactura = useSelector((state: RootState) => state.facturasaf.tiposFacturas);
   const formasPago = useSelector((state: RootState) => state.fiscal.formasPago);
   const tiposMoneda = useSelector((state: RootState) => state.fiscal.tiposMoneda);
   const clasificacionActivoFijo = useSelector((state: RootState) => state.clasificacion.clasificacionesAF);
+
 
 
   const ultimoId = React.useMemo(() => (
@@ -84,54 +93,28 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
       ? Math.max(...facturas.map(factura => Number(factura.id_factura)))
       : 0
   ), [facturas]);
-  const nuevoId = ultimoId + 1;
+
+  const getUltimoID = () => {
+    const nuevoId = ultimoId + 1;
+    return nuevoId;
+  }
 
   // Activos asociados a la factura
   const [activosFactura, setActivosFactura] = useState<ActivoFactura[]>([]);
 
-   // Subtotal, IVA y totales (memorizados)
-  const subtotal = React.useMemo(() => activosFactura.reduce(
-    (acc, activo) => acc + toSafeNumber(activo.costo_unitario_af, 0) * toSafeNumber(activo.cantidad, 0),
-    0
-  ), [activosFactura]);
+  // Cálculo de subtotal, IVA, flete y totales (useFacturaCalculos)
+  const {
+    subtotal,
+    totalActivosFisicos,
+    subtotalConDescuento,
+    subtotalConFlete,
+    baseGravable,
+    ivaCalculado,
+    totalFinal,
+  } = useFacturaCalculos(activosFactura, descuentoFactura, fleteFactura);
 
-  const totalActivosFisicos = React.useMemo(() => activosFactura.reduce(
-    (acc, activo) => acc + toSafeNumber(activo.cantidad, 0),
-    0
-  ), [activosFactura]);
-
-  // Agrupación solo visual para la tabla de resumen (memorizada)
-  const activosFacturaAgrupados = React.useMemo(() => Array.from(
-    activosFactura.reduce((mapa, activo, idx) => {
-      const clave = [
-        activo.nombre_af || '',
-        activo.id_clasificacion || 0,
-        toSafeNumber(activo.costo_unitario_af, 0),
-        (activo.observaciones_af || '').trim(),
-        activo.codigo_lote || '',
-      ].join('|');
-
-      const existente = mapa.get(clave);
-
-      if (!existente) {
-        mapa.set(clave, {
-          ...activo,
-          cantidad: toSafeNumber(activo.cantidad, 0) || 1,
-          _indices: [idx],
-          _clave: clave,
-        });
-        return mapa;
-      }
-
-      mapa.set(clave, {
-        ...existente,
-        cantidad: toSafeNumber(existente.cantidad, 0) + (toSafeNumber(activo.cantidad, 0) || 1),
-        _indices: [...(existente._indices || []), idx],
-      });
-
-      return mapa;
-    }, new Map<string, (ActivoFactura & { _indices?: number[]; _clave?: string })>()).values()
-  ), [activosFactura]);
+  // Agrupación solo visual para la tabla de resumen (useSeriesAgrupadas)
+  const activosFacturaAgrupados = useSeriesAgrupadas(activosFactura);
 
   const abrirModalAsignacionSeries = (activoAgrupado: ActivoFactura & { _indices?: number[]; _clave?: string }) => {
     const indices = activoAgrupado._indices || [];
@@ -160,59 +143,14 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
     }
 
     const seriesLimpias = activosEditables.map((activo) => (activo.numero_serie_af || '').trim());
-    const seriesVacias = seriesLimpias.some((serie) => !serie);
 
-    if (seriesVacias) {
+    const errorValidacion = validateSeriesActivos(activosEditables);
+
+    if (errorValidacion) {
       Swal.fire({
         icon: 'warning',
-        title: 'Series incompletas',
-        text: 'Todos los números de serie son obligatorios.',
-        confirmButtonText: 'OK'
-      });
-      return;
-    }
-
-    const seriesUnicas = new Set(seriesLimpias);
-
-    if (seriesUnicas.size !== seriesLimpias.length) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Series duplicadas',
-        text: 'No se permiten números de serie repetidos dentro del mismo activo.',
-        confirmButtonText: 'OK'
-      });
-      return;
-    }
-
-    const responsablesVacios = activosEditables.some((activo) => !toSafeNumber(activo.id_responsable_actual, 0));
-    const ubicacionesVacias = activosEditables.some((activo) => !toSafeNumber(activo.id_ubicacion_actual, 0));
-    const tiposMovimientoVacios = activosEditables.some((activo) => !toSafeNumber(activo.id_tipo_movimiento, 0));
-
-    if (responsablesVacios) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Asignaciones incompletas',
-        text: 'Debes asignar un responsable a cada activo por número de serie.',
-        confirmButtonText: 'OK'
-      });
-      return;
-    }
-
-    if (ubicacionesVacias) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Ubicaciones incompletas',
-        text: 'Debes asignar una ubicación actual a cada activo por número de serie.',
-        confirmButtonText: 'OK'
-      });
-      return;
-    }
-
-    if (tiposMovimientoVacios) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Tipos de movimiento incompletos',
-        text: 'Debes asignar un tipo de movimiento a cada activo por número de serie.',
+        title: errorValidacion.title,
+        text: errorValidacion.text,
         confirmButtonText: 'OK'
       });
       return;
@@ -241,13 +179,6 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
     cerrarModalAsignacionSeries();
   };
 
-  const subtotalConDescuento = subtotal - toSafeNumber(descuentoFactura, 0);
-  const subtotalConFlete = subtotal + toSafeNumber(fleteFactura, 0);
-  const baseGravable = subtotalConDescuento + toSafeNumber(fleteFactura, 0);
-  const ivaCalculado = baseGravable * 0.16;
-  const subtotalConIVA = baseGravable + ivaCalculado;
-  const totalFinal = subtotalConIVA;
-
   // Calcular Subtotal, IVA y Total cada vez que cambien los activos, flete o descuento
   useEffect(() => {
     setSubTotalFactura(subtotal);
@@ -255,477 +186,12 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
     setTotalFactura(totalFinal);
   }, [subtotal, ivaCalculado, totalFinal]);
 
-  useEffect(() => {
-    if (!proveedores?.length) dispatch(getProveedores());
-    if (!tiposFactura?.length) dispatch(getTiposFacturas());
-    if (!formasPago?.length) dispatch(getFormasPago());
-    if (!tiposMoneda?.length) dispatch(getTiposMoneda());
-    if (!clasificacionActivoFijo?.length) dispatch(getClasificaciones());
-  }, [dispatch]);
-
-  const obtenerResumenActivosActuales = () => {
-    return activosFactura.map((activo) => ({
-      nombre_af: activo.nombre_af || 'Activo sin nombre',
-      marca_af: activo.marca_af || 'N/D',
-      modelo_af: activo.modelo_af || 'N/D',
-      // Enviar ambas variantes para compatibilidad
-      costo_unitario: toSafeNumber(activo.costo_unitario_af, 0),
-      costo_unitario_af: toSafeNumber(activo.costo_unitario_af, 0),
-      cantidad: toSafeNumber(activo.cantidad, 0),
-      total_linea: toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.costo_unitario_af, 0),
-      id_clasificacion: toSafeNumber(activo.id_clasificacion, 0),
-    }));
-  };
-
-  const escapeHtml = (value: string) =>
-    value
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
-
-  const unwrapCodeFence = (text: string): string => {
-    const trimmed = text.trim();
-    const fencedMatch = trimmed.match(/^```(?:json|javascript|js)?\s*([\s\S]*?)\s*```$/i);
-    return fencedMatch ? fencedMatch[1].trim() : trimmed;
-  };
-
-  const renderRawRecommendationHtml = (rawText: string, title: string) => {
-    const safeText = escapeHtml(rawText || 'Sin contenido');
-
-    return `
-      <div class="recommendationPanel recommendationPanel--raw">
-        <p class="recommendationPanel__title"><strong>${escapeHtml(title)}</strong></p>
-        <pre class="recommendationPanel__pre">${safeText}</pre>
-      </div>
-    `;
-  };
-
-  const renderWebSearchMetaHtml = (
-    webSearch?: {
-      requested: boolean;
-      attempted: boolean;
-      used: boolean;
-      tool_type?: string | null;
-      disabled_reason?: string | null;
-      sources?: Array<{ title: string; url: string }>;
-    },
-    modelUsed?: string
-  ) => {
-    if (!webSearch) return '';
-
-    const modelLine = modelUsed ? `<p class="recommendationPanel__line"><strong>Modelo:</strong> ${escapeHtml(modelUsed)}</p>` : '';
-    const toolLine = webSearch.tool_type
-      ? `<p class="recommendationPanel__line"><strong>Tool:</strong> ${escapeHtml(webSearch.tool_type)}</p>`
-      : '';
-
-    const statusLine = webSearch.used
-      ? '<p class="recommendationPanel__line"><strong>Búsqueda web:</strong> utilizada correctamente.</p>'
-      : webSearch.requested
-        ? `<p class="recommendationPanel__line"><strong>Búsqueda web:</strong> no confirmada.${webSearch.disabled_reason ? ` Motivo: ${escapeHtml(webSearch.disabled_reason)}` : ''}</p>`
-        : '<p class="recommendationPanel__line"><strong>Búsqueda web:</strong> desactivada.</p>';
-
-    const sources = Array.isArray(webSearch.sources) ? webSearch.sources : [];
-    const sourcesHtml = sources.length
-      ? `
-        <hr class="recommendationPanel__divider" />
-        <p class="recommendationPanel__title"><strong>Fuentes</strong></p>
-        ${sources
-    .map((source) => {
-      const safeUrl = /^https?:\/\//i.test(source.url) ? source.url : '';
-      if (!safeUrl) return '';
-
-      return `<p class="recommendationPanel__line"><a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${escapeHtml(source.title || safeUrl)}</a></p>`;
-    })
-    .join('')}
-      `
-      : '';
-
-    return `
-      <div class="recommendationPanel recommendationPanel--raw">
-        ${modelLine}
-        ${toolLine}
-        ${statusLine}
-        ${sourcesHtml}
-      </div>
-    `;
-  };
-
-    const renderMLModelExplanationHtml = (
-      trainData: any,
-      predictRows: Array<{ features: Record<string, number> }>,
-      currentAlgorithm: string
-    ) => {
-      const modelLabel = escapeHtml(String(trainData?.algorithm_label || currentAlgorithm || 'RandomForestRegressor'));
-      const modelId = trainData?.model_id ? escapeHtml(String(trainData.model_id)) : 'N/D';
-
-      const featureNames = Array.isArray(trainData?.feature_names) && trainData.feature_names.length > 0
-        ? trainData.feature_names.map((feature: string) => escapeHtml(String(feature))).join(', ')
-        : 'subtotal_factura, descuento_factura, flete_factura, iva_factura, total_factura, total_linea';
-
-      const firstRow = predictRows[0]?.features || {};
-      const predictionInputs = Object.entries(firstRow)
-        .map(([key, value]) => `<li><strong>${escapeHtml(key)}:</strong> ${escapeHtml(formatMexicanCurrency(value))}</li>`)
-        .join('');
-
-      const modelDescription = currentAlgorithm === 'random_forest'
-        ? 'Random Forest combina varios árboles de decisión y promedia sus resultados para estimar un precio más estable.'
-        : currentAlgorithm === 'linear_regression'
-          ? 'Linear Regression ajusta una relación lineal entre los datos de entrada y el precio objetivo.'
-          : 'KNN compara la factura actual con casos similares guardados y usa sus vecinos más cercanos para estimar el precio.';
-
-      return `
-        <div class="recommendationPanel recommendationPanel--raw">
-          <p class="recommendationPanel__line"><strong>Modelo utilizado:</strong> ${modelLabel}</p>
-          <p class="recommendationPanel__line"><strong>Identificador del modelo:</strong> ${modelId}</p>
-          <p class="recommendationPanel__line"><strong>Cómo funciona:</strong> ${escapeHtml(modelDescription)}</p>
-          <p class="recommendationPanel__line"><strong>Datos tomados de la BD:</strong> el servicio FastAPI entrena con registros de factura/activo y usa ${escapeHtml(featureNames)} como variables de entrada; el objetivo que aprende es costo_unitario_af.</p>
-          <p class="recommendationPanel__line"><strong>Datos enviados para esta recomendación:</strong></p>
-          <ul class="recommendationPanel__list">
-            ${predictionInputs || '<li>Sin datos de entrada disponibles.</li>'}
-          </ul>
-        </div>
-      `;
-    };
-
-  // Extrae y muestra annotations (url_citation) si existen en el JSON de OpenAI
-  const renderOpenAIRecommendationHtml = (analysisText: string, rawResponse?: any, cleanedData?: any): string => {
-    const normalizedText = unwrapCodeFence(analysisText);
-
-    let annotations: Array<{ url: string; title?: string }> = [];
-    // Buscar annotations en el rawResponse si está disponible
-    if (rawResponse && Array.isArray(rawResponse.output)) {
-      for (const item of rawResponse.output) {
-        if (item.type === 'message' && Array.isArray(item.content)) {
-          for (const content of item.content) {
-            if (Array.isArray(content.annotations)) {
-              for (const ann of content.annotations) {
-                if (ann.type === 'url_citation' && ann.url) {
-                  annotations.push({ url: ann.url, title: ann.title });
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    try {
-      const parsed = JSON.parse(normalizedText) as {
-        resumen_general?: string;
-        resultados?: Array<{
-          activo?: string;
-          precio_actual?: number;
-          opcion_mas_barata?: string;
-          precio_referencia?: number;
-          ahorro_estimado?: number;
-          url?: string;
-          notas?: string;
-        }>;
-      };
-
-      const resumenRaw = parsed.resumen_general;
-      const resultados = Array.isArray(parsed.resultados) ? parsed.resultados : [];
-      
-      // Usar cleaned.results si está disponible (con precios ya normalizados)
-      const cleanedResults = cleanedData?.results || [];
-
-      const resumenHtml =
-        resumenRaw && typeof resumenRaw === 'object'
-          ? Object.entries(resumenRaw)
-            .map(([key, value]) => {
-              const keyLabel = escapeHtml(key.replace(/_/g, ' '));
-              const valueLabel = escapeHtml(value === null ? 'N/D' : String(value));
-              return `
-                  <div class="recommendationSummary__item">
-                    <span class="recommendationSummary__key">${keyLabel}</span>
-                    <span class="recommendationSummary__value">${valueLabel}</span>
-                  </div>
-                `;
-            })
-            .join('')
-          : `<p class="recommendationSummary__text">${escapeHtml(String(resumenRaw || 'Sin resumen disponible.'))}</p>`;
-
-      const resultadosHtml = resultados.length
-        ? resultados
-          .map((item, index) => {
-            // Usar datos limpios si están disponibles
-            const cleanedItem = cleanedResults[index] || item;
-            
-            const activoRaw = item.activo;
-            const activoObj = activoRaw && typeof activoRaw === 'object' ? activoRaw as Record<string, unknown> : null;
-
-            const nombreActivo = activoObj
-              ? escapeHtml(String(activoObj.nombre ?? activoObj.nombre_af ?? 'Activo'))
-              : escapeHtml(typeof activoRaw === 'string' ? activoRaw : 'Activo');
-
-            const marca = activoObj ? escapeHtml(String(activoObj.marca ?? activoObj.marca_af ?? 'N/D')) : 'N/D';
-            const modelo = activoObj ? escapeHtml(String(activoObj.modelo ?? activoObj.modelo_af ?? 'N/D')) : 'N/D';
-
-            const opcion = escapeHtml(item.opcion_mas_barata || 'Sin opción específica');
-            
-            // Usar precios normalizados si están disponibles
-            const precioActual = cleanedItem.precio_actual_normalized 
-              ?? toSafeNumber(item.precio_actual, 0);
-            const precioRef = cleanedItem.precio_referencia_normalized 
-              ?? toSafeNumber(item.precio_referencia, 0);
-            const ahorro = precioRef > 0 && precioActual > 0 ? precioActual - precioRef : toSafeNumber(item.ahorro_estimado, 0);
-            
-            const notas = escapeHtml(item.notas || '');
-            const rawUrl = (item.url || '').trim();
-            const safeUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : '';
-            const urlHtml = safeUrl && cleanedItem.url_valid !== false
-              ? `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">Ver opción</a>`
-              : '<span>URL no disponible</span>';
-
-            return `
-                <div class="recommendationCard">
-                  <p class="recommendationCard__title"><strong>${nombreActivo}</strong></p>
-                  <p class="recommendationCard__meta">Marca: ${marca} | Modelo: ${modelo}</p>
-                  <p class="recommendationCard__line">Precio actual: ${formatMexicanCurrency(precioActual)}</p>
-                  <p class="recommendationCard__line">Opción sugerida: ${opcion}</p>
-                  <p class="recommendationCard__line">Precio referencia: ${formatMexicanCurrency(precioRef)} | Ahorro estimado: ${formatMexicanCurrency(ahorro)}</p>
-                  <p class="recommendationCard__line">${urlHtml}</p>
-                  ${notas ? `<p class="recommendationCard__notes">Notas: ${notas}</p>` : ''}
-                </div>
-              `;
-          })
-          .join('')
-        : '<p class="recommendationPanel__empty">No se recibieron resultados estructurados.</p>';
-
-      const annotationsHtml = annotations.length
-        ? `
-          <hr class="recommendationPanel__divider" />
-          <p class="recommendationPanel__title"><strong>Fuentes citadas</strong></p>
-          ${annotations
-            .map(
-              (ann) =>
-                `<p class="recommendationPanel__line"><a href="${escapeHtml(ann.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(ann.title || ann.url)}</a></p>`
-            )
-            .join('')}
-        `
-        : '';
-
-      return `
-        <div class="recommendationPanel">
-          <p class="recommendationPanel__title"><strong>Resumen</strong></p>
-          <div class="recommendationSummary">${resumenHtml}</div>
-          <hr class="recommendationPanel__divider" />
-          ${resultadosHtml}
-          ${annotationsHtml}
-        </div>
-      `;
-    } catch {
-      return renderRawRecommendationHtml(normalizedText, 'Respuesta OpenAI (formato libre)');
-    }
-  };
-
-  const handleOpenAIRecommendation = async () => {
-    if (activosFactura.length === 0) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Activos requeridos',
-        text: 'Agrega activos para obtener una recomendación OpenAI.',
-        confirmButtonText: 'OK',
-      });
-      return;
-    }
-
-    try {
-      setLoadingOpenAIRecommendation(true);
-      const resumenActivos = obtenerResumenActivosActuales();
-
-      const openAITestResult = await dispatch(
-        analyzeSoftComputing({
-          mode: 'price_prediction',
-          algorithm: 'linear_regression',
-          use_web_search: true,
-          prompt:
-            'Con base en nombre, marca, modelo y costo unitario de cada activo, realiza una búsqueda sencilla tipo Google Shopping para identificar la misma opción (o alternativa comparable) más barata. Responde en JSON con llaves: resumen_general y resultados[]. Cada resultado debe incluir: activo, precio_actual, opcion_mas_barata, precio_referencia, ahorro_estimado, url, notas. Si no hay navegación en tiempo real o no puedes validar la URL, indícalo explícitamente en notas y no inventes enlaces.',
-          data: {
-            numero_factura: numeroFactura.trim() || 'PENDIENTE',
-            subtotal_factura: toSafeNumber(subTotalFactura, 0),
-            descuento_factura: toSafeNumber(descuentoFactura, 0),
-            flete_factura: toSafeNumber(fleteFactura, 0),
-            iva_factura: toSafeNumber(ivaFactura, 0),
-            total_factura: toSafeNumber(totalFactura, 0),
-            activos: resumenActivos,
-          },
-        })
-      ).unwrap();
-
-      if (openAITestResult.success && openAITestResult.data) {
-        const analysisText = openAITestResult.data.analysis_text
-          || JSON.stringify(openAITestResult.data.raw_response || {}, null, 2);
-
-        if (!analysisText || analysisText.trim() === '') {
-          await Swal.fire({
-            icon: 'warning',
-            title: 'Recomendación OpenAI vacía',
-            text: 'OpenAI respondió sin contenido interpretable para mostrar.',
-            confirmButtonText: 'OK',
-          });
-          return;
-        }
-
-        await Swal.fire({
-          icon: 'info',
-          title: 'Recomendación OpenAI',
-          html: `
-            ${renderWebSearchMetaHtml(openAITestResult.data.web_search, openAITestResult.data.model_used)}
-            ${renderOpenAIRecommendationHtml(analysisText, openAITestResult.data.raw_response, openAITestResult.data.cleaned)}
-          `,
-          width: 860,
-          confirmButtonText: 'OK',
-        });
-      } else {
-        await Swal.fire({
-          icon: 'warning',
-          title: 'Recomendación OpenAI no disponible',
-          text: openAITestResult.message || 'No se pudo obtener respuesta de OpenAI.',
-          confirmButtonText: 'OK',
-        });
-      }
-    } catch (error) {
-      console.error('Error en recomendación OpenAI:', error);
-      await Swal.fire({
-        icon: 'error',
-        title: 'Error OpenAI',
-        text: 'No fue posible obtener la recomendación OpenAI.',
-        confirmButtonText: 'OK',
-      });
-    } finally {
-      setLoadingOpenAIRecommendation(false);
-    }
-  };
-
-  const handleMLRecommendation = async () => {
-    if (activosFactura.length === 0) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Activos requeridos',
-        text: 'Agrega activos para obtener una recomendación ML.',
-        confirmButtonText: 'OK',
-      });
-      return;
-    }
-
-    try {
-      setLoadingMLRecommendation(true);
-      const trainResponse = await dispatch(
-        trainPricingModelFromDb({
-          algorithm: 'random_forest',
-          test_size: 0.25,
-          random_state: 42,
-          n_estimators: 300,
-          limit: 1000,
-        })
-      ).unwrap();
-
-      if (!trainResponse.success || !trainResponse.data?.model_id) {
-        await Swal.fire({
-          icon: 'error',
-          title: 'Entrenamiento ML fallido',
-          text: trainResponse.message || 'No fue posible entrenar el modelo ML.',
-          confirmButtonText: 'OK',
-        });
-        return;
-      }
-
-      const modelId = String(trainResponse.data.model_id);
-
-      const predictRows = activosFactura.map((activo) => {
-        const cantidad = toSafeNumber(activo.cantidad, 0);
-        const costoUnitario = toSafeNumber(activo.costo_unitario_af, 0);
-        const totalLinea = cantidad * costoUnitario;
-
-        return {
-          features: {
-            subtotal_factura: toSafeNumber(subTotalFactura, 0),
-            descuento_factura: toSafeNumber(descuentoFactura, 0),
-            flete_factura: toSafeNumber(fleteFactura, 0),
-            iva_factura: toSafeNumber(ivaFactura, 0),
-            total_factura: toSafeNumber(totalFactura, 0),
-            total_linea: toSafeNumber(totalLinea, costoUnitario),
-          },
-        };
-      });
-
-      const predictResponse = await dispatch(
-        predictPricingModel({
-          model_id: modelId,
-          rows: predictRows,
-        })
-      ).unwrap();
-
-      if (!predictResponse.success || !predictResponse.data?.predictions) {
-        await Swal.fire({
-          icon: 'error',
-          title: 'Predicción ML fallida',
-          text: predictResponse.message || 'No fue posible predecir precios unitarios.',
-          confirmButtonText: 'OK',
-        });
-        return;
-      }
-
-      const predicted = Array.isArray(predictResponse.data.predictions)
-        ? (predictResponse.data.predictions as number[])
-        : [];
-
-      const comparativo = activosFactura.map((activo, idx) => {
-        const actual = toSafeNumber(activo.costo_unitario_af, 0);
-        const estimado = toSafeNumber(predicted[idx], 0);
-        const diferenciaPct = estimado > 0 ? ((actual - estimado) / estimado) * 100 : 0;
-
-        let estatus = 'OK';
-        if (diferenciaPct > 15) estatus = 'Sobreprecio probable';
-        if (diferenciaPct < -15) estatus = 'Debajo de referencia';
-
-        return `${activo.nombre_af}: actual ${formatMexicanCurrency(actual)} | ML ${formatMexicanCurrency(estimado)} | ${diferenciaPct.toFixed(2)}% (${estatus})`;
-      });
-
-      const metrics = (trainResponse.data.metrics || {}) as { mae?: number; rmse?: number; r2?: number };
-      const resumenMetricas = `MAE: ${toSafeNumber(metrics.mae, 0).toFixed(2)} | RMSE: ${toSafeNumber(metrics.rmse, 0).toFixed(2)} | R2: ${toSafeNumber(metrics.r2, 0).toFixed(4)}`;
-      const comparativoHtml = comparativo
-        .map((linea, index) => {
-          const contenido = escapeHtml(linea);
-          return `
-            <div class="mlRecommendationItem">
-              <strong>#${index + 1}</strong> ${contenido}
-            </div>
-          `;
-        })
-        .join('');
-      const explanationHtml = renderMLModelExplanationHtml(trainResponse.data, predictRows, 'random_forest');
-
-      await Swal.fire({
-        icon: 'info',
-        title: 'Recomendación ML (Random Forest)',
-        html: `
-          <div class="recommendationPanel">
-            <p class="recommendationPanel__line"><strong>Modelo:</strong> ${escapeHtml(modelId)}</p>
-            <p class="recommendationPanel__line"><strong>Métricas:</strong> ${escapeHtml(resumenMetricas)}</p>
-            <hr class="recommendationPanel__divider" />
-            ${explanationHtml}
-            <hr class="recommendationPanel__divider" />
-            ${comparativoHtml || '<p class="recommendationPanel__empty">No se recibieron predicciones para mostrar.</p>'}
-          </div>
-        `,
-        width: 800,
-        confirmButtonText: 'OK',
-      });
-    } catch (error) {
-      console.error('Error en recomendación ML:', error);
-      await Swal.fire({
-        icon: 'error',
-        title: 'Error ML',
-        text: 'No fue posible obtener la recomendación ML.',
-        confirmButtonText: 'OK',
-      });
-    } finally {
-      setLoadingMLRecommendation(false);
-    }
-  };
+  // Carga de catálogos con patrón "fetch si vacío" (useCatalogData)
+  useCatalogData(proveedores, () => dispatch(getProveedores()));
+  useCatalogData(tiposFactura, () => dispatch(getTiposFacturas()));
+  useCatalogData(formasPago, () => dispatch(getFormasPago()));
+  useCatalogData(tiposMoneda, () => dispatch(getTiposMoneda()));
+  useCatalogData(clasificacionActivoFijo, () => dispatch(getClasificaciones()));
 
   const openModalAddActivosFactura = () => {
     setIsModalAddActivosFacturaOpen(true);
@@ -743,20 +209,18 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
     setActivosFactura(activosCreadosFactura);
   };
 
-
-
-
-
   // Manejar el envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log('AddFactura Submit')
 
-    if (activosFactura.length === 0) {
+    const errorValidacion = validateFacturaCompleta(activosFactura, numeroFactura);
+
+    if (errorValidacion) {
       Swal.fire({
         icon: 'warning',
-        title: 'Activos requeridos',
-        text: 'Debes agregar al menos un activo fijo antes de guardar la factura.',
+        title: errorValidacion.title,
+        text: errorValidacion.text,
         confirmButtonText: 'OK',
       });
       return;
@@ -764,62 +228,14 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
 
     const numeroFacturaTrim = numeroFactura.trim();
 
-    if (!numeroFacturaTrim) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Número de factura requerido',
-        text: 'Ingresa un número de factura válido.',
-        confirmButtonText: 'OK',
-      });
-      return;
-    }
-
-    if (activosFactura.some(activo => !activo.numero_serie_af || !activo.numero_serie_af.trim())) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Número de serie requerido',
-        text: 'Todos los activos deben tener un número de serie válido.',
-        confirmButtonText: 'OK',
-      });
-      return;
-    }
-
-    if (activosFactura.some(activo => !activo.id_responsable_actual)) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Responsable requerido',
-        text: 'Todos los activos deben tener un responsable válido.',
-        confirmButtonText: 'OK',
-      });
-      return;
-    }
-
-    if (activosFactura.some(activo => !activo.id_ubicacion_actual)) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Ubicación requerida',
-        text: 'Todos los activos deben tener una ubicación válida.',
-        confirmButtonText: 'OK',
-      });
-      return;
-    }
-
-     if (activosFactura.some(activo => !activo.id_tipo_movimiento)) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Tipo de movimiento requerido',
-        text: 'Todos los activos deben tener un tipo de movimiento válido.',
-        confirmButtonText: 'OK',
-      });
-      return;
-    }
+    // Concatenar num_factura
+    const numFacturaCompleto = `NOF-${añoFactura}-${numeroFactura}`;
 
     try {
-
       // Preparar los datos de la factura
       const nuevaFactura: FacturasAF = {
         id_proveedor: proveedorFactura,
-        num_factura: numeroFacturaTrim,
+        num_factura: numFacturaCompleto,
         id_tipo_factura: tipoFactura,
         fecha_fac_recepcion: fechaRecepcion,
         id_forma_pago: formaPago,
@@ -840,6 +256,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
           numero_serie_af: activo.numero_serie_af,
           costo_unitario_af: activo.costo_unitario_af,
           af_propio: activo.af_propio,
+          af_menor: activo.af_menor,
           fecha_registro_af: activo.fecha_registro_af,
           id_estado_af: activo.id_estado_af,
           id_clasificacion: activo.id_clasificacion!,
@@ -865,7 +282,6 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
       console.log('Resultado de addFactura:', resultAction);
 
       if (resultAction.success) {
-
         // Actualizar la lista de facturas
         const facturasActualizadas = await dispatch(getFacturas()).unwrap();
 
@@ -912,6 +328,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
           console.log('Error al actualizar las facturas!');
         }
       } else {
+        // En caso de error volver a datos de factura para no ingresar todo de nuevo
 
         Swal.fire({
           icon: 'error',
@@ -919,6 +336,8 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
           text: resultAction.message || 'Error al añadir la factura',
           confirmButtonText: 'OK',
         });
+
+
       }
     } catch (error) {
       console.error('Error al añadir factura:', error);
@@ -945,302 +364,59 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
 
       <form onSubmit={handleSubmit}>
 
-        <section className='id_FechaFactura'>
+        <FacturaDatosGenerales
+          tituloId='   ID de Factura '
+          idFacturaValor={getUltimoID()}
+          fechaRecepcion={fechaRecepcion}
+          setFechaRecepcion={setFechaRecepcion}
+          proveedores={proveedoresOrderby}
+          tiposFactura={tiposFactura}
+          proveedorFactura={proveedorFactura}
+          setProveedorFactura={setProveedorFactura}
+          tipoFactura={tipoFactura}
+          setTipoFactura={setTipoFactura}
+          añoFactura={añoFactura}
+          setAñoFactura={setAñoFactura}
+          numeroFactura={numeroFactura}
+          setNumeroFactura={setNumeroFactura}
+          placeholderAño="Año de Factura"
+          uppercaseNumero
+        />
 
-          <div className='idFactura'>
-            <h2>   ID de Factura </h2>
-            <p> <AiOutlineNumber className='idIcon' /> {nuevoId} </p>
-          </div>
+        <FacturaDatosPago
+          formaPago={formaPago}
+          setFormaPago={setFormaPago}
+          tipoMoneda={tipoMoneda}
+          setTipoMoneda={setTipoMoneda}
+          formasPago={formasPago}
+          tiposMoneda={tiposMoneda}
+        />
 
-          <div className='fechaRecepcion'>
+        <TablaActivosFactura
+          activosFacturaAgrupados={activosFacturaAgrupados}
+          clasificaciones={clasificacionActivoFijo}
+          totalActivosFisicos={totalActivosFisicos}
+          mostrarTotalActivos
+          textoBotonActivos={activosFacturaAgrupados.length > 0 ? 'Editar Activos' : 'Agregar Activos'}
+          textoLoteVacio="Pendiente"
+          onAgregarActivos={openModalAddActivosFactura}
+          onEditarAsignaciones={abrirModalAsignacionSeries}
+        />
 
-            <label>
-              <h2><FaCalendar className='icon_FechaRecepcion' /> Fecha de Recepción*</h2>
-
-              <input
-                type="datetime-local"
-                name="fechaRecepcion"
-                required
-                value={fechaRecepcion}
-                onChange={e => setFechaRecepcion(e.target.value)}
-              />
-            </label>
-
-          </div>
-
-        </section>
-
-        <section className='datosFactura'>
-
-          <div className='title_Container'>
-            <h2> <FaCircleInfo className='infoIcon' />  Información de la Factura </h2>
-          </div>
-
-          <div className='inputs_Container'>
-
-            <label>
-              Proveedor*
-              <select
-                required
-                value={proveedorFactura || ''}
-                onChange={e => setProveedorFactura(Number(e.target.value))}
-              >
-                <option value="">Seleccionar Proveedor</option>
-                {Array.isArray(proveedores) && proveedores.map((proveedor) => (
-                  <option key={proveedor.id_proveedor} value={proveedor.id_proveedor}>
-                    {proveedor.nombre_proveedor}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label>
-              Tipo de Factura*
-              <select
-                required
-                value={tipoFactura || ''}
-                onChange={e => setTipoFactura(Number(e.target.value))}
-              >
-                <option value="">Seleccionar Tipo de Factura</option>
-                {Array.isArray(tiposFactura) && tiposFactura.map((tipoFactura) => (
-                  <option key={tipoFactura.id_tipofacturaaf} value={tipoFactura.id_tipofacturaaf}>
-                    {tipoFactura.nombre_tipofactura}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label>
-              Número de Factura (SIGHA, otros)*
-              <input
-                type="text"
-                placeholder="Número de Factura"
-                value={numeroFactura}
-                onChange={e => setNumeroFactura(e.target.value)}
-                required
-              />
-            </label>
-          </div>
-
-        </section>
-
-        <section className='datosPago'>
-
-          <div className='title_Container'>
-            <h2> <IoIosCard className='infoPago' />  Información de Pago </h2>
-          </div>
-
-          <div className='inputs_Container'>
-            <label> Forma de Pago*
-              <select
-                required
-                value={formaPago || ''}
-                onChange={e => setFormaPago(Number(e.target.value))}
-              >
-                <option value="">Seleccionar Forma de Pago</option>
-                {Array.isArray(formasPago) && formasPago.map((formaPago) => (
-                  <option key={formaPago.id_formapago} value={formaPago.id_formapago}>
-                    {formaPago.descripcion_formaspago}
-                  </option>
-                ))}
-
-              </select>
-            </label>
-
-            <label> Moneda de Pago de la Factura*
-              <select
-                required
-                value={tipoMoneda || ''}
-                onChange={e => setTipoMoneda(Number(e.target.value))}
-              >
-                <option value="">Seleccionar Tipo de Moneda</option>
-                {Array.isArray(tiposMoneda) && tiposMoneda.map(moneda => (
-                  <option key={moneda.id_tipomoneda} value={moneda.id_tipomoneda}>
-                    {moneda.descripcion_tipomoneda}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-        </section>
-
-        <section className='activosFijos_Factura'>
-          <div className='title_Container'>
-            <h2> <FaBoxesPacking className='activosFactura' />  Activos Fijos Asociados ({totalActivosFisicos}) </h2>
-            <div className='agregarActivos' onClick={openModalAddActivosFactura}>
-              <IoAddCircleOutline className='addActivoIcon' />{activosFacturaAgrupados.length > 0 ? 'Editar Activos' : 'Agregar Activos'}
-            </div>
-          </div>
-
-          <div className='inputs_Container recommendationButtonsRow'>
-            <button
-              type='button'
-              className='recommendationButton recommendationButton--openai'
-              onClick={handleOpenAIRecommendation}
-              disabled={loadingOpenAIRecommendation || loadingMLRecommendation || activosFactura.length === 0}
-            >
-              {loadingOpenAIRecommendation ? 'Generando...' : 'Recomendación OpenAI'}
-            </button>
-
-            <button
-              type='button'
-              className='recommendationButton recommendationButton--ml'
-              onClick={handleMLRecommendation}
-              disabled={loadingMLRecommendation || loadingOpenAIRecommendation || activosFactura.length === 0}
-            >
-              {loadingMLRecommendation ? 'Entrenando / Prediciendo...' : 'Recomendación ML'}
-            </button>
-          </div>
-
-
-          <div className='inputs_Container'>
-            <table>
-              <thead>
-                <tr>
-                  <th>Nombre del Activo</th>
-                  <th>Lote</th>
-                  <th id='th_Asignaciones'>Asignaciones</th>
-                  <th id='th_Cantidad'>Cantidad </th>
-                  <th>Clasificación</th>
-                  <th id='th_CostoUnitario'>Costo Unitario</th>
-                  <th>Total  </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {activosFacturaAgrupados.length > 0 ? (
-                  activosFacturaAgrupados.map((activo, index) => (
-                    <tr key={activo.id_activo_fijo || index}>
-                      <td>{activo.nombre_af} <strong>{activo.af_propio === false ? ' (Comodato)' : ''}</strong></td>
-                      <td>
-                        {activo.codigo_lote
-                          ? `${activo.codigo_lote} (${activo.lote_afconsecutivo || '-'} / ${activo.lote_total || '-'})`
-                          : 'Pendiente'}
-                      </td>
-
-                      <td id='td_Asignaciones'>
-                        <button
-                          className='buttonAsignaciones'
-                          type='button'
-                          onClick={() => abrirModalAsignacionSeries(activo)}
-
-                        >
-                          Editar ({(activo as { _indices?: number[] })._indices?.length || 0} activos)
-                        </button>
-
-                      </td>
-
-                      <td id='td_Cantidad'>{activo.cantidad}</td>
-
-                      <td id='td_ClasificacionAF'>
-                        {(() => {
-                          const clasificacion = clasificacionActivoFijo.find(c => c.id_clasificacion === activo.id_clasificacion);
-                          return clasificacion ? clasificacion.nombre_clasificacion : '';
-                        })()}
-                      </td>
-
-                      <td id='td_CostoUnitario'> {formatMexicanCurrency(activo.costo_unitario_af)}</td>
-                      <td>{formatMexicanCurrency(toSafeNumber(activo.cantidad, 0) * toSafeNumber(activo.costo_unitario_af, 0))}</td>
-
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={8} className='sinActivosSerie'>
-                      No hay activos agregados a la factura
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-
-            </table>
-          </div>
-        </section>
-
-        <section className='valoresFactura'>
-          <div className='title_Container'>
-            <h2> <FaCalculator className='valoresIcon' />  Valores Monetarios de la Factura </h2>
-          </div>
-
-          <div className='inputs_Container'>
-            <label> Subtotal*
-              <input
-                type="number"
-                step="0.01"
-                name="subtotal"
-                value={formatCurrency(subTotalFactura)}
-                onChange={e => setSubTotalFactura(parseInputNumber(e.target.value))}
-                disabled
-              />
-            </label>
-
-            <label> Flete (Valor numérico)
-              <input
-                type="number"
-                step="0.01"
-                name="flete"
-                placeholder="0.00"
-                value={fleteFactura || ''}
-                onChange={e => setFleteFactura(parseInputNumber(e.target.value))}
-              />
-            </label>
-
-            <label> Descuento Aplicado (Valor numérico)
-              <input
-                type="number"
-                step="0.01"
-                name="descuento"
-                placeholder="0.00"
-                value={descuentoFactura || ''}
-                onChange={e => setDescuentoFactura(parseInputNumber(e.target.value))}
-              />
-            </label>
-
-            <label> IVA (16%)
-              <input
-                type="number"
-                step="0.01"
-                name="IVA"
-                value={formatCurrency(ivaFactura)}
-                onChange={e => setIvaFactura(parseInputNumber(e.target.value))}
-                disabled
-              />
-            </label>
-
-          </div>
-
-          <div className='totalFactura'>
-            <div className='totalFacturaLabel'>
-              <p id='subTotalFacturaConFlete'> Subtotal (Con Flete): </p>
-              <p id='subTotalFacturaConDescuento'> Subtotal (Con Descuento): </p>
-              <p id='subTotalSinIVA'> Subtotal (Subtotal Sin IVA): </p>
-
-
-              <p id='totalFacturaFinal'> Total Final: </p>
-
-            </div>
-
-            <div className='totalFacturaCalculado'>
-
-              <p id='subTotalFacturaConFleteValue'>
-                {formatMexicanCurrency(subtotalConFlete)}
-              </p>
-
-              <p id='subTotalFacturaConDescuentoValue'>
-                {formatMexicanCurrency(subtotalConDescuento)}
-              </p>
-
-              <p id='subTotalSinIVAValue'>
-                {formatMexicanCurrency(baseGravable)}
-              </p>
-
-              <p id='totalFacturaFinalValue'>
-                {formatMexicanCurrency(totalFinal)}
-              </p>
-            </div>
-          </div>
-
-        </section>
+        <FacturaTotales
+          subTotalFactura={subTotalFactura}
+          setSubTotalFactura={setSubTotalFactura}
+          fleteFactura={fleteFactura}
+          setFleteFactura={setFleteFactura}
+          descuentoFactura={descuentoFactura}
+          setDescuentoFactura={setDescuentoFactura}
+          ivaFactura={ivaFactura}
+          setIvaFactura={setIvaFactura}
+          subtotalConFlete={subtotalConFlete}
+          subtotalConDescuento={subtotalConDescuento}
+          baseGravable={baseGravable}
+          totalFinal={totalFinal}
+        />
 
         <section className='observacionesFactura'>
           <div className='title_Container'>

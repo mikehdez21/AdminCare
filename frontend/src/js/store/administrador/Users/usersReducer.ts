@@ -1,9 +1,14 @@
 import { User } from '@/@types/mainTypes';
+import type { PaginacionMeta } from '@/@types/paginacionTypes';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { addUser, getUsers, editUsuario, bajaUsuario } from './usersActions';
+import { addUser, getUsers, editUsuario, bajaUsuario, ResultadoUsuarios } from './usersActions';
 
 export interface UsersState{
     users: User[]; // Lista completa de usuarios
+    /** Página devuelta por las consultas paginadas (page/per_page). */
+    usersPagina: User[];
+    /** Metadatos de la última consulta paginada. */
+    meta: PaginacionMeta | null;
     currentUser: User | null; // Usuario Logeado en Especifico
     error: string | null; // Agregar un campo para manejar errores
 
@@ -11,6 +16,8 @@ export interface UsersState{
 
 const initialState: UsersState = {
   users: [], // Lista completa de usuarios
+  usersPagina: [],
+  meta: null,
   currentUser: null, // Usuario Logeado en Especifico
   error: null, // Agregar un campo para manejar errores
 }
@@ -36,8 +43,12 @@ const userSlice = createSlice({
     },
 
     // Acciones para el usuario actual (currentUser)
-    setCurrentUser: (state, action: PayloadAction<User>) => {
+    setCurrentUser: (state, action: PayloadAction<User | null>) => {
       state.currentUser = action.payload; // Establece el usuario actual LOGEADO en el estado
+    },
+
+    clearCurrentUser: (state) => {
+      state.currentUser = null;
     },
 
 
@@ -45,16 +56,18 @@ const userSlice = createSlice({
   extraReducers: (builder) => {
     builder
       // Manejo de la lista completa de usuarios
-      .addCase(getUsers.fulfilled, (state, action) => {
+      .addCase(getUsers.fulfilled, (state, action: PayloadAction<ResultadoUsuarios>) => {
         if (action.payload.success && action.payload.users) {
-          state.users = action.payload.users; // Carga la lista de usuarios obtenida
+          if (action.payload.meta) {
+            state.usersPagina = action.payload.users; // Carga la página de usuarios obtenida
+            state.meta = action.payload.meta;
+          } else {
+            state.users = action.payload.users; // Carga la lista de usuarios obtenida
+          }
           state.error = null; // Limpia errores previos
         } else {
           state.error = action.payload.message || 'Error al obtener usuarios'; // Maneja errores al obtener usuarios
         }
-      })
-      .addCase(getUsers.rejected, (state, action) => {
-        state.error = action.error.message || 'Error inesperado'; // Manejo de errores inesperados
       })
       .addCase(addUser.fulfilled, (state, action) => {
         if (action.payload.success && action.payload.users) {
@@ -88,21 +101,8 @@ const userSlice = createSlice({
           state.error = action.payload.message || 'Error al eliminar el usuario'; // Maneja errores al eliminar
         }
       });
-
-    /*
-      // Manejo de eliminación de usuarios (Borrado físico)
-      .addCase(deleteUsuario.fulfilled, (state, action) => {
-        if (action.payload.success) {
-          state.users = state.users.filter(
-            (user) => user.id_usuario !== action.meta.arg.id_usuario
-          ); // Elimina el usuario de la lista
-        } else {
-          state.error = action.payload.message || 'Error al eliminar el usuario'; // Maneja errores al eliminar
-        }
-      });
-      */
   },
 })
 
-export const {setListUsuarios, updateUsuario, setCurrentUser} = userSlice.actions
+export const {setListUsuarios, updateUsuario, setCurrentUser, clearCurrentUser} = userSlice.actions
 export default userSlice.reducer;

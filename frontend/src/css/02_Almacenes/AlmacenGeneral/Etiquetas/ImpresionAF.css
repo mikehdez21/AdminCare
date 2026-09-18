@@ -377,7 +377,7 @@
             }
           }
 
-          .etiquetaQR {
+            .etiquetaQR {
             display: flex;
             justify-content: center;
             align-items: center;
@@ -389,6 +389,15 @@
               height: auto;
               border: 1px solid #ddd;
               border-radius: 4px;
+            }
+
+            .etiquetaUrl {
+              margin: 0 12px 12px;
+              color: #667eea;
+              font-family: monospace;
+              font-size: 0.65rem;
+              overflow-wrap: anywhere;
+              text-align: center;
             }
 
             .loadingQR {
@@ -508,16 +517,6 @@
   }
 }
 
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
 /* ============================================
    Estilos para Impresión Zebra
    ============================================ */
@@ -620,4 +619,9 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

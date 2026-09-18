@@ -28,7 +28,6 @@ export interface ActivoFacturaInput {
   observaciones?: string | null;
 
   // Datos opcionales para movimiento/asignación inicial
-  fecha_movimiento?: string | null;
   id_responsable_actual?: number | null;
   id_ubicacion_actual?: number | null;
   id_tipo_movimiento?: number | null;
