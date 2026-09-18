@@ -1,77 +1,115 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { login, logout, refreshAuthPermissions } from './authActions';
+import { login, logout, refreshAuthPermissions, checkAuthSession } from './authActions';
 import { User } from '@/@types/mainTypes';
 
 export interface AuthState {
   isAuthenticated: boolean;
   loading: boolean;
+  checking: boolean;
   error: string | undefined;
   user?: User | null;
   permissions: string[];
+  rol: string | null;
+  departamento: string | null;
 }
 
 const initialState: AuthState = {
   isAuthenticated: false,
   loading: false,
+  checking: true,
   error: undefined,
   user: null,
   permissions: [],
+  rol: null,
+  departamento: null,
 };
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    // Accion para establecer el Estado TRUE or FALSE de IsAuth
     setAuthState: (state, action: PayloadAction<boolean>) => {
-      state.isAuthenticated = action.payload; // Establecer la lista completa de usuarios
+      state.isAuthenticated = action.payload;
     },
     setAuthPermissions: (state, action: PayloadAction<string[]>) => {
       state.permissions = action.payload;
-      localStorage.setItem('userRolPermissions', JSON.stringify(action.payload));
+    },
+    clearAuth: () => {
+      return { ...initialState, checking: false };
     },
   },
   extraReducers: (builder) => {
     builder
       .addCase(login.pending, (state) => {
-        state.loading = false;
+        state.loading = true;
         state.error = undefined;
       })
       .addCase(login.fulfilled, (state, action) => {
-        state.isAuthenticated = true;
-        state.user = action.payload.userData;
-        state.permissions = action.payload.userRolPermissions;
-        state.error = undefined;
-        localStorage.setItem('userRolPermissions', JSON.stringify(action.payload.userRolPermissions));
-      })
-      .addCase(login.rejected, (state, action) => {
-        state.isAuthenticated = false;
-        state.error = action.payload?.message;
+        state.loading = false;
+        state.checking = false;
+
+        if (action.payload.success) {
+          state.isAuthenticated = true;
+          state.user = action.payload.userData;
+          state.permissions = action.payload.userRolPermissions;
+          state.rol = action.payload.userRol;
+          state.departamento = action.payload.userDepartamento;
+          state.error = undefined;
+        } else {
+          state.isAuthenticated = false;
+          state.error = action.payload.message;
+        }
       })
 
       .addCase(logout.pending, (state) => {
         state.loading = false;
         state.error = undefined;
       })
-      .addCase(logout.fulfilled, (state) => {
+      .addCase(logout.fulfilled, (state, action) => {
+        // Siempre limpiar estado de sesión independientemente de success.
+        // El componente (LogoutModal) mostrará el error si success===false.
         state.isAuthenticated = false;
         state.user = null;
         state.permissions = [];
-        state.error = undefined;
+        state.rol = null;
+        state.departamento = null;
+        state.checking = false;
+        state.error = action.payload.success ? undefined : action.payload.message;
       })
-      .addCase(logout.rejected, (state, action) => {
-        state.isAuthenticated = false;
-        state.error = action.payload as string;
+
+      .addCase(checkAuthSession.pending, (state) => {
+        state.checking = true;
       })
+      .addCase(checkAuthSession.fulfilled, (state, action) => {
+        state.checking = false;
+
+        if (action.payload.success && action.payload.userData) {
+          state.isAuthenticated = true;
+          state.user = action.payload.userData;
+          state.permissions = action.payload.userRolPermissions;
+          state.rol = action.payload.userRol;
+          state.departamento = action.payload.userDepartamento;
+          state.error = undefined;
+        } else {
+          state.isAuthenticated = false;
+          state.user = null;
+          state.permissions = [];
+          state.rol = null;
+          state.departamento = null;
+          state.error = action.payload.message;
+        }
+      })
+
       .addCase(refreshAuthPermissions.fulfilled, (state, action) => {
-        state.permissions = action.payload.permissions || [];
-        localStorage.setItem('userRolPermissions', JSON.stringify(state.permissions));
-      })
-      .addCase(refreshAuthPermissions.rejected, (state, action) => {
-        state.error = action.payload?.message;
+        if (action.payload.success) {
+          state.permissions = action.payload.permissions || [];
+          state.error = undefined;
+        } else {
+          state.error = action.payload.message;
+        }
       });
   },
 });
 
-export const { setAuthState, setAuthPermissions } = authSlice.actions
+export const { setAuthState, setAuthPermissions, clearAuth } = authSlice.actions
 export default authSlice.reducer;

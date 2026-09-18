@@ -1,21 +1,22 @@
-import axios from 'axios';
-import { User, Roles, Departamentos } from '@/@types/mainTypes';
+import { isAxiosError } from 'axios';
+import { User } from '@/@types/mainTypes';
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { API_BASE_URL } from '@/variableApi';
+import api, { API_BASE_URL } from '@/variableApi';
+import { getBackendErrorMessage } from './shared/errorMessage';
 
 // Definiciones de tipos
 
 interface LoginCredentials {
-  email_usuario: string;
+  user: string;
   password: string;
 }
 
-interface LoginSuccessResponse {
+export interface AuthPayloadResponse {
   success: boolean;
-  userData: User;
-  userRol: Roles;
-  userRolPermissions: string[]; // Permisos específicos del rol del usuario
-  userDepartamento: Departamentos;
+  userData: User | null;
+  userRol: string;
+  userRolPermissions: string[];
+  userDepartamento: string;
   message: string;
 }
 
@@ -25,119 +26,103 @@ interface RefreshPermissionsResponse {
   message: string;
 }
 
-interface LoginError {
+interface LogoutResponse {
   success: boolean;
   message: string;
+  sessionInvalid?: boolean;
 }
 
 // Acción para iniciar sesión
-export const login = createAsyncThunk<
-  LoginSuccessResponse, // Tipos de datos retornados en caso de éxito
-  LoginCredentials, // Tipos de datos esperados como parámetros
-  { rejectValue: LoginError } // Tipos de datos retornados en caso de error
->(
+export const login = createAsyncThunk<AuthPayloadResponse, LoginCredentials>(
   'auth/login',
-  async (credentials, { rejectWithValue }) => {
-    console.log(credentials)
+  async (credentials) => {
+
     try {
-      // Obtener CSRF cookie para la protección del servidor 
-      await axios.get(`${API_BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-
-      // Obtener token CSRF de la metaetiqueta si está disponible
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      if (csrfToken) {
-        axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
-      }
-
-
       // Realizar solicitud de inicio de sesión
-      const response = await axios.post(
+      // (El interceptor de api se encarga del csrf-cookie y el header X-CSRF-TOKEN)
+      const response = await api.post(
         `${API_BASE_URL}/api/HSS1/auth/login`,
         credentials,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-          },
-          withCredentials: true,
-        }
       );
-
-      console.log(response)
-
 
       // Retornar datos en caso de éxito
       return {
         success: response.data.success,
         userData: response.data.user as User,
-        userRol: response.data.rol as Roles, // Roles específicos del usuario logueado
-        userRolPermissions: response.data.permissions as string[], // Permisos específicos del rol del usuario
-        userDepartamento: response.data.departamento as Departamentos, // Departamento específico del usuario
+        userRol: response.data.rol as string,
+        userRolPermissions: response.data.permissions as string[],
+        userDepartamento: response.data.departamento as string,
         message: response.data.message,
       };
     } catch (error) {
-      if (axios.isAxiosError(error)) {
+      if (isAxiosError(error)) {
         const status = error.response?.status;
-        const errorMessage = error.response?.data?.message;
+        const rawMessage = getBackendErrorMessage(error.response?.data, '');
 
         // Manejar diferentes tipos de errores basados en el status code
         let message = '';
 
         switch (status) {
-          case 401:
-            message = errorMessage || 'Credenciales inválidas';
-            break;
-          case 403:
-            message = errorMessage || 'Acceso denegado';
-            break;
-          case 422:
-            message = errorMessage || 'Datos inválidos';
-            break;
-          case 500:
-            // Para errores de servidor (incluye errores de base de datos)
-            message = errorMessage || 'Error interno del servidor';
-            break;
-          default:
-            // Para errores de red u otros no clasificados
-            if (error.code === 'NETWORK_ERROR' || error.code === 'ERR_NETWORK') {
-              message = 'Error de conexión. Verifica tu conexión a internet.';
-            } else {
-              message = errorMessage || 'Error en el servidor';
-            }
+        case 401:
+          message = rawMessage || 'Credenciales inválidas';
+          break;
+        case 403:
+          message = rawMessage || 'Acceso denegado';
+          break;
+        case 422:
+          message = rawMessage || 'Datos inválidos';
+          break;
+        case 500:
+          // Para errores de servidor (incluye errores de base de datos)
+          message = rawMessage || 'Error interno del servidor';
+          break;
+        default:
+          // Para errores de red u otros no clasificados
+          if (error.code === 'NETWORK_ERROR' || error.code === 'ERR_NETWORK') {
+            message = 'Error de conexión. Verifica tu conexión a internet.';
+          } else {
+            message = rawMessage || 'Error en el servidor';
+          }
         }
 
-        return rejectWithValue({
+        return {
           success: false,
-          message: message,
-        });
+          userData: null,
+          userRol: '',
+          userRolPermissions: [],
+          userDepartamento: '',
+          message,
+        };
       } else if (error instanceof Error) {
-        return rejectWithValue({
+        return {
           success: false,
+          userData: null,
+          userRol: '',
+          userRolPermissions: [],
+          userDepartamento: '',
           message: 'Error de conexión',
-        });
+        };
       }
 
-      return rejectWithValue({
+      return {
         success: false,
+        userData: null,
+        userRol: '',
+        userRolPermissions: [],
+        userDepartamento: '',
         message: 'Error desconocido',
-      });
+      };
     }
 
   }
 );
 
 // Acción para refrescar permisos del usuario autenticado
-export const refreshAuthPermissions = createAsyncThunk<
-  RefreshPermissionsResponse,
-  void,
-  { rejectValue: LoginError }
->(
+export const refreshAuthPermissions = createAsyncThunk<RefreshPermissionsResponse, void>(
   'auth/refreshPermissions',
-  async (_, { rejectWithValue }) => {
+  async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/HSS1/auth/permissions`, {
-        withCredentials: true,
-      });
+      const response = await api.get(`${API_BASE_URL}/api/HSS1/auth/permissions`);
 
       return {
         success: response.data.success,
@@ -145,34 +130,31 @@ export const refreshAuthPermissions = createAsyncThunk<
         message: response.data.message,
       };
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        return rejectWithValue({
+      if (isAxiosError(error)) {
+        return {
           success: false,
-          message: error.response?.data?.message || 'Error al refrescar permisos',
-        });
+          permissions: [],
+          message: getBackendErrorMessage(error.response?.data, 'Error al refrescar permisos'),
+        };
       }
 
-      return rejectWithValue({
+      return {
         success: false,
+        permissions: [],
         message: 'Error desconocido al refrescar permisos',
-      });
+      };
     }
   }
 );
 
 // Acción para cerrar sesión
-export const logout = createAsyncThunk<
-  { success: boolean; message: string }, // Tipos de datos retornados en caso de éxito
-  void, // Sin parámetros
-  { rejectValue: string } // Tipos de datos retornados en caso de error
->(
+export const logout = createAsyncThunk<LogoutResponse, void>(
   'auth/logout',
-  async (_, { rejectWithValue }) => {
+  async () => {
     try {
-      const response = await axios.post(
+      const response = await api.post(
         `${API_BASE_URL}/api/HSS1/auth/logout`,
         {},
-        { withCredentials: true }
       );
 
       // Validar respuesta del backend
@@ -182,15 +164,83 @@ export const logout = createAsyncThunk<
           message: response.data.message,
         };
       } else {
-        return rejectWithValue(response.data.message || 'Error inesperado al cerrar sesión');
+        return {
+          success: false,
+          message: getBackendErrorMessage(response.data, 'Error inesperado al cerrar sesión'),
+        };
       }
     } catch (error) {
       // Manejo de errores
-      if (axios.isAxiosError(error) && error.response) {
-        return rejectWithValue(error.response.data.message || 'Error inesperado al cerrar sesión');
+      if (isAxiosError(error) && error.response) {
+        return {
+          success: false,
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado al cerrar sesión'),
+        };
       }
 
-      return rejectWithValue('Error inesperado al cerrar sesión');
+      return {
+        success: false,
+        message: 'Error inesperado al cerrar sesión',
+      };
+    }
+  }
+);
+
+// Acción para verificar la sesión activa con el servidor
+export const checkAuthSession = createAsyncThunk<AuthPayloadResponse, void>(
+  'auth/checkSession',
+  async () => {
+    try {
+      const response = await api.get(`${API_BASE_URL}/api/HSS1/auth/check`);
+      if (response.data.success) {
+        return {
+          success: true,
+          userData: response.data.user as User,
+          userRol: response.data.rol as string,
+          userRolPermissions: response.data.permissions as string[],
+          userDepartamento: response.data.departamento as string,
+          message: response.data.message,
+        };
+      }
+      return {
+        success: false,
+        userData: null,
+        userRol: '',
+        userRolPermissions: [],
+        userDepartamento: '',
+        message: getBackendErrorMessage(response.data, 'No autenticado'),
+      };
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const status = error.response?.status;
+        const rawMessage = getBackendErrorMessage(error.response?.data, '');
+        if (status === 401 || status === 403 || status === 419) {
+          return {
+            success: false,
+            userData: null,
+            userRol: '',
+            userRolPermissions: [],
+            userDepartamento: '',
+            message: rawMessage || 'Sesión no válida',
+          };
+        }
+        return {
+          success: false,
+          userData: null,
+          userRol: '',
+          userRolPermissions: [],
+          userDepartamento: '',
+          message: rawMessage || 'Error al verificar sesión',
+        };
+      }
+      return {
+        success: false,
+        userData: null,
+        userRol: '',
+        userRolPermissions: [],
+        userDepartamento: '',
+        message: 'Error de conexión',
+      };
     }
   }
 );

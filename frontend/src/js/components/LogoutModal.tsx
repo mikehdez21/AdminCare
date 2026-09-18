@@ -7,9 +7,6 @@ import { RootState } from '@/store/store';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 
-
-
-
 // Interface
 import { User } from '@/@types/mainTypes';
 
@@ -60,40 +57,32 @@ const LogoutModal: React.FC<LogoutModalProps> = ({ currentUser, isOpen, onClose 
   const handleLogout = async () => {
     try {
       const resultAction = await dispatch(logout()).unwrap();
-      console.log('Cerrando Sesión!');
 
-      if (resultAction.success) {
-        localStorage.removeItem('userData');
-        localStorage.removeItem('userRol');
-        localStorage.removeItem('userRolPermissions');
-        localStorage.removeItem('userDepartamento');
+      if (resultAction.success || resultAction.sessionInvalid === true) {
         localStorage.removeItem('lastPath');
-        localStorage.removeItem('selectedSection');
-        dispatch(setAuthState(false)); // Establece Auth como FALSE
-        navigate('/'); // Redirige a la ruta predeterminada
+        dispatch(setAuthState(false));
+        navigate('/');
 
         setTimeout(() => {
-          window.location.reload(); // Refresca la página
-        }, 100); // Espera un momento antes de refrescar
-
-        console.log('Sesión Finalizada!', resultAction);
+          window.location.reload();
+        }, 100);
       } else {
-        console.log('Error al finalizar la sesión!', resultAction);
-        Swal.fire({
+        // A failed logout must not redirect or clear auth; the reducer keeps
+        // the session and this alert explains the failure to the user.
+        await Swal.fire({
           icon: 'error',
           title: 'Error al cerrar sesión',
           text: resultAction.message || 'Ocurrió un error inesperado.',
         });
       }
-
-      onClose();
     } catch (error) {
-      console.error('Error durante el logout:', error);
-      Swal.fire({
+      await Swal.fire({
         icon: 'error',
         title: 'Error al cerrar sesión',
-        text: 'No se pudo cerrar la sesión. Contacta a Sistemas!',
+        text: error instanceof Error ? error.message : 'Ocurrió un error inesperado.',
       });
+    } finally {
+      onClose();
     }
   };
 
@@ -123,7 +112,6 @@ const LogoutModal: React.FC<LogoutModalProps> = ({ currentUser, isOpen, onClose 
                 <strong>Usuario:</strong> {currentUser.nombre_usuario || 'Sin dato especificado'}
                 <strong>Rol:</strong> {userRol || 'Sin dato especificado'}
                 <strong>Departamento:</strong> {userDepartamento || 'Sin dato especificado'}
-                <strong>Correo:</strong> {currentUser.email_usuario || 'Sin dato especificado'}
 
               </div>
 
