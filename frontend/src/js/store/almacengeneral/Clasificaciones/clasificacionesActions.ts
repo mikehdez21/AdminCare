@@ -12,7 +12,7 @@ export const addClasificacion = createAsyncThunk<{ success: boolean; message: st
     try {
       console.log(nuevaClasificacion)
       const response = await api.post(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/clasificaciones`,
+        `${API_BASE_URL}/api/almacengeneral/clasificaciones`,
         nuevaClasificacion
       );
 
@@ -39,7 +39,7 @@ export const getClasificaciones = createAsyncThunk<{ success: boolean; clasifica
   async () => {
     try {
 
-      const response = await api.get(`${API_BASE_URL}/api/HSS1/almacengeneral/clasificaciones`);
+      const response = await api.get(`${API_BASE_URL}/api/almacengeneral/clasificaciones`);
 
       const clasificacionesFormateadas = (Array.isArray(response.data.data) ? response.data.data : []).map((clasificacion: Partial<ClasificacionesAF>) => {
         return {
@@ -88,7 +88,7 @@ export const editClasificacion = createAsyncThunk<{ success: boolean; message: s
 
       // Incluir el id de la clasificación en la URL para hacer la actualización correcta
       const response = await api.put(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/clasificaciones/${clasificacionEditada.id_clasificacion}`,
+        `${API_BASE_URL}/api/almacengeneral/clasificaciones/${clasificacionEditada.id_clasificacion}`,
         clasificacionEditada
       );
 
@@ -119,7 +119,7 @@ export const deleteClasificacion = createAsyncThunk<{ success: boolean; message:
 
       // Incluir el id de la clasificación en la URL para hacer la eliminación correcta
       const response = await api.delete(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/clasificaciones/${clasificacionEliminada.id_clasificacion}`
+        `${API_BASE_URL}/api/almacengeneral/clasificaciones/${clasificacionEliminada.id_clasificacion}`
       );
 
       return { success: response.data.success, message: response.data.message };

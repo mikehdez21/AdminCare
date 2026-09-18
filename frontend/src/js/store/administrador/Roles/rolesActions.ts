@@ -23,7 +23,7 @@ export const addRol = createAsyncThunk<{ success: boolean; message: string }, Ro
   async (nuevoRol: Roles) => {
     try {
       const response = await api.post(
-        `${API_BASE_URL}/api/HSS1/admin/roles`,
+        `${API_BASE_URL}/api/admin/roles`,
         nuevoRol
       );
 
@@ -53,7 +53,7 @@ export const getRoles = createAsyncThunk<ResultadoRoles, PaginacionParams | void
     try {
 
       const response = await api.get(
-        `${API_BASE_URL}/api/HSS1/admin/roles`,
+        `${API_BASE_URL}/api/admin/roles`,
         params ? { params } : undefined,
       );
 
@@ -100,7 +100,7 @@ export const editRol = createAsyncThunk<{ success: boolean; message: string }, R
 
       // Incluir el id del rol en la URL para hacer la actualización correcta
       const response = await api.put(
-        `${API_BASE_URL}/api/HSS1/admin/roles/${rolEditado.id}`,
+        `${API_BASE_URL}/api/admin/roles/${rolEditado.id}`,
         rolEditado
       );
 
@@ -131,7 +131,7 @@ export const deleteRol = createAsyncThunk<{ success: boolean; message: string },
 
       // Incluir el id del rol en la URL para hacer la eliminación correcta
       const response = await api.delete(
-        `${API_BASE_URL}/api/HSS1/admin/roles/${rolEliminado.id}`
+        `${API_BASE_URL}/api/admin/roles/${rolEliminado.id}`
       );
 
       console.log('deleteAction', response.data.success)

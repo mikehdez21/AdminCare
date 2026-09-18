@@ -41,7 +41,7 @@ export const login = createAsyncThunk<AuthPayloadResponse, LoginCredentials>(
       // Realizar solicitud de inicio de sesión
       // (El interceptor de api se encarga del csrf-cookie y el header X-CSRF-TOKEN)
       const response = await api.post(
-        `${API_BASE_URL}/api/HSS1/auth/login`,
+        `${API_BASE_URL}/api/auth/login`,
         credentials,
       );
 
@@ -122,7 +122,7 @@ export const refreshAuthPermissions = createAsyncThunk<RefreshPermissionsRespons
   'auth/refreshPermissions',
   async () => {
     try {
-      const response = await api.get(`${API_BASE_URL}/api/HSS1/auth/permissions`);
+      const response = await api.get(`${API_BASE_URL}/api/auth/permissions`);
 
       return {
         success: response.data.success,
@@ -153,7 +153,7 @@ export const logout = createAsyncThunk<LogoutResponse, void>(
   async () => {
     try {
       const response = await api.post(
-        `${API_BASE_URL}/api/HSS1/auth/logout`,
+        `${API_BASE_URL}/api/auth/logout`,
         {},
       );
 
@@ -191,7 +191,7 @@ export const checkAuthSession = createAsyncThunk<AuthPayloadResponse, void>(
   'auth/checkSession',
   async () => {
     try {
-      const response = await api.get(`${API_BASE_URL}/api/HSS1/auth/check`);
+      const response = await api.get(`${API_BASE_URL}/api/auth/check`);
       if (response.data.success) {
         return {
           success: true,

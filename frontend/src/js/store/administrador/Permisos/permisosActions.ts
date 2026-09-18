@@ -11,7 +11,7 @@ export const addPermiso = createAsyncThunk<{ success: boolean; permisos?: Permis
   async (nuevoPermiso: Permission) => {
     try {
       const response = await api.post(
-        `${API_BASE_URL}/api/HSS1/admin/permisos`,
+        `${API_BASE_URL}/api/admin/permisos`,
         nuevoPermiso
       );
 
@@ -48,7 +48,7 @@ export const getPermisos = createAsyncThunk<{ success: boolean; permisos?: Permi
   async () => {
     try {
 
-      const response = await api.get(`${API_BASE_URL}/api/HSS1/admin/permisos`);
+      const response = await api.get(`${API_BASE_URL}/api/admin/permisos`);
 
       const permisosFormateados = response.data.data.map((perm: Permission) => ({
         ...perm,
@@ -81,7 +81,7 @@ export const editPermiso = createAsyncThunk<{ success: boolean; message: string 
     try {
 
       const response = await api.put(
-        `${API_BASE_URL}/api/HSS1/admin/permisos/${permisoEditado.id}`,
+        `${API_BASE_URL}/api/admin/permisos/${permisoEditado.id}`,
         permisoEditado
       );
 
@@ -110,7 +110,7 @@ export const deletePermiso = createAsyncThunk<{ success: boolean; message: strin
     try {
 
       const response = await api.delete(
-        `${API_BASE_URL}/api/HSS1/admin/permisos/${permisoEliminado.id}`
+        `${API_BASE_URL}/api/admin/permisos/${permisoEliminado.id}`
       );
 
       return { success: response.data.success, message: response.data.message };

@@ -9,7 +9,7 @@ export const getTiposRegimen = createAsyncThunk<{ success: boolean; regimenesFis
   async () => {
     try {
 
-      const response = await api.get(`${API_BASE_URL}/api/HSS1/almacengeneral/tipos-regimen`);
+      const response = await api.get(`${API_BASE_URL}/api/almacengeneral/tipos-regimen`);
 
       return { success: response.data.success, regimenesFiscales: response.data.API_Response || [], message: response.data.message };
     } catch (error) {
@@ -36,7 +36,7 @@ export const getTiposFacturacion = createAsyncThunk<{ success: boolean; tiposFac
   async () => {
     try {
 
-      const response = await api.get(`${API_BASE_URL}/api/HSS1/almacengeneral/tipos-facturacion`);
+      const response = await api.get(`${API_BASE_URL}/api/almacengeneral/tipos-facturacion`);
 
       return { success: response.data.success, tiposFacturacion: response.data.API_Response || [], message: response.data.message };
     } catch (error) {

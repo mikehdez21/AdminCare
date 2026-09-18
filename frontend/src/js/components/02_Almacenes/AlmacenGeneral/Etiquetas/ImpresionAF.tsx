@@ -171,7 +171,7 @@ const ImpresionAF: React.FC = () => {
     setSuccessZebra(null);
     try {
       const response = await api.post(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/printer/etiqueta/${activoSeleccionadoActual.id_activo_fijo}`,
+        `${API_BASE_URL}/api/almacengeneral/printer/etiqueta/${activoSeleccionadoActual.id_activo_fijo}`,
         {},
       );
       if (response.data.success) {

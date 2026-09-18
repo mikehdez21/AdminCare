@@ -25,7 +25,7 @@ export const addEmpleado = createAsyncThunk<{ success: boolean; empleados?: Empl
 
       console.log('EmpleadoToAdd:', nuevoEmpleado);
 
-      const response = await api.post(`${API_BASE_URL}/api/HSS1/admin/empleados`, nuevoEmpleado);
+      const response = await api.post(`${API_BASE_URL}/api/admin/empleados`, nuevoEmpleado);
 
       return {
         success: response.data.success,
@@ -57,7 +57,7 @@ export const getEmpleados = createAsyncThunk<ResultadoEmpleados, PaginacionParam
     try {
 
       const response = await api.get(
-        `${API_BASE_URL}/api/HSS1/admin/empleados`,
+        `${API_BASE_URL}/api/admin/empleados`,
         params ? { params } : undefined,
       );
 
@@ -106,7 +106,7 @@ export const editEmpleado = createAsyncThunk<{ success: boolean; message: string
       empleadoEditado.append('_method', 'PUT');
 
       const response = await api.post(
-        `${API_BASE_URL}/api/HSS1/admin/empleados/${empleadoEditado.get('id_empleado')}`,
+        `${API_BASE_URL}/api/admin/empleados/${empleadoEditado.get('id_empleado')}`,
         empleadoEditado
       );
 
@@ -139,7 +139,7 @@ export const bajaEmpleado = createAsyncThunk<{ success: boolean; message: string
       console.log('Empleado a dar de baja:', empleadoBaja);
 
       const response = await api.put(
-        `${API_BASE_URL}/api/HSS1/admin/empleados/${empleadoBaja.id_empleado}/bajaEmpleado`,
+        `${API_BASE_URL}/api/admin/empleados/${empleadoBaja.id_empleado}/bajaEmpleado`,
         {
           estatus_activo: false,
           fecha_baja: getFechaHoraActual(),
@@ -173,7 +173,7 @@ export const deleteEmpleado = createAsyncThunk<{ success: boolean; message: stri
   async (empleadoEliminado: Empleados) => {
     try {
       const response = await api.delete(
-        `${API_BASE_URL}/api/HSS1/admin/empleados/${empleadoEliminado.id_empleado}`
+        `${API_BASE_URL}/api/admin/empleados/${empleadoEliminado.id_empleado}`
       );
     
       return { success: response.data.success, message: response.data.message };

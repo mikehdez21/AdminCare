@@ -23,7 +23,7 @@ export const addDepartamento = createAsyncThunk<{ success: boolean; message: str
   async (nuevoDepartamento: Departamentos) => {
     try {
       const response = await api.post(
-        `${API_BASE_URL}/api/HSS1/admin/departamentos`,
+        `${API_BASE_URL}/api/admin/departamentos`,
         nuevoDepartamento
       );
 
@@ -53,7 +53,7 @@ export const getDepartamentos = createAsyncThunk<ResultadoDepartamentos, Paginac
     try {
 
       const response = await api.get(
-        `${API_BASE_URL}/api/HSS1/admin/departamentos`,
+        `${API_BASE_URL}/api/admin/departamentos`,
         params ? { params } : undefined,
       );
 
@@ -98,7 +98,7 @@ export const editDepartamento = createAsyncThunk<{ success: boolean; message: st
 
       // Incluir el id del departamento en la URL para hacer la actualización correcta
       const response = await api.put(
-        `${API_BASE_URL}/api/HSS1/admin/departamentos/${departamentoEditado.id_departamento}`,
+        `${API_BASE_URL}/api/admin/departamentos/${departamentoEditado.id_departamento}`,
         departamentoEditado
       );
 
@@ -129,7 +129,7 @@ export const deleteDepartamento = createAsyncThunk<{ success: boolean; message: 
 
       // Incluir el id del rol en la URL para hacer la eliminación correcta
       const response = await api.delete(
-        `${API_BASE_URL}/api/HSS1/admin/departamentos/${departamentoEliminado.id_departamento}`
+        `${API_BASE_URL}/api/admin/departamentos/${departamentoEliminado.id_departamento}`
       );
 
       console.log('deleteAction', response.data.success)

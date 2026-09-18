@@ -161,7 +161,7 @@ const ActivoQRPublic: React.FC = () => {
     setError(null);
     // This endpoint is public. Use the native fetch API so the Sanctum-aware
     // axios instance does not request CSRF cookies or attach a session.
-    fetch(`${publicApiBase}/api/HSS1/activosfijos/qraf/${encodeURIComponent(codigo)}`, {
+    fetch(`${publicApiBase}/api/activosfijos/qraf/${encodeURIComponent(codigo)}`, {
       method: 'GET',
       credentials: 'omit',
       headers: { Accept: 'application/json' },

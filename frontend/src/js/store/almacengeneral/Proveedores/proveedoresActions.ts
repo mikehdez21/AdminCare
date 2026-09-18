@@ -23,7 +23,7 @@ export const addProveedor = createAsyncThunk<{ success: boolean; message: string
   async (nuevoProveedor: Proveedores) => {
     try {
       const response = await api.post(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/proveedores`,
+        `${API_BASE_URL}/api/almacengeneral/proveedores`,
         nuevoProveedor
       );
 
@@ -53,7 +53,7 @@ export const getProveedores = createAsyncThunk<ResultadoProveedores, PaginacionP
     try {
 
       const response = await api.get(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/proveedores`,
+        `${API_BASE_URL}/api/almacengeneral/proveedores`,
         params ? { params } : undefined,
       );
 
@@ -98,7 +98,7 @@ export const editProveedor = createAsyncThunk<{ success: boolean; message: strin
 
       // Incluir el id del proveedor en la URL para hacer la actualización correcta
       const response = await api.put(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/proveedores/${proveedorEditado.id_proveedor}`,
+        `${API_BASE_URL}/api/almacengeneral/proveedores/${proveedorEditado.id_proveedor}`,
         proveedorEditado
       );
 
@@ -128,7 +128,7 @@ export const deleteProveedor = createAsyncThunk<{ success: boolean; message: str
 
       // Incluir el id del proveedor en la URL para hacer la eliminación correcta
       const response = await api.delete(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/proveedores/${proveedorEliminado.id_proveedor}`
+        `${API_BASE_URL}/api/almacengeneral/proveedores/${proveedorEliminado.id_proveedor}`
       );
 
       console.log('deleteAction', response.data.success)
@@ -156,7 +156,7 @@ export const getTiposProveedores = createAsyncThunk<{ success: boolean; tiposPro
   async () => {
     try {
 
-      const response = await api.get(`${API_BASE_URL}/api/HSS1/almacengeneral/tipos-proveedor`);
+      const response = await api.get(`${API_BASE_URL}/api/almacengeneral/tipos-proveedor`);
 
       return { success: response.data.success, tiposProveedores: response.data.API_Response || [], message: response.data.message };
 
@@ -184,7 +184,7 @@ export const getTiposDescuento = createAsyncThunk<{ success: boolean; descuentos
   async () => {
     try {
 
-      const response = await api.get(`${API_BASE_URL}/api/HSS1/almacengeneral/descuentos-proveedor`);
+      const response = await api.get(`${API_BASE_URL}/api/almacengeneral/descuentos-proveedor`);
 
       return { success: response.data.success, descuentosProveedor: response.data.API_Response || [], message: response.data.message };
     } catch (error) {
@@ -204,4 +204,3 @@ export const getTiposDescuento = createAsyncThunk<{ success: boolean; descuentos
     }
   }
 )
-

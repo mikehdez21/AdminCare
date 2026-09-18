@@ -12,7 +12,7 @@ export const addTipoMoneda = createAsyncThunk<{ success: boolean; message: strin
     try {
 
       const response = await api.post(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/tiposmoneda`,
+        `${API_BASE_URL}/api/almacengeneral/tiposmoneda`,
         nuevoTipo
       );
 
@@ -39,7 +39,7 @@ export const getTiposMoneda = createAsyncThunk<{ success: boolean; tiposMoneda?:
   async () => {
     try {
 
-      const response = await api.get(`${API_BASE_URL}/api/HSS1/almacengeneral/tiposmoneda`);
+      const response = await api.get(`${API_BASE_URL}/api/almacengeneral/tiposmoneda`);
 
       const tiposFormateados = response.data.data.map((tipo: TiposMoneda) => ({
         ...tipo,
@@ -71,7 +71,7 @@ export const editTipoMoneda = createAsyncThunk<{ success: boolean; message: stri
     try {
 
       const response = await api.put(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/tiposmoneda/${tipoEditado.id_tipomoneda}`,
+        `${API_BASE_URL}/api/almacengeneral/tiposmoneda/${tipoEditado.id_tipomoneda}`,
         tipoEditado
       );
 
@@ -99,7 +99,7 @@ export const deleteTipoMoneda = createAsyncThunk<{ success: boolean; message: st
     try {
 
       const response = await api.delete(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/tiposmoneda/${tipoEliminado.id_tipomoneda}`
+        `${API_BASE_URL}/api/almacengeneral/tiposmoneda/${tipoEliminado.id_tipomoneda}`
       );
 
       return { success: response.data.success, message: response.data.message };

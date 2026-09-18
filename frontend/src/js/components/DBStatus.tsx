@@ -21,7 +21,7 @@ const DBStatus: React.FC = () => {
     try {
       const base = API_BASE_URL || '';
       const response = await axios.get<DBStatusResponse>(
-        base ? `${base}/api/HSS1/dbstatus` : '/api/HSS1/dbstatus',
+        base ? `${base}/api/dbstatus` : '/api/dbstatus',
         { withCredentials: true }
       );
 

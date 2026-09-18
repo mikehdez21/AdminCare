@@ -12,7 +12,7 @@ export const addFormaPago = createAsyncThunk<{ success: boolean; message: string
     try {
 
       const response = await api.post(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/formaspago`,
+        `${API_BASE_URL}/api/almacengeneral/formaspago`,
         nuevaFormaPago
       );
 
@@ -39,7 +39,7 @@ export const getFormasPago = createAsyncThunk<{ success: boolean; formasPago?: [
   async () => {
     try {
 
-      const response = await api.get(`${API_BASE_URL}/api/HSS1/almacengeneral/formaspago`);
+      const response = await api.get(`${API_BASE_URL}/api/almacengeneral/formaspago`);
 
       const formasPagoFormateadas = response.data.data.map((forma: FormasPago) => ({
         ...forma,
@@ -71,7 +71,7 @@ export const editFormaPago = createAsyncThunk<{ success: boolean; message: strin
     try {
 
       const response = await api.put(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/formaspago/${formaEditada.id_formapago}`,
+        `${API_BASE_URL}/api/almacengeneral/formaspago/${formaEditada.id_formapago}`,
         formaEditada
       );
 
@@ -99,7 +99,7 @@ export const deleteFormaPago = createAsyncThunk<{ success: boolean; message: str
     try {
 
       const response = await api.delete(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/formaspago/${formaEliminada.id_formapago}`
+        `${API_BASE_URL}/api/almacengeneral/formaspago/${formaEliminada.id_formapago}`
       );
 
       return { success: response.data.success, message: response.data.message };

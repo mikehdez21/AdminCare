@@ -28,7 +28,7 @@ export const addActivoFijo = createAsyncThunk<{ success: boolean; activofijo?: A
     try {
 
       const response = await api.post(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos`,
+        `${API_BASE_URL}/api/almacengeneral/activosfijos`,
         nuevoActivo
       );
 
@@ -58,7 +58,7 @@ export const getActivosFijos = createAsyncThunk<ResultadoActivosFijos, Paginacio
     try {
 
       const response = await api.get(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos`,
+        `${API_BASE_URL}/api/almacengeneral/activosfijos`,
         params ? { params } : undefined,
       );
 
@@ -100,7 +100,7 @@ export const editActivoFijo = createAsyncThunk<{ success: boolean; message: stri
     try {
 
       const response = await api.put(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos/${activoFijoEditado.id_activo_fijo}`,
+        `${API_BASE_URL}/api/almacengeneral/activosfijos/${activoFijoEditado.id_activo_fijo}`,
         activoFijoEditado
       );
 
@@ -130,7 +130,7 @@ export const deleteActivoFijo = createAsyncThunk<{ success: boolean; message: st
 
       // Incluir el id del proveedor en la URL para hacer la eliminación correcta
       const response = await api.delete(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos/${activoFijoEliminado.id_activo_fijo}`
+        `${API_BASE_URL}/api/almacengeneral/activosfijos/${activoFijoEliminado.id_activo_fijo}`
       );
 
       return { success: response.data.success, message: response.data.message };
@@ -165,7 +165,7 @@ export const getActivosFijosPorDepartamento = createAsyncThunk<ResultadoActivosF
     try {
 
       const response = await api.get(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos/departamento/${idDepartamento}`,
+        `${API_BASE_URL}/api/almacengeneral/activosfijos/departamento/${idDepartamento}`,
         params ? { params } : undefined,
       );
 
@@ -215,7 +215,7 @@ export const getActivosFijosPorUbicacion = createAsyncThunk<ResultadoActivosFijo
     try {
 
       const response = await api.get(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos/ubicacion/${idUbicacion}`,
+        `${API_BASE_URL}/api/almacengeneral/activosfijos/ubicacion/${idUbicacion}`,
         params ? { params } : undefined,
       );
 
@@ -265,7 +265,7 @@ export const getActivosFijosPorClasificacion = createAsyncThunk<ResultadoActivos
     try {
 
       const response = await api.get(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos/clasificacion/${idClasificacion}`,
+        `${API_BASE_URL}/api/almacengeneral/activosfijos/clasificacion/${idClasificacion}`,
         params ? { params } : undefined,
       );
 
@@ -315,7 +315,7 @@ export const getActivosFijosPorResponsable = createAsyncThunk<ResultadoActivosFi
     try {
 
       const response = await api.get(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos/responsable/${idEmpleado}`,
+        `${API_BASE_URL}/api/almacengeneral/activosfijos/responsable/${idEmpleado}`,
         params ? { params } : undefined,
       );
 
@@ -359,7 +359,7 @@ export const getActivosFijosDadosDeBaja = createAsyncThunk<ResultadoActivosFijos
     try {
 
       const response = await api.get(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos-bajas`,
+        `${API_BASE_URL}/api/almacengeneral/activosfijos-bajas`,
         params ? { params } : undefined,
       );
 
@@ -407,7 +407,7 @@ export const getActivosFijosNoPropios = createAsyncThunk<ResultadoActivosFijos, 
     try {
 
       const response = await api.get(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos-nopropios`,
+        `${API_BASE_URL}/api/almacengeneral/activosfijos-nopropios`,
         params ? { params } : undefined,
       );
 
@@ -451,7 +451,7 @@ export const getActivosFijosMenores = createAsyncThunk<ResultadoActivosFijos, Pa
     try {
 
       const response = await api.get(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos-menores`,
+        `${API_BASE_URL}/api/almacengeneral/activosfijos-menores`,
         params ? { params } : undefined,
       );
 
@@ -495,7 +495,7 @@ export const getActivosFijosSinFactura = createAsyncThunk<ResultadoActivosFijos,
     try {
 
       const response = await api.get(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos-sinfactura`,
+        `${API_BASE_URL}/api/almacengeneral/activosfijos-sinfactura`,
         params ? { params } : undefined,
       );
 

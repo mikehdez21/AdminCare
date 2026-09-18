@@ -29,7 +29,7 @@ export const addUser = createAsyncThunk<{ success: boolean; users?: User[]; mess
         roles: nuevoUsuario.roles.map((role) => role.name),
       };
 
-      const response = await api.post(`${API_BASE_URL}/api/HSS1/admin/users`, payload);
+      const response = await api.post(`${API_BASE_URL}/api/admin/users`, payload);
 
       return { success: response.data.success, user: response.data.data as User, message: response.data.message };
     } catch (error) {
@@ -57,7 +57,7 @@ export const getUsers = createAsyncThunk<ResultadoUsuarios, PaginacionParams | v
     try {
 
       const response = await api.get(
-        `${API_BASE_URL}/api/HSS1/admin/users`,
+        `${API_BASE_URL}/api/admin/users`,
         params ? { params } : undefined,
       );
 
@@ -103,7 +103,7 @@ export const editUsuario = createAsyncThunk<{ success: boolean; message: string 
       };
 
       const response = await api.put(
-        `${API_BASE_URL}/api/HSS1/admin/users/${usuarioEditado.id_usuario}`,
+        `${API_BASE_URL}/api/admin/users/${usuarioEditado.id_usuario}`,
         payload
       );
 
@@ -132,7 +132,7 @@ export const bajaUsuario = createAsyncThunk<{ success: boolean; message: string 
 
       // Incluir el id del usuario en la URL para hacer la baja correcta
       const response = await api.put(
-        `${API_BASE_URL}/api/HSS1/admin/users/${usuarioBaja.id_usuario}`,
+        `${API_BASE_URL}/api/admin/users/${usuarioBaja.id_usuario}`,
         {
           estatus_activo: false,
           fecha_baja: getFechaHoraActual(),

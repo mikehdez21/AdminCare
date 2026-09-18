@@ -47,8 +47,6 @@ use App\Http\Controllers\AlmacenGeneral\DepreciacionController;
 use App\Http\Controllers\AlmacenGeneral\MetodoDepreciacionController;
 use App\Http\Controllers\AlmacenGeneral\EstatusDepreciacionController;
 
-Route::prefix('HSS1')->group(function () {
-
     // ============================================================
     // RUTAS PÚBLICAS (sin autenticación, con sesión + CSRF)
     // ============================================================
@@ -182,8 +180,6 @@ Route::prefix('HSS1')->group(function () {
             });
 
          });
-
-
        // CONTABILIDAD
         Route::middleware(['auth', 'permission:sidebar_menu_contabilidad'])->group(function () {
 
@@ -245,13 +241,3 @@ Route::prefix('HSS1')->group(function () {
         Route::middleware('permission:sidebar_submenu_administrador_gestionubicaciones')->group(function () {
             Route::apiResource('/admin/ubicaciones', UbicacionController::class);
         });
-
-
-    });
-});
-
-/*
-Route::prefix('HSS2')->group(function () {
-
-});
-*/

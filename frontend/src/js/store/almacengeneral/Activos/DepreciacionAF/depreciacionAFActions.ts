@@ -16,7 +16,7 @@ export const fetchActivosSinDepreciar = createAsyncThunk<
 >('depreciacionAF/fetchActivosSinDepreciar', async () => {
   try {
 
-    const response = await api.get(`${API_BASE_URL}/api/HSS1/contabilidad/depreciacion/activos-sin-depreciar`);
+    const response = await api.get(`${API_BASE_URL}/api/contabilidad/depreciacion/activos-sin-depreciar`);
 
     const activosFormateados = (response.data.data || []).map((a: ActivoConDepreciacion) => ({
       ...a,
@@ -43,7 +43,7 @@ export const fetchActivosEnDepreciacion = createAsyncThunk<
 >('depreciacionAF/fetchActivosEnDepreciacion', async () => {
   try {
 
-    const response = await api.get(`${API_BASE_URL}/api/HSS1/contabilidad/depreciacion/activos-en-depreciacion`);
+    const response = await api.get(`${API_BASE_URL}/api/contabilidad/depreciacion/activos-en-depreciacion`);
 
     const activosFormateados = (response.data.data || []).map((a: ActivoConDepreciacion) => ({
       ...a,
@@ -72,7 +72,7 @@ export const fetchMetodosDepreciacion = createAsyncThunk<
 >('depreciacionAF/fetchMetodosDepreciacion', async () => {
   try {
 
-    const response = await api.get(`${API_BASE_URL}/api/HSS1/contabilidad/metodos-depreciacion`);
+    const response = await api.get(`${API_BASE_URL}/api/contabilidad/metodos-depreciacion`);
 
     return { success: true, metodos: response.data.data as MetodoDepreciacion[], message: response.data.message || '' };
   } catch (error: any) {
@@ -90,7 +90,7 @@ export const createMetodoDepreciacion = createAsyncThunk<
 >('depreciacionAF/createMetodoDepreciacion', async (payload) => {
   try {
 
-    const response = await api.post(`${API_BASE_URL}/api/HSS1/contabilidad/metodos-depreciacion`, payload);
+    const response = await api.post(`${API_BASE_URL}/api/contabilidad/metodos-depreciacion`, payload);
 
     return { success: response.data.success, metodo: response.data.data as MetodoDepreciacion, message: response.data.message || '' };
   } catch (error: any) {
@@ -108,7 +108,7 @@ export const fetchHistoricoDepreciaciones = createAsyncThunk<
 >('depreciacionAF/fetchHistoricoDepreciaciones', async (idActivo: number) => {
   try {
 
-    const response = await api.get(`${API_BASE_URL}/api/HSS1/contabilidad/depreciacion/historico/${idActivo}`);
+    const response = await api.get(`${API_BASE_URL}/api/contabilidad/depreciacion/historico/${idActivo}`);
 
     const historicoRaw = Array.isArray(response.data?.data) ? response.data.data : Array.isArray(response.data) ? response.data : [];
 
@@ -133,7 +133,7 @@ export const activarDepreciacion = createAsyncThunk<
 >('depreciacionAF/activarDepreciacion', async ({ idActivo, payload }) => {
   try {
 
-    const response = await api.post(`${API_BASE_URL}/api/HSS1/contabilidad/depreciacion/activar/${idActivo}`, payload);
+    const response = await api.post(`${API_BASE_URL}/api/contabilidad/depreciacion/activar/${idActivo}`, payload);
 
     return { success: response.data.success, depreciacion: response.data.data as DepreciacionRecord, message: response.data.message || '' };
   } catch (error: any) {
@@ -152,7 +152,7 @@ export const calcularDepreciacionManual = createAsyncThunk<
   try {
 
     const response = await api.post(
-      `${API_BASE_URL}/api/HSS1/contabilidad/depreciacion/calcular/${idActivo}`,
+      `${API_BASE_URL}/api/contabilidad/depreciacion/calcular/${idActivo}`,
       { anio },
     );
 
@@ -172,7 +172,7 @@ export const actualizarDepreciacionActivo = createAsyncThunk<
 >('depreciacionAF/actualizarDepreciacionActivo', async ({ idActivo, payload }) => {
   try {
 
-    const response = await api.put(`${API_BASE_URL}/api/HSS1/contabilidad/depreciacion/activo/${idActivo}`, payload);
+    const response = await api.put(`${API_BASE_URL}/api/contabilidad/depreciacion/activo/${idActivo}`, payload);
 
     return { success: response.data.success, message: response.data.message || '' };
   } catch (error: any) {
@@ -190,7 +190,7 @@ export const removerActivoDepreciacion = createAsyncThunk<
 >('depreciacionAF/removerActivoDepreciacion', async (idActivo: number) => {
   try {
 
-    const response = await api.delete(`${API_BASE_URL}/api/HSS1/contabilidad/depreciacion/activo/${idActivo}`);
+    const response = await api.delete(`${API_BASE_URL}/api/contabilidad/depreciacion/activo/${idActivo}`);
 
     return { success: response.data.success, message: response.data.message || '' };
   } catch (error: any) {
@@ -213,7 +213,7 @@ export const updateMetodoDepreciacion = createAsyncThunk<
 >('depreciacionAF/updateMetodoDepreciacion', async ({ id, payload }) => {
   try {
 
-    const response = await api.put(`${API_BASE_URL}/api/HSS1/contabilidad/metodos-depreciacion/${id}`, payload);
+    const response = await api.put(`${API_BASE_URL}/api/contabilidad/metodos-depreciacion/${id}`, payload);
 
     return { success: response.data.success, metodo: response.data.data as MetodoDepreciacion, message: response.data.message || '' };
   } catch (error: any) {
@@ -231,7 +231,7 @@ export const deleteMetodoDepreciacion = createAsyncThunk<
 >('depreciacionAF/deleteMetodoDepreciacion', async (id: number) => {
   try {
 
-    const response = await api.delete(`${API_BASE_URL}/api/HSS1/contabilidad/metodos-depreciacion/${id}`);
+    const response = await api.delete(`${API_BASE_URL}/api/contabilidad/metodos-depreciacion/${id}`);
 
     return { success: response.data.success, message: response.data.message || '' };
   } catch (error: any) {

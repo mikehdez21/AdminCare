@@ -23,7 +23,7 @@ export const addUbicacion = createAsyncThunk<{ success: boolean; message: string
   async (nuevaUbicacion: Ubicaciones) => {
     try {
       const response = await api.post(
-        `${API_BASE_URL}/api/HSS1/admin/ubicaciones`,
+        `${API_BASE_URL}/api/admin/ubicaciones`,
         nuevaUbicacion
       );
 
@@ -53,7 +53,7 @@ export const getUbicaciones = createAsyncThunk<ResultadoUbicaciones, PaginacionP
     try {
 
       const response = await api.get(
-        `${API_BASE_URL}/api/HSS1/admin/ubicaciones`,
+        `${API_BASE_URL}/api/admin/ubicaciones`,
         params ? { params } : undefined,
       );
 
@@ -98,7 +98,7 @@ export const editUbicacion = createAsyncThunk<{ success: boolean; message: strin
 
       // Incluir el id de la ubicación en la URL para hacer la actualización correcta
       const response = await api.put(
-        `${API_BASE_URL}/api/HSS1/admin/ubicaciones/${ubicacionEditada.id_ubicacion}`,
+        `${API_BASE_URL}/api/admin/ubicaciones/${ubicacionEditada.id_ubicacion}`,
         ubicacionEditada
       );
 
@@ -129,7 +129,7 @@ export const deleteUbicacion = createAsyncThunk<{ success: boolean; message: str
 
       // Incluir el id de la ubicación en la URL para hacer la eliminación correcta
       const response = await api.delete(
-        `${API_BASE_URL}/api/HSS1/admin/ubicaciones/${ubicacionEliminada.id_ubicacion}`
+        `${API_BASE_URL}/api/admin/ubicaciones/${ubicacionEliminada.id_ubicacion}`
       );
 
       console.log('deleteAction', response.data.success)
@@ -157,7 +157,7 @@ export const getActivosUbicacion = createAsyncThunk<ActivosUbicacionApiResponse,
   async (idUbicacion: number) => {
     try {
 
-      const response = await api.get(`${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos/ubicacion/${idUbicacion}`);
+      const response = await api.get(`${API_BASE_URL}/api/almacengeneral/activosfijos/ubicacion/${idUbicacion}`);
 
       return { success: response.data.success, activosUbicacion: response.data.data || [], message: response.data.message };
     } catch (error) {

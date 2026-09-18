@@ -12,7 +12,7 @@ export const addEstatusAF = createAsyncThunk<{ success: boolean; message: string
     try {
 
       const response = await api.post(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos-estatus`,
+        `${API_BASE_URL}/api/almacengeneral/activosfijos-estatus`,
         nuevoEstatus
       );
 
@@ -39,7 +39,7 @@ export const getEstatusAF = createAsyncThunk<{ success: boolean; estatusAF?: Est
   async () => {
     try {
 
-      const response = await api.get(`${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos-estatus`);
+      const response = await api.get(`${API_BASE_URL}/api/almacengeneral/activosfijos-estatus`);
 
       const estatusFormateados = response.data.data.map((estatus: EstatusActivosFijos) => ({
         ...estatus,
@@ -71,7 +71,7 @@ export const editEstatusAF = createAsyncThunk<{ success: boolean; message: strin
     try {
 
       const response = await api.put(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos-estatus/${estatusEditado.id_estatusaf}`,
+        `${API_BASE_URL}/api/almacengeneral/activosfijos-estatus/${estatusEditado.id_estatusaf}`,
         estatusEditado
       );
 
@@ -99,7 +99,7 @@ export const deleteEstatusAF = createAsyncThunk<{ success: boolean; message: str
     try {
 
       const response = await api.delete(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/activosfijos-estatus/${estatusEliminado.id_estatusaf}`
+        `${API_BASE_URL}/api/almacengeneral/activosfijos-estatus/${estatusEliminado.id_estatusaf}`
       );
 
       return { success: response.data.success, message: response.data.message };

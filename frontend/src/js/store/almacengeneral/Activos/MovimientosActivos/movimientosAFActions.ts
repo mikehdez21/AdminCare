@@ -23,7 +23,7 @@ export const addMovimientoActivoFijo = createAsyncThunk<{ success: boolean; mess
   async (nuevoMovimientoActivo: MovimientosActivosFijos) => {
     try {
       const response = await api.post(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/movimientos-activosfijos`,
+        `${API_BASE_URL}/api/almacengeneral/movimientos-activosfijos`,
         nuevoMovimientoActivo
       );
 
@@ -50,7 +50,7 @@ export const getMovimientosActivosFijos = createAsyncThunk<{ success: boolean; m
   async () => {
     try {
 
-      const response = await api.get(`${API_BASE_URL}/api/HSS1/almacengeneral/movimientos-activosfijos`);
+      const response = await api.get(`${API_BASE_URL}/api/almacengeneral/movimientos-activosfijos`);
 
       const movimientosAFFormateados = response.data.data.map((movimientoAF: MovimientosActivosFijos) => {
         return {
@@ -90,7 +90,7 @@ export const editMovimientoActivoFijo = createAsyncThunk<{ success: boolean; mes
     try {
 
       const response = await api.put(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/movimientos-activosfijos/${MovimientoActivoFijoEditado.id_movimientoAF}`,
+        `${API_BASE_URL}/api/almacengeneral/movimientos-activosfijos/${MovimientoActivoFijoEditado.id_movimientoAF}`,
         MovimientoActivoFijoEditado
       );
 
@@ -120,7 +120,7 @@ export const deleteMovimientoActivoFijo = createAsyncThunk<{ success: boolean; m
 
       // Incluir el id del proveedor en la URL para hacer la eliminación correcta
       const response = await api.delete(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/movimientos-activosfijos/${MovimientoActivoFijoEliminado.id_movimientoAF}`
+        `${API_BASE_URL}/api/almacengeneral/movimientos-activosfijos/${MovimientoActivoFijoEliminado.id_movimientoAF}`
       );
 
       console.log('deleteAction', response.data.success)
@@ -151,7 +151,7 @@ export const getVWmovimientosActivosFijos = createAsyncThunk<ResultadoVwMovimien
     try {
 
       const response = await api.get(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/view-activosfijos`,
+        `${API_BASE_URL}/api/almacengeneral/view-activosfijos`,
         params ? { params } : undefined,
       );
 
@@ -195,7 +195,7 @@ export const getTipoMovimientosActivosFijos = createAsyncThunk<{ success: boolea
   'almacengeneral/tipo-movimientosActivosFijos',
   async () => {
     try {
-      const response = await api.get(`${API_BASE_URL}/api/HSS1/almacengeneral/tipos-movimientosaf`);
+      const response = await api.get(`${API_BASE_URL}/api/almacengeneral/tipos-movimientosaf`);
       return { success: true, tipoMovimientoAF: response.data.data, message: response.data.message };
     }
     catch (error) {
@@ -212,4 +212,3 @@ export const getTipoMovimientosActivosFijos = createAsyncThunk<{ success: boolea
     }
   }
 );
-

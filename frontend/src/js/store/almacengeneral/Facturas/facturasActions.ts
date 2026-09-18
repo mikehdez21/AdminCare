@@ -43,7 +43,7 @@ export const addFactura = createAsyncThunk<{ success: boolean; message: string; 
       console.log('Factura a agregar:', nuevaFactura);
 
       const response = await api.post(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/facturas`,
+        `${API_BASE_URL}/api/almacengeneral/facturas`,
         nuevaFactura
       );
 
@@ -92,7 +92,7 @@ export const getFacturas = createAsyncThunk<ResultadoFacturas, PaginacionParams 
     try {
 
       const response = await api.get(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/facturas`,
+        `${API_BASE_URL}/api/almacengeneral/facturas`,
         params ? { params } : undefined,
       );
 
@@ -140,7 +140,7 @@ export const updateFactura = createAsyncThunk<
       console.log('Factura a actualizar:', factura);
 
       const response = await api.put(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/facturas/${id}`,
+        `${API_BASE_URL}/api/almacengeneral/facturas/${id}`,
         factura
       );
 
@@ -199,7 +199,7 @@ export const getActivosFactura = createAsyncThunk<ActivosFacturaApiResponse, num
   async (idFactura: number) => {
     try {
 
-      const response = await api.get(`${API_BASE_URL}/api/HSS1/almacengeneral/facturas/${idFactura}/activos`);
+      const response = await api.get(`${API_BASE_URL}/api/almacengeneral/facturas/${idFactura}/activos`);
 
       return { success: response.data.success, activosFactura: response.data.data || [], message: response.data.message };
     } catch (error) {
@@ -228,7 +228,7 @@ export const addActivosToFactura = createAsyncThunk<
     try {
 
       const response = await api.post(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/facturas/activos`,
+        `${API_BASE_URL}/api/almacengeneral/facturas/activos`,
         { id_factura, activos }
       );
 
@@ -259,7 +259,7 @@ export const updateActivosFactura = createAsyncThunk<
     try {
 
       const response = await api.put(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/facturas/${id_factura}/activos`,
+        `${API_BASE_URL}/api/almacengeneral/facturas/${id_factura}/activos`,
         { activos }
       );
 
@@ -290,7 +290,7 @@ export const removeActivoFromFactura = createAsyncThunk<
     try {
 
       const response = await api.delete(
-        `${API_BASE_URL}/api/HSS1/almacengeneral/facturas/${id_factura}/activos/${id_activo}`
+        `${API_BASE_URL}/api/almacengeneral/facturas/${id_factura}/activos/${id_activo}`
       );
 
       return { success: response.data.success, message: response.data.message };
