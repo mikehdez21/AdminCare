@@ -66,20 +66,20 @@ Abre la dirección que muestre Vite, normalmente `http://localhost:5173`. El pro
 El repositorio incluye la configuración necesaria para un servicio web Docker:
 
 - Render construye el frontend y la imagen PHP mediante `Dockerfile`.
-- Durante cada release ejecuta `migrate:fresh --seed --force`: borra la SQLite demo y la regenera con las migraciones y el `DemoSeeder` actuales. No existe un seed condicional posterior.
+- Durante cada release, y también justo antes de iniciar Laravel, ejecuta `migrate:fresh --seed --force`: borra la SQLite demo y la regenera con las migraciones y el `DemoSeeder` actuales. El arranque garantiza la inicialización aunque Render no ejecute `releaseCommand`.
 - El servicio inicia Laravel en el puerto que proporciona Render y verifica su estado en `/status`.
-- La base es SQLite en `database/database.sqlite`; el flujo destructivo está protegido por `DEMO_MODE=true`, SQLite y `DEMO_DATABASE_ALLOW_RESET=true`. No se configura persistent disk ni una base externa.
-- El filesystem estándar de Render es efímero. Un restart sin un nuevo release no ejecuta `releaseCommand`, aunque puede perder la base y la sesión; cada release posterior vuelve a generar el dataset desde cero.
+- La base es SQLite en `database/database.sqlite`; el flujo destructivo está protegido por `DEMO_MODE=true`, SQLite, `DEMO_DATABASE_ALLOW_RESET=true`, la ruta SQLite exacta y un `DB_URL` vacío o ausente. No se configura persistent disk ni una base externa.
+- El filesystem estándar de Render es efímero. Un restart puede no ejecutar `releaseCommand`; `render-start.sh` regenera la base antes de atender tráfico.
 
 Para desplegar, crea un servicio en Render conectado al repositorio y aplica `render.yaml` como Blueprint. No es necesario ejecutar manualmente los scripts de release o arranque.
 
 ## Límites de la demo
 
 - Usa datos sintéticos y no debe tratarse como almacenamiento de producción.
-- Cada release destruye cualquier cambio realizado en la SQLite demo y restaura el dataset del seeder.
+- Cada deploy o restart destruye cualquier cambio realizado en la SQLite demo y regenera los datos sintéticos actuales del seeder. No usar este servicio ni esta base para producción.
 - Las escrituras tienen una cuota global de 100 unidades de negocio.
 - Las subidas de archivos, fotos, QR persistente, impresión Zebra/QZ Tray y conexiones externas no están disponibles.
-- Un reinicio de Render puede cerrar la sesión y perder la base SQLite del filesystem efímero; un restart por sí solo no ejecuta el `releaseCommand`.
+- Un reinicio de Render puede cerrar la sesión y perder la base SQLite del filesystem efímero; el arranque vuelve a crear la demo aunque no se ejecute `releaseCommand`.
 
 ## Solución de problemas
 

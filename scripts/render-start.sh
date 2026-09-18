@@ -1,6 +1,7 @@
 #!/bin/sh
 set -eu
 
-mkdir -p database
-touch database/database.sqlite
-php artisan serve --host=0.0.0.0 --port="${PORT:-8080}"
+# Render free services may restart without running releaseCommand. Initialize
+# here as well, before Laravel starts serving requests.
+sh scripts/render-demo-reset.sh
+exec php artisan serve --host=0.0.0.0 --port="${PORT:-8080}"
