@@ -12,10 +12,11 @@ use App\Models\User;
 
 class Depreciacion extends Model
 {
+    use \App\Models\Concerns\UsesAlmacenGeneralTable;
 
     use HasFactory, HasApiTokens;
 
-    protected $table = 'almacengeneral.tableAF_DepreciacionActivo';
+    protected $table = 'tableAF_DepreciacionActivo';
     protected $primaryKey = 'id_depreciacionaf';
 
     protected $fillable = [
@@ -49,7 +50,6 @@ class Depreciacion extends Model
 
     public function metodoDepreciacion()
     {
-        
         return $this->belongsTo(MetodoDepreciacion::class, 'id_metodo_depreciacionaf', 'id_metodo_depreciacion');
     }
 

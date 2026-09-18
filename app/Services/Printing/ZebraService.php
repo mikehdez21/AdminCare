@@ -45,7 +45,6 @@ class ZebraService
             stream_set_blocking($this->socket, false);
 
             return true;
-
         } catch (Exception $e) {
             throw $e;
         }
@@ -72,17 +71,17 @@ class ZebraService
     {
         // Intentar transliterar con iconv
         $textoNormalizado = @iconv('UTF-8', 'ASCII//TRANSLIT', $texto);
-        
+
         // Si iconv falla, hacer reemplazo manual
         if ($textoNormalizado === false) {
             $buscar = ['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ', 'Ñ', 'ü', 'Ü'];
             $reemplazar = ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U', 'n', 'N', 'u', 'U'];
             $textoNormalizado = str_replace($buscar, $reemplazar, $texto);
         }
-        
+
         // Remover caracteres no ASCII restantes
         $textoNormalizado = preg_replace('/[^\x20-\x7E]/', '', $textoNormalizado);
-        
+
         return $textoNormalizado;
     }
 
@@ -103,8 +102,7 @@ class ZebraService
         string $nombreaf,
         int $anchoMM = 80,
         int $altoMM = 50
-    ): string
-    {
+    ): string {
         // Convertir mm a puntos (1 mm ≈ 2.834645669 puntos en 300 DPI)
         $puntosAncho = (int)($anchoMM * 8.47);    // 300 DPI
         $puntosAlto = (int)($altoMM * 8.47);
@@ -128,7 +126,7 @@ class ZebraService
         // Titulo centrado (mas cerca del QR)
         $zpl .= "^FO0,20\n";
         $zpl .= "^A0N,24,20\n";
-        $zpl .= "^FB{$labelWidth},1,0,C,0^FDHospital San Serafin^FS\n";
+        $zpl .= "^FB{$labelWidth},1,0,C,0^FDAdminCare^FS\n";
 
         // Codigo QR centrado
         $qrBox = 160;
@@ -177,8 +175,7 @@ class ZebraService
         string $nombreaf,
         int $anchoMM = 80,
         int $altoMM = 25
-    ): string
-    {
+    ): string {
         // Normalizar texto para ZPL
         $codigoUnico = $this->normalizarTextoZPL($codigoUnico);
         $nombreaf = $this->normalizarTextoZPL($nombreaf);
@@ -319,11 +316,10 @@ class ZebraService
                 'message' => 'Etiqueta enviada a la impresora correctamente',
                 'bytes_enviados' => $bytesEnviados
             ];
-
         } catch (Exception $e) {
             return [
                 'success' => false,
-                'message' => 'Error al imprimir: ' . $e->getMessage()
+                    'message' => 'No fue posible imprimir la etiqueta.'
             ];
         }
     }
@@ -382,14 +378,13 @@ class ZebraService
             ]);
 
             return $resultado;
-
         } catch (Exception $e) {
             $this->desconectar();
-            Log::error('Error en impresión Zebra: ' . $e->getMessage());
+            Log::error('Error en impresión Zebra.', ['exception' => get_class($e)]);
 
             return [
                 'success' => false,
-                'message' => 'Error en el proceso de impresión: ' . $e->getMessage()
+                    'message' => 'No fue posible completar el proceso de impresión.'
             ];
         }
     }
@@ -409,11 +404,10 @@ class ZebraService
             $this->desconectar();
 
             return $resultado;
-
         } catch (Exception $e) {
             return [
                 'success' => false,
-                'message' => 'Error al probar conexión: ' . $e->getMessage()
+                    'message' => 'No fue posible probar la conexión.'
             ];
         }
     }

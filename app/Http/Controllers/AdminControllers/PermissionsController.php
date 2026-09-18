@@ -30,7 +30,7 @@ class PermissionsController extends Controller
                 $response['data'] = $permissions;
             }
         } catch (\Exception $e) {
-            $response['message'] = 'Error al obtener los permisos: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible obtener los permisos.', $e);
         }
 
         return response()->json($response, 200);
@@ -57,7 +57,7 @@ class PermissionsController extends Controller
             $response['message'] = 'Permiso registrado exitosamente!';
             $response['data'] = $permission;
         } catch (\Exception $e) {
-            $response['message'] = 'Error al crear el permiso: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible crear el permiso.', $e);
         }
 
         return response()->json($response, $response['success'] ? 201 : 500);
@@ -88,7 +88,7 @@ class PermissionsController extends Controller
             $response['message'] = 'Permiso no encontrado.';
             return response()->json($response, 404);
         } catch (\Exception $e) {
-            $response['message'] = 'Error al actualizar el permiso: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible actualizar el permiso.', $e);
         }
 
         return response()->json($response, $response['success'] ? 200 : 500);
@@ -107,7 +107,7 @@ class PermissionsController extends Controller
             $response['message'] = 'Permiso no encontrado.';
             return response()->json($response, 404);
         } catch (\Exception $e) {
-            $response['message'] = 'Error al eliminar el permiso: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible eliminar el permiso.', $e);
         }
 
         return response()->json($response, $response['success'] ? 200 : 500);

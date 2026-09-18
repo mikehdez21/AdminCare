@@ -8,9 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class FormaPago extends Model
 {
+    use \App\Models\Concerns\UsesAlmacenGeneralTable;
 	use HasFactory, HasApiTokens;
 
-	protected $table = 'almacengeneral.tableRef_FormasPago';
+	protected $table = 'tableRef_FormasPago';
 	protected $primaryKey = 'id_formapago';
 
 	protected $fillable = [

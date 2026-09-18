@@ -7,8 +7,6 @@ use App\Models\AlmacenGeneral\ActivosFijos;
 use App\Models\AlmacenGeneral\CodigosQRAF;
 use App\Services\Printing\ZebraService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-
 
 class PrinterController extends Controller
 {
@@ -63,18 +61,24 @@ class PrinterController extends Controller
             // Enviar a imprimir
             $resultado = $this->zebraService->impresionCompleta($datosImpresion, $compacto);
 
-            return response()->json($resultado, $resultado['success'] ? 200 : 500);
-
-        } catch (\Exception $e) {
-            Log::error('Error en impresión Zebra', [
+            // Log de la impresión
+            \Log::info('Impresión iniciada para activo', [
                 'id_activo' => $idActivo,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'codigo' => $activo->codigo_etiqueta,
+                'usuario_id' => auth()->id(),
+                'resultado' => $resultado['success']
+            ]);
+
+            return response()->json($resultado, $resultado['success'] ? 200 : 500);
+        } catch (\Exception $e) {
+            \Log::error('Error en impresión Zebra', [
+                'id_activo' => $idActivo,
+                'exception' => get_class($e),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Error al imprimir etiqueta: ' . $e->getMessage()
+                'message' => 'No fue posible imprimir la etiqueta.'
             ], 500);
         }
     }
@@ -145,7 +149,7 @@ class PrinterController extends Controller
                     $resultados[] = [
                         'id_activo' => $idActivo,
                         'exito' => false,
-                        'mensaje' => $e->getMessage()
+                        'mensaje' => 'No fue posible imprimir esta etiqueta.'
                     ];
                 }
 
@@ -160,11 +164,10 @@ class PrinterController extends Controller
                 'fallidas' => $fallidas,
                 'resultados' => $resultados
             ], 200);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al procesar impresión batch: ' . $e->getMessage()
+                'message' => 'No fue posible procesar la impresión.'
             ], 500);
         }
     }
@@ -187,11 +190,10 @@ class PrinterController extends Controller
                 'message' => $resultado['message'],
                 'configuracion' => $configuracion
             ], $resultado['success'] ? 200 : 500);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al probar conexión: ' . $e->getMessage()
+                'message' => 'No fue posible probar la conexión.'
             ], 500);
         }
     }
@@ -212,11 +214,10 @@ class PrinterController extends Controller
                 'success' => true,
                 'data' => $config
             ], 200);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al obtener configuración: ' . $e->getMessage()
+                'message' => 'No fue posible obtener la configuración.'
             ], 500);
         }
     }
@@ -249,7 +250,6 @@ class PrinterController extends Controller
             $zpl = $this->zebraService->generarZPL(
                 $urlQR,
                 $activo->codigo_unico,
-                $activo->nombre_af ?? 'Sin nombre',
             );
 
             return response()->json([
@@ -260,11 +260,10 @@ class PrinterController extends Controller
                     'codigo' => $activo->codigo_etiqueta,
                 ]
             ], 200);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al generar preview: ' . $e->getMessage()
+                'message' => 'No fue posible generar la vista previa.'
             ], 500);
         }
     }

@@ -58,7 +58,7 @@ class DepreciacionController extends Controller
         $valorInicial = $request->input('valor_inicialaf') ?? $activo->costo_unitario_af;
 
         $request->validate([
-            'id_metodo_depreciacion' => 'required|integer',
+            'id_metodo_depreciacion' => 'required|integer|exists:tableRef_MetodosDepreciacion,id_metodo_depreciacion',
             'fecha_inicio_depreciacion' => 'required|date',
             'vida_util_anios' => 'required|integer|min:1',
             'valor_residual_af' => 'required|numeric|min:0',
@@ -111,7 +111,8 @@ class DepreciacionController extends Controller
             return response()->json(['success' => true, 'data' => $depreciacion, 'message' => 'Depreciación activada correctamente.']);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['success' => false, 'message' => 'Error al activar depreciación: ' . $e->getMessage()], 500);
+            report($e);
+            return response()->json(['success' => false, 'message' => 'No fue posible activar la depreciación.'], 500);
         }
     }
 
@@ -192,7 +193,7 @@ class DepreciacionController extends Controller
 
             return response()->json(['success' => true, 'data' => $depreciacion, 'message' => 'Depreciación calculada correctamente.']);
         } catch (QueryException $e) {
-            if (($e->getCode() === '23505') || str_contains($e->getMessage(), 'uk_activo_anio_deprec')) {
+            if (in_array((string) $e->getCode(), ['23000', '23505'], true)) {
                 return response()->json([
                     'success' => false,
                     'message' => "Ya existe una depreciación registrada para el activo {$idActivo} en el año {$anio}.",
@@ -201,7 +202,8 @@ class DepreciacionController extends Controller
 
             return response()->json(['success' => false, 'message' => 'Error de base de datos al calcular depreciación.'], 500);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Error al calcular depreciación: ' . $e->getMessage()], 500);
+            report($e);
+            return response()->json(['success' => false, 'message' => 'No fue posible calcular la depreciación.'], 500);
         }
     }
 }

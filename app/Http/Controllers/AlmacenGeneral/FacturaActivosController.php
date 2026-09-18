@@ -5,11 +5,22 @@ namespace App\Http\Controllers\AlmacenGeneral;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\AlmacenGeneral\FacturaActivos;
+use App\Models\AlmacenGeneral\ActivosFijos;
 use App\Models\AlmacenGeneral\FacturaAF;
+use App\Services\FacturasActivos\FacturaActivoService;
+use App\Exceptions\DemoQuotaExceeded;
 use Illuminate\Support\Facades\DB;
 
 class FacturaActivosController extends Controller
 {
+    protected $facturaActivoService; // Declarar propiedad para el servicio
+
+    // Inyectar el servicio en el constructor
+    public function __construct(FacturaActivoService $facturaActivoService)
+    {
+        $this->facturaActivoService = $facturaActivoService;
+    }
+
     // Obtener activos de una factura especifica
     public function getActivosByFactura($idFactura)
     {
@@ -30,20 +41,29 @@ class FacturaActivosController extends Controller
                     'id_clasificacion' => $activo->id_clasificacion,
                     'fecha_registro_af' => $activo->fecha_registro_af,
                     'af_propio' => $activo->af_propio,
+                    'af_menor' => $activo->af_menor,
+                    'id_estado_af' => $activo->id_estado_af,
                     'numero_serie_af' => $activo->numero_serie_af,
                     'costo_unitario_af' => $activo->costo_unitario_af,
                     'descuento_af' => $activo->pivot->descuento_af,
                     'descuento_porcentajeaf' => $activo->pivot->descuento_porcentajeaf,
                     'observaciones' => $activo->pivot->observaciones_detalleaf,
-                    'total' => $activo->pivot->costo_unitario_af,
                 ];
             });
 
             $response['success'] = true;
             $response['data'] = $activosFactura;
             $response['message'] = 'Activos de factura obtenidos correctamente.';
+        } catch (DemoQuotaExceeded $e) {
+            $response['message'] = 'La demo permite como máximo 100 unidades de negocio.';
+            $response['code'] = 'DEMO_QUOTA_EXCEEDED';
+            $response['used'] = $e->used;
+            $response['requested'] = $e->requested;
+            $response['limit'] = $e->limit;
+            return response()->json($response, 422);
         } catch (\Exception $e) {
-            $response['message'] = 'Error al obtener activos de factura: ' . $e->getMessage();
+            report($e);
+            $response['message'] = 'No fue posible obtener los activos de factura.';
         }
 
         return response()->json($response, 200);
@@ -65,38 +85,35 @@ class FacturaActivosController extends Controller
             ]);
 
             DB::beginTransaction();
-
             $factura = FacturaAF::findOrFail($validatedData['id_factura']);
 
-            // Eliminar asociaciones existentes para esta factura
-            FacturaActivos::where('id_factura', $validatedData['id_factura'])->delete();
-
-            $activosCreados = [];
-
-            foreach ($validatedData['activos'] as $activoData) {
-                $facturaActivo = FacturaActivos::create([
-                    'id_factura' => $validatedData['id_factura'],
-                    'id_activo_fijo' => $activoData['id_activo_fijo'],
-                    'numero_serie_af' => $activoData['numero_serie_af'],
-                    'costo_unitario_af' => $activoData['costo_unitario_af'],
-                    'observaciones_detalleaf' => $activoData['observaciones'] ?? null
-                ]);
-
-                $activosCreados[] = $facturaActivo;
-            }
+            // Llamar al servicio para reemplazar los activos
+            $this->facturaActivoService->reemplazarActivosDeFactura($validatedData['id_factura'], $validatedData['activos']);
 
             DB::commit();
 
             $response['success'] = true;
             $response['message'] = 'Activos asociados a la factura exitosamente.';
-            $response['data'] = $activosCreados;
+            // Si necesitas devolver los activos recién asociados, tendrías que consultarlos después
+            // $response['data'] = $factura->activosFijos; // Otra forma de obtenerlos
+            $response['data'] = $validatedData['activos']; // Devuelve lo que se envió, aunque no sean los IDs finales
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
-            $response['message'] = 'Errores de validaciÃ³n.';
+            $response['message'] = 'Errores de validación.';
             $response['data'] = $e->errors();
+        } catch (DemoQuotaExceeded $e) {
+            DB::rollBack();
+            $response['message'] = 'La demo permite como máximo 100 unidades de negocio.';
+            $response['code'] = 'DEMO_QUOTA_EXCEEDED';
+            $response['used'] = $e->used;
+            $response['requested'] = $e->requested;
+            $response['limit'] = $e->limit;
+            return response()->json($response, 422);
         } catch (\Exception $e) {
             DB::rollBack();
-            $response['message'] = 'Error al asociar activos a factura: ' . $e->getMessage();
+            report($e);
+            $response['message'] = 'No fue posible asociar activos a factura.';
         }
 
         return response()->json($response, $response['success'] ? 201 : 500);
@@ -121,35 +138,31 @@ class FacturaActivosController extends Controller
             // Verificar que la factura existe
             $factura = FacturaAF::findOrFail($idFactura);
 
-            // Eliminar asociaciones existentes
-            FacturaActivos::where('id_factura', $idFactura)->delete();
-
-            $activosActualizados = [];
-
-            foreach ($validatedData['activos'] as $activoData) {
-                $facturaActivo = FacturaActivos::create([
-                    'id_factura' => $idFactura,
-                    'id_activo_fijo' => $activoData['id_activo_fijo'],
-                    'numero_serie_af' => $activoData['numero_serie_af'],
-                    'costo_unitario_af' => $activoData['costo_unitario_af'],
-                    'observaciones_detalleaf' => $activoData['observaciones'] ?? null
-                ]);
-
-                $activosActualizados[] = $facturaActivo;
-            }
+            // Llamar al servicio para reemplazar los activos
+            $this->facturaActivoService->reemplazarActivosDeFactura($idFactura, $validatedData['activos']);
 
             DB::commit();
 
             $response['success'] = true;
             $response['message'] = 'Activos de factura actualizados exitosamente.';
-            $response['data'] = $activosActualizados;
+            $response['data'] = $validatedData['activos']; // Devuelve lo que se envió
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
-            $response['message'] = 'Errores de validaciÃ³n.';
+            $response['message'] = 'Errores de validación.';
             $response['data'] = $e->errors();
+        } catch (DemoQuotaExceeded $e) {
+            DB::rollBack();
+            $response['message'] = 'La demo permite como máximo 100 unidades de negocio.';
+            $response['code'] = 'DEMO_QUOTA_EXCEEDED';
+            $response['used'] = $e->used;
+            $response['requested'] = $e->requested;
+            $response['limit'] = $e->limit;
+            return response()->json($response, 422);
         } catch (\Exception $e) {
             DB::rollBack();
-            $response['message'] = 'Error al actualizar activos de factura: ' . $e->getMessage();
+            report($e);
+            $response['message'] = 'No fue posible actualizar los activos de factura.';
         }
 
         return response()->json($response, $response['success'] ? 200 : 500);
@@ -165,12 +178,24 @@ class FacturaActivosController extends Controller
                 ->where('id_activo_fijo', $idActivo)
                 ->firstOrFail();
 
+            // Limpiar campos: codigo_lote, lote_afconsecutivo, lote_total, codigo_etiqueta
+            $limparCamposActivo = ActivosFijos::where('id_activo_fijo', $idActivo)->first();
+            if ($limparCamposActivo) {
+                $limparCamposActivo->codigo_lote = null;
+                $limparCamposActivo->lote_afconsecutivo = null;
+                $limparCamposActivo->lote_total = null;
+                $limparCamposActivo->codigo_etiqueta = $limparCamposActivo->codigo_unico . '-SINFACTURA';
+                $limparCamposActivo->save();
+            }
+
+
             $facturaActivo->delete();
 
             $response['success'] = true;
             $response['message'] = 'Activo removido de la factura exitosamente.';
         } catch (\Exception $e) {
-            $response['message'] = 'Error al remover activo de factura: ' . $e->getMessage();
+            report($e);
+            $response['message'] = 'No fue posible remover el activo de factura.';
         }
 
         return response()->json($response, $response['success'] ? 200 : 500);

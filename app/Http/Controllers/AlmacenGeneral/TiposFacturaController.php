@@ -12,7 +12,7 @@ class TiposFacturaController extends Controller
     // Obtener todos los tipos de factura
     public function index()
     {
-        $response = ["success" => false, "data" => [], "message" => ""];
+        $response = ["success" => false, "message" => "", "data" => []];
 
         try {
             $tipos = TiposFactura::all([
@@ -30,7 +30,7 @@ class TiposFacturaController extends Controller
                 $response['data'] = $tipos;
             }
         } catch (\Exception $e) {
-            $response['message'] = 'Error al obtener los tipos de factura: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible obtener los tipos de factura.', $e);
         }
 
         return response()->json($response, 200);
@@ -47,21 +47,42 @@ class TiposFacturaController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(["error" => $validator->errors()], 422);
+            return response()->json([
+                'success' => false,
+                'message' => 'Los datos del tipo de factura no son válidos.',
+                'data' => ['errors' => $validator->errors()],
+            ], 422);
         }
 
         try {
-            $input = $request->all();
-            $tipo = TiposFactura::create($input);
+            $tipo = TiposFactura::create($validator->validated());
 
             $response['success'] = true;
             $response['message'] = 'Tipo de factura registrado exitosamente!';
             $response['data'] = $tipo;
         } catch (\Exception $e) {
-            $response['message'] = 'Error al crear el tipo de factura: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible crear el tipo de factura.', $e);
         }
 
         return response()->json($response, $response['success'] ? 201 : 500);
+    }
+
+    // Obtener un tipo de factura por ID.
+    public function show($id)
+    {
+        try {
+            return response()->json([
+                'success' => true,
+                'message' => 'Tipo de factura encontrado.',
+                'data' => TiposFactura::findOrFail($id),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No fue posible obtener el tipo de factura.',
+                'data' => [],
+            ], 404);
+        }
     }
 
     // Actualizar un tipo de factura existente
@@ -70,14 +91,26 @@ class TiposFacturaController extends Controller
         $response = ["success" => false, "message" => "", "data" => []];
 
         try {
+            $validator = Validator::make($request->all(), [
+                'nombre_tipofactura' => 'sometimes|required|string|max:255',
+                'descripcion_tipofactura' => 'nullable|string|max:255',
+            ]);
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Los datos del tipo de factura no son válidos.',
+                    'data' => ['errors' => $validator->errors()],
+                ], 422);
+            }
+
             $tipo = TiposFactura::findOrFail($id);
-            $tipo->update($request->all());
+            $tipo->update($validator->validated());
 
             $response['success'] = true;
             $response['message'] = 'Tipo de factura actualizado exitosamente.';
             $response['data'] = $tipo;
         } catch (\Exception $e) {
-            $response['message'] = 'Error al actualizar el tipo de factura: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible actualizar el tipo de factura.', $e);
         }
 
         return response()->json($response, $response['success'] ? 200 : 500);
@@ -86,15 +119,17 @@ class TiposFacturaController extends Controller
     // Eliminar un tipo de factura
     public function destroy($id)
     {
-        $response = ["success" => false, "message" => ""];
+        $response = ["success" => false, "message" => "", "data" => []];
 
         try {
-            TiposFactura::destroy($id);
+            $tipo = TiposFactura::findOrFail($id);
+            $tipo->delete();
             $response['success'] = true;
             $response['message'] = 'Tipo de factura eliminado exitosamente.';
+            $response['data'] = ['id_tipofacturaaf' => (int) $id];
             return response()->json($response, 200);
         } catch (\Exception $e) {
-            $response['message'] = 'Error al eliminar el tipo de factura: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible eliminar el tipo de factura.', $e);
             return response()->json($response, 500);
         }
     }

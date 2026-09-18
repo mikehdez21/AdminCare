@@ -8,10 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class EstatusDepreciacionAF extends Model
 {
-	
+    use \App\Models\Concerns\UsesAlmacenGeneralTable;
 	use HasFactory, HasApiTokens;
 
-	protected $table = 'almacengeneral.tableRef_EstatusDepreciacionAF';
+	protected $table = 'tableRef_EstatusDepreciacionAF';
 	protected $primaryKey = 'id_estatus_depreciacion';
 
 	protected $fillable = [

@@ -14,5 +14,14 @@ class Permission extends SpatiePermission
     protected $fillable = [
         'name',
         'guard_name',
+        'lectura',
+        'escritura',
+        'control',
+    ];
+
+    protected $casts = [
+        'lectura' => 'boolean',
+        'escritura' => 'boolean',
+        'control' => 'boolean',
     ];
 }

@@ -2,46 +2,59 @@
 
 namespace App\Http\Controllers\AdminControllers;
 
-
-use Illuminate\Support\Facades\Storage;
-use App\Models\User;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Concerns\Paginable;
 use App\Http\Controllers\Controller;
-
+use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
+    use Paginable;
 
     // Obtener Todos los Usuarios
-    public function index()
+    public function index(Request $request)
     {
-        $response = ["success" => false, "data" => [], "message" => ""];
+        $response = ['success' => false, 'data' => [], 'message' => ''];
 
         try {
-            $users = User::with('departamento', 'roles')
-                ->get([
-                    'id_usuario',
-                    'nombre_usuario',
-                    'email_usuario',
-                    'password',
-                    'estatus_activo',
-                    'usuario_compartido',
-                    'fecha_baja',
-                    'id_empleado',
-                    'id_departamento',
-                    'created_at',
-                    'updated_at',
-                ]);
+            $resultado = $this->paginar(
+                $request,
+                User::with('departamento', 'roles')
+                    ->orderBy('id_usuario', 'asc')
+                    ->select([
+                        'id_usuario',
+                        'nombre_usuario',
+                        'email_usuario',
+                        'password',
+                        'estatus_activo',
+                        'usuario_compartido',
+                        'fecha_baja',
+                        'id_empleado',
+                        'id_departamento',
+                        'created_at',
+                        'updated_at',
+                    ]),
+                ['nombre_usuario', 'id_usuario']
+            );
 
-            if ($users->isEmpty()) {
+            $items = $resultado['items'];
+
+            if ($items->isEmpty()) {
                 $response['message'] = 'No se encontraron usuarios.';
             } else {
-
                 $response['success'] = true;
-                $response['data'] = $users;
+                $response['data'] = $items;
+            }
+
+            // En modo paginado se incluye siempre el meta y success=true
+            if ($resultado['meta'] !== null) {
+                $response['success'] = true;
+                $response['meta'] = $resultado['meta'];
             }
         } catch (\Exception $e) {
-            $response['message'] = 'Error al obtener los usuarios: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible obtener los usuarios.', $e);
         }
 
         return response()->json($response, 200);
@@ -51,12 +64,12 @@ class UserController extends Controller
     // Crear Usuario
     public function store(Request $request)
     {
-        $response = ["success" => false, "message" => "", "data" => []];
+        $response = ['success' => false, 'message' => '', 'data' => []];
 
         try {
             $request->validate([
                 'nombre_usuario' => 'required|string|max:255',
-                'email_usuario' => 'required|string|max:255',
+                'email_usuario' => 'string|max:255',
                 'password' => 'required|string|max:255',
                 'estatus_activo' => 'required|boolean',
                 'fecha_baja' => 'nullable|date',
@@ -70,8 +83,10 @@ class UserController extends Controller
 
             ]);
 
+            // upperCase para el nombre de usuario
+
             $user = User::create([
-                'nombre_usuario' => $request->nombre_usuario,
+                'nombre_usuario' => strtoupper($request->nombre_usuario),
                 'email_usuario' => $request->email_usuario,
                 'password' => bcrypt($request->password),
                 'estatus_activo' => $request->estatus_activo,
@@ -79,7 +94,6 @@ class UserController extends Controller
                 'usuario_compartido' => $request->usuario_compartido,
                 'id_empleado' => $request->id_empleado,
                 'id_departamento' => $request->id_departamento,
-
 
             ]);
 
@@ -93,7 +107,7 @@ class UserController extends Controller
                 'roles' => $user->roles->pluck('name'), // Incluye los nombres de los roles asignados
             ];
         } catch (\Exception $e) {
-            $response['message'] = 'Error al crear el usuario: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible crear el usuario.', $e);
         }
 
         return response()->json($response, $response['success'] ? 201 : 500);
@@ -102,31 +116,31 @@ class UserController extends Controller
     // Actualizar Usuario
     public function update(Request $request, $id_usuario)
     {
-        $response = ["success" => false, "message" => "", "data" => []];
+        $response = ['success' => false, 'message' => '', 'data' => []];
 
         try {
 
             // Validar los datos de entrada
             $validatedData = $request->validate([
                 'nombre_usuario' => 'required|string|max:255',
-                'email_usuario' => 'required|email|max:255', // Permitir el mismo email del usuario actual
+                'email_usuario' => 'email|max:255', // Permitir el mismo email del usuario actual
                 'password' => 'nullable|string|min:8', // No obligatorio, solo si se proporciona
                 'estatus_activo' => 'required|boolean',
                 'fecha_baja' => 'nullable|date',
                 'usuario_compartido' => 'required|boolean',
                 'roles' => 'required|array', // Validación como arreglo
-                'id_empleado'  => 'required',
+                'id_empleado' => 'required',
                 'id_departamento' => 'required',
             ]);
 
-            // Buscar el usuario por ID 
+            // Buscar el usuario por ID
             $user = User::findOrFail($id_usuario);
 
             // Actualizar campos básicos
             $user->update([
-                'nombre_usuario' => $validatedData['nombre_usuario'],
+                'nombre_usuario' => strtoupper($validatedData['nombre_usuario']),
                 'email_usuario' => $validatedData['email_usuario'],
-                'password' => !empty($validatedData['password']) ? bcrypt($validatedData['password']) : $user->password,
+                'password' => ! empty($validatedData['password']) ? bcrypt($validatedData['password']) : $user->password,
                 'estatus_activo' => $validatedData['estatus_activo'],
                 'fecha_baja' => $validatedData['fecha_baja'] ?? null,
                 'usuario_compartido' => $validatedData['usuario_compartido'],
@@ -142,23 +156,22 @@ class UserController extends Controller
             $response['success'] = true;
             $response['message'] = 'Usuario actualizado exitosamente.';
             $response['data'] = $user->load('roles', 'departamento');
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             $response['message'] = 'Usuario no encontrado.';
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             $response['message'] = 'Errores de validación.';
             $response['data'] = $e->errors();
         } catch (\Exception $e) {
-            $response['message'] = 'Error al actualizar el usuario: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible actualizar el usuario.', $e);
         }
 
         return response()->json($response, $response['success'] ? 200 : 500);
     }
 
-
-    // Baja de un Usuario       
+    // Baja de un Usuario
     public function updateBajaUsuario(Request $request, $id_usuario)
     {
-        $response = ["success" => false, "message" => "", "data" => []];
+        $response = ['success' => false, 'message' => '', 'data' => []];
 
         try {
             $validatedData = $request->validate([
@@ -174,15 +187,14 @@ class UserController extends Controller
             ]);
 
             $response['success'] = true;
-            $response['message'] = "Estatus actualizado correctamente.";
+            $response['message'] = 'Estatus actualizado correctamente.';
             $response['data'] = $usuario;
         } catch (\Exception $e) {
-            $response['message'] = "Error: " . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible eliminar el usuario.', $e);
         }
 
         return response()->json($response);
     }
-
 
     // Others Functions
 
@@ -205,10 +217,9 @@ class UserController extends Controller
 
             return response()->json($user, 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Usuario no encontrado: ' . $e->getMessage()], 404);
+            return response()->json(['error' => 'Usuario no encontrado.'], 404);
         }
     }
-
 
     /*
     public function UsersByRol(Request $request)
@@ -220,13 +231,13 @@ class UserController extends Controller
         })
             ->with('roles', 'departamentos')
             ->get([
-                "id_usuario", 
-                "nombre_usuario", 
-                "nombre_empleado", 
-                "apellidos_empleado", 
-                "email", 
-                "ultimo_acceso", 
-                "id_departamento", 
+                "id_usuario",
+                "nombre_usuario",
+                "nombre_empleado",
+                "apellidos_empleado",
+                "email",
+                "ultimo_acceso",
+                "id_departamento",
                 "is_active"
             ])
             ->map(function ($user) {

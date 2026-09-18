@@ -8,9 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Proveedores extends Model
 {
+    use \App\Models\Concerns\UsesAlmacenGeneralTable;
     use HasFactory, HasApiTokens;
 
-    protected $table = 'almacengeneral.tableAF_Proveedores'; // Especifica el nombre de la tabla
+    protected $table = 'tableAF_Proveedores'; // Especifica el nombre de la tabla
     protected $primaryKey = 'id_proveedor'; // Especifica el campo de la clave primaria
 
     protected $fillable = [

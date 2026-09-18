@@ -7,9 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class EstatusActivosFijos extends Model
 {
+    use \App\Models\Concerns\UsesAlmacenGeneralTable;
     use HasFactory, HasApiTokens;
 
-    protected $table = 'almacengeneral.tableRef_EstatusAF'; 
+    protected $table = 'tableRef_EstatusAF';
     protected $primaryKey = 'id_estatusaf'; 
 
     protected $fillable = [

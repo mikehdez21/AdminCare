@@ -4,7 +4,6 @@ namespace App\Http\Controllers\AlmacenGeneral;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 use App\Models\AlmacenGeneral\FormaPago;
 
@@ -13,23 +12,27 @@ class FormaPagoController extends Controller
     // Obtener todas las formas de pago
     public function index()
     {
+        $response = ["success" => false, "data" => [], "message" => ""];
 
-        $formasPago = Cache::store('file')->remember('catalogos.formas_pago.index', now()->addMinutes(15), function () {
-			return FormaPago::all([
-				'id_formapago',
-				'descripcion_formaspago',
-				'created_at',
-				'updated_at'
-			]);
-		});
+        try {
+            $formasPago = FormaPago::all([
+                'id_formapago',
+                'descripcion_formaspago',
+                'created_at',
+                'updated_at'
+            ]);
 
-		return response()->json([
-			'success' => $formasPago->isNotEmpty(),
-			'data' => $formasPago,
-			'message' => $formasPago->isEmpty()
-				? 'No se encontraron formas de pago.'
-				: 'Formas de pago cargadas correctamente.',
-		], 200);
+            if ($formasPago->isEmpty()) {
+                $response['message'] = 'No se encontraron formas de pago.';
+            } else {
+                $response['success'] = true;
+                $response['data'] = $formasPago;
+            }
+        } catch (\Exception $e) {
+            $response['message'] = $this->safeError('No fue posible obtener las formas de pago.', $e);
+        }
+
+        return response()->json($response, 200);
     }
 
     // Crear una nueva forma de pago
@@ -38,7 +41,7 @@ class FormaPagoController extends Controller
         $response = ["success" => false, "message" => "", "data" => []];
 
         $validator = Validator::make($request->all(), [
-            'descripcion_formaspago' => 'required|string|max:255|unique:almacengeneral.tableRef_FormasPago',
+            'descripcion_formaspago' => 'required|string|max:255|unique:tableRef_FormasPago',
         ]);
 
         if ($validator->fails()) {
@@ -48,13 +51,12 @@ class FormaPagoController extends Controller
         try {
             $input = $request->all();
             $formaPago = FormaPago::create($input);
-            Cache::store('file')->forget('catalogos.formas_pago.index');
 
             $response['success'] = true;
             $response['message'] = 'Forma de pago registrada exitosamente!';
             $response['data'] = $formaPago;
         } catch (\Exception $e) {
-            $response['message'] = 'Error al crear la forma de pago: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible crear la forma de pago.', $e);
         }
 
         return response()->json($response, $response['success'] ? 201 : 500);
@@ -68,13 +70,12 @@ class FormaPagoController extends Controller
         try {
             $formaPago = FormaPago::findOrFail($id);
             $formaPago->update($request->all());
-            Cache::store('file')->forget('catalogos.formas_pago.index');
 
             $response['success'] = true;
             $response['message'] = 'Forma de pago actualizada exitosamente.';
             $response['data'] = $formaPago;
         } catch (\Exception $e) {
-            $response['message'] = 'Error al actualizar la forma de pago: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible actualizar la forma de pago.', $e);
         }
 
         return response()->json($response, $response['success'] ? 200 : 500);
@@ -87,12 +88,11 @@ class FormaPagoController extends Controller
 
         try {
             FormaPago::destroy($id);
-            Cache::store('file')->forget('catalogos.formas_pago.index');
             $response['success'] = true;
             $response['message'] = 'Forma de pago eliminada exitosamente.';
             return response()->json($response, 200);
         } catch (\Exception $e) {
-            $response['message'] = 'Error al eliminar la forma de pago: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible eliminar la forma de pago.', $e);
             return response()->json($response, 500);
         }
     }

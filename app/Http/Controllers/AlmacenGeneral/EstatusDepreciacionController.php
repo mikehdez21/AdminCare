@@ -29,7 +29,7 @@ class EstatusDepreciacionController extends Controller
                 $response['data'] = $estatus;
             }
         } catch (\Exception $e) {
-            $response['message'] = 'Error al obtener los estatus de depreciación: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible obtener los estatus de depreciación.', $e);
         }
 
         return response()->json($response, 200);
@@ -41,7 +41,7 @@ class EstatusDepreciacionController extends Controller
         $response = ["success" => false, "message" => "", "data" => []];
 
         $validator = Validator::make($request->all(), [
-            'descripcion_estatus_depreciacion' => 'required|string|max:255|unique:almacengeneral.tableRef_EstatusDepreciacionAF,descripcion_estatus_depreciacion',
+            'descripcion_estatus_depreciacion' => 'required|string|max:255|unique:tableRef_EstatusDepreciacionAF,descripcion_estatus_depreciacion',
         ]);
 
         if ($validator->fails()) {
@@ -56,7 +56,7 @@ class EstatusDepreciacionController extends Controller
             $response['message'] = 'Estatus de depreciación registrado exitosamente!';
             $response['data'] = $estatus;
         } catch (\Exception $e) {
-            $response['message'] = 'Error al crear el estatus de depreciación: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible crear el estatus de depreciación.', $e);
         }
 
         return response()->json($response, $response['success'] ? 201 : 500);
@@ -75,7 +75,7 @@ class EstatusDepreciacionController extends Controller
             $response['message'] = 'Estatus de depreciación actualizado exitosamente.';
             $response['data'] = $estatus;
         } catch (\Exception $e) {
-            $response['message'] = 'Error al actualizar el estatus de depreciación: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible actualizar el estatus de depreciación.', $e);
         }
 
         return response()->json($response, $response['success'] ? 200 : 500);
@@ -92,7 +92,7 @@ class EstatusDepreciacionController extends Controller
             $response['message'] = 'Estatus de depreciación eliminado exitosamente.';
             return response()->json($response, 200);
         } catch (\Exception $e) {
-            $response['message'] = 'Error al eliminar el estatus de depreciación: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible eliminar el estatus de depreciación.', $e);
             return response()->json($response, 500);
         }
     }

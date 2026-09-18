@@ -37,7 +37,7 @@ class ClasificacionController extends Controller
                 $response['data'] = $clasificaciones;
             }
         } catch (\Exception $e) {
-            $response['message'] = 'Error al obtener las clasificaciones: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible obtener las clasificaciones.', $e);
         }
 
         return response()->json($response, 200);
@@ -67,7 +67,7 @@ class ClasificacionController extends Controller
             $response['message'] = 'Clasificación registrada exitosamente!';
             $response['data'] = $clasificaciones;
         } catch (\Exception $e) {
-            $response['message'] = 'Error al crear la clasificación: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible crear la clasificación.', $e);
         }
 
         return response()->json($response, $response['success'] ? 201 : 500);
@@ -86,7 +86,7 @@ class ClasificacionController extends Controller
             $response['message'] = 'Clasificación actualizada exitosamente.';
             $response['data'] = $clasificaciones;
         } catch (\Exception $e) {
-            $response['message'] = 'Error al actualizar la clasificación: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible actualizar la clasificación.', $e);
         }
 
         return response()->json($response, $response['success'] ? 200 : 500);
@@ -103,7 +103,7 @@ class ClasificacionController extends Controller
             $response['message'] = 'Clasificación eliminada exitosamente.';
             return response()->json($response, 200);
         } catch (\Exception $e) {
-            $response['message'] = 'Error al eliminar la clasificación: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible eliminar la clasificación.', $e);
             return response()->json($response, 500);
         }
     }

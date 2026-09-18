@@ -13,9 +13,9 @@ use App\Traits\TieneArchivos;
 
 class ActivosFijos extends Model
 {
-    use HasFactory, HasApiTokens, TieneArchivos;
+    use HasFactory, HasApiTokens, TieneArchivos, \App\Models\Concerns\UsesAlmacenGeneralTable;
 
-    protected $table = 'almacengeneral.tableAF_ActivosFijos';
+    protected $table = 'tableAF_ActivosFijos';
     protected $primaryKey = 'id_activo_fijo';
     protected $appends = [
         'ubicacion_actual',
@@ -36,6 +36,7 @@ class ActivosFijos extends Model
         'af_propio',
         'id_estado_af',
         'id_clasificacion',
+        'af_menor',
         'fecha_registro_af',
         'depreciacion_aplicada',
         'observaciones_af',
@@ -70,6 +71,11 @@ class ActivosFijos extends Model
     public function clasificacion(): BelongsTo
     {
         return $this->belongsTo(Clasificaciones::class, 'id_clasificacion', 'id_clasificacion');
+    }
+
+    public function facturas(): HasMany
+    {
+        return $this->hasMany(FacturaActivos::class, 'id_activo_fijo', 'id_activo_fijo');
     }
 
     // === RELACIONES A TRAVÉS DE MOVIMIENTOS ===
@@ -117,7 +123,6 @@ class ActivosFijos extends Model
     {
         return $this->ultimoMovimiento?->fecha_movimiento;
     }
-
 
 
 
@@ -176,6 +181,12 @@ class ActivosFijos extends Model
         return $query->where('af_propio', false);
     }
 
+    // Obtener los activos marcados activos menores
+    public function scopeActivosMenores($query)
+    {
+        return $query->where('af_menor', true);
+    }
+
     // === SCOPES PARA DEPRECIACIÓN ===
 
     public function scopeSinDepreciar($query)
@@ -186,6 +197,12 @@ class ActivosFijos extends Model
     public function scopeEnDepreciacion($query)
     {
         return $query->where('depreciacion_aplicada', true);
+    }
+
+    // === SCOPES PARA ACTIVOS SIN FACTURA ===
+    public function scopeSinFactura($query)
+    {
+        return $query->whereDoesntHave('facturas');
     }
 
 
@@ -200,7 +217,7 @@ class ActivosFijos extends Model
     /**
      * Crear un activo fijo con su código QR automáticamente
      * Incluye: creación en BD, generación de imagen y guardado en storage
-     * 
+     *
      * @param array $datos Datos del activo fijo
      * @return array ['success' => bool, 'message' => string, 'data' => array]
      */
@@ -210,7 +227,7 @@ class ActivosFijos extends Model
             unset($datos['codigo_unico']);
             $activo = self::create($datos);
 
-            if ($generarQR) {
+            if ($generarQR && !config('app.demo_mode', env('DEMO_MODE', false))) {
                 $resultadoQR = CodigosQRAF::generarParaActivo($activo->id_activo_fijo);
                 if (!$resultadoQR['success']) {
                     throw new \Exception('No se pudo generar el código QR: ' . $resultadoQR['message']);
@@ -223,9 +240,53 @@ class ActivosFijos extends Model
                 'data' => $activo,
             ];
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Asset creation failed.', ['exception' => get_class($e)]);
             return [
                 'success' => false,
-                'message' => 'Error al crear el activo fijo: ' . $e->getMessage(),
+                'message' => 'No fue posible crear el activo fijo.',
+                'data' => null,
+            ];
+        }
+    }
+
+    /**
+     * Crear un activo fijo con su código QR automáticamente
+     * Incluye: creación en BD, generación de imagen y guardado en storage
+     *
+     * @param array $datos Datos del activo fijo
+     * @return array ['success' => bool, 'message' => string, 'data' => array]
+     */
+    public static function crearQRSinFactura(array $datos, bool $generarQR = true): array
+    {
+        try {
+
+            $obtenerUltimoId = self::max('id_activo_fijo') ?? 0;
+            $siguienteId = $obtenerUltimoId + 1;
+
+
+            $datos['codigo_unico'] = 'AF' . $siguienteId;
+            $datos['codigo_lote'] = 'SINFACTURA';
+            $datos['codigo_etiqueta'] = $datos['codigo_unico'] . '-SINFACTURA';
+
+            $activo = self::create($datos);
+
+            if ($generarQR && !config('app.demo_mode', env('DEMO_MODE', false))) {
+                $resultadoQR = CodigosQRAF::generarQRActivoSinFactura($activo->id_activo_fijo);
+                if (!$resultadoQR['success']) {
+                    throw new \Exception('No se pudo generar el código QR: ' . $resultadoQR['message']);
+                }
+            }
+
+            return [
+                'success' => true,
+                'message' => 'Activo fijo creado exitosamente.',
+                'data' => $activo,
+            ];
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Asset creation failed.', ['exception' => get_class($e)]);
+            return [
+                'success' => false,
+                'message' => 'No fue posible crear el activo fijo.',
                 'data' => null,
             ];
         }

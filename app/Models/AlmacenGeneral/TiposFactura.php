@@ -8,9 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class TiposFactura extends Model
 {
+    use \App\Models\Concerns\UsesAlmacenGeneralTable;
     use HasFactory, HasApiTokens;
 
-    protected $table = 'almacengeneral.tableRef_TiposFacturasAF';
+    protected $table = 'tableRef_TiposFacturasAF';
     protected $primaryKey = 'id_tipofacturaaf';
 
     protected $fillable = [

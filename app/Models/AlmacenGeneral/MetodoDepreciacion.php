@@ -9,9 +9,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class MetodoDepreciacion extends Model
 {
+    use \App\Models\Concerns\UsesAlmacenGeneralTable;
     use HasFactory, HasApiTokens;
 
-    protected $table = 'almacengeneral.tableRef_MetodosDepreciacion';
+    protected $table = 'tableRef_MetodosDepreciacion';
     protected $primaryKey = 'id_metodo_depreciacion';
 
     protected $fillable = [

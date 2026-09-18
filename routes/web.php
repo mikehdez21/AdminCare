@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 //$role = Role::create(['name' => 'JAlmacenGeneral']);
 
 
+Route::get('/status', [ApiStatusController::class, 'index']);
+
 // Compatibilidad para QR historicos que apuntan al backend.
 Route::get('/activosfijos/qraf/{codigoQR}', function (Request $request, string $codigoQR) {
     $frontendUrl = rtrim((string) config('app.frontend_url', ''), '/');
@@ -29,8 +31,5 @@ Route::get('/activosfijos/qraf/{codigoQR}', function (Request $request, string $
 Route::get('/{any}', function () {
     return view('welcome');
 })->where('any', '^(?!api|HSS1).*');
-
-Route::get('/status', [ApiStatusController::class, 'index']);
-
 
 

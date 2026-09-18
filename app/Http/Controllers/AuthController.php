@@ -23,29 +23,20 @@ class AuthController extends Controller
             }
 
             $user = Auth::user();
+            $payload = $this->buildAuthPayload($user);
 
-            return response()->json([
+            return response()->json(array_merge([
                 'success' => true,
                 'message' => 'Usuario autenticado.',
-                'user' => $user
-            ], 200);
+            ], $payload), 200);
         } catch (\Illuminate\Database\QueryException $e) {
-            // Manejar errores específicos de base de datos
-            if (
-                strpos($e->getMessage(), 'sessions') !== false ||
-                strpos($e->getMessage(), 'no existe la relación') !== false
-            ) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Error en base de datos. Contacta a Sistemas.'
-                ], 500);
-            }
+            report($e);
             return response()->json([
                 'success' => false,
-                'message' => 'Error de conexión a la base de datos.'
+                'message' => 'No fue posible verificar la sesión.'
             ], 500);
         } catch (\Exception $e) {
-            // Manejo de errores generales
+            report($e);
             return response()->json([
                 'success' => false,
                 'message' => 'Error interno del servidor. Contacta a Sistemas.'
@@ -73,29 +64,37 @@ class AuthController extends Controller
                 ], 404);
             }
 
-            $permissions = $user->getAllPermissions()->pluck('name')->values();
+            $scopes = $user->getAllPermissions()
+                ->flatMap(function ($permission) {
+                    $name = $permission->name; // Ej: "sidebar_menu_home.control"
+                    $result = [$name];
+
+                    // Si el permiso es de control total, agregamos automáticamente lectura y escritura
+                    if (str_ends_with($name, '.control')) {
+                        $baseName = str_replace('.control', '', $name); // "sidebar_menu_home"
+                        $result[] = $baseName . '.lectura';
+                        $result[] = $baseName . '.escritura';
+                    }
+
+                    return $result;
+                })
+                ->unique()       // Elimina duplicados (por si ya tenía los 3 asignados)
+                ->values();      // Reindexa el array [0, 1, 2...]
+
 
             return response()->json([
                 'success' => true,
                 'message' => 'Permisos obtenidos correctamente.',
-                'permissions' => $permissions
+                'permissions' => $scopes
             ], 200);
         } catch (\Illuminate\Database\QueryException $e) {
-            if (
-                strpos($e->getMessage(), 'sessions') !== false ||
-                strpos($e->getMessage(), 'no existe la relación') !== false
-            ) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Error en base de datos. Contacta a Sistemas.'
-                ], 500);
-            }
-
+            report($e);
             return response()->json([
                 'success' => false,
-                'message' => 'Error de conexión a la base de datos.'
+                'message' => 'No fue posible obtener los permisos.'
             ], 500);
         } catch (\Exception $e) {
+            report($e);
             return response()->json([
                 'success' => false,
                 'message' => 'Error interno del servidor. Contacta a Sistemas.'
@@ -135,8 +134,7 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 "success" => false,
-                "error" => "Error al registrar usuario",
-                "details" => $e->getMessage()
+                "error" => "No fue posible registrar el usuario."
             ], 500);
         }
     }
@@ -153,7 +151,7 @@ class AuthController extends Controller
             try {
                 // Validación de los datos
                 $validator = Validator::make($request->all(), [
-                    'email_usuario' => 'required',
+                    'user' => 'required',
                     'password' => 'required',
                 ]);
 
@@ -162,8 +160,8 @@ class AuthController extends Controller
                     return response()->json(["error" => $validator->errors()], 422);
                 }
 
-                // Obtener el usuario por correo
-                $user = User::where('email_usuario', $request->email_usuario)->first();
+                // Obtener el usuario por nombre de usuario
+                $user = User::where('nombre_usuario', $request->user)->first();
 
                 // Verificar si el usuario existe
                 if (!$user) {
@@ -178,15 +176,11 @@ class AuthController extends Controller
                 }
 
                 // Intentar autenticar al usuario
-                if (Auth::attempt(['email_usuario' => $request->email_usuario, 'password' => $request->password])) {
+                if (Auth::attempt(['nombre_usuario' => $request->user, 'password' => $request->password])) {
 
-                    $roleName = $user->getRoleNames()->first() ?? 'No definido';
-                    $departamento = $user->id_departamento ? $user->departamento->nombre_departamento : 'No asignado';
+                    $payload = $this->buildAuthPayload($user);
 
-                    $response['user'] = $user; // Obtener el usuario autenticado
-                    $response['rol'] = $roleName; // Agregar el nombre del rol a la respuesta
-                    $response['permissions'] = $user->getAllPermissions()->pluck('name'); // Agregar los permisos del usuario a la respuesta
-                    $response['departamento'] = $departamento; // Agregar el nombre del departamento a la respuesta
+                    $response = array_merge($response, $payload);
 
                     session(['user_id' => $user->id_usuario]); // Almacenar información en la sesión, como el ID del usuario
 
@@ -200,21 +194,11 @@ class AuthController extends Controller
                     $response['message'] = 'Credenciales inválidas!';
                 }
             } catch (\Illuminate\Database\QueryException $e) {
-                // Manejar errores específicos de base de datos
-                $errorCode = $e->getCode();
-                $errorMessage = $e->getMessage();
-
-                // Verificar si es un error de tabla no encontrada (PostgreSQL: 42P01, MySQL: 1146)
-                if ($errorCode == '42P01' || $errorCode == '1146' || strpos($errorMessage, 'no existe la relación') !== false || strpos($errorMessage, "doesn't exist") !== false) {
-                    $response['message'] = 'Error en base de datos. Contacta a Sistemas.';
-                } else {
-                    $response['message'] = 'Error de conexión a la base de datos. Intenta más tarde.';
-                }
-
-
+                report($e);
+                $response['message'] = 'No fue posible iniciar sesión. Intenta más tarde.';
                 return response()->json($response, 500);
             } catch (\Exception $e) {
-                // Manejar cualquier otro tipo de error
+                report($e);
                 $response['message'] = 'Error interno del servidor. Contacta a Sistemas.';
 
                 return response()->json($response, 500);
@@ -222,22 +206,11 @@ class AuthController extends Controller
 
             return response()->json($response, 200);
         } catch (\Illuminate\Database\QueryException $e) {
-            // Catch global para errores de sesiones que ocurren antes del código principal
-            $errorMessage = $e->getMessage();
-
-            if (
-                strpos($errorMessage, 'sessions') !== false ||
-                strpos($errorMessage, 'no existe la relación') !== false ||
-                $e->getCode() == '42P01'
-            ) {
-                $response['message'] = 'Error en base de datos. Contacta a Sistemas.';
-            } else {
-                $response['message'] = 'Error de conexión a la base de datos. Intenta más tarde.';
-            }
-
+            report($e);
+            $response['message'] = 'No fue posible iniciar sesión. Intenta más tarde.';
             return response()->json($response, 500);
         } catch (\Exception $e) {
-            // Catch global para cualquier otro error
+            report($e);
             $response['message'] = 'Error interno del servidor. Contacta a Sistemas.';
             return response()->json($response, 500);
         }
@@ -269,18 +242,11 @@ class AuthController extends Controller
                 "message" => "Sesión cerrada exitosamente.",
             ];
         } catch (\Illuminate\Database\QueryException $e) {
-            // Manejar errores específicos de base de datos
-            if (
-                strpos($e->getMessage(), 'sessions') !== false ||
-                strpos($e->getMessage(), 'no existe la relación') !== false
-            ) {
-                $response['message'] = 'Error en base de datos. Contacta a Sistemas.';
-            } else {
-                $response['message'] = 'Error de conexión a la base de datos.';
-            }
+            report($e);
+            $response['message'] = 'No fue posible cerrar la sesión.';
             return response()->json($response, 500);
         } catch (\Exception $e) {
-            // Manejo de errores generales
+            report($e);
             $response['message'] = 'Error interno del servidor. Contacta a Sistemas.';
             return response()->json($response, 500);
         }
@@ -303,5 +269,36 @@ class AuthController extends Controller
             "success" => true,
             "message" => "Sesión cerrada por inactividad."
         ]);
+    }
+
+    // Construye la carga útil de autenticación de un usuario (usuario, rol, permisos, departamento)
+    private function buildAuthPayload(User $user): array
+    {
+        $roleName = $user->getRoleNames()->first() ?? 'No definido';
+        $departamento = $user->id_departamento ? $user->departamento->nombre_departamento : 'No asignado';
+
+        $scopes = $user->getAllPermissions()
+            ->flatMap(function ($permission) {
+                $name = $permission->name; // Ej: "sidebar_menu_home.control"
+                $result = [$name];
+
+                // Si el permiso es de control total, agregamos automáticamente lectura y escritura
+                if (str_ends_with($name, '.control')) {
+                    $baseName = str_replace('.control', '', $name); // "sidebar_menu_home"
+                    $result[] = $baseName . '.lectura';
+                    $result[] = $baseName . '.escritura';
+                }
+
+                return $result;
+            })
+            ->unique()       // Elimina duplicados (por si ya tenía los 3 asignados)
+            ->values();      // Reindexa el array [0, 1, 2...]
+
+        return [
+            'user' => $user,
+            'rol' => $roleName,
+            'permissions' => $scopes,
+            'departamento' => $departamento,
+        ];
     }
 }

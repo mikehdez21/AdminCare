@@ -8,9 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class MonedaPago extends Model
 {
+    use \App\Models\Concerns\UsesAlmacenGeneralTable;
     use HasFactory, HasApiTokens;
 
-    protected $table = 'almacengeneral.tableRef_TiposMonedas';
+    protected $table = 'tableRef_TiposMonedas';
     protected $primaryKey = 'id_tipomoneda';
 
     protected $fillable = [

@@ -33,7 +33,7 @@ class MetodoDepreciacionController extends Controller
                 $response['data'] = $metodos;
             }
         } catch (\Exception $e) {
-            $response['message'] = 'Error al obtener los métodos de depreciación: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible obtener los métodos de depreciación.', $e);
         }
 
         return response()->json($response, 200);
@@ -63,7 +63,7 @@ class MetodoDepreciacionController extends Controller
             $response['message'] = 'Método de depreciación registrado exitosamente!';
             $response['data'] = $metodo;
         } catch (\Exception $e) {
-            $response['message'] = 'Error al crear el método de depreciación: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible crear el método de depreciación.', $e);
         }
 
         return response()->json($response, $response['success'] ? 201 : 500);
@@ -93,7 +93,7 @@ class MetodoDepreciacionController extends Controller
             $response['message'] = 'Método de depreciación actualizado exitosamente.';
             $response['data'] = $metodo;
         } catch (\Exception $e) {
-            $response['message'] = 'Error al actualizar el método de depreciación: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible actualizar el método de depreciación.', $e);
         }
 
         return response()->json($response, $response['success'] ? 200 : 500);
@@ -110,7 +110,7 @@ class MetodoDepreciacionController extends Controller
             $response['message'] = 'Método de depreciación eliminado exitosamente.';
             return response()->json($response, 200);
         } catch (\Exception $e) {
-            $response['message'] = 'Error al eliminar el método de depreciación: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible eliminar el método de depreciación.', $e);
             return response()->json($response, 500);
         }
     }

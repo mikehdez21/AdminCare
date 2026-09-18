@@ -11,9 +11,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class MovimientosActivos extends Model
 {
-    use HasFactory, HasApiTokens;
+    use HasFactory, HasApiTokens, \App\Models\Concerns\UsesAlmacenGeneralTable;
 
-    protected $table = 'almacengeneral.tableAF_MovimientosActivos';
+    protected $table = 'tableAF_MovimientosActivos';
     protected $primaryKey = 'id_movimientoAF';
 
     protected $fillable = [
@@ -46,5 +46,26 @@ class MovimientosActivos extends Model
     public function ubicacionAnterior(): BelongsTo
     {
         return $this->belongsTo(Ubicacion::class, 'id_ubicacion_anterior', 'id_ubicacion');
+    }
+
+
+    // ACTUALIZAR EL MOVIMIENTO DE UN ACTIVO FIJO CUANDO ES ASOCIADO A UNA FACTURA
+    public static function registrarMovimientoActivo(array $datos): array
+    {
+        try {
+            $movimiento = self::create($datos);
+
+            return [
+                'success' => true,
+                'message' => 'Movimiento registrado exitosamente.',
+                'data' => $movimiento,
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'No fue posible registrar el movimiento.',
+                'data' => null,
+            ];
+        }
     }
 }

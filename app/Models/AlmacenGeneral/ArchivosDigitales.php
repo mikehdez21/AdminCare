@@ -7,7 +7,8 @@ use Illuminate\Support\Facades\Storage;
 
 class ArchivosDigitales extends Model
 {
-    protected $table = 'almacengeneral.tableAF_ArchivosDigitales';
+    use \App\Models\Concerns\UsesAlmacenGeneralTable;
+    protected $table = 'tableAF_ArchivosDigitales';
     protected $primaryKey = 'id_adjunto';
 
     protected $fillable = [

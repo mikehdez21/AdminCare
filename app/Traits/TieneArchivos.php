@@ -21,6 +21,10 @@ trait TieneArchivos
     // Agregar adjunto
     public function agregarAdjunto($archivo, $descripcion = null)
     {
+        if (config('app.demo_mode')) {
+            throw new \Symfony\Component\HttpKernel\Exception\NotImplementedHttpException('Los archivos no están disponibles en la demo.');
+        }
+
         $nombreOriginal = $archivo->getClientOriginalName();
         $nombreAlmacenado = time() . '_' . $nombreOriginal;
         $ruta = $archivo->storeAs('archivos/' . $this->getTable(), $nombreAlmacenado);

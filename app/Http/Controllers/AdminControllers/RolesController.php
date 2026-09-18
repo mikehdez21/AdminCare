@@ -2,53 +2,64 @@
 
 namespace App\Http\Controllers\AdminControllers;
 
-
+use App\Http\Controllers\Concerns\Paginable;
+use App\Http\Controllers\Controller;
 use App\Models\Role;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use App\Http\Controllers\Controller;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class RolesController extends Controller
 {
+    use Paginable;
 
     // Obtener Todos los Roles
-    public function index()
+    public function index(Request $request)
     {
-        $response = ["success" => false, "data" => [], "message" => ""];
-
+        $response = ['success' => false, 'data' => [], 'message' => ''];
 
         try {
+            $resultado = $this->paginar(
+                $request,
+                Role::with('permissions')
+                    ->orderBy('id', 'asc')
+                    ->select([
+                        'id',
+                        'name',
+                        'guard_name',
+                        'created_at',
+                        'updated_at',
+                    ]),
+                ['name']
+            );
 
-            $roles = Role::with('permissions')->get([
-                'id',
-                'name',
-                'guard_name',
-                'created_at',
-                'updated_at',
+            $items = $resultado['items'];
 
-            ]);
-
-
-            if ($roles->isEmpty()) {
+            if ($items->isEmpty()) {
                 $response['message'] = 'No se encontraron roles.';
             } else {
                 $response['success'] = true;
-                $response['data'] = $roles;
+                $response['data'] = $items;
+            }
+
+            // En modo paginado se incluye siempre el meta y success=true
+            if ($resultado['meta'] !== null) {
+                $response['success'] = true;
+                $response['meta'] = $resultado['meta'];
             }
         } catch (\Exception $e) {
-            $response['message'] = 'Error al obtener los roles: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible obtener los roles.', $e);
         }
 
         return response()->json($response, 200);
     }
 
-
-
-    /// STORE (crear Rol)
+    // / STORE (crear Rol)
     public function store(Request $request)
     {
-        $response = ["success" => false, "message" => "", "data" => []];
+        $response = ['success' => false, 'message' => '', 'data' => []];
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
@@ -61,7 +72,7 @@ class RolesController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(["error" => $validator->errors()], 422);
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
         try {
@@ -75,43 +86,41 @@ class RolesController extends Controller
                 $role->syncPermissions($request->input('permissions', []));
             }
 
-
-            $response["success"] = true;
+            $response['success'] = true;
             $response['message'] = 'Rol registrado exitosamente!';
             $response['data'] = $role->load('permissions');
         } catch (\Exception $e) {
-            $response['message'] = 'Error al crear el rol: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible crear el rol.', $e);
         }
 
         return response()->json($response, $response['success'] ? 201 : 500);
     }
 
-
     // Obtener un ROL por ID
     public function show($id)
     {
-        $response = ["success" => false, "data" => [], "message" => ""];
+        $response = ['success' => false, 'data' => [], 'message' => ''];
 
         try {
             $role = Role::with('permissions')->findOrFail($id);
 
             $response['success'] = true;
             $response['data'] = $role;
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             $response['message'] = 'Rol no encontrado.';
+
             return response()->json($response, 404);
         } catch (\Exception $e) {
-            $response['message'] = 'Error al obtener el rol: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible obtener el rol.', $e);
         }
 
         return response()->json($response, $response['success'] ? 200 : 500);
     }
 
-
     // Actualizar ROL
     public function update(Request $request, $id)
     {
-        $response = ["success" => false, "message" => "", "data" => []];
+        $response = ['success' => false, 'message' => '', 'data' => []];
 
         try {
             $rol = Role::findOrFail($id);
@@ -127,7 +136,7 @@ class RolesController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return response()->json(["error" => $validator->errors()], 422);
+                return response()->json(['error' => $validator->errors()], 422);
             }
 
             $rol->update($request->only(['name', 'guard_name']));
@@ -139,13 +148,13 @@ class RolesController extends Controller
             $response['success'] = true;
             $response['message'] = 'Rol actualizado exitosamente.';
             $response['data'] = $rol->load('permissions');
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             $response['message'] = 'Rol no encontrado.';
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             $response['message'] = 'Errores de validación.';
             $response['data'] = $e->errors();
         } catch (\Exception $e) {
-            $response['message'] = 'Error al actualizar el rol: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible actualizar el rol.', $e);
         }
 
         return response()->json($response, $response['success'] ? 200 : 500);
@@ -153,7 +162,7 @@ class RolesController extends Controller
 
     public function asignarPermisosRole(Request $request, $id)
     {
-        $response = ["success" => false, "message" => "", "data" => []];
+        $response = ['success' => false, 'message' => '', 'data' => []];
 
         $validator = Validator::make($request->all(), [
             'permissions' => 'required|array',
@@ -164,7 +173,7 @@ class RolesController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(["error" => $validator->errors()], 422);
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
         try {
@@ -174,11 +183,12 @@ class RolesController extends Controller
             $response['success'] = true;
             $response['message'] = 'Permisos del rol sincronizados exitosamente.';
             $response['data'] = $role->load('permissions');
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             $response['message'] = 'Rol no encontrado.';
+
             return response()->json($response, 404);
         } catch (\Exception $e) {
-            $response['message'] = 'Error al sincronizar permisos del rol: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible sincronizar los permisos del rol.', $e);
         }
 
         return response()->json($response, $response['success'] ? 200 : 500);
@@ -187,17 +197,15 @@ class RolesController extends Controller
     // Eliminar un ROL
     public function destroy($id)
     {
-        $response = ["success" => false, "message" => ""];
+        $response = ['success' => false, 'message' => ''];
 
         try {
             Role::findOrFail($id)->delete();
             $response['success'] = true;
             $response['message'] = 'Rol eliminado exitosamente.';
         } catch (\Exception $e) {
-            $response['message'] = 'Error al eliminar el rol: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible eliminar el rol.', $e);
         }
-
-
 
         return response()->json($response, $response['success'] ? 200 : 500);
     }

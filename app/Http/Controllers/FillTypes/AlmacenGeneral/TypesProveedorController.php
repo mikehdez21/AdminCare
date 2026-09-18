@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\FillTypes\AlmacenGeneral;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class TypesProveedorController extends Controller
@@ -11,11 +10,9 @@ class TypesProveedorController extends Controller
     public function getTiposProveedor()
     {
         try {
-            $API_tiposproveedor = Cache::store('file')->remember('catalogos.tipos_proveedor.index', now()->addMinutes(30), function () {
-                return DB::table('almacengeneral.tableRef_TiposProveedor')
-                    ->select('id_tipoproveedor', 'descripcion_tipoproveedor')
-                    ->get();
-            });
+            $API_tiposproveedor = DB::table('tableRef_TiposProveedor')
+                ->select('id_tipoproveedor', 'descripcion_tipoproveedor')
+                ->get();
 
 
             return response()->json([
@@ -27,7 +24,7 @@ class TypesProveedorController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener los tipos de proveedor.',
-                'error' => $e->getMessage()
+                'error' => $this->safeError('No fue posible obtener los tipos de proveedor.', $e)
             ], 500);
         }
     }
@@ -35,11 +32,9 @@ class TypesProveedorController extends Controller
     public function getFormasPago()
     {
         try {
-            $API_formaspago = Cache::store('file')->remember('catalogos.formas_pago_ref.index', now()->addMinutes(30), function () {
-                return DB::table('almacengeneral.tableRef_FormasPago')
-                    ->select('id_formapago', 'descripcion_formaspago')
-                    ->get();
-            });
+            $API_formaspago = DB::table('tableRef_FormasPago')
+                ->select('id_formapago', 'descripcion_formaspago')
+                ->get();
 
             return response()->json([
                 'success' => true,
@@ -50,7 +45,7 @@ class TypesProveedorController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener las formas de pago.',
-                'error' => $e->getMessage()
+                'error' => $this->safeError('No fue posible crear el tipo de proveedor.', $e)
             ], 500);
         }
     }
@@ -58,11 +53,9 @@ class TypesProveedorController extends Controller
     public function getTiposRegimen()
     {
         try {
-            $API_regimenfiscal = Cache::store('file')->remember('catalogos.regimen_fiscal.index', now()->addMinutes(30), function () {
-                return DB::table('almacengeneral.tableRef_RegimenFiscales')
-                    ->select('id_regimenfiscal', 'descripcion_regimenfiscal')
-                    ->get();
-            });
+            $API_regimenfiscal = DB::table('tableRef_RegimenFiscales')
+                ->select('id_regimenfiscal', 'descripcion_regimenfiscal')
+                ->get();
 
             return response()->json([
                 'success' => true,
@@ -73,7 +66,7 @@ class TypesProveedorController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener los regimenes fiscales.',
-                'error' => $e->getMessage()
+                'error' => $this->safeError('No fue posible actualizar el tipo de proveedor.', $e)
             ], 500);
         }
     }
@@ -81,11 +74,9 @@ class TypesProveedorController extends Controller
     public function getDescuentosProveedor()
     {
         try {
-            $API_descuentoproveedor = Cache::store('file')->remember('catalogos.descuentos_proveedor.index', now()->addMinutes(30), function () {
-                return DB::table('almacengeneral.tableRef_DescuentoProveedor')
-                    ->select('id_descuento_proveedor', 'descripcion_descuentoproveedor')
-                    ->get();
-            });
+            $API_descuentoproveedor = DB::table('tableRef_DescuentoProveedor')
+                ->select('id_descuento_proveedor', 'descripcion_descuentoproveedor')
+                ->get();
 
             return response()->json([
                 'success' => true,
@@ -96,7 +87,7 @@ class TypesProveedorController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener los descuentos del proveedor.',
-                'error' => $e->getMessage()
+                'error' => $this->safeError('No fue posible eliminar el tipo de proveedor.', $e)
             ], 500);
         }
     }
@@ -104,11 +95,9 @@ class TypesProveedorController extends Controller
     public function getTiposFacturacion()
     {
         try {
-            $API_tiposfacturacion = Cache::store('file')->remember('catalogos.tipos_facturacion.index', now()->addMinutes(30), function () {
-                return DB::table('almacengeneral.tableRef_TiposFacturacion')
-                    ->select('id_tipofacturacion', 'descripcion_tipofacturacion')
-                    ->get();
-            });
+            $API_tiposfacturacion = DB::table('tableRef_TiposFacturacion')
+                ->select('id_tipofacturacion', 'descripcion_tipofacturacion')
+                ->get();
 
             return response()->json([
                 'success' => true,
@@ -119,7 +108,7 @@ class TypesProveedorController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener los tipos de facturación.',
-                'error' => $e->getMessage()
+                'error' => $this->safeError('No fue posible obtener el tipo de proveedor.', $e)
             ], 500);
         }
     }
@@ -127,11 +116,9 @@ class TypesProveedorController extends Controller
     public function getTiposMoneda()
     {
         try {
-            $API_tiposmoneda = Cache::store('file')->remember('catalogos.tipos_moneda_ref.index', now()->addMinutes(30), function () {
-                return DB::table('almacengeneral.tableRef_TiposMonedas')
-                    ->select('id_tipomoneda', 'descripcion_tipomoneda')
-                    ->get();
-            });
+            $API_tiposmoneda = DB::table('tableRef_TiposMonedas')
+                ->select('id_tipomoneda', 'descripcion_tipomoneda')
+                ->get();
 
             return response()->json([
                 'success' => true,
@@ -142,7 +129,7 @@ class TypesProveedorController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener los tipos de moneda.',
-                'error' => $e->getMessage()
+                'error' => $this->safeError('No fue posible consultar los tipos de proveedor.', $e)
             ], 500);
         }
     }

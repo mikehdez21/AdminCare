@@ -2,44 +2,64 @@
 
 namespace App\Http\Controllers\AlmacenGeneral;
 
+use App\Http\Controllers\Concerns\Paginable;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\AlmacenGeneral\ActivosFijos;
-
+use App\Models\AlmacenGeneral\Clasificaciones;
 // MODELS - FILTROS ACTIVOS FIJOS
 use App\Models\Departamento;
-use App\Models\Ubicacion;
-use App\Models\AlmacenGeneral\Clasificaciones;
 use App\Models\Empleado;
+use App\Models\Ubicacion;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
+use App\Exceptions\DemoQuotaExceeded;
+use App\Services\DemoQuotaService;
 
 class ActivosFijosController extends Controller
 {
+    use Paginable;
+
     // Obtener todas los activos fijos
-    public function index()
+    public function index(Request $request)
     {
-        $response = ["success" => false, "data" => [], "message" => ""];
+        $response = ['success' => false, 'data' => [], 'message' => ''];
 
         try {
 
-            $activosfijos = ActivosFijos::all();
+            $resultado = $this->paginar(
+                $request,
+                ActivosFijos::query()->orderBy('id_activo_fijo', 'asc'),
+                ['descripcion_af', 'id_activo_fijo', 'codigo_lote']
+            );
 
-            if ($activosfijos->isEmpty()) {
+            $items = $resultado['items'];
+
+            if ($items->isEmpty()) {
                 $response['message'] = 'No se encontraron activos fijos.';
             } else {
                 $response['success'] = true;
-                $response['data'] = $activosfijos;
+                $response['data'] = $items;
+            }
+
+            // En modo paginado se incluye siempre el meta y success=true
+            if ($resultado['meta'] !== null) {
+                $response['success'] = true;
+                $response['meta'] = $resultado['meta'];
             }
         } catch (\Exception $e) {
-            $response['message'] = 'Error al obtener los activos fijos: ' . $e->getMessage();
+            report($e);
+            $response['message'] = 'No fue posible obtener los activos fijos.';
         }
 
         return response()->json($response, 200);
     }
 
     // Crear un nuevo activo fijo
-    public function store(Request $request)
+    public function store(Request $request, DemoQuotaService $quota)
     {
-        $response = ["success" => false, "message" => "", "data" => []];
+        $response = ['success' => false, 'message' => '', 'data' => []];
 
         try {
             $validatedData = $request->validate([
@@ -49,25 +69,36 @@ class ActivosFijosController extends Controller
                 'modelo_af' => 'required|string|max:255',
                 'marca_af' => 'required|string|max:255',
                 'numero_serie_af' => 'required|string|max:255',
-                'costo_unitario_af' => 'required|float|min:0',
+                'costo_unitario_af' => 'required|regex:/^\d+(\.\d{1,2})?$/',
                 'af_propio' => 'boolean',
                 'id_estado_af' => 'required|integer',
-                'id_clasificacion' => 'required|integer',
+                'id_clasificacion' => 'integer',
+                'af_menor' => 'boolean',
                 'fecha_registro_af' => 'required|date',
                 'observaciones_af' => 'nullable|string',
             ]);
 
-            // Usar el método estático del modelo que crea el activo y su QR
-            $resultado = ActivosFijos::crearConQR($validatedData);
+            $resultado = DB::transaction(function () use ($validatedData, $quota) {
+                $quota->assertCanAdd(1);
+                return ['success' => true, 'message' => 'Activo fijo creado exitosamente.', 'data' => ActivosFijos::create($validatedData)];
+            });
 
             $response['success'] = $resultado['success'];
             $response['message'] = $resultado['message'];
             $response['data'] = $resultado['data'];
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (DemoQuotaExceeded $e) {
+            $response['message'] = 'La demo permite como máximo 100 unidades de negocio.';
+            $response['code'] = 'DEMO_QUOTA_EXCEEDED';
+            $response['used'] = $e->used;
+            $response['requested'] = $e->requested;
+            $response['limit'] = $e->limit;
+            return response()->json($response, 422);
+        } catch (ValidationException $e) {
             $response['message'] = 'Errores de validación.';
             $response['data'] = $e->errors();
         } catch (\Exception $e) {
-            $response['message'] = 'Error al crear el activo fijo: ' . $e->getMessage();
+            report($e);
+            $response['message'] = 'No fue posible crear el activo fijo.';
         }
 
         return response()->json($response, $response['success'] ? 201 : 500);
@@ -76,7 +107,7 @@ class ActivosFijosController extends Controller
     // Actualizar un activo fijo
     public function update(Request $request, $id)
     {
-        $response = ["success" => false, "message" => "", "data" => []];
+        $response = ['success' => false, 'message' => '', 'data' => []];
 
         try {
             $activo = ActivosFijos::findOrFail($id);
@@ -85,13 +116,14 @@ class ActivosFijosController extends Controller
             $response['success'] = true;
             $response['message'] = 'Activo Fijo actualizado exitosamente.';
             $response['data'] = $activo;
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             $response['message'] = 'Activo Fijo no encontrado.';
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             $response['message'] = 'Errores de validación.';
             $response['data'] = $e->errors();
         } catch (\Exception $e) {
-            $response['message'] = 'Error al actualizar el activo fijo: ' . $e->getMessage();
+            report($e);
+            $response['message'] = 'No fue posible actualizar el activo fijo.';
         }
 
         return response()->json($response, $response['success'] ? 200 : 500);
@@ -100,14 +132,15 @@ class ActivosFijosController extends Controller
     // Eliminar un activo fijo
     public function destroy($id)
     {
-        $response = ["success" => false, "message" => ""];
+        $response = ['success' => false, 'message' => ''];
 
         try {
             ActivosFijos::findOrFail($id)->delete();
             $response['success'] = true;
             $response['message'] = 'Activo fijo eliminado exitosamente.';
         } catch (\Exception $e) {
-            $response['message'] = 'Error al eliminar el activo fijo: ' . $e->getMessage();
+            report($e);
+            $response['message'] = 'No fue posible eliminar el activo fijo.';
         }
 
         return response()->json($response, $response['success'] ? 200 : 500);
@@ -121,84 +154,117 @@ class ActivosFijosController extends Controller
 
             return response()->json($activo, 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Activo fijo no encontrado: ' . $e->getMessage()], 404);
+            return response()->json(['error' => 'Activo fijo no encontrado.'], 404);
         }
     }
-
 
     // Activos Fijos FILTRADOS //
 
     // Por Departamento
-    public function getActivosPorDepartamento($idDepartamento)
+    public function getActivosPorDepartamento(Request $request, $idDepartamento)
     {
         try {
             $departamento = Departamento::find($idDepartamento);
-            $activosPorDepartamento = ActivosFijos::porDepartamento($idDepartamento)->get();
+            $resultado = $this->paginar(
+                $request,
+                ActivosFijos::porDepartamento($idDepartamento)->orderBy('id_activo_fijo', 'asc'),
+                ['descripcion_af', 'id_activo_fijo', 'codigo_lote']
+            );
 
-            return response()->json([
+            $respuesta = [
                 'success' => true,
                 'departamento' => $departamento?->nombre_departamento,
-                'data' => $activosPorDepartamento,
-                'message' => 'Activos fijos por departamento obtenidos exitosamente.'
-            ], 200);
+                'data' => $resultado['items'],
+                'message' => 'Activos fijos por departamento obtenidos exitosamente.',
+            ];
+
+            if ($resultado['meta'] !== null) {
+                $respuesta['meta'] = $resultado['meta'];
+            }
+
+            return response()->json($respuesta, 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al obtener activos fijos por departamento: ' . $e->getMessage()
+                'message' => $this->safeError('No fue posible obtener los activos fijos por departamento.', $e),
             ], 500);
         }
     }
 
-
     // Por Ubicación
-    public function getActivosPorUbicacion($idUbicacion)
+    public function getActivosPorUbicacion(Request $request, $idUbicacion)
     {
         try {
             $ubicacion = Ubicacion::find($idUbicacion);
-            $activosPorUbicacion = ActivosFijos::porUbicacion($idUbicacion)->get();
+            $resultado = $this->paginar(
+                $request,
+                ActivosFijos::porUbicacion($idUbicacion)->orderBy('id_activo_fijo', 'asc'),
+                ['descripcion_af', 'id_activo_fijo', 'codigo_lote']
+            );
 
-            return response()->json([
+            $respuesta = [
                 'success' => true,
                 'ubicacion' => $ubicacion?->nombre_ubicacion,
-                'data' => $activosPorUbicacion,
-                'message' => 'Activos fijos por ubicación obtenidos exitosamente.'
-            ], 200);
+                'data' => $resultado['items'],
+                'message' => 'Activos fijos por ubicación obtenidos exitosamente.',
+            ];
+
+            if ($resultado['meta'] !== null) {
+                $respuesta['meta'] = $resultado['meta'];
+            }
+
+            return response()->json($respuesta, 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al obtener activos fijos por ubicación: ' . $e->getMessage()
+                'message' => $this->safeError('No fue posible obtener los activos fijos por ubicación.', $e),
             ], 500);
         }
     }
 
     // Por Clasificación
-    public function getActivosPorClasificacion($idClasificacion)
+    public function getActivosPorClasificacion(Request $request, $idClasificacion)
     {
         try {
             $clasificacion = Clasificaciones::find($idClasificacion);
-            $activosPorClasificacion = ActivosFijos::porClasificacion($idClasificacion)->get();
+            $resultado = $this->paginar(
+                $request,
+                ActivosFijos::porClasificacion($idClasificacion)->orderBy('id_activo_fijo', 'asc'),
+                ['descripcion_af', 'id_activo_fijo', 'codigo_lote']
+            );
 
-            return response()->json([
+            $respuesta = [
                 'success' => true,
                 'clasificacion' => $clasificacion?->nombre_clasificacion,
-                'data' => $activosPorClasificacion,
-                'message' => 'Activos fijos por clasificación obtenidos exitosamente.'
-            ], 200);
+                'data' => $resultado['items'],
+                'message' => 'Activos fijos por clasificación obtenidos exitosamente.',
+            ];
+
+            if ($resultado['meta'] !== null) {
+                $respuesta['meta'] = $resultado['meta'];
+            }
+
+            return response()->json($respuesta, 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al obtener activos fijos por clasificación: ' . $e->getMessage()
+                'message' => $this->safeError('No fue posible obtener los activos fijos por clasificación.', $e),
             ], 500);
         }
     }
 
     // Por Empleado
-    public function getActivosPorResponsable($idEmpleado)
+    public function getActivosPorResponsable(Request $request, $idEmpleado)
     {
         try {
             $empleado = Empleado::find($idEmpleado);
-            $activosPorEmpleado = ActivosFijos::porResponsable($idEmpleado)
-                ->get()
+            $resultado = $this->paginar(
+                $request,
+                ActivosFijos::porResponsable($idEmpleado)->orderBy('id_activo_fijo', 'asc'),
+                ['descripcion_af', 'id_activo_fijo', 'codigo_lote']
+            );
+
+            $activosPorEmpleado = $resultado['items']
                 ->map(function (ActivosFijos $activo) {
                     return [
                         'id_activo_fijo' => $activo->id_activo_fijo,
@@ -216,6 +282,7 @@ class ActivosFijosController extends Controller
                         'af_propio' => $activo->af_propio,
                         'id_estado_af' => $activo->id_estado_af,
                         'id_clasificacion' => $activo->id_clasificacion,
+                        'af_menor' => $activo->af_menor,
                         'fecha_registro_af' => $activo->fecha_registro_af,
                         'observaciones_af' => $activo->observaciones_af,
                         'ubicacion_actual' => $activo->ubicacion_actual,
@@ -225,54 +292,138 @@ class ActivosFijosController extends Controller
                     ];
                 });
 
-            return response()->json([
+            $respuesta = [
                 'success' => true,
                 'empleado' => $empleado?->nombre_empleado . ' ' . $empleado?->apellido_paterno . ' ' . $empleado?->apellido_materno,
                 'data' => $activosPorEmpleado,
-                'message' => 'Activos fijos por empleado obtenidos exitosamente.'
-            ], 200);
+                'message' => 'Activos fijos por empleado obtenidos exitosamente.',
+            ];
+
+            if ($resultado['meta'] !== null) {
+                $respuesta['meta'] = $resultado['meta'];
+            }
+
+            return response()->json($respuesta, 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al obtener activos fijos por empleado: ' . $e->getMessage()
+                'message' => $this->safeError('No fue posible obtener los activos fijos por empleado.', $e),
             ], 500);
         }
     }
 
     // Activos Fijos Dados de Baja
-    public function getActivosDadosDeBaja()
+    public function getActivosDadosDeBaja(Request $request)
     {
         try {
-            $activosDadosDeBaja = ActivosFijos::dadosDeBaja()->get();
+            $resultado = $this->paginar(
+                $request,
+                ActivosFijos::dadosDeBaja()->orderBy('id_activo_fijo', 'asc'),
+                ['descripcion_af', 'id_activo_fijo', 'codigo_lote']
+            );
 
-            return response()->json([
+            $respuesta = [
                 'success' => true,
-                'data' => $activosDadosDeBaja,
-                'message' => 'Activos fijos dados de baja obtenidos exitosamente.'
-            ], 200);
+                'data' => $resultado['items'],
+                'message' => 'Activos fijos dados de baja obtenidos exitosamente.',
+            ];
+
+            if ($resultado['meta'] !== null) {
+                $respuesta['meta'] = $resultado['meta'];
+            }
+
+            return response()->json($respuesta, 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al obtener activos fijos dados de baja: ' . $e->getMessage()
+                'message' => $this->safeError('No fue posible obtener los activos fijos dados de baja.', $e),
             ], 500);
         }
     }
 
     // Activos Fijos No Propios
-    public function getActivosNoPropios()
+    public function getActivosNoPropios(Request $request)
     {
         try {
-            $activosNoPropios = ActivosFijos::noPropios()->get();
+            $resultado = $this->paginar(
+                $request,
+                ActivosFijos::noPropios()->orderBy('id_activo_fijo', 'asc'),
+                ['descripcion_af', 'id_activo_fijo', 'codigo_lote']
+            );
 
-            return response()->json([
+            $respuesta = [
                 'success' => true,
-                'data' => $activosNoPropios,
-                'message' => 'Activos fijos no propios obtenidos exitosamente.'
-            ], 200);
+                'data' => $resultado['items'],
+                'message' => 'Activos fijos no propios obtenidos exitosamente.',
+            ];
+
+            if ($resultado['meta'] !== null) {
+                $respuesta['meta'] = $resultado['meta'];
+            }
+
+            return response()->json($respuesta, 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al obtener activos fijos no propios: ' . $e->getMessage()
+                'message' => $this->safeError('No fue posible obtener los activos fijos no propios.', $e),
+            ], 500);
+        }
+    }
+
+    // Activos Fijos Menores
+    public function getActivosMenores(Request $request)
+    {
+        try {
+            $resultado = $this->paginar(
+                $request,
+                ActivosFijos::activosMenores()->orderBy('id_activo_fijo', 'asc'),
+                ['descripcion_af', 'id_activo_fijo', 'codigo_lote']
+            );
+
+            $respuesta = [
+                'success' => true,
+                'data' => $resultado['items'],
+                'message' => 'Activos fijos menores obtenidos exitosamente.',
+            ];
+
+            if ($resultado['meta'] !== null) {
+                $respuesta['meta'] = $resultado['meta'];
+            }
+
+            return response()->json($respuesta, 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $this->safeError('No fue posible obtener los activos fijos menores.', $e),
+            ], 500);
+        }
+    }
+
+    // Activos Fijos Sin Factura
+    public function getActivosSinFactura(Request $request)
+    {
+        try {
+            $resultado = $this->paginar(
+                $request,
+                ActivosFijos::sinFactura()->orderBy('id_activo_fijo', 'asc'),
+                ['descripcion_af', 'id_activo_fijo', 'codigo_lote']
+            );
+
+            $respuesta = [
+                'success' => true,
+                'data' => $resultado['items'],
+                'message' => 'Activos fijos sin factura obtenidos exitosamente.',
+            ];
+
+            if ($resultado['meta'] !== null) {
+                $respuesta['meta'] = $resultado['meta'];
+            }
+
+            return response()->json($respuesta, 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $this->safeError('No fue posible obtener los activos fijos sin factura.', $e),
             ], 500);
         }
     }

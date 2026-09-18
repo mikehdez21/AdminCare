@@ -8,9 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Clasificaciones extends Model
 {
+    use \App\Models\Concerns\UsesAlmacenGeneralTable;
     use HasFactory, HasApiTokens;
 
-    protected $table = 'almacengeneral.tableRef_ClasificacionesAF'; // Especifica el nombre de la tabla
+    protected $table = 'tableRef_ClasificacionesAF'; // Especifica el nombre de la tabla
     protected $primaryKey = 'id_clasificacion'; // Especifica el campo de la clave primaria
 
     protected $fillable = [

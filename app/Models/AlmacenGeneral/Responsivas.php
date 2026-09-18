@@ -6,7 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Responsiva extends Model
 {
-    protected $table = 'almacengeneral.tableAF_Responsivas';
+    use \App\Models\Concerns\UsesAlmacenGeneralTable;
+    protected $table = 'tableAF_Responsivas';
     protected $primaryKey = 'id_responsiva';
 
     protected $fillable = [

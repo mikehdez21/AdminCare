@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Session\Middleware\StartSession;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 // Api/Controllers
@@ -28,7 +30,6 @@ use App\Http\Controllers\AlmacenGeneral\FacturaController;
 use App\Http\Controllers\AlmacenGeneral\FacturaActivosController;
 use App\Http\Controllers\AlmacenGeneral\ActivosFijosController;
 use App\Http\Controllers\AlmacenGeneral\MovimientosActivosFijosController;
-use App\Http\Controllers\AlmacenGeneral\CodigosQRAFController;
 use App\Http\Controllers\AlmacenGeneral\PrinterController;
 
 // AlmacenGeneral -- ParamsControllers
@@ -37,6 +38,7 @@ use App\Http\Controllers\AlmacenGeneral\TiposFacturaController;
 use App\Http\Controllers\AlmacenGeneral\FormaPagoController;
 use App\Http\Controllers\AlmacenGeneral\TiposMonedaController;
 use App\Http\Controllers\AlmacenGeneral\EstatusAFController;
+use App\Http\Controllers\AlmacenGeneral\CodigosQRAFController;
 
 
 //  -   // AlmacenGeneral
@@ -65,6 +67,25 @@ Route::prefix('HSS1')->group(function () {
             ShareErrorsFromSession::class,
         ]);
 
+    // Resolución pública y de solo lectura para QR generados en navegador.
+    // Se mantiene fuera de auth, pero limitada para evitar enumeración abusiva.
+    Route::get('/activosfijos/qraf/{codigoQR}', [CodigosQRAFController::class, 'resolverQR'])
+        ->where('codigoQR', '[^/]+')
+        // This endpoint is intentionally stateless. Keep the API group's
+        // session/Sanctum/CSRF behavior for every other route.
+        ->withoutMiddleware([
+            EnsureFrontendRequestsAreStateful::class,
+            StartSession::class,
+            EncryptCookies::class,
+            ShareErrorsFromSession::class,
+            VerifyCsrfToken::class,
+        ])
+        ->middleware('throttle:60,1')
+        ->name('public.qraf.resolve');
+
+    // Compatibilidad con la ruta histórica de escaneo QR.
+    Route::get('/almacengeneral/qraf/scan/{codigoQR}', [CodigosQRAFController::class, 'escanearQR']);
+
     // ============================================================
     // RUTAS DE AUTENTICACIÓN (sin protección, con sesión + CSRF)
     // ============================================================
@@ -78,15 +99,6 @@ Route::prefix('HSS1')->group(function () {
     });
 
 
-    // ============================================================
-    // RUTA PÚBLICA DE ESCANEO QR (sin autenticación)
-    // ============================================================
-    Route::get('/almacengeneral/qraf/scan/{codigoQR}', [CodigosQRAFController::class, 'escanearQR']);
-
-
-
-
-    
     // ============================================================
     // RUTAS PROTEGIDAS (auth:sanctum con sesión + CSRF)
     // ============================================================
@@ -118,7 +130,6 @@ Route::prefix('HSS1')->group(function () {
 
             // FACTURAS
             Route::apiResource('/almacengeneral/facturas', FacturaController::class);
-            Route::get('/almacengeneral/tipos-facturas', [FacturaController::class, 'getTiposFacturas']);
             
             // FACTURA-ACTIVOS
             Route::get('/almacengeneral/facturas/{idFactura}/activos', [FacturaActivosController::class, 'getActivosByFactura']);
@@ -132,8 +143,8 @@ Route::prefix('HSS1')->group(function () {
             // CLASIFICACIONES
             Route::apiResource('/almacengeneral/clasificaciones', ClasificacionController::class);
             
-            // TIPOS DE FACTURA
-            Route::apiResource('/almacengeneral/tiposfactura', TiposFacturaController::class);
+            // TIPOS DE FACTURA. El recurso canónico es plural en todos sus verbos.
+            Route::apiResource('/almacengeneral/tiposfacturas', TiposFacturaController::class);
 
             // FORMAS DE PAGO
             Route::apiResource('/almacengeneral/formaspago', FormaPagoController::class);
@@ -152,15 +163,17 @@ Route::prefix('HSS1')->group(function () {
             Route::get('/almacengeneral/activosfijos/ubicacion/{idUbicacion}', [ActivosFijosController::class, 'getActivosPorUbicacion']);
             Route::get('/almacengeneral/activosfijos/clasificacion/{idClasificacion}', [ActivosFijosController::class, 'getActivosPorClasificacion']);
             Route::get('/almacengeneral/activosfijos/responsable/{idEmpleado}', [ActivosFijosController::class, 'getActivosPorResponsable']);
-            Route::get('/almacengeneral/activosfijos-bajas', [ActivosFijosController::class, 'getActivosDadosDeBaja']);
-            Route::get('/almacengeneral/activosfijos-nopropios', [ActivosFijosController::class, 'getActivosNoPropios']);
+             Route::get('/almacengeneral/activosfijos-bajas', [ActivosFijosController::class, 'getActivosDadosDeBaja']);
+             Route::get('/almacengeneral/activosfijos-nopropios', [ActivosFijosController::class, 'getActivosNoPropios']);
+             Route::get('/almacengeneral/activosfijos-sinfactura', [ActivosFijosController::class, 'getActivosSinFactura']);
 
             // ACTIVOS FIJOS - MOVIMIENTOS 
             Route::apiResource('/almacengeneral/movimientos-activosfijos', MovimientosActivosFijosController::class);
             Route::get('/almacengeneral/view-activosfijos', [MovimientosActivosFijosController::class, 'getVWMovimientosAFCompletos']);
             Route::get('/almacengeneral/tipos-movimientosaf', [MovimientosActivosFijosController::class, 'getTiposMovimientosAF']);
-            
+
             // ACTIVOS FIJOS - CÓDIGOS QR
+            // Las restricciones de DEMO_MODE permanecen en los métodos del controlador.
             Route::prefix('almacengeneral/qraf')->group(function () {
                 Route::post('generar/{idActivo}', [CodigosQRAFController::class, 'generarQR']);
                 Route::post('generar-con-logo/{idActivo}', [CodigosQRAFController::class, 'generarQRConLogo']);
@@ -173,12 +186,12 @@ Route::prefix('HSS1')->group(function () {
             Route::prefix('almacengeneral/printer')->group(function () {
                 Route::post('etiqueta/{idActivo}', [PrinterController::class, 'imprimirEtiquetaZebra']);
                 Route::post('etiquetas-batch', [PrinterController::class, 'imprimirEtiquetasBatch']);
+                Route::post('preview-zpl/{idActivo}', [PrinterController::class, 'previewZPL']);
                 Route::get('test', [PrinterController::class, 'testConexion']);
                 Route::get('config', [PrinterController::class, 'obtenerConfiguracion']);
-                Route::post('preview-zpl/{idActivo}', [PrinterController::class, 'previewZPL']);
             });
 
-        });
+         });
 
 
        // CONTABILIDAD

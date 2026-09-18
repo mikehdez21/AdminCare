@@ -7,7 +7,6 @@ use Exception;
 
 class DepreciacionService
 {
-    
     /**
      * Calcula la depreciación anual de un activo
      * 

@@ -10,9 +10,10 @@ use App\Traits\TieneArchivos;
 
 class FacturaAF extends Model
 {
+    use \App\Models\Concerns\UsesAlmacenGeneralTable;
     use HasFactory, HasApiTokens, TieneArchivos;
 
-    protected $table = 'almacengeneral.tableAF_Facturas'; // Nombre de la tabla
+    protected $table = 'tableAF_Facturas'; // Nombre de la tabla
     protected $primaryKey = 'id_factura'; // Clave primaria
 
     protected $fillable = [
@@ -47,7 +48,7 @@ class FacturaAF extends Model
     {
         return $this->belongsToMany(
             ActivosFijos::class,
-            'almacengeneral.tableInter_FacturaActivos',
+            'tableInter_FacturaActivos',
             'id_factura',
             'id_activo_fijo',
             'id_factura',

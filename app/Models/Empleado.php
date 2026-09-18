@@ -20,15 +20,13 @@ class Empleado extends Model
         'nombre_empleado',
         'apellido_paterno',
         'apellido_materno',
-        'email_empleado',
-        'telefono_empleado',
         'genero',
         'fecha_nacimiento',
         'estatus_activo',
+        'jefatura_empleado',
         'fecha_alta',
         'fecha_baja',
         'foto_empleado',
-        'firma_movimientos',
         'id_departamento',
     ];
 
@@ -40,6 +38,7 @@ class Empleado extends Model
     // Conversiones de tipos de campos
     protected $casts = [
         'estatus_activo' => 'boolean', // Convierte el campo 'estatus_activo' a booleano
+        'jefatura_empleado' => 'boolean', // Convierte el campo 'jefatura_empleado' a booleano
         'fecha_nacimiento' => 'date', // Convierte el campo 'fecha_nacimiento' a tipo fecha
     ];
 

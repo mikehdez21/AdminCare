@@ -2,51 +2,64 @@
 
 namespace App\Http\Controllers\AdminControllers;
 
-
+use App\Http\Controllers\Concerns\Paginable;
+use App\Http\Controllers\Controller;
 use App\Models\Ubicacion;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use App\Http\Controllers\Controller;
+use Illuminate\Validation\ValidationException;
 
 class UbicacionController extends Controller
 {
+    use Paginable;
 
     // Obtener Todos los Ubicaciones
-    public function index()
+    public function index(Request $request)
     {
-        $response = ["success" => false, "data" => [], "message" => ""];
-
+        $response = ['success' => false, 'data' => [], 'message' => ''];
 
         try {
+            $resultado = $this->paginar(
+                $request,
+                Ubicacion::query()
+                    ->select([
+                        'id_ubicacion',
+                        'nombre_ubicacion',
+                        'descripcion_ubicacion',
+                        'estatus_activo',
+                        'created_at',
+                        'updated_at',
+                    ])
+                    ->orderBy('id_ubicacion', 'asc'),
+                ['nombre_ubicacion', 'id_ubicacion']
+            );
 
-            $ubicaciones = Ubicacion::all([
-                'id_ubicacion',
-                'nombre_ubicacion',
-                'descripcion_ubicacion',
-                'estatus_activo',
-                'created_at',
-                'updated_at'
-            ]);
+            $items = $resultado['items'];
 
-
-            if ($ubicaciones->isEmpty()) {
+            if ($items->isEmpty()) {
                 $response['message'] = 'No se encontraron ubicaciones.';
             } else {
                 $response['success'] = true;
-                $response['data'] = $ubicaciones;
+                $response['data'] = $items;
+            }
+
+            // En modo paginado se incluye siempre el meta y success=true
+            if ($resultado['meta'] !== null) {
+                $response['success'] = true;
+                $response['meta'] = $resultado['meta'];
             }
         } catch (\Exception $e) {
-            $response['message'] = 'Error al obtener los ubicaciones: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible obtener las ubicaciones.', $e);
         }
 
         return response()->json($response, 200);
     }
 
-
-    /// STORE (crear Ubicaciones)
+    // / STORE (crear Ubicaciones)
     public function store(Request $request)
     {
-        $response = ["success" => false, "message" => "", "data" => []];
+        $response = ['success' => false, 'message' => '', 'data' => []];
 
         $validator = Validator::make($request->all(), [
             'nombre_ubicacion' => 'required|string|max:255',
@@ -54,7 +67,7 @@ class UbicacionController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(["error" => $validator->errors()], 422);
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
         try {
@@ -64,24 +77,23 @@ class UbicacionController extends Controller
             // Crear la ubicacion con los datos del request
             $ubicacion = Ubicacion::create($input);
 
-
-            $response["success"] = true;
+            $response['success'] = true;
             $response['message'] = 'Ubicación registrada exitosamente!';
             $response['data'] = $ubicacion;
         } catch (\Exception $e) {
-            $response['message'] = 'Error al crear la ubicación: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible crear la ubicación.', $e);
         }
 
         return response()->json($response, $response['success'] ? 201 : 500);
     }
 
-    // Obtener una ubicación por ID     
+    // Obtener una ubicación por ID
     public function show($id_ubicacion) {}
 
     // Actualizar Ubicación
     public function update(Request $request, $id_ubicacion)
     {
-        $response = ["success" => false, "message" => "", "data" => []];
+        $response = ['success' => false, 'message' => '', 'data' => []];
 
         try {
             $ubicacion = Ubicacion::findOrFail($id_ubicacion);
@@ -90,13 +102,13 @@ class UbicacionController extends Controller
             $response['success'] = true;
             $response['message'] = 'Ubicación actualizada exitosamente.';
             $response['data'] = $ubicacion;
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             $response['message'] = 'Ubicación no encontrada.';
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             $response['message'] = 'Errores de validación.';
             $response['data'] = $e->errors();
         } catch (\Exception $e) {
-            $response['message'] = 'Error al actualizar la ubicación: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible actualizar la ubicación.', $e);
         }
 
         return response()->json($response, $response['success'] ? 200 : 500);
@@ -105,16 +117,15 @@ class UbicacionController extends Controller
     // Eliminar una Ubicación
     public function destroy($id_ubicacion)
     {
-        $response = ["success" => false, "message" => ""];
+        $response = ['success' => false, 'message' => ''];
 
         try {
             Ubicacion::findOrFail($id_ubicacion)->delete();
             $response['success'] = true;
             $response['message'] = 'Ubicación eliminada exitosamente.';
         } catch (\Exception $e) {
-            $response['message'] = 'Error al eliminar la ubicación: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible eliminar la ubicación.', $e);
         }
-
 
         return response()->json($response, $response['success'] ? 200 : 500);
     }

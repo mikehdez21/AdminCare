@@ -9,7 +9,6 @@ use App\Models\AlmacenGeneral\EstatusActivosFijos;
 
 class EstatusAFController extends Controller
 {
-    
     // Obtener todos los estatus de activos fijos
     public function index()
     {
@@ -30,7 +29,7 @@ class EstatusAFController extends Controller
                 $response['data'] = $estatus;
             }
         } catch (\Exception $e) {
-            $response['message'] = 'Error al obtener los estatus de activos fijos: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible obtener los estatus de activos fijos.', $e);
         }
 
         return response()->json($response, 200);
@@ -57,7 +56,7 @@ class EstatusAFController extends Controller
             $response['message'] = 'Estatus de activos fijos registrado exitosamente!';
             $response['data'] = $estatus;
         } catch (\Exception $e) {
-            $response['message'] = 'Error al crear el estatus de activos fijos: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible crear el estatus de activos fijos.', $e);
         }
 
         return response()->json($response, $response['success'] ? 201 : 500);
@@ -76,7 +75,7 @@ class EstatusAFController extends Controller
             $response['message'] = 'Estatus de activos fijos actualizado exitosamente.';
             $response['data'] = $estatus;
         } catch (\Exception $e) {
-            $response['message'] = 'Error al actualizar el estatus de activos fijos: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible actualizar el estatus de activos fijos.', $e);
         }
 
         return response()->json($response, $response['success'] ? 200 : 500);
@@ -93,7 +92,7 @@ class EstatusAFController extends Controller
             $response['message'] = 'Estatus de activos fijos eliminado exitosamente.';
             return response()->json($response, 200);
         } catch (\Exception $e) {
-            $response['message'] = 'Error al eliminar el estatus de activos fijos: ' . $e->getMessage();
+            $response['message'] = $this->safeError('No fue posible eliminar el estatus de activos fijos.', $e);
             return response()->json($response, 500);
         }
     }

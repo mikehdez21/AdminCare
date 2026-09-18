@@ -18,7 +18,8 @@ use Illuminate\Support\Facades\Storage;
 
 class CodigosQRAF extends Model
 {
-    protected $table = 'almacengeneral.tableAF_CodigosQR';
+    use \App\Models\Concerns\UsesAlmacenGeneralTable;
+    protected $table = 'tableAF_CodigosQR';
     protected $primaryKey = 'id_qraf';
 
     protected $fillable = [
@@ -38,6 +39,22 @@ class CodigosQRAF extends Model
         'fecha_ultimo_escaneo' => 'datetime',
     ];
 
+    private static function demoDisabled(): ?array
+    {
+        if (config('app.demo_mode')) {
+            return ['success' => false, 'message' => 'La generación de QR no está disponible en la demo.', 'data' => null];
+        }
+
+        return null;
+    }
+
+    private static function assertGenerationEnabled(): void
+    {
+        if (config('app.demo_mode')) {
+            throw new \RuntimeException('La generación de QR no está disponible en la demo.');
+        }
+    }
+
     // Relación con activo fijo
     public function activoFijo()
     {
@@ -53,15 +70,94 @@ class CodigosQRAF extends Model
     }
 
     /**
+     * Generar QR completo para un activo fijo que fue removido de una factura
+     *
+     * @param int $idActivo ID del activo fijo
+     * @return array ['success' => bool, 'message' => string, 'data' => array]
+     */
+    public static function generarQRActivoSinFactura($idActivo)
+    {
+        if ($disabled = self::demoDisabled()) {
+            return $disabled;
+        }
+        try {
+            $activo = ActivosFijos::findOrFail($idActivo);
+
+
+            // Generar código único
+            $codigoQR = 'QR' . $activo->codigo_unico . '-SINFACTURA';
+            $appUrl = rtrim((string) config('app.url'), '/');
+            $urlDestino = $appUrl . '/activosfijos/qraf/' . rawurlencode($codigoQR);
+
+            // Crear registro en la base de datos
+            $qraf = self::create([
+                'id_activo_fijo' => $idActivo,
+                'codigo_qr' => $codigoQR,
+                'url_destino' => $urlDestino,
+                'fecha_generacion' => now(),
+                'activo' => true,
+            ]);
+
+            // Generar imagen QR con etiqueta
+            $label = $activo->codigo_etiqueta;
+            $imagenBase64 = $qraf->generarImagenQR(300, $label);
+
+            // Guardar en storage
+            $rutaGuardada = null;
+            $warning = null;
+
+            try {
+                $rutaGuardada = $qraf->guardarImagenQR('qr_codes/activos');
+            } catch (\Exception $storageException) {
+                $warning = 'QR generado, pero no se pudo guardar el archivo en storage.';
+
+                Log::warning($warning, [
+                    'id_activo_fijo' => $idActivo,
+                    'codigo_qr' => $codigoQR,
+                    'exception' => get_class($storageException),
+                ]);
+            }
+
+            return [
+                'success' => true,
+                'message' => $warning ?: 'Código QR generado exitosamente.',
+                'data' => [
+                    'qraf' => $qraf,
+                    'imagen_base64' => $imagenBase64,
+                    'url_imagen' => $qraf->url_imagen_qr,
+                    'ruta_guardada' => $rutaGuardada,
+                    'ya_existia' => false,
+                ],
+            ];
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return [
+                'success' => false,
+                'message' => 'Activo fijo no encontrado.',
+                'data' => null,
+            ];
+        } catch (\Exception $e) {
+            Log::error('QR generation failed.', ['exception' => get_class($e), 'id_activo_fijo' => $idActivo]);
+            return [
+                'success' => false,
+                'message' => 'No fue posible generar el código QR.',
+                'data' => null,
+            ];
+        }
+    }
+
+    /**
      * Generar QR completo para un activo fijo
      * Incluye: creación en BD, generación de imagen y guardado en storage
-     * 
+     *
      * @param int $idActivo ID del activo fijo
      * @param bool $forzarNuevo Si es true, crea uno nuevo aunque ya exista uno activo
      * @return array ['success' => bool, 'message' => string, 'data' => array]
      */
     public static function generarParaActivo($idActivo, $forzarNuevo = false)
     {
+        if ($disabled = self::demoDisabled()) {
+            return $disabled;
+        }
         try {
             // Verificar que el activo existe
             $activo = ActivosFijos::findOrFail($idActivo);
@@ -91,8 +187,8 @@ class CodigosQRAF extends Model
 
             // Generar código único
             $codigoQR = self::generarCodigo($idActivo);
-            $frontendUrl = rtrim((string) config('app.frontend_url', config('app.url')), '/');
-            $urlDestino = $frontendUrl . '/activosfijos/qraf/' . rawurlencode($codigoQR);
+            $appUrl = rtrim((string) config('app.url'), '/');
+            $urlDestino = $appUrl . '/activosfijos/qraf/' . rawurlencode($codigoQR);
 
             // Crear registro en la base de datos
             $qraf = self::create([
@@ -119,7 +215,7 @@ class CodigosQRAF extends Model
                 Log::warning($warning, [
                     'id_activo_fijo' => $idActivo,
                     'codigo_qr' => $codigoQR,
-                    'message' => $storageException->getMessage(),
+                    'exception' => get_class($storageException),
                 ]);
             }
 
@@ -134,7 +230,83 @@ class CodigosQRAF extends Model
                     'ya_existia' => false,
                 ],
             ];
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return [
+                'success' => false,
+                'message' => 'Activo fijo no encontrado.',
+                'data' => null,
+            ];
+        } catch (\Exception $e) {
+            Log::error('QR generation failed.', ['exception' => get_class($e), 'id_activo_fijo' => $idActivo]);
+            return [
+                'success' => false,
+                'message' => 'No fue posible generar el código QR.',
+                'data' => null,
+            ];
+        }
+    }
 
+    /**
+     * Regenerar QR completo para un activo fijo que fue removido de una factura
+     *
+     * @param int $idActivo ID del activo fijo
+     * @return array ['success' => bool, 'message' => string, 'data' => array]
+     */
+    public static function regenerarQRActivoSinFactura($idActivo)
+    {
+        if ($disabled = self::demoDisabled()) {
+            return $disabled;
+        }
+        try {
+            $activo = ActivosFijos::findOrFail($idActivo);
+
+
+            // Generar código único
+            $codigoQR = 'QR' . $activo->codigo_unico . '-SINFACTURA';
+            $appUrl = rtrim((string) config('app.url'), '/');
+            $urlDestino = $appUrl . '/activosfijos/qraf/' . rawurlencode($codigoQR);
+
+            // buscar QR en BD y actualizar solo el campo codigo_qr y url_destino
+            // Verificar si ya existe un QR activo
+            $qrExistente = self::where('id_activo_fijo', $idActivo)
+                ->where('activo', true)
+                ->first();
+
+            $qrExistente->codigo_qr = $codigoQR;
+            $qrExistente->url_destino = $urlDestino;
+            $qrExistente->save();
+
+            // Generar imagen QR con etiqueta
+            $label = $activo->codigo_etiqueta;
+            $imagenBase64 = $qrExistente->generarImagenQR(300, $label);
+
+            // Guardar en storage
+            $rutaGuardada = null;
+            $warning = null;
+
+            try {
+                $rutaGuardada = $qrExistente->guardarImagenQR('qr_codes/activos');
+            } catch (\Exception $storageException) {
+                $warning = 'QR generado, pero no se pudo guardar el archivo en storage.';
+
+                Log::warning($warning, [
+                    'id_activo_fijo' => $idActivo,
+                    'codigo_qr' => $codigoQR,
+                    'exception' => get_class($storageException),
+                ]);
+            }
+
+            return [
+                'success' => true,
+                'message' => $warning ?: 'Código QR generado exitosamente.',
+                'data' => [
+                    'qraf' => $qrExistente,
+                    'imagen_base64' => $imagenBase64,
+                    'url_imagen' => $qrExistente->url_imagen_qr,
+                    'ruta_guardada' => $rutaGuardada,
+                    'ya_existia' => false,
+                ],
+            ];
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return [
                 'success' => false,
@@ -144,14 +316,94 @@ class CodigosQRAF extends Model
         } catch (\Exception $e) {
             return [
                 'success' => false,
-                'message' => 'Error al generar el código QR: ' . $e->getMessage(),
+                'message' => 'No fue posible generar el código QR.',
+                'data' => null,
+            ];
+        }
+    }
+
+    /**
+     * Regenerar QR completo para un activo fijo que ha sido asociado a una factura
+     * y ha cambiado su etiqueta/código de lote.
+     *
+     * @param int $idActivo ID del activo fijo
+     * @return array ['success' => bool, 'message' => string, 'data' => array|null]
+     */
+    public static function regenerarQRActivoConFactura($idActivo)
+    {
+        if ($disabled = self::demoDisabled()) {
+            return $disabled;
+        }
+        try {
+            $activo = ActivosFijos::findOrFail($idActivo);
+
+            // El código QR se genera basado en la etiqueta actual del activo, que ya debería tener el formato correcto
+            // para el lote/factura actual, por ejemplo 'ABC123-F1-L5-C1-LT2' (generado en FacturaController@update)
+            $codigoQR = 'QR' . $activo->codigo_etiqueta; // Usa el codigo_etiqueta actualizado del activo
+
+            $appUrl = rtrim((string) config('app.url'), '/');
+            $urlDestino = $appUrl . '/activosfijos/qraf/' . rawurlencode($codigoQR);
+
+            // Buscar el QR existente activo para este activo
+            $qrExistente = self::where('id_activo_fijo', $idActivo)->where('activo', true)->first();
+
+            if (!$qrExistente) {
+                // Opcional: Si no hay QR activo, podrías querer crear uno nuevo en lugar de fallar.
+                // Para consistencia con la idea de "regenerar", asumiremos que debería existir.
+                // Si quieres crear uno nuevo si no existe, cambia este comportamiento.
+                return [
+                    'success' => false,
+                    'message' => 'No se encontró un código QR activo para regenerar.',
+                    'data' => null,
+                ];
+                // O para crear uno nuevo si no existe:
+                // return self::generarParaActivo($idActivo, true); // Asumiendo que generarParaActivo maneja correctamente la creación si no existe
+            }
+
+            // Actualizar los campos del QR existente
+            $qrExistente->codigo_qr = $codigoQR;
+            $qrExistente->url_destino = $urlDestino;
+            $qrExistente->fecha_generacion = now(); // Opcional: Actualizar fecha de generación
+            // 'activo' se mantiene en true
+            $qrExistente->save();
+
+            // Generar la nueva imagen QR con la etiqueta actualizada
+            $label = $activo->codigo_etiqueta; // Etiqueta actualizada
+            $imagenBase64 = $qrExistente->generarImagenQR(300, $label);
+
+            $rutaGuardada = null;
+            $warning = null;
+            try {
+                $rutaGuardada = $qrExistente->guardarImagenQR('qr_codes/activos'); // Opcional: ruta específica
+            } catch (\Exception $storageException) {
+                $warning = 'Advertencia: no se pudo guardar la imagen QR en disco.';
+                Log::warning('QR image persistence failed.', ['exception' => get_class($storageException), 'id_activo_fijo' => $idActivo]);
+                // Log::warning($warning, ['id_activo_fijo' => $idActivo, 'exception' => $storageException]);
+            }
+
+            return [
+                'success' => true,
+                'message' => 'Código QR regenerado exitosamente.',
+                'data' => [
+                    'id_codigo_qr' => $qrExistente->id_codigo_qr,
+                    'codigo_qr' => $qrExistente->codigo_qr,
+                    'url_destino' => $qrExistente->url_destino,
+                    'imagen_base64' => $imagenBase64,
+                    'ruta_guardada' => $rutaGuardada,
+                    'warning' => $warning,
+                ]
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'No fue posible regenerar el código QR.',
                 'data' => null,
             ];
         }
     }
 
 
-    
+
 
     /**
      * Generar imagen QR usando endroid/qr-code v6
@@ -162,8 +414,9 @@ class CodigosQRAF extends Model
      */
     public function generarImagenQR($size = 300, $label = null)
     {
+        self::assertGenerationEnabled();
         $writer = extension_loaded('gd') ? new PngWriter() : new SvgWriter();
-        
+
         // Crear el código QR con todos los parámetros en el constructor
         $qrCode = new QrCode(
             data: $this->url_destino,
@@ -197,9 +450,12 @@ class CodigosQRAF extends Model
      */
     public function guardarImagenQR($carpeta = 'qr_codes')
     {
+        // Defense in depth: legacy callers must not create directories or write
+        // files in DEMO_MODE, even when they bypass the controller/model guards.
+        self::assertGenerationEnabled();
         try {
             $disk = Storage::disk('public');
-            
+
             // Crear el directorio si no existe (recursivo)
             if (!$disk->exists($carpeta)) {
                 $dirCreado = $disk->makeDirectory($carpeta, 0755, true);
@@ -207,7 +463,7 @@ class CodigosQRAF extends Model
             }
 
             $writer = extension_loaded('gd') ? new PngWriter() : new SvgWriter();
-            
+
             // Crear el código QR con todos los parámetros en el constructor
             $qrCode = new QrCode(
                 data: $this->url_destino,
@@ -232,7 +488,7 @@ class CodigosQRAF extends Model
             // Guardar en storage/app/public/qr_codes
             $contenido = $result->getString();
             $guardado = $disk->put($ruta, $contenido);
-            
+
             if (!$guardado) {
                 Log::error("Fallo al guardar QR", [
                     'ruta' => $ruta,
@@ -256,11 +512,10 @@ class CodigosQRAF extends Model
             ]);
 
             return $ruta;
-
         } catch (\Exception $e) {
-            Log::error("Error al guardar imagen QR: " . $e->getMessage(), [
+            Log::error('Error al guardar imagen QR.', [
                 'codigo_qr' => $this->codigo_qr,
-                'trace' => $e->getTraceAsString()
+                'exception' => get_class($e),
             ]);
             throw $e;
         }
@@ -298,8 +553,9 @@ class CodigosQRAF extends Model
      */
     public function generarImagenQRConLogo($rutaLogo, $size = 300)
     {
+        self::assertGenerationEnabled();
         $writer = new PngWriter();
-        
+
         // Crear el código QR con todos los parámetros en el constructor
         $qrCode = new QrCode(
             data: $this->url_destino,

@@ -8,9 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class FacturaActivos extends Model
 {
+    use \App\Models\Concerns\UsesAlmacenGeneralTable;
     use HasFactory, HasApiTokens;
 
-    protected $table = 'almacengeneral.tableInter_FacturaActivos'; // Nombre de la tabla
+    protected $table = 'tableInter_FacturaActivos'; // Nombre de la tabla
     protected $primaryKey = 'id_facturaactivos'; // Clave primaria
 
     protected $fillable = [

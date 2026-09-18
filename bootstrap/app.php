@@ -9,8 +9,12 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use App\Http\Middleware\HandleDatabaseErrors;
+use App\Exceptions\DemoQuotaExceeded;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 
 
@@ -45,27 +49,60 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        // Manejar excepciones de base de datos a nivel global
-        $exceptions->render(function (\Illuminate\Database\QueryException $e, $request) {
-            $errorCode = $e->getCode();
-            $errorMessage = $e->getMessage();
+        $exceptions->dontReport(QueryException::class);
 
-            // Log del error para debugging
-            Log::error('Global database exception: ' . $errorMessage);
+        // The public QR endpoint keeps Laravel's 60/minute throttle, but its
+        // rate-limit response must use the same API envelope as 200/404.
+        // Scope this to the named route so other endpoints retain Laravel's
+        // default throttling response.
+        $exceptions->render(function (ThrottleRequestsException $e, $request) {
+            if (! $request->routeIs('public.qraf.resolve')) {
+                return null;
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Demasiadas solicitudes. Intenta de nuevo más tarde.',
+                'data' => null,
+            ], 429, $e->getHeaders());
+        });
+
+        $exceptions->render(function (DemoQuotaExceeded $e, $request) {
+            return response()->json([
+                'success' => false,
+                'code' => 'DEMO_QUOTA_EXCEEDED',
+                'message' => 'La demo permite como máximo 100 unidades de negocio.',
+                'used' => $e->used,
+                'requested' => $e->requested,
+                'limit' => $e->limit,
+            ], 422);
+        });
+
+        // Manejar excepciones de base de datos a nivel global
+        $exceptions->render(function (QueryException $e, $request) {
+            $errorCode = $e->getCode();
+            $errorId = (string) Str::uuid();
+
+            Log::error('Global database exception', [
+                'error_id' => $errorId,
+                'exception' => get_class($e),
+                'path' => $request->path(),
+                'method' => $request->method(),
+                'code' => (string) $errorCode,
+            ]);
 
             // Verificar si es un error de tabla no encontrada
             if (
                 $errorCode == '42P01' || $errorCode == '1146' ||
-                strpos($errorMessage, 'no existe la relación') !== false ||
-                strpos($errorMessage, "doesn't exist") !== false ||
-                strpos($errorMessage, 'sessions') !== false
+                in_array((string) $errorCode, ['42P01', '1146', '23000'], true)
             ) {
 
                 // Si es una solicitud específica de API, devolver JSON
                 if ($request->is('api/*')) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Error en base de datos. Contacta a Sistemas.'
+                        'message' => 'Error en base de datos. Contacta a Sistemas.',
+                        'error_id' => $errorId,
                     ], 500);
                 }
 
@@ -73,7 +110,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 if ($request->expectsJson() || $request->ajax()) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Error en base de datos. Contacta a Sistemas.'
+                        'message' => 'Error en base de datos. Contacta a Sistemas.',
+                        'error_id' => $errorId,
                     ], 500);
                 }
 
@@ -86,7 +124,8 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->is('api/*') || $request->expectsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Error de conexión a la base de datos. Intenta más tarde.'
+                    'message' => 'Error de conexión a la base de datos. Intenta más tarde.',
+                    'error_id' => $errorId,
                 ], 500);
             }
 
