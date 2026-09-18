@@ -133,7 +133,7 @@ export const MyDocument = ({ activosFacturaResponsable, infoResponsable, infoFac
     <Document>
         <Page size="LETTER" style={styles.page}>
             <View>
-                <Text style={{ fontSize: 18, color: '#333', textAlign: 'center', marginBottom: 6, fontWeight: 'bold' }}>Hospital San Serafín</Text>
+                <Text style={{ fontSize: 18, color: '#333', textAlign: 'center', marginBottom: 6, fontWeight: 'bold' }}>AdminCare</Text>
                 <Text style={{ fontSize: 14, color: '#333', textAlign: 'center', marginBottom: 2, }}>Responsiva de Activos Fijos</Text>
                 <Text style={{ fontSize: 12, color: '#333', textAlign: 'center', marginBottom: 8, }}>Factura: {infoFactura?.num_factura || 'No especificada'}</Text>
 

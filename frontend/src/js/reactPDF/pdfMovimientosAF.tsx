@@ -132,7 +132,7 @@ export const MyDocument = ({ movimientoActivo, responsableActual }: ScaneoActivo
     <Document>
         <Page size="LETTER" style={styles.page}>
             <View>
-                <Text style={{ fontSize: 18, color: '#333', textAlign: 'center', marginBottom: 6, fontWeight: 'bold' }}>Hospital San Serafín</Text>
+                <Text style={{ fontSize: 18, color: '#333', textAlign: 'center', marginBottom: 6, fontWeight: 'bold' }}>AdminCare</Text>
                 <Text style={{ fontSize: 14, color: '#333', textAlign: 'center', marginBottom: 2, }}>Responsiva de Movimientos en Activos Fijos</Text>
 
 

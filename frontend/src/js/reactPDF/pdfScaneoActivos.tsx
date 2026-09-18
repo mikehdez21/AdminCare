@@ -100,7 +100,7 @@ export const MyDocument = ({ activos, activosPendientes, infoLugar }: ScaneoActi
     <Document>
         <Page size="LETTER" style={styles.page}>
             <View>
-                <Text style={styles.title}>Hospital San Serafín</Text>
+                <Text style={styles.title}>AdminCare</Text>
                 <Text style={{ textAlign: 'center', marginBottom: 4, color: '#555' }}>
                     Inventario de Activos Fijos - {infoLugar || 'Ubicación/Departamento Desconocido'}
                 </Text>

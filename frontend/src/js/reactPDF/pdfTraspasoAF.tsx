@@ -137,7 +137,7 @@ export const MyDocument = ({ activosResponsable, infoResponsable }: ScaneoActivo
     <Document>
         <Page size="LETTER" style={styles.page}>
             <View>
-                <Text style={{ fontSize: 18, color: '#333', textAlign: 'center', marginBottom: 4, fontWeight: 'bold' }}>Hospital San Serafín</Text>
+                <Text style={{ fontSize: 18, color: '#333', textAlign: 'center', marginBottom: 4, fontWeight: 'bold' }}>AdminCare</Text>
                 <Text style={{ fontSize: 14, color: '#333', textAlign: 'center', marginBottom: 8, }}>Responsiva de Traspaso de Activos Fijos </Text>
 
 
