@@ -1,8 +1,8 @@
 // Bibliotecas
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { setSelectedSection } from '@/store/sectionReducer'; // Acción para cambiar la sección
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
 
 // Components
 import Sidebar_OptionsList from './Sidebar_OptionsList';
@@ -15,70 +15,42 @@ import { SlLogout } from 'react-icons/sl';
 // Interface
 import { User } from '@/@types/mainTypes';
 
+// Utils
+import { getAppName } from '@/utils/getAppName';
+
 interface SideBarProps {
   currentUser: User;
   onOpenLogoutModal: () => void;
 }
 
 const SideBar: React.FC<SideBarProps> = ({ currentUser, onOpenLogoutModal }) => {
-  const navigate = useNavigate()
-  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  const storedRol = localStorage.getItem('userRol');
-  const rolSinComillas = storedRol ? storedRol.replace(/"/g, '') : '';
-
-  const storedDepto = localStorage.getItem('userDepartamento');
-  const deptoSinComillas = storedDepto ? storedDepto.replace(/"/g, '') : '';
-
-
+  const rol = useSelector((state: RootState) => state.auth.rol);
+  const departamento = useSelector((state: RootState) => state.auth.departamento);
+  const rolSinComillas = rol ?? '';
+  const deptoSinComillas = departamento ?? '';
 
   const handleSelectSection = () => {
     if (rolSinComillas) {
-      let defaultSection = ''; // Sección predeterminada
-
       switch (rolSinComillas) {
-        case 'Admin':
-          defaultSection = 'AdminDashboard';
-          navigate('/admin');
-          break;
-        case 'JAlmacenGeneral':
-          defaultSection = 'Home';
-          navigate('/home');
-          break;
-        default:
-          defaultSection = 'Home';
-          navigate('/home');
-          break;
+      case 'Admin':
+        navigate('/admin');
+        break;
+      case 'JAlmacenGeneral':
+        navigate('/app');
+        break;
+      default:
+        navigate('/app');
+        break;
       }
-
-      dispatch(setSelectedSection(defaultSection));
-      localStorage.setItem('selectedSection', defaultSection); // Actualizar sección en LocalStorage
-
     }
-  };
-
-
-
-
-  const getAppName = (): string => {
-    if (import.meta.env.DEV) {
-      return 'PruebasDev';
-    } else if (import.meta.env.PROD) {
-      return 'Hospital San Serafín';
-    }
-    return 'Nombre de la App';
   };
 
   return (
     <div className='Sidebar'>
       <div className="Sidebar_Header">
         <div className="navBarHeader_title">
-          <img
-            onClick={() => handleSelectSection()}
-            src='../../../../img/logo/design3Blanco_x512.png'
-            alt="Logo en Sidebar"
-            className="navBarHeader_img"
-          />
           <h1 onClick={() => handleSelectSection()} className="navBarHeader_text">{getAppName()}</h1>
         </div>
 
@@ -87,7 +59,7 @@ const SideBar: React.FC<SideBarProps> = ({ currentUser, onOpenLogoutModal }) => 
         <div className="navBarHeader_avatarlogout">
           <div className='avatar'>
             <RxAvatar className="navBarHeader_avatar" />
-            <p>{currentUser ? currentUser.nombre_usuario : 'Cargando...'}</p>
+            <p>{currentUser ? currentUser.nombre_usuario : 'Cargando usuario...'}</p>
 
           </div>
 

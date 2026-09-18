@@ -1,28 +1,29 @@
-import React, { Suspense, lazy, useEffect } from 'react';
+import React, { lazy, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider, useDispatch } from 'react-redux';
 import store from './store/store';
 import { AppDispatch } from './store/store';
+import { checkAuthSession, } from './store/authActions';
 import { setCurrentUser } from './store/administrador/Users/usersReducer';
 
 const Layout_Public = lazy(() => import('./layouts/LayoutPublic'));
-const LayoutAdmin = lazy(() => import('./layouts/LayoutAdmin'));
-const LayoutJefatura = lazy(() => import('./layouts/LayoutJefatura'));
-const LayoutUsuario = lazy(() => import('./layouts/LayoutUsuario'));
+const MainLayout = lazy(() => import('./layouts/MainLayout'));
 
 const Status = lazy(() => import('./components/Status'));
 const PageLogin = lazy(() => import('./components/Login/PageLogin'));
 const ActivoQRPublic = lazy(() => import('./pages/ActivoQRPublic'));
+const DemoUnavailable = lazy(() => import('./pages/DemoUnavailable'));
 
 const ProtectedRoutes = lazy(() => import('./pages/auth/ProtectedRoutes'));
+
 
 // Styles
 import '../css/app.css'
 
-const RouteLoader: React.FC = () => (
-  <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}>
-    Cargando modulo...
+const DemoNotice: React.FC = () => (
+  <div className="demo-notice" role="status">
+    <strong>Demo SQLite</strong> Datos sintéticos y reiniciables. La cuota de escrituras es global y limitada a 100.
   </div>
 );
 
@@ -30,19 +31,29 @@ const App: React.FC = () => {
 
   const dispatch = useDispatch<AppDispatch>();
 
-  // Recuperar Usuario Logeado y su Información desde LOCALSTORAGE
+  // Verificar sesión activa en el servidor al cargar la app + limpiar claves legacy
   useEffect(() => {
-    const storedUser = localStorage.getItem('userData');
-
-    if (storedUser) {
-      dispatch(setCurrentUser(JSON.parse(storedUser)));
-    }
-
+    const restoreSession = async () => {
+      // checkAuthSession SIEMPRE resuelve fulfilled (nunca rechaza).
+      // El resultado contiene { success, userData, ... } en todos los caminos.
+      try {
+        const result = await dispatch(checkAuthSession()).unwrap();
+        if (result.success && result.userData) {
+          dispatch(setCurrentUser(result.userData)); // Restaurar currentUser para el shell autenticado
+        }
+      } catch (error) {
+        console.error('Error inesperado al restaurar la sesión:', error);
+      }
+      // Si success===false, authReducer ya reseteó el estado;
+      // se redirige al login vía ProtectedRoutes.
+    };
+    restoreSession();
+    ['userData', 'userRol', 'userDepartamento', 'userRolPermissions', 'selectedSection'].forEach((k) => localStorage.removeItem(k));
   }, [dispatch]);
 
   return (
     <Router>
-      <Suspense fallback={<RouteLoader />}>
+      <DemoNotice />
         <Routes>
 
 
@@ -56,73 +67,40 @@ const App: React.FC = () => {
           </Route>
 
 
-
-          {/* Rutas protegidas - Admin */}
           <Route element={<ProtectedRoutes />} >
-            <Route path="/admin" element={<LayoutAdmin />} />
+            {/* Shell autenticado: Sidebar visible y contenido vacío hasta elegir un módulo. */}
+            <Route path="/app" element={<MainLayout />} />
+            <Route path="/admin" element={<MainLayout />} />
 
             {/* Almacenes */}
-            <Route path="/almacen_general/*" element={<LayoutAdmin />} />
+            <Route path="/almacen-general/*" element={<MainLayout />} />
+            <Route path="/almacen-general/printer/*" element={<DemoUnavailable />} />
+            <Route path="/almacen_general/*" element={<MainLayout />} />
 
             {/* Contabilidad */}
-            <Route path="/contabilidad/depreciacionaf/*" element={<LayoutAdmin />} />
-            <Route path="/contabilidad/configuracion/*" element={<LayoutAdmin />} />
-            <Route path="/contabilidad/auditoria/*" element={<LayoutAdmin />} />
+            <Route path="/contabilidad/depreciacion-af/*" element={<MainLayout />} />
+            <Route path="/contabilidad/depreciacionaf/*" element={<MainLayout />} />
+            <Route path="/contabilidad/configuracion/*" element={<MainLayout />} />
+            <Route path="/contabilidad/auditoria/*" element={<MainLayout />} />
 
             {/* Administrador */}
-            <Route path="/gestion_usuarios/*" element={<LayoutAdmin />} />
-            <Route path="/gestion_empleados/*" element={<LayoutAdmin />} />
-            <Route path="/gestion_roles/*" element={<LayoutAdmin />} />
-            <Route path="/gestion_departamentos/*" element={<LayoutAdmin />} />
-            <Route path="/gestion_ubicaciones/*" element={<LayoutAdmin />} />
+            <Route path="/gestion-usuarios/*" element={<MainLayout />} />
+            <Route path="/gestion_usuarios/*" element={<MainLayout />} />
+            <Route path="/gestion-empleados/*" element={<MainLayout />} />
+            <Route path="/gestion_empleados/*" element={<MainLayout />} />
+            <Route path="/gestion-roles/*" element={<MainLayout />} />
+            <Route path="/gestion_roles/*" element={<MainLayout />} />
+            <Route path="/gestion-departamentos/*" element={<MainLayout />} />
+            <Route path="/gestion_departamentos/*" element={<MainLayout />} />
+            <Route path="/gestion-ubicaciones/*" element={<MainLayout />} />
+            <Route path="/gestion_ubicaciones/*" element={<MainLayout />} />
 
 
           </Route>
-
-
-
-          {/* Rutas protegidas - Jefaturas */}
-          <Route element={<ProtectedRoutes />} >
-            <Route path="/home" element={<LayoutJefatura />} />
-
-            {/* Almacenes */}
-            <Route path="/almacen_general/*" element={<LayoutJefatura />} />
-
-            {/* Contabilidad */}
-            <Route path="/contabilidad/depreciacionaf/*" element={<LayoutAdmin />} />
-            <Route path="/contabilidad/configuracion/*" element={<LayoutAdmin />} />
-            <Route path="/contabilidad/auditoria/*" element={<LayoutAdmin />} />
-
-          </Route>
-
-
-
-
-          {/* Rutas protegidas - Usuarios */}
-          <Route element={<ProtectedRoutes />} >
-
-            <Route path="/home" element={<LayoutUsuario />} />
-
-
-            {/* Almacenes */}
-            <Route path="/almacen_general/*" element={<LayoutUsuario />} />
-
-            {/* Contabilidad */}
-            <Route path="/contabilidad/depreciacionaf/*" element={<LayoutAdmin />} />
-            <Route path="/contabilidad/configuracion/*" element={<LayoutAdmin />} />
-            <Route path="/contabilidad/auditoria/*" element={<LayoutAdmin />} />
-
-          </Route>
-
-
-
-
-
 
 
 
         </Routes>
-      </Suspense>
     </Router>
   )
 }
@@ -134,8 +112,7 @@ if (rootElement) {
   const Index = ReactDOM.createRoot(rootElement);
   Index.render(
     <Provider store={store}>
-      <App />
+        <App />
     </Provider>
   );
 }
-

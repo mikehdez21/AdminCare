@@ -9,13 +9,13 @@ import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import LoginMessages from './LoginMessages';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import redirectByRole from '../../PageRedirect';
+import { getAppName } from '../../../utils/getAppName';
 
 const LoginFormInputs: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>(); // Tipar el dispatch aquí
   const navigate = useNavigate();
 
-  const [email_usuario, setEmail_Usuario] = useState<string>('');
+  const [user, setUser] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false); // Nuevo estado para determinar el éxito
@@ -30,97 +30,46 @@ const LoginFormInputs: React.FC = () => {
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    try {
-      // Despachar la acción de login
-      const resultAction = await dispatch(login({ email_usuario, password })).unwrap();
-      console.log(resultAction)
+    // login SIEMPRE resuelve fulfilled (nunca rechaza).
+    // El resultado contiene { success, message, ... } en todos los caminos.
+    const resultAction = await dispatch(login({ user, password })).unwrap();
 
-      // Verifica el estado de éxito
-      if (resultAction.success) {
-        setLoginMessage(resultAction.message);
-        setIsSuccess(true); 
-        setShowLoginMessage(true);
-        
-        dispatch(setCurrentUser(resultAction.userData!)); // Establece el usuario en el estado
-        dispatch(setAuthState(resultAction.success)) // Establece Auth como True
-
-        
-        localStorage.setItem('userData', JSON.stringify(resultAction.userData)); // Almacena el usuario en localStorage
-        localStorage.setItem('userRol', JSON.stringify(resultAction.userRol)); // Almacena el rol en localStorage
-        localStorage.setItem('userDepartamento', JSON.stringify(resultAction.userDepartamento)); // Almacena el departamento en localStorage
-        localStorage.setItem('userRolPermissions', JSON.stringify(resultAction.userRolPermissions)); // Almacena los permisos del rol en localStorage
-
-
-        
-        // Justo después de despachar las acciones de login
-        console.log('Estado de autenticación:', resultAction.success);
-        console.log('Usuario Logeado:', resultAction.userData);
-        console.log('userRol:', resultAction.userRol);
-        console.log('userDepartamento:', resultAction.userDepartamento);
-        
-        
-        setTimeout(() => {
-          setShowLoginMessage(false);
-          setLoginMessage('');
-          
-          redirectByRole(JSON.stringify(resultAction.userRol), navigate); // Se envia el string del rol
-
-        
-        }, 100);
-      } else {
-        // Manejar el caso en que la respuesta no es exitosa
-        setLoginMessage(resultAction.message);
-        setIsSuccess(false); // Establecer isSuccess en false
-        setShowLoginMessage(true);
-        
-        setTimeout(() => {
-          setShowLoginMessage(false);
-          setLoginMessage('');
-        }, 1500);
-      }
-
-    } catch (error: unknown) { // Cambiado a 'unknown' para mejor manejo de tipos
-      console.error('Error al iniciar sesión:', error);
-
-      // Manejo mejorado de errores desde Redux Toolkit
-      let errorMessage = 'Error de conexión. Por favor, inténtalo de nuevo.';
-      
-      // El error de .unwrap() viene con la estructura del rejectValue
-      if (error && typeof error === 'object' && 'message' in error) {
-        errorMessage = (error as { message: string }).message;
-      }
-      // También verificar si el error tiene la estructura de rejectWithValue
-      else if (error && typeof error === 'string') {
-        errorMessage = error;
-      }
-
-      setLoginMessage(errorMessage);
-      setIsSuccess(false); // Establecer isSuccess en false
+    if (resultAction.success) {
+      setLoginMessage(resultAction.message);
+      setIsSuccess(true);
       setShowLoginMessage(true);
 
-      setTimeout(() => {
-        setShowLoginMessage(false);
-        setLoginMessage('');
-      }, 3000); // Aumentado a 3 segundos para errores importantes
+      dispatch(setCurrentUser(resultAction.userData!)); // Establece el usuario en el estado
+      dispatch(setAuthState(resultAction.success)); // Establece Auth como True
+      setShowLoginMessage(false);
+      setLoginMessage('');
+      navigate('/app'); // Abre el shell autenticado sin seleccionar un módulo
+    } else {
+      // Manejar el caso en que la respuesta no es exitosa
+      setLoginMessage(resultAction.message);
+      setIsSuccess(false);
+      setShowLoginMessage(true);
+
     }
   };
 
-  
-  
+
+
 
   return (
     <form onSubmit={handleLogin}>
       <div className='titleDiv_Login'>
-        <h1>AdminCare</h1>
+        <h1>{getAppName()}</h1>
       </div>
 
       <div className='divInputs_Login'>
         <label>
-          Usuario de Hospital San Serafin:
+          Usuario:
           <input
-            type="email"
-            value={email_usuario}
-            onChange={(e) => setEmail_Usuario(e.target.value)}
+            type="text"
+            value={user}
+            onChange={(e) => setUser(e.target.value)}
+            placeholder='demo_admin'
             required
             autoComplete='username'
           />
@@ -135,6 +84,7 @@ const LoginFormInputs: React.FC = () => {
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              placeholder='DemoAdmin-2026'
               required
               autoComplete='current-password'
             />

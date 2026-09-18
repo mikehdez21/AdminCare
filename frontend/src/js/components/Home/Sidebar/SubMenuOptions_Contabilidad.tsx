@@ -2,20 +2,20 @@
 // Bibliotecas
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { setSelectedSection } from '@/store/sectionReducer';
+import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
 
 // Permissions
 import { hasPermission } from '@/utils/permissions.ts';
 
-// Icons
-import { TbReportMoney } from "react-icons/tb";
-import { MdOutlineKeyboardArrowUp } from 'react-icons/md';
-import { HiArchiveBoxArrowDown } from "react-icons/hi2";
-import { FaGears } from "react-icons/fa6";
-import { AiOutlineAudit } from "react-icons/ai";
+// Sections helpers
+import { isSectionActive } from '@/router/sections';
 
+// Icons
+import { TbReportMoney } from 'react-icons/tb';
+import { MdOutlineKeyboardArrowUp } from 'react-icons/md';
+import { HiArchiveBoxArrowDown } from 'react-icons/hi2';
+import { FaGears } from 'react-icons/fa6';
 
 
 
@@ -23,105 +23,94 @@ import { AiOutlineAudit } from "react-icons/ai";
 // Styles
 
 interface MenuOptions_ParentProps {
-    selectedSection: string;
+    pathname: string;
     role: string;
     departamento: string;
 }
 
 
-const SubMenuOptions_Contabilidad: React.FC<MenuOptions_ParentProps> = ({ selectedSection }) => {
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
+const SubMenuOptions_Contabilidad: React.FC<MenuOptions_ParentProps> = ({ pathname }) => {
+  const navigate = useNavigate();
 
-    const [isContabilidadOpen, setIsContabilidadOpen] = useState(false);
-    const [isContabilidadRotated, setIsContabilidadRotated] = useState(false);
+  const [isContabilidadOpen, setIsContabilidadOpen] = useState(false);
+  const [isContabilidadRotated, setIsContabilidadRotated] = useState(false);
 
-    const userPermissionsFromStore = useSelector((s: RootState) => s.auth.permissions);
-    const userPermissions = userPermissionsFromStore.length > 0
-        ? userPermissionsFromStore
-        : JSON.parse(localStorage.getItem('userRolPermissions') || '[]');
+  const userPermissions = useSelector((s: RootState) => s.auth.permissions);
 
-    // Manejo del submenú de Contabilidad
-    const toggleSubMenus_Contabilidad = () => {
-        setIsContabilidadOpen(!isContabilidadOpen);
-        setIsContabilidadRotated(!isContabilidadRotated);
-    };
+  // Manejo del submenú de Contabilidad
+  const toggleSubMenus_Contabilidad = () => {
+    setIsContabilidadOpen(!isContabilidadOpen);
+    setIsContabilidadRotated(!isContabilidadRotated);
+  };
 
-    // FEATURE QUE MANEJA LAS SECCIONES SELECCIONADAS
-    const handleSelectSection = (section: string, path: string) => {
-        dispatch(setSelectedSection(section)); // Actualizar sección seleccionada en Redux
-        localStorage.setItem('selectedSection', section); // Actualizar sección en LocalStorage
-        navigate(path); // Navegar a la URL correspondiente
-    };
+  // FEATURE QUE MANEJA LAS SECCIONES SELECCIONADAS — ahora solo navigate
+  const handleSelectSection = (path: string) => {
+    navigate(path); // Navegar a la URL correspondiente
+  };
 
-    return (
+  // El padre "Contabilidad" está activo si la URL pertenece a cualquiera de sus hijos
+  const isContabilidadActive =
+    isSectionActive(pathname, '/contabilidad/depreciacion-af') ||
+    isSectionActive(pathname, '/contabilidad/configuracion') ||
+    isSectionActive(pathname, '/contabilidad/auditoria');
 
-        <div id='SubMenu_Contabilidad'>
+  return (
 
-
-            <div onClick={toggleSubMenus_Contabilidad} className='divMenu_SubMenus'>
-
-                <div
-                    className={
-                        ['DepreciacionActivos', 'ContabilidadConfiguracion', 'Auditoria'].includes(selectedSection)
-                            ? 'SubMenu_IconTitle sidebar_SectionSelected'
-                            : 'SubMenu_IconTitle'
-                    }
-                >
-                    <TbReportMoney className='iconOption_Sidebar' />
-                    <span>Contabilidad </span>
-                    <MdOutlineKeyboardArrowUp className={`IconSubMenuArrow ${isContabilidadRotated ? 'rotate' : ''}`} />
-                </div>
+    <div id='SubMenu_Contabilidad'>
 
 
-                {/* Submenu Contabilidad */}
-                <div className="SubMenu_Options">
-                    {isContabilidadOpen && (
+      <div onClick={toggleSubMenus_Contabilidad} className='divMenu_SubMenus'>
 
-
-                        <ul>
-
-                            {hasPermission(userPermissions, 'sidebar_submenu_contabilidad_depreciacionaf') && (
-                                <li
-                                    onClick={() => handleSelectSection('DepreciacionAF', '/contabilidad/depreciacionaf')}
-                                    id='SubMenu_Option'
-                                    className={`subMenuOption delayOption1 ${selectedSection === 'DepreciacionAF' ? 'sidebar_Section_SubMenuSelected' : ''}`}
-
-                                >
-                                    <HiArchiveBoxArrowDown /> <p>Depreciación de ActivosFijos</p>
-                                </li>
-                            )}
-
-                            {hasPermission(userPermissions, 'sidebar_submenu_contabilidad_configuracion') && (
-                                <li
-                                    onClick={() => handleSelectSection('ContabilidadConfiguracion', '/contabilidad/configuracion')}
-                                    id='SubMenu_Option'
-                                    className={`subMenuOption delayOption2 ${selectedSection === 'ContabilidadConfiguracion' ? 'sidebar_Section_SubMenuSelected' : ''}`}
-
-                                >
-                                    <FaGears /> <p>Configuración</p>
-                                </li>
-                            )}
-
-                            {hasPermission(userPermissions, 'sidebar_submenu_contabilidad_auditoria') && (
-                                <li
-                                    onClick={() => handleSelectSection('Auditoria', '/contabilidad/auditoria')}
-                                    id='SubMenu_Option'
-                                    className={`subMenuOption delayOption3 ${selectedSection === 'Auditoria' ? 'sidebar_Section_SubMenuSelected' : ''}`}
-
-                                >
-                                    <AiOutlineAudit /> <p>Auditoria</p>
-                                </li>
-                            )}
-
-
-                        </ul>
-                    )}
-
-                </div>
-            </div>
+        <div
+          className={
+            isContabilidadActive
+              ? 'SubMenu_IconTitle sidebar_SectionSelected'
+              : 'SubMenu_IconTitle'
+          }
+        >
+          <TbReportMoney className='iconOption_Sidebar' />
+          <span>Contabilidad </span>
+          <MdOutlineKeyboardArrowUp className={`IconSubMenuArrow ${isContabilidadRotated ? 'rotate' : ''}`} />
         </div>
-    )
+
+
+        {/* Submenu Contabilidad */}
+        <div className="SubMenu_Options">
+          {isContabilidadOpen && (
+
+
+            <ul>
+
+              {hasPermission(userPermissions, 'sidebar_submenu_contabilidad_depreciacionaf') && (
+                <li
+                  onClick={() => handleSelectSection('/contabilidad/depreciacion-af')}
+                  id='SubMenu_Option'
+                  className={`subMenuOption delayOption1 ${isSectionActive(pathname, '/contabilidad/depreciacion-af') ? 'sidebar_Section_SubMenuSelected' : ''}`}
+
+                >
+                  <HiArchiveBoxArrowDown /> <p>Depreciación de ActivosFijos</p>
+                </li>
+              )}
+
+              {hasPermission(userPermissions, 'sidebar_submenu_contabilidad_configuracion') && (
+                <li
+                  onClick={() => handleSelectSection('/contabilidad/configuracion')}
+                  id='SubMenu_Option'
+                  className={`subMenuOption delayOption2 ${isSectionActive(pathname, '/contabilidad/configuracion') ? 'sidebar_Section_SubMenuSelected' : ''}`}
+
+                >
+                  <FaGears /> <p>Configuración</p>
+                </li>
+              )}
+
+
+            </ul>
+          )}
+
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default SubMenuOptions_Contabilidad;

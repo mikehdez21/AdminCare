@@ -1,10 +1,10 @@
-.mainDiv_PageHome {
+.mainDiv_Home {
     display: flex;
     height: 100%;
     position: relative;
     background: linear-gradient(180deg, #1f0166 30%, #0454ca 70%, #538ee6 100%);
 
-    .pageHome_Sidebar {
+    .Home_Sidebar {
         display: flex;
         position: fixed;
         transition: all 0.4s ease-in-out;
@@ -189,7 +189,7 @@
         }
     }
 
-    .pageHome_Sidebar:hover {
+    .Home_Sidebar:hover {
         display: flex;
         width: 18vw;
         overflow: visible;
@@ -471,20 +471,18 @@
         }
     }
 
-
-    .pageHome_MainContent {
+    .Home_MainContent {
         display: flex;
         z-index: 1;
         background-color: #aebdd4;
         flex-direction: column;
-        padding: 10px 10px;
+        padding: 5px 10px 5px 10px;
         flex: 1;
         min-width: 0;
 
         .div_MainContent {
             display: flex;
             flex-direction: column;
-            height: 100%;
             margin-left: var(--sidebar-width);
             flex: 1;
             max-width: 95vw;
@@ -505,13 +503,14 @@
             }
 
             .div_SectionSelected {
-                background-color: #ffffff7a;
+                display: flex;
+                padding: 0px 0px 20px 0px;
                 flex: 1;
+                background-color: #ffffff7a;
                 border-bottom-style: groove;
                 border-color: #1f0166;
                 border-width: 4px;
                 overflow: hidden;
-                min-width: 0;
             }
         }
 
