@@ -1,7 +1,5 @@
 <?php
 
-use Laravel\Sanctum\Sanctum;
-
 return [
 
     /*
@@ -19,8 +17,8 @@ return [
         static fn (string $domain) => trim($domain),
         explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
             '%s,%s',
-            'localhost,localhost:5173,127.0.0.1,127.0.0.1:8000,admin-care-teal.vercel.app',
-            Sanctum::currentApplicationUrlWithPort()
+            'localhost:5173',
+            '127.0.0.1:8000'
         )))
     ))),
 
@@ -36,7 +34,9 @@ return [
     |
     */
 
-    'guard' => ['web', 'api'],
+    // Do not include the api guard here: it is itself backed by Sanctum and
+    // would recurse indefinitely while resolving auth:sanctum.
+    'guard' => ['web'],
 
     /*
     |--------------------------------------------------------------------------

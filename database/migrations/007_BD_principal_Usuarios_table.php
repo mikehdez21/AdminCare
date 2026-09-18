@@ -14,7 +14,7 @@ return new class extends Migration
         // Crear la tabla usuarios
         Schema::create('tableUsuarios', function (Blueprint $table) {
             // Identificador único del usuario (clave primaria)
-            $table->bigIncrements('id_usuario')->primary();
+            $table->bigIncrements('id_usuario');
 
             // Nombre del usuario (cadena de texto, único, obligatorio, longitud máxima de 255 caracteres)
             $table->string('nombre_usuario', 255)->unique()->notNull();
@@ -67,6 +67,6 @@ return new class extends Migration
     public function down(): void
     {
         // Eliminar la tabla con CASCADE para eliminar también las dependencias
-        DB::statement('DROP TABLE IF EXISTS tableUsuarios CASCADE;');
+        Schema::dropIfExists('tableUsuarios');
     }
 };

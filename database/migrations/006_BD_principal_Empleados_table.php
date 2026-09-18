@@ -18,7 +18,7 @@ return new class extends Migration
         // Crear la tabla empleados
         Schema::create('tableEmpleados', function (Blueprint $table) {
             // Identificador único del empleado (clave primaria)
-            $table->bigIncrements('id_empleado')->primary();
+            $table->bigIncrements('id_empleado');
 
             // Nombre del empleado (cadena de texto, único, longitud máxima de 255 caracteres)
             $table->string('nombre_empleado', 255)->unique();
@@ -92,6 +92,6 @@ return new class extends Migration
     public function down(): void
     {
         // Eliminar la tabla con CASCADE para eliminar también las dependencias
-        DB::statement('DROP TABLE IF EXISTS tableEmpleados CASCADE;');
+        Schema::dropIfExists('tableEmpleados');
     }
 };

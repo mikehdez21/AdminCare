@@ -15,7 +15,6 @@ class table_PermissionsSeeder extends Seeder
         $permissions = [
 
             /* Sidebar */
-            'sidebar_menu_home',
             'sidebar_menu_helpdesk',
             'sidebar_menu_admindashboard',
             'sidebar_menu_almacenes',

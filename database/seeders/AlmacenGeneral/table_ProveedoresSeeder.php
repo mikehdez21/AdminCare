@@ -112,8 +112,6 @@ class table_ProveedoresSeeder extends Seeder
             'PISA EQUIPOS BIOMEDICOS',
             'COMERCIAL INDUSTRIAL ALVARADO',
             'EQUIPOS MEDICOS EL BISTURI',
-            'HOSPITAL SAN SERAFIN',
-            'HOSPITAL ANGELES',
             'ECODELI COMERCIAL',
             'SOLQUIMED',
             'OFFICE DEPOT DE MEXICO',

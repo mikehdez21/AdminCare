@@ -35,19 +35,26 @@
     },
     "scripts": {
         "post-autoload-dump": [
+            "@php scripts/fix-pdo-constant.php",
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"
         ],
         "post-update-cmd": [
             "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
         ],
+        "post-install-cmd": [
+            "@php scripts/ensure-sqlite.php"
+        ],
         "post-root-package-install": [
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
         ],
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi",
-            "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
+            "@php scripts/ensure-sqlite.php",
             "@php artisan migrate --graceful --ansi"
+        ],
+        "setup:sqlite": [
+            "@php scripts/ensure-sqlite.php"
         ]
     },
     "extra": {

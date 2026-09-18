@@ -3,10 +3,14 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
+    /**
+     * Legacy production locations schema. SQLite deliberately skips this
+     * migration; 012_SQLite_demo_schema owns the portable SQLite table.
+     */
+
     /**
      * Run the migrations.
      */
@@ -14,7 +18,7 @@ return new class extends Migration
     {
         Schema::create('tableUbicaciones', function (Blueprint $table) {
             // Identificador único de la ubicación (clave primaria)
-            $table->bigIncrements('id_ubicacion')->primary();
+            $table->bigIncrements('id_ubicacion');
 
             // Nombre de la ubicación (Cadena de Texto, Obligatorio)
             $table->string('nombre_ubicacion');
@@ -86,6 +90,6 @@ return new class extends Migration
     public function down(): void
     {
         //Eliminar la tabla con CASCADE para eliminar también las dependencias
-        DB::statement('DROP TABLE IF EXISTS tableUbicaciones CASCADE;');
+        Schema::dropIfExists('tableUbicaciones');
     }
 };

@@ -4,18 +4,6 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 
-// Seeders Admin
-use Database\Seeders\table_DepartamentosSeeder;
-use Database\Seeders\table_PermissionsSeeder;
-use Database\Seeders\table_RolesSeeder;
-use Database\Seeders\table_UsersSeeder;
-use Database\Seeders\table_EmpleadosSeeder;
-
-// Seeders AlmacenGeneral
-use Database\Seeders\AlmacenGeneral\table_ProveedoresSeeder;
-use Database\Seeders\AlmacenGeneral\table_ActivosFijosConFacturasSeeder;
-
-
 class DatabaseSeeder extends Seeder
 {
     /**
@@ -23,14 +11,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call([
-            table_DepartamentosSeeder::class,
-            table_EmpleadosSeeder::class,
-            table_PermissionsSeeder::class,
-            table_RolesSeeder::class,
-            table_UsersSeeder::class,
-            table_ProveedoresSeeder::class,
-            table_ActivosFijosConFacturasSeeder::class,
-        ]);
+        $this->call(DemoSeeder::class);
     }
 }

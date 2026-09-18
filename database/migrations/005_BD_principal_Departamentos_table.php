@@ -18,7 +18,7 @@ return new class extends Migration
         // Crear la tabla departamentos
         Schema::create('tableDepartamentos', function (Blueprint $table) {
             // Identificador único del departamento (clave primaria)
-            $table->bigIncrements('id_departamento')->primary();
+            $table->bigIncrements('id_departamento');
 
             // Nombre del departamento (cadena de texto, obligatorio, longitud máxima de 255 caracteres)
             $table->string('nombre_departamento', 255)->notNull();
@@ -60,6 +60,6 @@ return new class extends Migration
     public function down(): void
     {
         //Eliminar la tabla con CASCADE para eliminar también las dependencias
-        DB::statement('DROP TABLE IF EXISTS tableDepartamentos CASCADE;');
+        Schema::dropIfExists('tableDepartamentos');
     }
 };
