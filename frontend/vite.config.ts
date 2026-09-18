@@ -6,7 +6,7 @@ import laravel from 'laravel-vite-plugin'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, __dirname, '');
-  const proxyTarget = env.VITE_PROXY_TARGET || env.VITE_APP_API || 'https://admincare-production.up.railway.app';
+  const proxyTarget = env.VITE_PROXY_TARGET || env.VITE_APP_API || 'http://127.0.0.1:8000';
   const isVercel = process.env.VERCEL === '1';
   const isLaravelBuild = !isVercel;
 
@@ -41,37 +41,38 @@ export default defineConfig(({ mode }) => {
       react(),
       ...(isLaravelBuild
         ? [
-            laravel({
-              input: ['src/js/App.tsx'],
-              publicDirectory: '../public',
-              buildDirectory: 'build',
-            }),
-          ]
+          laravel({
+            input: ['src/js/App.tsx'],
+            publicDirectory: '../public',
+            buildDirectory: 'build',
+          }),
+        ]
         : []),
     ],
     build: isVercel
       ? {
-          outDir: 'dist',
-          emptyOutDir: true,
-          chunkSizeWarningLimit: 1500,
-          rollupOptions: {
-            output: {
-              manualChunks,
-            },
-          },
-        }
-      : {
-          outDir: '../public/build',
-          emptyOutDir: true,
-          manifest: true,
-          chunkSizeWarningLimit: 1500,
-          rollupOptions: {
-            input: path.resolve(__dirname, 'src/js/App.tsx'),
-            output: {
-              manualChunks,
-            },
+        outDir: 'dist',
+        emptyOutDir: true,
+        chunkSizeWarningLimit: 1500,
+        rollupOptions: {
+          output: {
+            manualChunks,
           },
         },
+      }
+      : {
+        outDir: '../public',
+        emptyOutDir: false,
+        assetsDir: 'build/assets',
+        manifest: 'build/manifest.json',
+        chunkSizeWarningLimit: 1500,
+        rollupOptions: {
+          input: path.resolve(__dirname, 'src/js/App.tsx'),
+          output: {
+            manualChunks,
+          },
+        },
+      },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src/js'),
@@ -79,9 +80,19 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      host: '127.0.0.1',
+      host: 'localhost',
       port: 5173,
       strictPort: true,
+      origin: 'http://localhost:5173',
+      // The Laravel page is served from 127.0.0.1:8000 during local development.
+      // Keep this explicit instead of using '*' so credentialed requests remain safe.
+      cors: {
+        origin: ['http://127.0.0.1:8000', 'http://localhost:8000'],
+      },
+      hmr: {
+        host: 'localhost',
+        port: 5173,
+      },
       proxy: {
         '/api': {
           target: proxyTarget,
