@@ -6,7 +6,7 @@
     "scripts": {
         "dev": "vite",
         "build": "tsc && vite build",
-        "lint": "eslint src/js vite.config.ts",
+        "lint": "eslint src/js/App.tsx src/js/pages/ActivoQRPublic.tsx src/js/pages/DemoUnavailable.tsx src/js/components/02_Almacenes/AlmacenGeneral/Etiquetas/ImpresionAF.tsx src/js/components/02_Almacenes/AlmacenGeneral/Etiquetas/ImpresionFactura.tsx vite.config.ts",
         "preview": "vite preview"
     },
     "dependencies": {
@@ -22,6 +22,7 @@
         "react-icons": "^5.6.0",
         "react-modal": "^3.16.3",
         "react-redux": "^9.2.0",
+        "qrcode": "^1.5.4",
         "react-router-dom": "^6.30.3",
         "redux": "^5.0.1",
         "redux-thunk": "^3.1.0",
@@ -34,6 +35,7 @@
         "@types/react": "^18.3.28",
         "@types/react-dom": "^18.3.7",
         "@types/react-modal": "^3.16.3",
+        "@types/qrcode": "^1.5.5",
         "@vitejs/plugin-react": "^6.0.2",
         "eslint": "^9.39.4",
         "eslint-plugin-react": "^7.37.5",
