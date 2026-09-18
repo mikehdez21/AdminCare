@@ -16,11 +16,11 @@ RUN apt-get update \
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 COPY . ./
+RUN mkdir -p database \
+    && touch database/database.sqlite
 RUN composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-progress
 COPY --from=frontend-build /app/public ./public
 
-RUN mkdir -p database \
-    && touch database/database.sqlite \
-    && php -m | grep -q '^pdo_sqlite$'
+RUN php -m | grep -q '^pdo_sqlite$'
 
 CMD ["sh", "scripts/render-start.sh"]
