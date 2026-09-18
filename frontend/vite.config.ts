@@ -7,8 +7,6 @@ import laravel from 'laravel-vite-plugin'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, __dirname, '');
   const proxyTarget = env.VITE_PROXY_TARGET || env.VITE_APP_API || 'http://127.0.0.1:8000';
-  const isVercel = process.env.VERCEL === '1';
-  const isLaravelBuild = !isVercel;
 
   const manualChunks = (id: string) => {
     if (!id.includes('node_modules')) return;
@@ -39,40 +37,25 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       react(),
-      ...(isLaravelBuild
-        ? [
-          laravel({
-            input: ['src/js/App.tsx'],
-            publicDirectory: '../public',
-            buildDirectory: 'build',
-          }),
-        ]
-        : []),
+      laravel({
+        input: ['src/js/App.tsx'],
+        publicDirectory: '../public',
+        buildDirectory: 'build',
+      }),
     ],
-    build: isVercel
-      ? {
-        outDir: 'dist',
-        emptyOutDir: true,
-        chunkSizeWarningLimit: 1500,
-        rollupOptions: {
-          output: {
-            manualChunks,
-          },
-        },
-      }
-      : {
-        outDir: '../public',
-        emptyOutDir: false,
-        assetsDir: 'build/assets',
-        manifest: 'build/manifest.json',
-        chunkSizeWarningLimit: 1500,
-        rollupOptions: {
-          input: path.resolve(__dirname, 'src/js/App.tsx'),
-          output: {
-            manualChunks,
-          },
+    build: {
+      outDir: '../public/build',
+      emptyOutDir: false,
+      assetsDir: 'assets',
+      manifest: 'manifest.json',
+      chunkSizeWarningLimit: 1500,
+      rollupOptions: {
+        input: path.resolve(__dirname, 'src/js/App.tsx'),
+        output: {
+          manualChunks,
         },
       },
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src/js'),
