@@ -12,6 +12,10 @@ services:
         value: production
       - key: APP_DEBUG
         value: "false"
+      # Render serves the public service over HTTPS. Keep this explicit so
+      # console-generated URLs use the canonical scheme as well.
+      - key: APP_URL
+        value: https://admincare-demo.onrender.com
       - key: APP_KEY
         generateValue: true
       - key: DB_CONNECTION

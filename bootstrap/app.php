@@ -26,6 +26,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Render terminates TLS before forwarding requests to the container.
+        // Its proxy IPs are dynamic, so trust the forwarded headers only in
+        // the production environment where the service is behind Render's
+        // proxy. Local HTTP requests do not trust client-supplied headers.
+        $middleware->trustProxies(
+            at: app()->environment('production') ? '*' : [],
+        );
+
         $middleware->alias([
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
