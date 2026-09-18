@@ -12,6 +12,8 @@ services:
         value: production
       - key: APP_DEBUG
         value: "false"
+      - key: LOG_CHANNEL
+        value: stderr
       # Render serves the public service over HTTPS. Keep this explicit so
       # console-generated URLs use the canonical scheme as well.
       - key: APP_URL
@@ -32,3 +34,5 @@ services:
         value: "30"
       - key: SESSION_SECURE_COOKIE
         value: "true"
+      - key: SANCTUM_STATEFUL_DOMAINS
+        value: admincare-demo.onrender.com

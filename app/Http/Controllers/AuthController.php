@@ -6,6 +6,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
@@ -142,78 +144,66 @@ class AuthController extends Controller
     // LOGIN
     public function login(Request $request)
     {
-        // Respuesta inicial
         $response = ["success" => false];
 
-        // Try-catch que envuelve TODO el método para capturar errores de sesiones
         try {
-            // Intentar validaciones y lógica principal
-            try {
-                // Validación de los datos
-                $validator = Validator::make($request->all(), [
-                    'user' => 'required',
-                    'password' => 'required',
-                ]);
+            $validator = Validator::make($request->all(), [
+                'user' => 'required',
+                'password' => 'required',
+            ]);
 
-                // Si hay errores de validación
-                if ($validator->fails()) {
-                    return response()->json(["error" => $validator->errors()], 422);
-                }
+            if ($validator->fails()) {
+                return response()->json(["error" => $validator->errors()], 422);
+            }
 
-                // Obtener el usuario por nombre de usuario
-                $user = User::where('nombre_usuario', $request->user)->first();
+            $user = User::where('nombre_usuario', $request->user)->first();
 
-                // Verificar si el usuario existe
-                if (!$user) {
-                    $response['message'] = 'El usuario no existe!';
-                    return response()->json($response, 401);
-                }
+            if (!$user) {
+                $response['message'] = 'El usuario no existe!';
+                return response()->json($response, 401);
+            }
 
-                // Verificar si el usuario está activo
-                if (!$user->estatus_activo) {
-                    $response['message'] = 'Tu cuenta está desactivada. Contacta a Sistemas!';
-                    return response()->json($response, 403);
-                }
+            if (!$user->estatus_activo) {
+                $response['message'] = 'Tu cuenta está desactivada. Contacta a Sistemas!';
+                return response()->json($response, 403);
+            }
 
-                // Intentar autenticar al usuario
-                if (Auth::attempt(['nombre_usuario' => $request->user, 'password' => $request->password])) {
-
-                    $payload = $this->buildAuthPayload($user);
-
-                    $response = array_merge($response, $payload);
-
-                    session(['user_id' => $user->id_usuario]); // Almacenar información en la sesión, como el ID del usuario
-
-                    $response['message'] = 'Login exitoso!';
-                    $response['success'] = true;
-
-                    // Actualiza el último acceso
-                    $user->update(['ultimo_acceso' => now()]);
-                } else {
-                    // Si la autenticación falla
-                    $response['message'] = 'Credenciales inválidas!';
-                }
-            } catch (\Illuminate\Database\QueryException $e) {
-                report($e);
-                $response['message'] = 'No fue posible iniciar sesión. Intenta más tarde.';
-                return response()->json($response, 500);
-            } catch (\Exception $e) {
-                report($e);
-                $response['message'] = 'Error interno del servidor. Contacta a Sistemas.';
-
-                return response()->json($response, 500);
+            if (Auth::attempt(['nombre_usuario' => $request->user, 'password' => $request->password])) {
+                $response = array_merge($response, $this->buildAuthPayload($user));
+                session(['user_id' => $user->id_usuario]);
+                $response['message'] = 'Login exitoso!';
+                $response['success'] = true;
+                // La migración vigente no contiene la columna ultimo_acceso.
+            } else {
+                $response['message'] = 'Credenciales inválidas!';
             }
 
             return response()->json($response, 200);
-        } catch (\Illuminate\Database\QueryException $e) {
+        } catch (\Throwable $e) {
             report($e);
-            $response['message'] = 'No fue posible iniciar sesión. Intenta más tarde.';
-            return response()->json($response, 500);
-        } catch (\Exception $e) {
-            report($e);
-            $response['message'] = 'Error interno del servidor. Contacta a Sistemas.';
-            return response()->json($response, 500);
+            $errorId = $this->logLoginFailure($request, $e);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'No fue posible iniciar sesión. Intenta más tarde.',
+                'error_id' => $errorId,
+            ], 500);
         }
+    }
+
+    private function logLoginFailure(Request $request, \Throwable $exception): string
+    {
+        $errorId = (string) Str::uuid();
+
+        Log::error('Authentication login failed', [
+            'error_id' => $errorId,
+            'exception' => get_class($exception),
+            'code' => (string) $exception->getCode(),
+            'path' => $request->path(),
+            'method' => $request->method(),
+        ]);
+
+        return $errorId;
     }
 
     // LOGOUT
@@ -275,7 +265,7 @@ class AuthController extends Controller
     private function buildAuthPayload(User $user): array
     {
         $roleName = $user->getRoleNames()->first() ?? 'No definido';
-        $departamento = $user->id_departamento ? $user->departamento->nombre_departamento : 'No asignado';
+        $departamento = $user->departamento?->nombre_departamento ?? 'No asignado';
 
         $scopes = $user->getAllPermissions()
             ->flatMap(function ($permission) {

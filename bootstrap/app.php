@@ -55,8 +55,6 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        $exceptions->dontReport(QueryException::class);
-
         // The public QR endpoint keeps Laravel's 60/minute throttle, but its
         // rate-limit response must use the same API envelope as 200/404.
         // Scope this to the named route so other endpoints retain Laravel's
