@@ -1,6 +1,6 @@
 import React from 'react';
 import { FaCircleInfo } from 'react-icons/fa6';
-import { FaCalendar } from 'react-icons/fa';
+import { FaCalendar, FaShoppingCart } from 'react-icons/fa';
 import { AiOutlineNumber } from 'react-icons/ai';
 import { Proveedores } from '@/@types/AlmacenGeneralTypes/proveedorTypes';
 import { TiposFacturasAF } from '@/@types/AlmacenGeneralTypes/facturasTypes';
@@ -12,6 +12,9 @@ interface FacturaDatosGeneralesProps {
   idFacturaValor: number | string | undefined;
   fechaRecepcion: string;
   setFechaRecepcion: (value: string) => void;
+  fechaCompra: string;
+  setFechaCompra: (value: string) => void;
+  fechaCompraRequerida?: boolean;
   /** Lista de proveedores YA ordenada por el padre (Add ordena alfabéticamente; Edit usa el orden del store). */
   proveedores: Proveedores[];
   tiposFactura: TiposFacturasAF[];
@@ -41,6 +44,9 @@ const FacturaDatosGenerales: React.FC<FacturaDatosGeneralesProps> = ({
   idFacturaValor,
   fechaRecepcion,
   setFechaRecepcion,
+  fechaCompra,
+  setFechaCompra,
+  fechaCompraRequerida,
   proveedores,
   tiposFactura,
   proveedorFactura,
@@ -78,6 +84,22 @@ const FacturaDatosGenerales: React.FC<FacturaDatosGeneralesProps> = ({
               required
               value={fechaRecepcion}
               onChange={e => setFechaRecepcion(e.target.value)}
+            />
+          </label>
+
+        </div>
+
+        <div className='fechaCompra'>
+
+          <label>
+            <h2><FaShoppingCart className='icon_FechaCompra' /> Fecha de Compra{fechaCompraRequerida ? '*' : ''}</h2>
+
+            <input
+              type="date"
+              name="fechaCompra"
+              required={fechaCompraRequerida}
+              value={fechaCompra}
+              onChange={e => setFechaCompra(e.target.value)}
             />
           </label>
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\AdminControllers;
 
 use App\Http\Controllers\Concerns\Paginable;
 use App\Http\Controllers\Controller;
+use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -83,7 +84,8 @@ class RolesController extends Controller
             $role = Role::create($input);
 
             if ($request->has('permissions')) {
-                $role->syncPermissions($request->input('permissions', []));
+                $permisos = $this->expandirPermisosConBase($request->input('permissions', []));
+                $role->syncPermissions($permisos);
             }
 
             $response['success'] = true;
@@ -142,7 +144,8 @@ class RolesController extends Controller
             $rol->update($request->only(['name', 'guard_name']));
 
             if ($request->has('permissions')) {
-                $rol->syncPermissions($request->input('permissions', []));
+                $permisos = $this->expandirPermisosConBase($request->input('permissions', []));
+                $rol->syncPermissions($permisos);
             }
 
             $response['success'] = true;
@@ -178,7 +181,8 @@ class RolesController extends Controller
 
         try {
             $role = Role::findOrFail($id);
-            $role->syncPermissions($request->input('permissions', []));
+            $permisos = $this->expandirPermisosConBase($request->input('permissions', []));
+            $role->syncPermissions($permisos);
 
             $response['success'] = true;
             $response['message'] = 'Permisos del rol sincronizados exitosamente.';
@@ -192,6 +196,32 @@ class RolesController extends Controller
         }
 
         return response()->json($response, $response['success'] ? 200 : 500);
+    }
+
+    /**
+     * Asegura que un rol reciba el permiso base de cada módulo cuando se
+     * selecciona alguna de sus acciones (modulo.lectura|escritura|control).
+     */
+    private function expandirPermisosConBase(array $permissionIds): array
+    {
+        $permisos = Permission::whereIn('id', $permissionIds)->pluck('name', 'id');
+
+        $nombresBase = [];
+        foreach ($permisos as $name) {
+            if (preg_match('/^(.+)\.(lectura|escritura|control)$/', $name, $coincidencias)) {
+                $nombresBase[] = $coincidencias[1];
+            }
+        }
+
+        if ($nombresBase === []) {
+            return $permissionIds;
+        }
+
+        $baseIds = Permission::whereIn('name', array_unique($nombresBase))
+            ->pluck('id')
+            ->all();
+
+        return array_values(array_unique(array_merge($permissionIds, $baseIds)));
     }
 
     // Eliminar un ROL

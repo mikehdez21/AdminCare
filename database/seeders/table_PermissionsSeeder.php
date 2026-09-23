@@ -53,5 +53,19 @@ class table_PermissionsSeeder extends Seeder
                 'guard_name' => 'web',
             ]);
         }
+
+        // Permisos por acción: <modulo>.lectura, <modulo>.escritura, <modulo>.control
+        // para cada uno de los módulos base (convención usada por el frontend en
+        // permissions.ts y TablaPermisosRol.tsx).
+        $actions = ['lectura', 'escritura', 'control'];
+
+        foreach ($permissions as $moduleName) {
+            foreach ($actions as $action) {
+                Permission::firstOrCreate([
+                    'name' => $moduleName . '.' . $action,
+                    'guard_name' => 'web',
+                ]);
+            }
+        }
     }
 }

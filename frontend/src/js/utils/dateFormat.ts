@@ -119,6 +119,13 @@ export const getFechaHoraActual = (): string => {
   return localDate.toISOString().slice(0, 16);
 };
 
+export const getFechaActual = (): string => {
+  const date = new Date();
+  const offset = date.getTimezoneOffset();
+  const localDate = new Date(date.getTime() - offset * 60 * 1000);
+  return localDate.toISOString().slice(0, 10);
+};
+
 export const getAñoActual = (): number => {
   return new Date().getFullYear();
 }

@@ -1,4 +1,4 @@
-import React, { lazy, useEffect } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider, useDispatch } from 'react-redux';
@@ -6,6 +6,8 @@ import store from './store/store';
 import { AppDispatch } from './store/store';
 import { checkAuthSession, } from './store/authActions';
 import { setCurrentUser } from './store/administrador/Users/usersReducer';
+import RouteLoader from './components/00_Utils/RouteLoader';
+
 
 const Layout_Public = lazy(() => import('./layouts/LayoutPublic'));
 const MainLayout = lazy(() => import('./layouts/MainLayout'));
@@ -53,54 +55,56 @@ const App: React.FC = () => {
 
   return (
     <Router>
-      <DemoNotice />
-        <Routes>
+      <Suspense fallback={<RouteLoader />}>
+        <DemoNotice />
+          <Routes>
 
 
-          {/* Rutas públicas */}
-          <Route path="/" element={<Layout_Public />} >
-            <Route index element={<Navigate to="/login" />} />
-            <Route path='/status' element={<Status />} />
-            <Route path='/login' element={<PageLogin />} />
-            <Route path='/activosfijos/qraf/scan/:codigoQR' element={<ActivoQRPublic />} />
-            <Route path='/activosfijos/qraf/:codigoQR' element={<ActivoQRPublic />} />
-          </Route>
+            {/* Rutas públicas */}
+            <Route path="/" element={<Layout_Public />} >
+              <Route index element={<Navigate to="/login" />} />
+              <Route path='/status' element={<Status />} />
+              <Route path='/login' element={<PageLogin />} />
+              <Route path='/activosfijos/qraf/scan/:codigoQR' element={<ActivoQRPublic />} />
+              <Route path='/activosfijos/qraf/:codigoQR' element={<ActivoQRPublic />} />
+            </Route>
 
 
-          <Route element={<ProtectedRoutes />} >
-            {/* Shell autenticado: Sidebar visible y contenido vacío hasta elegir un módulo. */}
-            <Route path="/app" element={<MainLayout />} />
-            <Route path="/admin" element={<MainLayout />} />
+            <Route element={<ProtectedRoutes />} >
+              {/* Shell autenticado: Sidebar visible y contenido vacío hasta elegir un módulo. */}
+              <Route path="/app" element={<MainLayout />} />
+              <Route path="/admin" element={<MainLayout />} />
 
-            {/* Almacenes */}
-            <Route path="/almacen-general/*" element={<MainLayout />} />
-            <Route path="/almacen-general/printer/*" element={<DemoUnavailable />} />
-            <Route path="/almacen_general/*" element={<MainLayout />} />
+              {/* Almacenes */}
+              <Route path="/almacen-general/*" element={<MainLayout />} />
+              <Route path="/almacen-general/printer/*" element={<DemoUnavailable />} />
+              <Route path="/almacen_general/*" element={<MainLayout />} />
 
-            {/* Contabilidad */}
-            <Route path="/contabilidad/depreciacion-af/*" element={<MainLayout />} />
-            <Route path="/contabilidad/depreciacionaf/*" element={<MainLayout />} />
-            <Route path="/contabilidad/configuracion/*" element={<MainLayout />} />
-            <Route path="/contabilidad/auditoria/*" element={<MainLayout />} />
+              {/* Contabilidad */}
+              <Route path="/contabilidad/depreciacion-af/*" element={<MainLayout />} />
+              <Route path="/contabilidad/depreciacionaf/*" element={<MainLayout />} />
+              <Route path="/contabilidad/configuracion/*" element={<MainLayout />} />
+              <Route path="/contabilidad/auditoria/*" element={<MainLayout />} />
 
-            {/* Administrador */}
-            <Route path="/gestion-usuarios/*" element={<MainLayout />} />
-            <Route path="/gestion_usuarios/*" element={<MainLayout />} />
-            <Route path="/gestion-empleados/*" element={<MainLayout />} />
-            <Route path="/gestion_empleados/*" element={<MainLayout />} />
-            <Route path="/gestion-roles/*" element={<MainLayout />} />
-            <Route path="/gestion_roles/*" element={<MainLayout />} />
-            <Route path="/gestion-departamentos/*" element={<MainLayout />} />
-            <Route path="/gestion_departamentos/*" element={<MainLayout />} />
-            <Route path="/gestion-ubicaciones/*" element={<MainLayout />} />
-            <Route path="/gestion_ubicaciones/*" element={<MainLayout />} />
-
-
-          </Route>
+              {/* Administrador */}
+              <Route path="/gestion-usuarios/*" element={<MainLayout />} />
+              <Route path="/gestion_usuarios/*" element={<MainLayout />} />
+              <Route path="/gestion-empleados/*" element={<MainLayout />} />
+              <Route path="/gestion_empleados/*" element={<MainLayout />} />
+              <Route path="/gestion-roles/*" element={<MainLayout />} />
+              <Route path="/gestion_roles/*" element={<MainLayout />} />
+              <Route path="/gestion-departamentos/*" element={<MainLayout />} />
+              <Route path="/gestion_departamentos/*" element={<MainLayout />} />
+              <Route path="/gestion-ubicaciones/*" element={<MainLayout />} />
+              <Route path="/gestion_ubicaciones/*" element={<MainLayout />} />
 
 
+            </Route>
 
-        </Routes>
+
+
+          </Routes>
+        </Suspense>
     </Router>
   )
 }

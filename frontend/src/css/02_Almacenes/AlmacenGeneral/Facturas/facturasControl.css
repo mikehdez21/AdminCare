@@ -199,6 +199,11 @@
                     text-align: center;
                 }
 
+                #th_FechaCompra,
+                #td_FechaCompra {
+                    text-align: center;
+                }
+
                 #th_TiposFactura,
                 #td_TiposFactura {
                     text-align: center;

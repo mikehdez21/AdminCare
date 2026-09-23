@@ -14,4 +14,8 @@ fi
 
 mkdir -p database
 touch database/database.sqlite
-php artisan migrate:fresh --seed --force
+# The demo migrations live in database/migrations/SQLITE. An explicit --path
+# makes migrate:fresh forward that exact path to migrate, so neither the root
+# (which still holds the legacy PostgreSQL 008) nor the legacy almacengeneral/
+# and logs/ subdirectories are scanned at reset time.
+php artisan migrate:fresh --seed --force --path=database/migrations/SQLITE

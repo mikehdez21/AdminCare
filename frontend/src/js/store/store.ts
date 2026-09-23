@@ -2,35 +2,37 @@
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from '@/store/authReducer';
 
-import userReducer from '@/store/administrador/Users/usersReducer'
-import empleadosReducer from '@/store/administrador/Empleados/empleadosReducer'
-import rolesReducer from '@/store/administrador/Roles/rolesReducer'
-import permisosReducer from './administrador/Permisos/permisosReducer';
-import departamentosReducer from '@/store/administrador/Departamentos/departamentosReducer'
-import ubicacionesReducer from '@/store/administrador/Ubicaciones/ubicacionesReducer'
+import { rolesApi } from '@/store/api/rolesApi';
+import { permisosApi } from '@/store/api/permisosApi';
 
-import facturasReducer from '@/store/almacengeneral/Facturas/facturasReducer'
-import activosReducer from '@/store/almacengeneral/Activos/activosReducer'
-import estatusAFReducer from '@/store/almacengeneral/Activos/EstatusAF/estatusAFReducer'
+import userReducer from '@/store/administrador/Users/usersReducer';
+import empleadosReducer from '@/store/administrador/Empleados/empleadosReducer';
+import departamentosReducer from '@/store/administrador/Departamentos/departamentosReducer';
+import ubicacionesReducer from '@/store/administrador/Ubicaciones/ubicacionesReducer';
+
+import facturasReducer from '@/store/almacengeneral/Facturas/facturasReducer';
+import activosReducer from '@/store/almacengeneral/Activos/activosReducer';
+import estatusAFReducer from '@/store/almacengeneral/Activos/EstatusAF/estatusAFReducer';
 import vwMovimientosAFReducer from '@/store/almacengeneral/Activos/vwMovimientosAFReducer';
-import movimientosAFReducer from '@/store/almacengeneral/Activos/MovimientosActivos/movimientosAFReducer'
-import proveedoresReducer from '@/store/almacengeneral/Proveedores/proveedoresReducer'
-import fiscalReducer from '@/store/shared/fiscalReducer'
-import clasificacionesReducer from '@/store/almacengeneral/Clasificaciones/clasificacionesReducer'
+import movimientosAFReducer from '@/store/almacengeneral/Activos/MovimientosActivos/movimientosAFReducer';
+import proveedoresReducer from '@/store/almacengeneral/Proveedores/proveedoresReducer';
+import fiscalReducer from '@/store/shared/fiscalReducer';
+import clasificacionesReducer from '@/store/almacengeneral/Clasificaciones/clasificacionesReducer';
 import depreciacionReducer from '@/store/almacengeneral/Activos/DepreciacionAF/depreciacionAFReducer';
 
 
 const store = configureStore({
   reducer: {
-
     // Auth y Usuarios
     auth: authReducer,
     users: userReducer,
-    roles: rolesReducer,
-    permisos: permisosReducer,
     departamentos: departamentosReducer,
     empleados: empleadosReducer,
     ubicaciones: ubicacionesReducer,
+
+    // APIs RTK Query
+    [rolesApi.reducerPath]: rolesApi.reducer,
+    [permisosApi.reducerPath]: permisosApi.reducer,
 
     // Tipos Compartidos (Catalogos)
     fiscal: fiscalReducer,
@@ -50,7 +52,7 @@ const store = configureStore({
     //  otros reducers...
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(/* otros middlewares */),
+    getDefaultMiddleware().concat(rolesApi.middleware, permisosApi.middleware),
 });
 
 // Tipos para el estado y el dispatch del store

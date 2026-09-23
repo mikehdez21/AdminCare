@@ -21,6 +21,7 @@ class FacturaAF extends Model
         'num_factura',
         'id_tipo_factura',
         'fecha_fac_recepcion',
+        'fecha_fac_compra',
         'id_forma_pago',
         'id_tipo_moneda',
         'observaciones_factura',

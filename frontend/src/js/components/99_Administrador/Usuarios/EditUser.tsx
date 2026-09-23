@@ -10,7 +10,7 @@ import { setListUsuarios } from '@/store/administrador/Users/usersReducer';
 
 import { User, Roles, Departamentos } from '@/@types/mainTypes';
 import { Empleados } from '@/@types/mainTypes';
-import { getRoles } from '@/store/administrador/Roles/rolesActions';
+import { useGetRolesQuery } from '@/store/api/rolesApi';
 import { getDepartamentos } from '@/store/administrador/Departamentos/departamentosActions';
 import { getEmpleados } from '@/store/administrador/Empleados/empleadosActions';
 
@@ -30,7 +30,7 @@ Modal.setAppElement('#root');
 
 const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, usuarioToEdit }) => {
   const dispatch = useDispatch<AppDispatch>();
-  const roles = useSelector((state: RootState) => state.roles.roles);
+  useGetRolesQuery();
   const departamentos = useSelector((state: RootState) => state.departamentos.departamentos);
   const empleados = useSelector((state: RootState) => state.empleados.empleados);
 
@@ -50,18 +50,15 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, usuarioToEdit }) =
   const [departamentoSeleccionado, setDepartamentoSeleccionado] = useState<number>(0);
 
 
-  // Cargar roles y departamentos si no están disponibles
+  // Cargar departamentos y empleados si no están disponibles
   useEffect(() => {
-    if (roles.length === 0) {
-      dispatch(getRoles());
-    }
     if (departamentos.length === 0) {
       dispatch(getDepartamentos());
     }
     if (empleados.length === 0) {
       dispatch(getEmpleados());
     }
-  }, [dispatch, roles.length, departamentos.length, empleados.length]);
+  }, [dispatch, departamentos.length, empleados.length]);
 
   // Añadir Roles
   const openModalAddRol = () => {

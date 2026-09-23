@@ -1,14 +1,11 @@
 import React from 'react';
 import Modal from 'react-modal';
-import { AppDispatch } from '@/store/store';
-import { useDispatch } from 'react-redux';
-import { deleteRol, getRoles } from '@/store/administrador/Roles/rolesActions';
-import { setListRoles } from '@/store/administrador/Roles/rolesReducer';
+import { useDeleteRolMutation } from '@/store/api/rolesApi';
 import { Roles } from '@/@types/mainTypes';
 import Swal from 'sweetalert2';
 import ModalButtons from '@/components/00_Utils/ModalButtons';
 
-import '@styles/99_Administrador/Roles/modalRoles.css'
+import '@styles/99_Administrador/Roles/modalRoles.css';
 
 interface DeleteDepartamentoProps {
   isOpen: boolean;
@@ -19,27 +16,11 @@ interface DeleteDepartamentoProps {
 Modal.setAppElement('#root');
 
 const DeleteRoles: React.FC<DeleteDepartamentoProps> = ({ isOpen, onClose, rolesToDelete }) => {
-  const dispatch = useDispatch<AppDispatch>();
+  const [deleteRol] = useDeleteRolMutation();
 
   const handleDelete = async () => {
     try {
-
-      // Llamada a la acción para eliminar el roles
-      const resultAction = await dispatch(deleteRol(rolesToDelete!)).unwrap();
-
-      console.log(resultAction.success)
-
-      if (resultAction.success) {
-        // Si el rol fue eliminado con éxito, recargar la lista de rol
-        const rolesActualizados = await dispatch(getRoles()).unwrap();
-        if (rolesActualizados.success) {
-          dispatch(setListRoles(rolesActualizados.roles!)); // Actualiza la lista de roles en el estado
-
-        }
-
-      } else {
-        console.log('Error al eliminar el rol:', resultAction.message);
-      }
+      await deleteRol(rolesToDelete!).unwrap();
 
       Swal.fire({
         icon: 'success',
@@ -48,18 +29,20 @@ const DeleteRoles: React.FC<DeleteDepartamentoProps> = ({ isOpen, onClose, roles
         confirmButtonText: 'OK',
       });
 
-      onClose(); // Cerrar el modal al completar cualquier acción
-
+      onClose();
     } catch (error) {
       console.error('Error al eliminar el rol:', error);
+
+      const mensaje =
+        (error as { data?: { message?: string }; message?: string })?.data?.message ??
+        'Hubo un problema al eliminar el rol. Por favor, inténtalo de nuevo.';
 
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'Hubo un problema al eliminar el rol. Por favor, inténtalo de nuevo.',
+        text: mensaje,
         confirmButtonText: 'OK',
       });
-
     }
   };
 

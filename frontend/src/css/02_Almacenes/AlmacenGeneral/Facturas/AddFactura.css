@@ -335,6 +335,28 @@
                 }
 
             }
+
+            .fechaCompra {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+
+                h2 {
+                    display: flex;
+                    align-items: center;
+                    margin: 0px;
+                    font-size: 20px;
+
+                    .icon_FechaCompra {
+                        font-size: 24px;
+                        color: #d8a245;
+                        margin-right: 8px;
+                    }
+
+                }
+
+            }
         }
 
 

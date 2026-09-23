@@ -98,7 +98,19 @@
                             font-weight: bold;
                             position: sticky;
                             top: 0;
+                            text-align: center;
 
+                        }
+
+                        th:first-child {
+                            text-align: left;
+                            width: 55%;
+                        }
+
+                        th:nth-child(2),
+                        th:nth-child(3),
+                        th:nth-child(4) {
+                            width: 15%;
                         }
 
                         td {
@@ -119,6 +131,33 @@
 
 
 
+                        }
+
+                        .celdaNombreModulo_Roles {
+                            text-align: left;
+                        }
+
+                        .celdaCheckbox_Roles {
+                            text-align: center;
+                        }
+
+                        .checkboxPermisoDeshabilitado_Roles {
+                            cursor: not-allowed;
+                            opacity: 0.5;
+                        }
+
+                        .filaOtrosPermisosEncabezado_Roles {
+                            th {
+                                background-color: #e6e6e6;
+                                text-align: left;
+                            }
+                        }
+
+                        .filaSinResultados_Roles {
+                            td {
+                                text-align: center;
+                                font-style: italic;
+                            }
                         }
 
                         tr:hover {

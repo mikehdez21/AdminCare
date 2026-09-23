@@ -1,15 +1,15 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Modal from 'react-modal';
 import { AppDispatch } from '@/store/store';
 import { useDispatch } from 'react-redux';
 import { Permission, Roles } from '@/@types/mainTypes';
-import { editRol, getRoles } from '@/store/administrador/Roles/rolesActions';
-import { setListRoles } from '@/store/administrador/Roles/rolesReducer';
+import { useEditRolMutation } from '@/store/api/rolesApi';
 import { refreshAuthPermissions } from '@/store/authActions';
 import Swal from 'sweetalert2';
 import ModalButtons from '@/components/00_Utils/ModalButtons';
+import TablaPermisosRol from './TablaPermisosRol';
 
-import '@styles/99_Administrador/Roles/modalRoles.css'
+import '@styles/99_Administrador/Roles/modalRoles.css';
 
 interface EditUserProps {
   isOpen: boolean;
@@ -23,9 +23,9 @@ Modal.setAppElement('#root');
 const EditRol: React.FC<EditUserProps> = ({ isOpen, onClose, rolesToEdit, permisos }) => {
 
   const dispatch = useDispatch<AppDispatch>();
+  const [editRol] = useEditRolMutation();
 
   const [nombreRol, setNombreRol] = useState<string>('');
-  const [searchPermiso, setSearchPermiso] = useState<string>('');
   const [selectedPermisos, setSelectedPermisos] = useState<number[]>([]);
 
   useEffect(() => {
@@ -36,16 +36,9 @@ const EditRol: React.FC<EditUserProps> = ({ isOpen, onClose, rolesToEdit, permis
         .filter((permisoId) => Number.isFinite(permisoId)));
     } else {
       setNombreRol('');
-      setSearchPermiso('');
       setSelectedPermisos([]);
     }
   }, [rolesToEdit]);
-
-  const permisosFiltrados = useMemo(() => {
-    const texto = searchPermiso.trim().toLowerCase();
-    if (!texto) return permisos;
-    return permisos.filter((permiso) => permiso.name.toLowerCase().includes(texto));
-  }, [permisos, searchPermiso]);
 
   const handleTogglePermiso = (permisoId: number) => {
     setSelectedPermisos((prev) =>
@@ -63,29 +56,19 @@ const EditRol: React.FC<EditUserProps> = ({ isOpen, onClose, rolesToEdit, permis
         return;
       }
 
-
       const rolesEditado: Roles = {
-        id: rolesToEdit.id, // Mantener el ID del rol
+        id: rolesToEdit.id,
         name: nombreRol,
         guard_name: rolesToEdit.guard_name,
-        permissions: selectedPermisos as any
-      }
+        permissions: selectedPermisos as unknown as Permission[]
+      };
 
-
-      console.log('dataRol_Enviada: ', rolesEditado)
-      const resultAction = await dispatch(editRol(rolesEditado)).unwrap();
+      console.log('dataRol_Enviada: ', rolesEditado);
+      const resultAction = await editRol(rolesEditado).unwrap();
       console.log('Respuesta del servidor:', resultAction);
 
       if (resultAction.success) {
-        // Si el roles fue editado con éxito, recargar la lista de roles
-        const rolesActualizados = await dispatch(getRoles()).unwrap();
-        if (rolesActualizados.success) {
-          dispatch(setListRoles(rolesActualizados.roles!)); // Actualiza la lista de roles en el estado
-          setNombreRol('')
-
-          console.log('Roles editado y lista recargada:', rolesActualizados.roles);
-
-        }
+        setNombreRol('');
 
         // Refrescar permisos del usuario autenticado para reflejar sidebar/UI en tiempo real
         await dispatch(refreshAuthPermissions());
@@ -97,7 +80,7 @@ const EditRol: React.FC<EditUserProps> = ({ isOpen, onClose, rolesToEdit, permis
           confirmButtonText: 'OK',
         });
 
-        onClose(); // Cerrar modal al completar la edición
+        onClose();
       } else {
         Swal.fire({
           icon: 'error',
@@ -109,10 +92,14 @@ const EditRol: React.FC<EditUserProps> = ({ isOpen, onClose, rolesToEdit, permis
     } catch (error) {
       console.error('Error al editar el rol:', error);
 
+      const mensaje =
+        (error as { data?: { message?: string }; message?: string })?.data?.message ??
+        'Hubo un problema al editar el rol. Por favor, inténtalo de nuevo.';
+
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'Hubo un problema al editar el rol. Por favor, inténtalo de nuevo.',
+        text: mensaje,
         confirmButtonText: 'OK',
       });
     }
@@ -149,52 +136,13 @@ const EditRol: React.FC<EditUserProps> = ({ isOpen, onClose, rolesToEdit, permis
               </label>
             </div>
 
-            <div className='divSearch_Permission'>
-              <label>
-                Buscar permiso:
-                <input
-                  type="text"
-                  value={searchPermiso}
-                  id='searchPermisoEdit'
-                  name='searchPermisoEdit'
-                  onChange={(e) => setSearchPermiso(e.target.value)}
-                  placeholder='Buscar permiso...'
-                />
-              </label>
-            </div>
           </section>
 
-          <section className='tablePermisos_Roles'>
-            <table>
-              <thead>
-                <tr>
-                  <th>Permiso</th>
-                  <th>Check</th>
-                </tr>
-              </thead>
-              <tbody>
-                {permisosFiltrados.map((permiso) => {
-                  const permisoId = Number(permiso.id);
-                  const checked = selectedPermisos.includes(permisoId);
-
-                  return (
-                    <tr key={permisoId}>
-                      <td>{permiso.name}</td>
-                      <td>
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() => handleTogglePermiso(permisoId)}
-                          />
-                        </label>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </section>
+          <TablaPermisosRol
+            permisos={permisos}
+            selectedPermisos={selectedPermisos}
+            onTogglePermiso={handleTogglePermiso}
+          />
 
           <ModalButtons
             buttons={[

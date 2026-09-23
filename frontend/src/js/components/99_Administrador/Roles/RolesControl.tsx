@@ -1,25 +1,18 @@
 // Bibliotecas
-import React, { useState, useEffect, useCallback } from 'react';
-import { AppDispatch, RootState } from '@/store/store'; // Asegúrate de importar AppDispatch
-import { useDispatch, useSelector } from 'react-redux';
-
+import React, { useState } from 'react';
 
 // Roles
 import { Roles } from '@/@types/mainTypes';
-import type { PaginacionMeta, PaginacionParams } from '@/@types/paginacionTypes';
-import { getRoles } from '@/store/administrador/Roles/rolesActions';
-import { setListRoles } from '@/store/administrador/Roles/rolesReducer';
-import { getPermisos } from '@/store/administrador/Permisos/permisosActions';
-import { setListPermisos } from '@/store/administrador/Permisos/permisosReducer';
+import { useGetRolesQuery } from '@/store/api/rolesApi';
+import { useGetPermisosQuery } from '@/store/api/permisosApi';
 
 // Componentes
 import Paginacion from '@/components/00_Utils/Paginacion';
-import { usePaginacionServidor } from '@/hooks/usePaginacionServidor';
+import { usePaginacionRtk } from '@/hooks/usePaginacionRtk';
 import AddRolesControl from './AddRol';
 import DeleteRoles from './DeleteRol';
 import EditRol from './EditRol';
 import ShowPermisosRole from './ShowPermisosRole';
-
 
 // Icons
 import { IoAddCircleOutline } from 'react-icons/io5';
@@ -30,33 +23,13 @@ import { FiAlertTriangle } from 'react-icons/fi';
 import '@styles/99_Administrador/Roles/rolesControl.css';
 
 const Main_RolesControl: React.FC = () => {
-
-  const dispatch = useDispatch<AppDispatch>(); // Tipar el dispatch aquí
-  const [rolesToEdit_Delete, setRolesToEdit_Delete] = useState<Roles | null>(null); // Usuario seleccionado para editar_eliminar
-
+  const [rolesToEdit_Delete, setRolesToEdit_Delete] = useState<Roles | null>(null);
 
   const [isModalAddRolesOpen, setModalAddRolesOpen] = useState(false);
   const [isModalEditRolesOpen, setModalEditRolesOpen] = useState(false);
   const [isModalDeleteRolesOpen, setModalDeleteRolesOpen] = useState(false);
 
   const [isModalViewPermisosOpen, setModalViewPermisosOpen] = useState(false);
-
-  // ---------------------------------------------------------------------------
-  // Paginación servidor: fetcher que llama al thunk de roles con
-  // { page, per_page, search }. La tabla usa el estado local del hook; el
-  // store sigue cargando la lista completa en el useEffect de montaje para
-  // los flujos que la requieren.
-  // ---------------------------------------------------------------------------
-  const fetcher = useCallback(
-    async (params: PaginacionParams): Promise<{ data: Roles[]; meta: PaginacionMeta | null }> => {
-      const resultAction = await dispatch(getRoles(params)).unwrap();
-      if (resultAction.success && resultAction.roles) {
-        return { data: resultAction.roles, meta: resultAction.meta ?? null };
-      }
-      throw new Error(resultAction.message || 'Error al obtener los roles');
-    },
-    [dispatch],
-  );
 
   const {
     busqueda,
@@ -70,10 +43,13 @@ const Main_RolesControl: React.FC = () => {
     refetch,
     handleSearch,
     handleChangePerPage: handleChangeRolesPorPagina,
-  } = usePaginacionServidor<Roles>({
-    fetcher,
+  } = usePaginacionRtk<Roles>({
+    useQuery: useGetRolesQuery,
     perPageDefault: 5,
   });
+
+  const { data: permisosData } = useGetPermisosQuery();
+  const permisos = permisosData ?? [];
 
   // Añadir Roles
   const openModalAddRoles = () => {
@@ -87,25 +63,24 @@ const Main_RolesControl: React.FC = () => {
 
   // Editar Roles
   const openModalEditRoles = (rol: Roles) => {
-    setRolesToEdit_Delete(rol)
+    setRolesToEdit_Delete(rol);
     setModalEditRolesOpen(true);
   };
   const closeModalEditRoles = () => {
     setModalEditRolesOpen(false);
-    setRolesToEdit_Delete(null)
+    setRolesToEdit_Delete(null);
     // Recargar la tabla paginada tras editar un rol.
     refetch();
   };
 
   // Eliminar Roles
   const openAlertDeleteRoles = (rol: Roles) => {
-    setRolesToEdit_Delete(rol)
+    setRolesToEdit_Delete(rol);
     setModalDeleteRolesOpen(true);
-
   };
   const closeAlertDeleteRoles = () => {
     setModalDeleteRolesOpen(false);
-    setRolesToEdit_Delete(null)
+    setRolesToEdit_Delete(null);
     // Recargar la tabla paginada tras eliminar un rol.
     refetch();
   };
@@ -114,36 +89,10 @@ const Main_RolesControl: React.FC = () => {
   const openModalViewPermisos = (rol: Roles) => {
     setRolesToEdit_Delete(rol);
     setModalViewPermisosOpen(true);
-  }
+  };
   const closeModalViewPermisos = () => {
     setModalViewPermisosOpen(false);
-  }
-
-  // Cargar los roles desde la API solo si no están cargados en el store
-  useEffect(() => {
-    const cargarRolesYPermisos = async () => {
-      try {
-        const resultAction = await dispatch(getRoles()).unwrap();
-        if (resultAction.success) {
-          dispatch(setListRoles(resultAction.roles!)); // Guarda los roles en el store
-        } else {
-          console.log('Error', resultAction.message);
-        }
-
-        const permisosAction = await dispatch(getPermisos()).unwrap();
-        if (permisosAction.success) {
-          dispatch(setListPermisos(permisosAction.permisos!));
-        } else {
-          console.log('Error', permisosAction.message);
-        }
-      } catch (error) {
-        console.error('Error al cargar roles y permisos:', error);
-      }
-    };
-    cargarRolesYPermisos();
-  }, [dispatch]); // Solo ejecuta el effect si los roles no están en el store
-
-  const permisos = useSelector((state: RootState) => state.permisos?.permisos || []);
+  };
 
   // Crear nuevos roles
   const handleNuevoRol = () => {
@@ -272,7 +221,7 @@ const Main_RolesControl: React.FC = () => {
 
 
     </div>
-  )
+  );
 };
 
 export default Main_RolesControl;

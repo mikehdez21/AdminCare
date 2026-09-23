@@ -38,9 +38,17 @@ class AppServiceProvider extends ServiceProvider
             }
         }
 
-        // The historical almacengeneral/logs migrations target PostgreSQL schemas.
-        // SQLite uses the dedicated portable migration in database/migrations.
+        // database/migrations/SQLITE is the canonical portable migration path
+        // of the demo, so plain php artisan migrate discovers it automatically.
         if (config('database.default') === 'sqlite') {
+            $this->callAfterResolving('migrator', function (Migrator $migrator): void {
+                $migrator->path(database_path('migrations/SQLITE'));
+            });
+
+            // Defensive skip list: 008 (legacy PostgreSQL table) still lives in
+            // the migrations root, and the historical almacengeneral/logs
+            // subdirectories target PostgreSQL schemas. They are not part of
+            // the portable SQLite build.
             $legacy = [database_path('migrations/008_BD_principal_Ubicaciones_table.php')];
             $legacy = array_merge($legacy, glob(database_path('migrations/almacengeneral/*.php')) ?: []);
             $legacy = array_merge($legacy, glob(database_path('migrations/logs/*.php')) ?: []);

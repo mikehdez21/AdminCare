@@ -7,7 +7,7 @@ import Swal from 'sweetalert2';
 import { setListUsuarios } from '@/store/administrador/Users/usersReducer';
 import { addUser, getUsers } from '@/store/administrador/Users/usersActions';
 
-import { getRoles } from '@/store/administrador/Roles/rolesActions';
+import { useGetRolesQuery } from '@/store/api/rolesApi';
 import { getDepartamentos } from '@/store/administrador/Departamentos/departamentosActions';
 import { getEmpleados } from '@/store/administrador/Empleados/empleadosActions';
 
@@ -29,7 +29,7 @@ Modal.setAppElement('#root');
 
 const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
   const dispatch = useDispatch<AppDispatch>();
-  const roles = useSelector((state: RootState) => state.roles.roles);
+  useGetRolesQuery();
   const departamentos = useSelector((state: RootState) => state.departamentos.departamentos);
   const empleados = useSelector((state: RootState) => state.empleados.empleados);
 
@@ -45,18 +45,15 @@ const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
   const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState<string>('');
   const [departamentoSeleccionado, setDepartamentoSeleccionado] = useState<string>('');
 
-  // Cargar roles, empleados y departamentos si no están disponibles
+  // Cargar empleados y departamentos si no están disponibles
   useEffect(() => {
-    if (roles.length === 0) {
-      dispatch(getRoles());
-    }
     if (departamentos.length === 0) {
       dispatch(getDepartamentos());
     }
     if (empleados.length === 0) {
       dispatch(getEmpleados());
     }
-  }, [dispatch, roles.length, departamentos.length, empleados.length]);
+  }, [dispatch, departamentos.length, empleados.length]);
 
   // Añadir Roles
   const openModalAddRol = () => {

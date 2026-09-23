@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Modal from 'react-modal';
-import { RootState, AppDispatch } from '@/store/store';
-import { useSelector, useDispatch } from 'react-redux';
 
 import { User, Roles } from '@/@types/mainTypes';
-import { getRoles } from '@/store/administrador/Roles/rolesActions';
 
-import '@styles/99_Administrador/showSubModals.css'
+import '@styles/99_Administrador/showSubModals.css';
 import ModalButtons from '@/components/00_Utils/ModalButtons';
 
 interface showUserRolesProps {
@@ -18,31 +15,18 @@ interface showUserRolesProps {
 Modal.setAppElement('#root');
 
 const ShowUserRoles: React.FC<showUserRolesProps> = ({ isOpen, onClose, usuarioToShow }) => {
-  console.log(usuarioToShow)
+  console.log(usuarioToShow);
 
-  const dispatch = useDispatch<AppDispatch>();
-  const roles = useSelector((state: RootState) => state.roles.roles);
   const [rolesUsuario, setRolesUsuario] = useState<Roles[]>(usuarioToShow?.roles || []);
-  
-  // Cargar roles y departamentos si no están disponibles
-  useEffect(() => {
-    if (roles.length === 0) {
-      dispatch(getRoles());
-    }
-
-  }, [dispatch, roles.length]);
 
   useEffect(() => {
     if (usuarioToShow) {
-  
       setRolesUsuario(usuarioToShow.roles || []);
-  
     } else {
-
       setRolesUsuario([]);
     }
   }, [usuarioToShow]);
-  
+
   return (
     <Modal
       isOpen={isOpen}
@@ -54,8 +38,6 @@ const ShowUserRoles: React.FC<showUserRolesProps> = ({ isOpen, onClose, usuarioT
 
         <h3>Roles Asignados</h3>
         <h4>{usuarioToShow?.nombre_usuario}</h4>
-
-      
 
         <div className="list">
           <ul>
@@ -71,7 +53,7 @@ const ShowUserRoles: React.FC<showUserRolesProps> = ({ isOpen, onClose, usuarioT
           </ul>
         </div>
 
-        <ModalButtons 
+        <ModalButtons
           buttons={[
             {
               text: 'Cancelar',
@@ -89,4 +71,3 @@ const ShowUserRoles: React.FC<showUserRolesProps> = ({ isOpen, onClose, usuarioT
 };
 
 export default ShowUserRoles;
- 

@@ -55,6 +55,7 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
 
   const [tipoFactura, setTipoFactura] = useState<number>(0);
   const [fechaRecepcion, setFechaRecepcion] = useState<string>('');
+  const [fechaCompra, setFechaCompra] = useState<string>('');
   const [formaPago, setFormaPago] = useState<number>(0);
   const [tipoMoneda, setTipoMoneda] = useState<number>(0);
   const [observaciones, setObservaciones] = useState<string>('');
@@ -78,7 +79,7 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
 
   const [activosFactura, setActivosFactura] = useState<ActivoFactura[]>([]);
 
-  // Extraer año y numero de factura -
+  // Extraer año y numero de factura - 
   useEffect(() => {
     if (facturaToEdit) {
       const año = facturaToEdit.num_factura.split('-').slice(1, 2)[0];
@@ -202,6 +203,7 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
       setProveedorFactura(facturaToEdit.id_proveedor || 0);
       setTipoFactura(facturaToEdit.id_tipo_factura || 0);
       setFechaRecepcion(facturaToEdit.fecha_fac_recepcion || '');
+      setFechaCompra(facturaToEdit.fecha_fac_compra || '');
       setFormaPago(facturaToEdit.id_forma_pago || 0);
       setTipoMoneda(facturaToEdit.id_tipo_moneda || 0);
       setObservaciones(facturaToEdit.observaciones_factura || '');
@@ -372,6 +374,7 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
         num_factura: numFacturaCompleto,
         id_tipo_factura: tipoFactura,
         fecha_fac_recepcion: fechaRecepcion,
+        fecha_fac_compra: fechaCompra || null,
         id_forma_pago: formaPago,
         id_tipo_moneda: tipoMoneda,
         observaciones_factura: observaciones,
@@ -498,6 +501,8 @@ const EditFactura: React.FC<EditFacturaProps> = ({ onClose, onSubmit, facturaToE
           idFacturaValor={facturaToEdit?.id_factura}
           fechaRecepcion={fechaRecepcion}
           setFechaRecepcion={setFechaRecepcion}
+          fechaCompra={fechaCompra}
+          setFechaCompra={setFechaCompra}
           proveedores={proveedores}
           tiposFactura={tiposFactura}
           proveedorFactura={proveedorFactura}

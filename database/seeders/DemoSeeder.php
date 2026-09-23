@@ -10,6 +10,7 @@ use App\Models\AlmacenGeneral\Proveedores;
 use App\Models\Departamento;
 use App\Models\Empleado;
 use App\Models\User;
+use Database\Seeders\table_PermissionsSeeder;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -57,37 +58,8 @@ class DemoSeeder extends Seeder
         ]);
 
         $role = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
-        $demoPermissions = [
-            // Sidebar parents
-            'sidebar_menu_admindashboard',
-            'sidebar_menu_almacenes',
-            'sidebar_menu_administrador',
-            'sidebar_menu_contabilidad',
-
-            // Sidebar submenus
-            'sidebar_submenu_almacenes_almacengeneral',
-            'sidebar_submenu_contabilidad_depreciacionaf',
-            'sidebar_submenu_contabilidad_configuracion',
-            'sidebar_submenu_contabilidad_auditoria',
-            'sidebar_submenu_administrador_gestionusuarios',
-            'sidebar_submenu_administrador_gestionempleados',
-            'sidebar_submenu_administrador_gestionroles',
-            'sidebar_submenu_administrador_gestiondepartamentos',
-            'sidebar_submenu_administrador_gestionubicaciones',
-
-            // AlmacenGeneral navigation
-            'almacengeneral_navbar_inicio',
-            'almacengeneral_navbar_facturas',
-            'almacengeneral_navbar_activos',
-            'almacengeneral_navbar_movimientosactivos',
-            'almacengeneral_navbar_etiquetas',
-            'almacengeneral_navbar_proveedores',
-            'almacengeneral_navbar_parametros',
-        ];
-
-        foreach ($demoPermissions as $name) {
-            $role->givePermissionTo(Permission::firstOrCreate(['name' => $name, 'guard_name' => 'web']));
-        }
+        $this->call(table_PermissionsSeeder::class);
+        $role->syncPermissions(Permission::all());
 
         $user = User::create([
             'nombre_usuario' => 'demo_admin',

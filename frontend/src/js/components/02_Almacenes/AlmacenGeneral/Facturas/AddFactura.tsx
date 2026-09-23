@@ -15,7 +15,7 @@ import { FacturasAF, ActivoFacturaInput } from '@/@types/AlmacenGeneralTypes/fac
 import { SiGooglemessages } from 'react-icons/si';
 
 // Components
-import { getFechaHoraActual, getAñoActual } from '@/utils/dateFormat';
+import { getFechaHoraActual, getFechaActual, getAñoActual } from '@/utils/dateFormat';
 import ModalButtons from '@/components/00_Utils/ModalButtons';
 import { useCatalogData } from '@/hooks/useCatalogData';
 import { useFacturaCalculos } from '@/hooks/useFacturaCalculos';
@@ -53,6 +53,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
   const [añoFactura, setAñoFactura] = useState<number>(getAñoActual());
   const [tipoFactura, setTipoFactura] = useState<number>(0);
   const [fechaRecepcion, setFechaRecepcion] = useState<string>(getFechaHoraActual());
+  const [fechaCompra, setFechaCompra] = useState<string>(getFechaActual());
   const [formaPago, setFormaPago] = useState<number>(0);
   const [tipoMoneda, setTipoMoneda] = useState<number>(0);
   const [observaciones, setObservaciones] = useState<string>('');
@@ -88,13 +89,12 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
 
 
 
-  const ultimoId = React.useMemo(() => (
-    facturas.length > 0
-      ? Math.max(...facturas.map(factura => Number(factura.id_factura)))
-      : 0
-  ), [facturas]);
-
   const getUltimoID = () => {
+    const ultimoId = React.useMemo(() => (
+      facturas.length > 0
+        ? Math.max(...facturas.map(factura => Number(factura.id_factura)))
+        : 0
+    ), [facturas]);
     const nuevoId = ultimoId + 1;
     return nuevoId;
   }
@@ -238,6 +238,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
         num_factura: numFacturaCompleto,
         id_tipo_factura: tipoFactura,
         fecha_fac_recepcion: fechaRecepcion,
+        fecha_fac_compra: fechaCompra,
         id_forma_pago: formaPago,
         id_tipo_moneda: tipoMoneda,
         observaciones_factura: observaciones,
@@ -293,6 +294,7 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
           setNumeroFactura('');
           setTipoFactura(0);
           setFechaRecepcion(getFechaHoraActual());
+          setFechaCompra(getFechaActual());
           setFormaPago(0);
           setTipoMoneda(0);
           setObservaciones('');
@@ -369,6 +371,9 @@ const AddFactura: React.FC<AddFacturaProps> = ({ onClose, onSubmit }) => {
           idFacturaValor={getUltimoID()}
           fechaRecepcion={fechaRecepcion}
           setFechaRecepcion={setFechaRecepcion}
+          fechaCompra={fechaCompra}
+          setFechaCompra={setFechaCompra}
+          fechaCompraRequerida
           proveedores={proveedoresOrderby}
           tiposFactura={tiposFactura}
           proveedorFactura={proveedorFactura}

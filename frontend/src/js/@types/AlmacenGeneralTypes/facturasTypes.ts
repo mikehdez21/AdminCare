@@ -42,6 +42,7 @@ export interface FacturasAF {
   num_factura: string;
   id_tipo_factura: number;
   fecha_fac_recepcion: string;
+  fecha_fac_compra?: string | null;
   id_forma_pago: number | null;
   id_tipo_moneda: number | null;
   observaciones_factura?: string | null;

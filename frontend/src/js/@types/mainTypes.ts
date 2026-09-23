@@ -22,16 +22,15 @@ export interface Permission {
   created_at?: string;
   updated_at?: string | null;
 
-  action: 'lectura' | 'escritura' | 'control'; // Nuevo campo para indicar el tipo de permiso
+  action?: 'lectura' | 'escritura' | 'control'; // El backend no envía este campo; se deriva del nombre del permiso
 
 }
 
 export interface GroupedPermission {
-  [module: string]: {
-    lectura?: Permission;
-    escritura?: Permission;
-    control?: Permission;
-  };
+  modulo: string;
+  lectura?: Permission;
+  escritura?: Permission;
+  control?: Permission;
 }
 
 // Departamentos

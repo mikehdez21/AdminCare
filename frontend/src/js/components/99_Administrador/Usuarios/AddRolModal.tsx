@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import Modal from 'react-modal';
-import { RootState, AppDispatch } from '@/store/store';
-import { useSelector, useDispatch } from 'react-redux';
 import Swal from 'sweetalert2';
 
 import { Roles } from '@/@types/mainTypes';
-import { getRoles } from '@/store/administrador/Roles/rolesActions';
+import { useGetRolesQuery } from '@/store/api/rolesApi';
 
 import { MdArrowForward, MdArrowBack } from 'react-icons/md';
 
@@ -24,18 +22,10 @@ Modal.setAppElement('#root');
 
 const addRol: React.FC<addRolProps> = ({ isOpen, onClose, onRolesSelected, initialSelectedRoles = [] }) => {
 
-  const dispatch = useDispatch<AppDispatch>();
-  const roles = useSelector((state: RootState) => state.roles.roles);
+  const { data: rolesData } = useGetRolesQuery();
+  const roles = rolesData?.items ?? [];
   const [availableRoles, setAvailableRoles] = useState<Roles[]>([]);
   const [selectedRoles, setSelectedRoles] = useState<Roles[]>(initialSelectedRoles);
-
-  // Cargar roles si no están disponibles
-  useEffect(() => {
-    if (roles.length === 0) {
-      dispatch(getRoles());
-    }
-
-  }, [dispatch, roles.length]);
 
   // Inicializar availableRoles cuando se carguen los roles
   useEffect(() => {

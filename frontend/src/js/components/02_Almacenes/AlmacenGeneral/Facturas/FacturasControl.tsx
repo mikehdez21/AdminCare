@@ -32,7 +32,7 @@ import AddFactura from './AddFactura';
 import EditFactura from './EditFactura';
 import ImpresionFactura from '../Etiquetas/ImpresionFactura';
 import ResponsivasAF from './ResponsivasAF';
-import { formatDateHorasToFrontend } from '@/utils/dateFormat';
+import { formatDateHorasToFrontend, formatDateNacimientoToFrontend } from '@/utils/dateFormat';
 // import DeleteFactura from './DeleteFactura';
 
 // Icons
@@ -69,6 +69,7 @@ const AlmacenGeneral_Facturas: React.FC = () => {
   const [showImpresionFactura, setShowImpresionFactura] = useState<boolean>(false);
   const [showResponsivasAF, setShowResponsivasAF] = useState<boolean>(false);
   const [facturaCreadaId, setFacturaCreadaId] = useState<number | null>(null);
+
   /*const [isModalDeleteFacturaOpen, setModalDeleteFacturaOpen] = useState<boolean>(false);*/
 
   // ---------------------------------------------------------------------------
@@ -109,6 +110,7 @@ const AlmacenGeneral_Facturas: React.FC = () => {
   const handleNuevaFactura = () => {
     navigate('/almacen-general/facturas/nueva-factura');
   };
+
 
   // Editar Factura - Control de Rutas
   const handleEditarFactura = (factura: FacturasAF) => {
@@ -385,6 +387,7 @@ const AlmacenGeneral_Facturas: React.FC = () => {
                   <th id='th_ProveedorFactura'>Proveedor</th>
                   <th id='th_NumFactura'>Número de Factura</th>
                   <th id='th_FechaRecepcion'>Fecha Recepción</th>
+                  <th id='th_FechaCompra'>Fecha Compra</th>
                   <th id='th_TiposFactura'>Tipo de Factura</th>
                   <th id='th_FormaPago'>Forma de Pago</th>
                   <th id='th_TiposMoneda'>Moneda de Pago</th>
@@ -408,6 +411,7 @@ const AlmacenGeneral_Facturas: React.FC = () => {
 
                     <td id='td_NumFactura'>{factura.num_factura}</td>
                     <td id='td_FechaRecepcion'>{formatDateHorasToFrontend(factura.fecha_fac_recepcion)}</td>
+                    <td id='td_FechaCompra'>{factura.fecha_fac_compra ? formatDateNacimientoToFrontend(factura.fecha_fac_compra) : '—'}</td>
 
                     <td id='td_TiposFactura'>
                       {(() => {

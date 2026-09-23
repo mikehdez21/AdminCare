@@ -93,6 +93,9 @@ return new class extends Migration
             $table->string('num_factura');
             $table->unsignedBigInteger('id_tipo_factura');
             $table->dateTime('fecha_fac_recepcion');
+            // Fecha en la que se realizó la compra (fecha que indica el proveedor en su factura).
+            // Nullable: soporta guardar ediciones sin fecha de compra (D4-A).
+            $table->date('fecha_fac_compra')->nullable();
             $table->unsignedBigInteger('id_forma_pago')->nullable();
             $table->unsignedBigInteger('id_tipo_moneda')->nullable();
             $table->text('observaciones_factura')->nullable();
@@ -101,6 +104,7 @@ return new class extends Migration
             $table->decimal('flete_factura', 21, 2)->nullable();
             $table->decimal('iva_factura', 21, 2);
             $table->decimal('total_factura', 21, 2);
+            $table->index('fecha_fac_compra', 'idx_fecha_fac_compra');
             $table->timestamps();
             $table->foreign('id_proveedor')->references('id_proveedor')->on('tableAF_Proveedores')->restrictOnDelete();
             $table->foreign('id_tipo_factura')->references('id_tipofacturaaf')->on('tableRef_TiposFacturasAF')->restrictOnDelete();
