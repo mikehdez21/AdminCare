@@ -43,7 +43,7 @@ php artisan migrate --seed
 cd frontend && pnpm install
 ```
 
-La base local se guarda en `database/database.sqlite`. No se necesita una base de datos externa para probar la demo.
+La base local se guarda en `database/admincare-demo.db`. No se necesita una base de datos externa para probar la demo.
 
 ## Cómo ejecutar
 
@@ -69,7 +69,7 @@ El repositorio incluye la configuración necesaria para un servicio web Docker:
 - Durante cada release, y también justo antes de iniciar Laravel, ejecuta `migrate:fresh --seed --force`: borra la SQLite demo y la regenera con las migraciones y el `DemoSeeder` actuales. El arranque garantiza la inicialización aunque Render no ejecute `releaseCommand`.
 - La demo SQLite usa `CACHE_STORE=file` (y `SESSION_DRIVER=file`), incluido en Render, para que las migraciones no intenten acceder a la tabla `cache` antes de crearla. No se requiere `CACHE_DRIVER` porque Laravel 11 resuelve el store desde `CACHE_STORE` en `config/cache.php`.
 - El servicio inicia Laravel en el puerto que proporciona Render y verifica su estado en `/status`.
-- La base es SQLite en `database/database.sqlite`; el flujo destructivo está protegido por `DEMO_MODE=true`, SQLite, `DEMO_DATABASE_ALLOW_RESET=true`, la ruta SQLite exacta y un `DB_URL` vacío o ausente. No se configura persistent disk ni una base externa.
+- La base es SQLite en `database/admincare-demo.db`; el flujo destructivo está protegido por `DEMO_MODE=true`, SQLite, `DEMO_DATABASE_ALLOW_RESET=true`, la ruta SQLite exacta y un `DB_URL` vacío o ausente. No se configura persistent disk ni una base externa.
 - El filesystem estándar de Render es efímero. Un restart puede no ejecutar `releaseCommand`; `render-start.sh` regenera la base antes de atender tráfico.
 
 Para desplegar, crea un servicio en Render conectado al repositorio y aplica `render.yaml` como Blueprint. No es necesario ejecutar manualmente los scripts de release o arranque.
@@ -84,7 +84,7 @@ Para desplegar, crea un servicio en Render conectado al repositorio y aplica `re
 
 ## Solución de problemas
 
-- **No inicia SQLite:** verifica que PHP tenga `pdo_sqlite` habilitado y que exista `database/database.sqlite`.
+- **No inicia SQLite:** verifica que PHP tenga `pdo_sqlite` habilitado y que exista `database/admincare-demo.db`.
 - **El frontend no llega a la API:** ejecuta Laravel en el puerto 8000 o define `VITE_PROXY_TARGET`/`VITE_APP_API` con la dirección correcta.
 - **La demo alcanzó su límite:** las nuevas escrituras se rechazan al llegar a 100 unidades; no es un error del formulario.
 - **La sesión desapareció en Render:** puede ocurrir después de un reinicio porque la demo usa sesiones en archivo y almacenamiento efímero.

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 $databaseDirectory = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'database';
-$databaseFile = $databaseDirectory . DIRECTORY_SEPARATOR . 'database.sqlite';
+$databaseFile = $databaseDirectory . DIRECTORY_SEPARATOR . 'admincare-demo.db';
 
 if (!is_dir($databaseDirectory) && !mkdir($databaseDirectory, 0775, true) && !is_dir($databaseDirectory)) {
     fwrite(STDERR, "Unable to create the database directory: {$databaseDirectory}" . PHP_EOL);

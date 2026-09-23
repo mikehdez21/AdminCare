@@ -17,7 +17,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 COPY . ./
 RUN mkdir -p database \
-    && touch database/database.sqlite
+    && touch database/admincare-demo.db
 RUN composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-progress
 COPY --from=frontend-build /app/public ./public
 

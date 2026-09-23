@@ -23,7 +23,7 @@ services:
       - key: DB_CONNECTION
         value: sqlite
       - key: DB_DATABASE
-        value: database/database.sqlite
+        value: database/admincare-demo.db
       - key: DEMO_MODE
         value: "true"
       - key: DEMO_DATABASE_ALLOW_RESET

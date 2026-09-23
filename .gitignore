@@ -23,6 +23,8 @@ yarn-error.log
 /database/*.sql
 /database/*.sqlite
 /*.sqlite
+/database/*.db
+/*.db
 /public/img/profile_users/*
 !/public/img/profile_users/.gitkeep
 /storage/app/archivos_digitales/
