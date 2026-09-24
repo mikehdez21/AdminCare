@@ -58,9 +58,9 @@ class DemoSeeder extends Seeder
         $role->syncPermissions(Permission::all());
 
         $user = User::create([
-            'nombre_usuario' => 'demo_admin',
+            'nombre_usuario' => 'DEMOADMIN',
             'email_usuario' => 'demo.admin@example.invalid',
-            'password' => Hash::make('DemoAdmin-2026'),
+            'password' => Hash::make('demoadmin'),
             'estatus_activo' => true,
             'usuario_compartido' => false,
             'id_empleado' => $employee->getKey(),
@@ -211,6 +211,74 @@ class DemoSeeder extends Seeder
             'fecha_calculo_depreciacion' => $date, 'id_usuario_calculo' => $user->getKey(),
             'observaciones_depreciacionaf' => 'Cálculo sintético de demostración', 'created_at' => $date, 'updated_at' => $date,
         ]);
+
+        // ============================================================
+        // Empleado y usuario demo de Almacén (solo permisos de almacén)
+        // ============================================================
+
+        $warehouseDepartment = Departamento::firstOrCreate(
+            ['nombre_departamento' => 'Almacén'],
+            [
+                'descripcion' => 'Encargado del control de inventario y suministros',
+                'atiende_pacientes' => false,
+                'estatus_activo' => true,
+                'created_at' => $date,
+                'updated_at' => $date,
+            ]
+        );
+
+        $warehouseEmployee = Empleado::firstOrCreate(
+            [
+                'nombre_empleado' => 'Almacen',
+                'apellido_paterno' => 'AlmacenDemo',
+                'apellido_materno' => 'DEMO',
+            ],
+            [
+                'genero' => 'Masculino',
+                'fecha_nacimiento' => '1990-01-01',
+                'estatus_activo' => true,
+                'fecha_alta' => $date,
+                // foto_empleado no se setea (null): el frontend usa el default real.
+                'id_departamento' => $warehouseDepartment->getKey(),
+                'created_at' => $date,
+                'updated_at' => $date,
+            ]
+        );
+
+        $warehouseRole = Role::firstOrCreate(['name' => 'Almacen', 'guard_name' => 'web']);
+
+        // Permisos asignados: base de cada módulo de Almacén + variantes de acción
+        // (<modulo>.lectura|escritura|control), convención de table_PermissionsSeeder.
+        $almacenModules = [
+            'sidebar_menu_almacenes',
+            'sidebar_submenu_almacenes_almacengeneral',
+            'almacengeneral_navbar_inicio',
+            'almacengeneral_navbar_facturas',
+            'almacengeneral_navbar_activos',
+            'almacengeneral_navbar_movimientosactivos',
+            'almacengeneral_navbar_etiquetas',
+            'almacengeneral_navbar_proveedores',
+            'almacengeneral_navbar_parametros',
+        ];
+
+        $warehouseRole->syncPermissions(collect($almacenModules)->flatMap(function (string $module): array {
+            return [$module, $module.'.lectura', $module.'.escritura', $module.'.control'];
+        })->all());
+
+        $warehouseUser = User::firstOrCreate(
+            ['nombre_usuario' => 'DEMOALMACEN'],
+            [
+                'email_usuario' => 'demo.almacen@example.invalid',
+                'password' => Hash::make('demoalmacen'),
+                'estatus_activo' => true,
+                'usuario_compartido' => false,
+                'id_empleado' => $warehouseEmployee->getKey(),
+                'id_departamento' => $warehouseDepartment->getKey(),
+                'created_at' => $date,
+                'updated_at' => $date,
+            ]
+        );
+        $warehouseUser->assignRole($warehouseRole);
 
         DB::table('demo_database_marker')->updateOrInsert(
             ['id' => 1],

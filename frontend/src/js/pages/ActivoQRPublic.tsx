@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { formatMexicanCurrency } from '@/utils/numbersFormat';
 import '@styles/02_Almacenes/AlmacenGeneral/ActivoQR/activoQRPublic.css';
 
 type PublicAsset = {
@@ -208,15 +207,6 @@ const ActivoQRPublic: React.FC = () => {
   const { activo, qraf } = data;
   const lastUpdate = qraf?.fecha_ultimo_escaneo || qraf?.fecha_generacion || activo.fecha_registro;
   const scanCount = qraf?.intentos_lectura;
-  const knownAssetFields = new Set([
-    'codigo', 'codigo_unico', 'codigo_etiqueta', 'nombre', 'descripcion', 'modelo', 'marca',
-    'numero_serie', 'costo', 'fecha_registro', 'propio', 'menor', 'etiqueta', 'observaciones',
-    'clasificacion', 'estado', 'responsable_anterior', 'responsable_actual', 'departamento',
-    'ubicacion_anterior', 'ubicacion_actual', 'fecha_ultimo_movimiento', 'ultimo_motivo_movimiento',
-    'tipo_movimiento', 'codigo_lote', 'lote_afconsecutivo', 'lote_total', 'depreciacion_aplicada',
-    'created_at', 'updated_at', 'id_activo_fijo', 'id_estado_af', 'id_clasificacion',
-  ]);
-  const additionalFields = Object.entries(activo).filter(([key]) => !knownAssetFields.has(key));
 
   return <div className="qr-public-container"><div className="qr-card">
     <div className="qr-header">
@@ -247,19 +237,6 @@ const ActivoQRPublic: React.FC = () => {
         <InfoItem label="Responsable Anterior" value={activo.responsable_anterior} /><InfoItem label="Ubicación Anterior" value={activo.ubicacion_anterior} />
       </div></div>}
 
-      <div className="qr-section"><div className="section-title">Detalles Adicionales</div><div className="info-grid">
-        <InfoItem label="💰 Costo Unitario" value={activo.costo === null || activo.costo === undefined ? null : formatMexicanCurrency(activo.costo)} />
-        <InfoItem label="🗓️ Fecha de Registro" value={formatDate(activo.fecha_registro)} />
-        <InfoItem label="Activo menor" value={activo.menor} /><InfoItem label="Código de etiqueta" value={activo.codigo_etiqueta || activo.etiqueta} />
-        <InfoItem label="Código de lote" value={activo.codigo_lote} />
-        <InfoItem label="Consecutivo de lote" value={activo.lote_afconsecutivo} />
-        <InfoItem label="Total del lote" value={activo.lote_total} />
-        <InfoItem label="Depreciación aplicada" value={activo.depreciacion_aplicada} />
-        <InfoItem label="Creado" value={formatDate(activo.created_at)} />
-        <InfoItem label="Actualizado" value={formatDate(activo.updated_at)} />
-        <InfoItem label="📝 Observaciones" value={activo.observaciones} className="info-item-wide" />
-        {additionalFields.map(([key, value]) => <InfoItem key={key} label={key.replaceAll('_', ' ')} value={value} />)}
-      </div></div>
     </div>
     <div className="qr-footer"><p>Código QR: <strong>{valueOrNA(qraf?.codigo_qr || activo.codigo || codigoQR)}</strong></p><p>Última actualización: {formatDate(lastUpdate)}</p></div>
   </div></div>;

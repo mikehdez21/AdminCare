@@ -49,7 +49,7 @@ class EmpleadoController extends Controller
                 $empleadosTransformados = $items->map(function ($empleado) {
                     $urlFoto = $empleado->foto_empleado
                         ? asset('storage/'.$empleado->foto_empleado)
-                        : asset('storage/fotosEmpleados/defaultProfile.png');
+                        : asset('build/img/profile_users/perfilAdmin.png');
 
                     return [
                         'id_empleado' => $empleado->id_empleado,
@@ -109,7 +109,7 @@ class EmpleadoController extends Controller
                 'id_departamento' => 'required|exists:tableDepartamentos,id_departamento',
             ]);
 
-            $path = 'fotosEmpleados/defaultProfile.png'; // Ruta por defecto
+            $path = 'fotosEmpleados/perfilAdmin.png'; // Ruta por defecto
 
             if ($request->hasFile('foto_empleado')) {
                 $file = $request->file('foto_empleado');
@@ -199,7 +199,7 @@ class EmpleadoController extends Controller
 
             if ($request->hasFile('foto_empleado')) {
                 // Eliminar la foto anterior si no es la predeterminada
-                if ($empleado->foto_empleado && $empleado->foto_empleado !== 'fotosEmpleados/defaultProfile.png') {
+                if ($empleado->foto_empleado && $empleado->foto_empleado !== 'fotosEmpleados/perfilAdmin.png') {
                     Storage::disk('public')->delete($empleado->foto_empleado);
                 }
 

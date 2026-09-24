@@ -94,7 +94,7 @@ const LoginFormInputs: React.FC = () => {
             type="text"
             value={user}
             onChange={(e) => setUser(e.target.value)}
-            placeholder='demo_admin'
+            placeholder='DEMOADMIN | DEMOALMACEN'
             required
             autoComplete='username'
           />
@@ -109,7 +109,7 @@ const LoginFormInputs: React.FC = () => {
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder='DemoAdmin-2026'
+              placeholder='demoadmin | demoalmacen'
               required
               autoComplete='current-password'
             />

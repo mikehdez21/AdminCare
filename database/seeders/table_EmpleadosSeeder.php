@@ -22,7 +22,7 @@ class table_EmpleadosSeeder extends Seeder
             'estatus_activo' => true,
             'fecha_alta' => now(),
             'fecha_baja' => null,
-            'foto_empleado' => 'fotosEmpleados/defaultProfile.png',
+            'foto_empleado' => 'fotosEmpleados/perfilAdmin.png',
             'id_departamento' => 1 // Administración
         ]);
     }

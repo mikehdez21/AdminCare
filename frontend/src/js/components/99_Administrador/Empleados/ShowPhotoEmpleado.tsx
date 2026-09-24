@@ -16,7 +16,10 @@ Modal.setAppElement('#root');
 const ShowPhotoEmpleado: React.FC<showPhotoEmpleadoProps> = ({ isOpen, onClose, empleadoToShow }) => {
 
   // Definir una imagen de respaldo por seguridad en el frontend también
-  const defaultImage = '/storage/fotosEmpleados/defaultProfile.png';
+  // En dev Vite sirve frontend/public en la raíz; en prod Laravel sirve public/build
+  const defaultImage = import.meta.env.DEV
+    ? '/img/profile_users/perfilAdmin.png'
+    : '/build/img/profile_users/perfilAdmin.png';
 
   // Determinar la URL de la imagen
   const imageUrl = empleadoToShow?.foto_empleado && typeof empleadoToShow.foto_empleado === 'string'
@@ -40,8 +43,12 @@ const ShowPhotoEmpleado: React.FC<showPhotoEmpleadoProps> = ({ isOpen, onClose, 
             src={imageUrl}
             alt={'Foto de perfil del empleado'}
             onError={(e) => {
-              // Fallback adicional: si la URL de la BD falla, carga la default
-              e.currentTarget.src = defaultImage;
+              // Fallback adicional: si la URL de la BD falla, carga la default;
+              // evita reintentar la misma URL para no caer en un bucle infinito
+              const current = e.currentTarget.src;
+              if (!current.endsWith(defaultImage)) {
+                e.currentTarget.src = defaultImage;
+              }
             }}
           />
         </div>
