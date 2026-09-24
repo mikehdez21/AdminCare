@@ -90,6 +90,7 @@ const EditEmpleado: React.FC<EditEmpleadoProps> = ({ isOpen, onClose, empleadoTo
 
       setFechaNacimiento(formatDateNacimientoToInputs(empleadoToEdit.fecha_nacimiento) || '');
       setEstatusActivo(empleadoToEdit.estatus_activo);
+      setJefaturaEmpleado(empleadoToEdit.jefatura_empleado ?? false);
       setFechaAlta(formatDateHorasToInputs(empleadoToEdit.fecha_alta) || ''); // Formatea la fecha de alta
       setFechaBaja(formatDateHorasToInputs(empleadoToEdit.fecha_baja) || ''); // Formatea la fecha de baja
 
@@ -104,6 +105,7 @@ const EditEmpleado: React.FC<EditEmpleadoProps> = ({ isOpen, onClose, empleadoTo
       setGeneroEmpleado('');
       setFechaNacimiento('');
       setEstatusActivo(true);
+      setJefaturaEmpleado(false);
       setFechaAlta('');
       setFechaBaja('');
       setFotoEmpleado(null);

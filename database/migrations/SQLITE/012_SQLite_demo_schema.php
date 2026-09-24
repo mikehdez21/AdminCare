@@ -183,10 +183,10 @@ return new class extends Migration
         });
 
         Schema::create('tableAF_DepreciacionActivo', function (Blueprint $table): void {
-            $table->bigIncrements('id_depreciacion');
+            $table->bigIncrements('id_depreciacionaf');
             $table->unsignedBigInteger('id_activo_fijo');
             $table->unsignedBigInteger('id_metodo_depreciacionaf')->nullable();
-            $table->unsignedBigInteger('id_estatus_depreciacion')->nullable();
+            $table->unsignedBigInteger('id_estatus_depreciacion');
             $table->integer('anio_depreciacionaf');
             $table->decimal('valor_inicialaf', 21, 2);
             $table->decimal('valor_depreciacion_anterior', 21, 2)->default(0);
@@ -198,12 +198,13 @@ return new class extends Migration
             $table->decimal('valor_residual_af', 21, 2)->default(0);
             $table->unsignedBigInteger('id_usuario_calculo')->nullable();
             $table->text('observaciones_depreciacionaf')->nullable();
-            $table->date('fecha_calculo_depreciacion')->nullable();
+            $table->date('fecha_calculo_depreciacion');
             $table->timestamps();
             $table->foreign('id_activo_fijo')->references('id_activo_fijo')->on('tableAF_ActivosFijos')->cascadeOnDelete();
             $table->foreign('id_metodo_depreciacionaf')->references('id_metodo_depreciacion')->on('tableRef_MetodosDepreciacion')->nullOnDelete();
             $table->foreign('id_estatus_depreciacion')->references('id_estatus_depreciacion')->on('tableRef_EstatusDepreciacionAF')->nullOnDelete();
             $table->foreign('id_usuario_calculo')->references('id_usuario')->on('tableUsuarios')->nullOnDelete();
+            $table->unique(['id_activo_fijo', 'anio_depreciacionaf'], 'uk_activo_anio_deprec');
         });
     }
 

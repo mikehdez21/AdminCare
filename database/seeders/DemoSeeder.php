@@ -10,7 +10,6 @@ use App\Models\AlmacenGeneral\Proveedores;
 use App\Models\Departamento;
 use App\Models\Empleado;
 use App\Models\User;
-use Database\Seeders\table_PermissionsSeeder;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -45,13 +44,10 @@ class DemoSeeder extends Seeder
             'nombre_empleado' => 'Mike',
             'apellido_paterno' => 'Hernandez',
             'apellido_materno' => 'DEMO',
-            'email_empleado' => 'employee@example.demo',
-            'telefono_empleado' => '0000000000',
             'genero' => 'Masculino',
             'fecha_nacimiento' => '1990-01-01',
             'estatus_activo' => true,
             'fecha_alta' => $date,
-            'firma_movimientos' => hash('sha256', 'admincare-demo-signature'),
             'id_departamento' => $department->getKey(),
             'created_at' => $date,
             'updated_at' => $date,

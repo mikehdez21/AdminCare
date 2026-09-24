@@ -27,7 +27,6 @@ class Depreciacion extends Model
         'valor_depreciacion_acumulada',
         'valor_depreciacion_anual',
         'valor_libros_af',
-        'metodo_depreciacionaf',
         'id_metodo_depreciacionaf',
         'fecha_inicio_depreciacion',
         'vida_util_anios',

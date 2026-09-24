@@ -30,11 +30,6 @@ class Empleado extends Model
         'id_departamento',
     ];
 
-    // Campos que deben estar ocultos en las respuestas JSON
-    protected $hidden = [
-        // Si hay campos sensibles que no deben exponerse, como 'firma_movimientos', se pueden agregar aquí
-    ];
-
     // Conversiones de tipos de campos
     protected $casts = [
         'estatus_activo' => 'boolean', // Convierte el campo 'estatus_activo' a booleano

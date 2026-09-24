@@ -5,8 +5,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
+
 
 return new class extends Migration
 {
@@ -29,12 +28,6 @@ return new class extends Migration
             // Apellido materno del empleado (cadena de texto, opcional, longitud máxima de 255 caracteres)
             $table->string('apellido_materno', 255)->nullable();
 
-            // Correo electrónico del empleado (cadena de texto, único, longitud máxima de 255 caracteres)
-            $table->string('email_empleado', 255)->unique();
-
-            // Número de teléfono del empleado (cadena de texto, opcional, longitud máxima de 20 caracteres)
-            $table->string('telefono_empleado', 20)->nullable();
-
             // Género del empleado (ENUM: solo permite 'Masculino' o 'Femenino', opcional)
             $table->enum('genero', ['Masculino', 'Femenino'])->nullable();
 
@@ -52,10 +45,6 @@ return new class extends Migration
 
             // Almacena la ruta donde se guarda la foto en el sistema de archivos (storage/app/public/fotosEmpleados)
             $table->string('foto_empleado')->nullable();
-
-            // Firma de movimientos del empleado (cadena de texto, obligatoria, longitud máxima de 255 caracteres)
-            // Puede ser un hash o un identificador único para la firma
-            $table->string('firma_movimientos', 255);
 
             // Campos de control: created_at y updated_at (automáticamente gestionados por Laravel)
             $table->timestamps();
