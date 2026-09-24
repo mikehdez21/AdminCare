@@ -209,9 +209,6 @@ class AuthController extends Controller
     // LOGOUT
     public function logout(Request $request)
     {
-        // Respuesta inicial
-        $response = ["success" => false];
-
         try {
             // Verificar si el usuario está autenticado
             if (!Auth::check()) {
@@ -220,6 +217,7 @@ class AuthController extends Controller
                     'message' => 'Usuario no autenticado.'
                 ], 401);
             }
+
             // Cerrar sesión del usuario (Sessions)
             Auth::logout();
 
@@ -227,21 +225,44 @@ class AuthController extends Controller
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            $response = [
-                "success" => true,
-                "message" => "Sesión cerrada exitosamente.",
-            ];
+            return response()->json([
+                'success' => true,
+                'message' => 'Sesión cerrada exitosamente.',
+            ], 200);
         } catch (\Illuminate\Database\QueryException $e) {
             report($e);
-            $response['message'] = 'No fue posible cerrar la sesión.';
-            return response()->json($response, 500);
-        } catch (\Exception $e) {
-            report($e);
-            $response['message'] = 'Error interno del servidor. Contacta a Sistemas.';
-            return response()->json($response, 500);
-        }
+            $errorId = $this->logLogoutFailure($request, $e);
 
-        return response()->json($response, 200);
+            return response()->json([
+                'success' => false,
+                'message' => 'No fue posible cerrar la sesión.',
+                'error_id' => $errorId,
+            ], 500);
+        } catch (\Throwable $e) {
+            report($e);
+            $errorId = $this->logLogoutFailure($request, $e);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error interno del servidor. Contacta a Sistemas.',
+                'error_id' => $errorId,
+            ], 500);
+        }
+    }
+
+    private function logLogoutFailure(Request $request, \Throwable $exception): string
+    {
+        $errorId = (string) Str::uuid();
+
+        Log::error('Authentication logout failed', [
+            'error_id' => $errorId,
+            'exception' => get_class($exception),
+            'code' => (string) $exception->getCode(),
+            'path' => $request->path(),
+            'method' => $request->method(),
+        ]);
+
+        return $errorId;
     }
 
     // Cerrar sesión por inactividad

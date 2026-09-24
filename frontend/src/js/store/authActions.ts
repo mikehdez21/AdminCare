@@ -78,7 +78,9 @@ export const login = createAsyncThunk<AuthPayloadResponse, LoginCredentials>(
           break;
         default:
           // Para errores de red u otros no clasificados
-          if (error.code === 'NETWORK_ERROR' || error.code === 'ERR_NETWORK') {
+          if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+            message = 'Tiempo de espera agotado. Intenta nuevamente.';
+          } else if (error.code === 'NETWORK_ERROR' || error.code === 'ERR_NETWORK') {
             message = 'Error de conexión. Verifica tu conexión a internet.';
           } else {
             message = rawMessage || 'Error en el servidor';
@@ -172,9 +174,31 @@ export const logout = createAsyncThunk<LogoutResponse, void>(
     } catch (error) {
       // Manejo de errores
       if (isAxiosError(error) && error.response) {
+        const status = error.response.status;
+        const message = getBackendErrorMessage(error.response.data, 'Error inesperado al cerrar sesión');
+
+        // Cuando el backend ya no reconoce la sesión (401/419), la sesión está
+        // muerta y el logout debe limpiar el estado y redirigir (sessionInvalid).
+        // Dejar el flujo de fallo normal atraparía al usuario en la app.
+        if (status === 401 || status === 419) {
+          return {
+            success: false,
+            sessionInvalid: true,
+            message,
+          };
+        }
+
         return {
           success: false,
-          message: getBackendErrorMessage(error.response.data, 'Error inesperado al cerrar sesión'),
+          message,
+        };
+      }
+
+      // Errores de red sin respuesta HTTP: distinguir timeout del resto.
+      if (isAxiosError(error) && (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT')) {
+        return {
+          success: false,
+          message: 'Tiempo de espera agotado. Intenta nuevamente.',
         };
       }
 

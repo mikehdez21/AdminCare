@@ -66,15 +66,22 @@ const authSlice = createSlice({
         state.error = undefined;
       })
       .addCase(logout.fulfilled, (state, action) => {
-        // Siempre limpiar estado de sesión independientemente de success.
-        // El componente (LogoutModal) mostrará el error si success===false.
-        state.isAuthenticated = false;
-        state.user = null;
-        state.permissions = [];
-        state.rol = null;
-        state.departamento = null;
-        state.checking = false;
-        state.error = action.payload.success ? undefined : action.payload.message;
+        if (action.payload.success || action.payload.sessionInvalid === true) {
+          // Logout confirmado por el backend: limpiar el estado de sesión.
+          state.isAuthenticated = false;
+          state.user = null;
+          state.permissions = [];
+          state.rol = null;
+          state.departamento = null;
+          state.checking = false;
+          state.error = undefined;
+        } else {
+          // Un logout fallido debe conservar la sesión: el backend mantiene la
+          // cookie/sesión, así que desloguear aquí dejaría el frontend y el
+          // backend en estados divergentes. Solo informar el error y dejar que
+          // LogoutModal muestre el Swal sin redirigir.
+          state.error = action.payload.message;
+        }
       })
 
       .addCase(checkAuthSession.pending, (state) => {

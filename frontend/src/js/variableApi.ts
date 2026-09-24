@@ -18,7 +18,7 @@ function ensureCsrfCookie(): Promise<void> {
 
   if (!csrfCookiePromise) {
     csrfCookiePromise = axios
-      .get(`${base}/sanctum/csrf-cookie`, { withCredentials: true })
+      .get(`${base}/sanctum/csrf-cookie`, { withCredentials: true, timeout: 30000 })
       .then(() => undefined)
       .catch((err: unknown) => {
         // If the request fails, reset so the next attempt can try again.
@@ -46,6 +46,9 @@ function getCsrfTokenFromMeta(): string | null {
 const axiosInstance = axios.create({
   baseURL: base || undefined,
   withCredentials: true,
+  // Evita requests colgados sin límite (el default 0 de Axios no expira),
+  // p.ej. login/logout que dejarían la UI sin feedback.
+  timeout: 30000,
 });
 
 // ------------------------------------------------------------------
