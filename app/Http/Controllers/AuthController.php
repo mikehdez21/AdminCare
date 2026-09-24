@@ -211,7 +211,7 @@ class AuthController extends Controller
     {
         try {
             // Verificar si el usuario está autenticado
-            if (!Auth::check()) {
+            if (!Auth::guard('web')->check()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Usuario no autenticado.'
@@ -219,7 +219,7 @@ class AuthController extends Controller
             }
 
             // Cerrar sesión del usuario (Sessions)
-            Auth::logout();
+            Auth::guard('web')->logout();
 
             // Invalidar la sesión y regenerar el token CSRF
             $request->session()->invalidate();
@@ -272,7 +272,7 @@ class AuthController extends Controller
         // y cerrar sesión si es necesario
 
         // Cerrar sesión del usuario autenticado
-        Auth::logout();
+        Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
