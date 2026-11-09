@@ -1,0 +1,23 @@
+# Aceptación — Rutas y middleware
+
+- [ ] `routes/api.php` usa `Permisos::middleware`.
+- [ ] Las rutas mantienen URL y método.
+- [ ] Almacén usa `almacen.*`.
+- [ ] Contabilidad usa `contabilidad.*`.
+- [ ] Administrador usa `admin.*`.
+- [ ] Catálogos usan `catalogos.*` con OR.
+- [ ] No quedan `permission:sidebar_*`.
+- [ ] No quedan permisos legacy en el seeder.
+- [ ] No queda unión legacy en el guardado de roles.
+- [ ] El sidebar usa capacidades nuevas.
+- [ ] No queda `sidebar_*` en el frontend.
+- [ ] Admin ve todos los módulos.
+- [ ] Almacén sigue operando.
+- [ ] Sin 403 inesperados.
+- [ ] QR público funciona.
+- [ ] `git diff --check` OK.
+- [ ] `pnpm exec tsc --noEmit` OK.
+- [ ] `pnpm run lint` OK o errores preexistentes documentados.
+- [ ] `pnpm run build` OK.
+- [ ] Usuario validó en la app.
+- [ ] No se avanzó a Spec 3 sin OK.

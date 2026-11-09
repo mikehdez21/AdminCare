@@ -1,0 +1,21 @@
+# Aceptación — Permisos por capacidad
+
+- [ ] Existe `config/permisos.php`.
+- [ ] Existe `App\Support\Permisos`.
+- [ ] El seeder crea permisos legacy + nuevos.
+- [ ] Admin tiene todos los permisos.
+- [ ] Almacén conserva sus permisos legacy y recibe los nuevos.
+- [ ] La UI de Roles muestra el catálogo nuevo.
+- [ ] La UI muestra etiqueta y descripción.
+- [ ] Guardar un rol conserva los permisos legacy.
+- [ ] Guardar un rol no deja sin acceso a Almacén/Administración.
+- [ ] Las rutas siguen usando los permisos legacy.
+- [ ] Los menús no cambiaron.
+- [ ] No hay migraciones nuevas.
+- [ ] `git diff --check` OK.
+- [ ] `pnpm exec tsc --noEmit` OK.
+- [ ] `pnpm run lint` OK o errores preexistentes documentados.
+- [ ] `pnpm run build` OK.
+- [ ] El usuario validó en la app.
+- [ ] No se tocó producción.
+- [ ] No se avanzó a Spec 2 sin OK.

@@ -1,0 +1,23 @@
+# Aceptación — Tablas y listados
+
+- [ ] `Paginable` actualizado.
+- [ ] Administrador/Departamentos ordena, filtra y pagina.
+- [ ] Administrador/Empleados ordena, filtra y pagina.
+- [ ] Administrador/Roles ordena, filtra y pagina.
+- [ ] Administrador/Ubicaciones ordena, filtra y pagina.
+- [ ] Administrador/Usuarios ordena, filtra y pagina.
+- [ ] Almacén/Activos Fijos ordena, filtra y pagina.
+- [ ] Almacén/Facturas ordena, filtra y pagina.
+- [ ] Almacén/Movimientos ordena, filtra y pagina.
+- [ ] Almacén/Proveedores ordena, filtra y pagina.
+- [ ] Filtros inválidos no generan 500.
+- [ ] Sin `per_page` la respuesta sigue siendo compatible.
+- [ ] Crear/editar/eliminar sigue funcionando.
+- [ ] Cuota demo sigue activa.
+- [ ] No se rompió SQLite.
+- [ ] `git diff --check` OK.
+- [ ] `pnpm exec tsc --noEmit` OK.
+- [ ] `pnpm run lint` OK o errores preexistentes documentados.
+- [ ] `pnpm run build` OK.
+- [ ] Usuario validó en la app.
+- [ ] No se avanzó a Spec 4 sin OK.
