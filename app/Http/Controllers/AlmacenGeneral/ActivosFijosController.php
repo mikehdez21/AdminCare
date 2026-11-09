@@ -6,6 +6,7 @@ use App\Http\Controllers\Concerns\Paginable;
 use App\Http\Controllers\Controller;
 use App\Models\AlmacenGeneral\ActivosFijos;
 use App\Models\AlmacenGeneral\Clasificaciones;
+use App\Support\SchemaTable;
 // MODELS - FILTROS ACTIVOS FIJOS
 use App\Models\Departamento;
 use App\Models\Empleado;
@@ -21,6 +22,110 @@ class ActivosFijosController extends Controller
 {
     use Paginable;
 
+    private function filtroId(string $expresion): callable
+    {
+        return function ($query, string $valor) use ($expresion): void {
+            if (ctype_digit($valor)) {
+                $query->where($expresion, (int) $valor);
+            }
+        };
+    }
+
+    /**
+     * Config de orden/filtros compartida por todas las variantes del listado.
+     */
+    private function configTablaActivos(): array
+    {
+        $base = SchemaTable::almacenQuoted('tableAF_ActivosFijos');
+        $tabla = SchemaTable::almacen('tableAF_ActivosFijos');
+        $estatus = SchemaTable::almacenQuoted('tableRef_EstatusAF');
+        $clasificaciones = SchemaTable::almacenQuoted('tableRef_ClasificacionesAF');
+        $sinClasificar = 'sin_clasificacion';
+
+        return [
+            'orden' => [
+                'id' => $base.'."id_activo_fijo"',
+                'codigo_unico' => 'LOWER('.$base.'."codigo_unico")',
+                'lote' => 'LOWER('.$base.'."codigo_lote")',
+                'nombre' => 'LOWER('.$base.'."nombre_af")',
+                'descripcion' => 'LOWER('.$base.'."descripcion_af")',
+                'modelo' => 'LOWER('.$base.'."modelo_af")',
+                'marca' => 'LOWER('.$base.'."marca_af")',
+                'serie' => 'LOWER('.$base.'."numero_serie_af")',
+                'costo' => $base.'."costo_unitario_af"',
+                'propio' => $base.'."af_propio"',
+                'menor' => $base.'."af_menor"',
+                'estado' => '(SELECT LOWER(est."descripcion_estatusaf") FROM '.$estatus.' est WHERE est."id_estatusaf" = '.$base.'."id_estado_af" LIMIT 1)',
+                'clasificacion' => '(SELECT LOWER(clas."nombre_clasificacion") FROM '.$clasificaciones.' clas WHERE clas."id_clasificacion" = '.$base.'."id_clasificacion" LIMIT 1)',
+                'fecha_registro' => $base.'."fecha_registro_af"',
+                'depreciacion' => 'CASE WHEN '.$base.'."af_propio" = false THEN 2 WHEN '.$base.'."depreciacion_aplicada" = true THEN 0 ELSE 1 END',
+                'observaciones' => 'LOWER('.$base.'."observaciones_af")',
+                'creado' => $base.'."created_at"',
+                'modificado' => $base.'."updated_at"',
+            ],
+            'orden_default' => ['id', 'asc'],
+            'filtros' => [
+                'id' => ['tipo' => 'texto', 'expresion' => $base.'."id_activo_fijo"'],
+                'codigo_unico' => ['tipo' => 'texto', 'expresion' => $base.'."codigo_unico"'],
+                'lote' => ['tipo' => 'texto', 'expresion' => $base.'."codigo_lote"'],
+                'nombre' => ['tipo' => 'texto', 'expresion' => $base.'."nombre_af"'],
+                'descripcion' => ['tipo' => 'texto', 'expresion' => $base.'."descripcion_af"'],
+                'modelo' => ['tipo' => 'texto', 'expresion' => $base.'."modelo_af"'],
+                'marca' => ['tipo' => 'texto', 'expresion' => $base.'."marca_af"'],
+                'serie' => ['tipo' => 'texto', 'expresion' => $base.'."numero_serie_af"'],
+                'propio' => ['tipo' => 'booleano', 'expresion' => $tabla.'.af_propio'],
+                'menor' => ['tipo' => 'booleano', 'expresion' => $tabla.'.af_menor'],
+                'estado' => [
+                    'tipo' => 'callback',
+                    'expresion' => $tabla.'.id_estado_af',
+                    'callback' => $this->filtroId($tabla.'.id_estado_af'),
+                ],
+                'clasificacion' => [
+                    'tipo' => 'callback',
+                    'expresion' => $tabla.'.id_clasificacion',
+                    'callback' => function ($query, string $valor) use ($tabla, $sinClasificar): void {
+                        if ($valor === $sinClasificar) {
+                            $query->whereNull($tabla.'.id_clasificacion');
+
+                            return;
+                        }
+
+                        if (ctype_digit($valor)) {
+                            $query->where($tabla.'.id_clasificacion', (int) $valor);
+                        }
+                    },
+                ],
+                'fecha_registro' => ['tipo' => 'fecha', 'expresion' => $tabla.'.fecha_registro_af'],
+                'depreciacion' => [
+                    'tipo' => 'callback',
+                    'expresion' => $tabla.'.depreciacion_aplicada',
+                    'callback' => function ($query, string $valor) use ($tabla): void {
+                        if ($valor === 'na') {
+                            $query->where($tabla.'.af_propio', false);
+
+                            return;
+                        }
+
+                        if ($valor === 'activa') {
+                            $query->where($tabla.'.af_propio', true)
+                                ->where($tabla.'.depreciacion_aplicada', true);
+
+                            return;
+                        }
+
+                        if ($valor === 'inactiva') {
+                            $query->where($tabla.'.af_propio', true)
+                                ->where($tabla.'.depreciacion_aplicada', false);
+                        }
+                    },
+                ],
+                'observaciones' => ['tipo' => 'texto', 'expresion' => $base.'."observaciones_af"'],
+                'creado' => ['tipo' => 'fecha', 'expresion' => $tabla.'.created_at'],
+                'modificado' => ['tipo' => 'fecha', 'expresion' => $tabla.'.updated_at'],
+            ],
+        ];
+    }
+
     // Obtener todas los activos fijos
     public function index(Request $request)
     {
@@ -31,7 +136,9 @@ class ActivosFijosController extends Controller
             $resultado = $this->paginar(
                 $request,
                 ActivosFijos::query()->orderBy('id_activo_fijo', 'asc'),
-                ['descripcion_af', 'id_activo_fijo', 'codigo_lote']
+                ['descripcion_af', 'id_activo_fijo', 'codigo_lote'],
+                10,
+                $this->configTablaActivos()
             );
 
             $items = $resultado['items'];
@@ -168,7 +275,9 @@ class ActivosFijosController extends Controller
             $resultado = $this->paginar(
                 $request,
                 ActivosFijos::porDepartamento($idDepartamento)->orderBy('id_activo_fijo', 'asc'),
-                ['descripcion_af', 'id_activo_fijo', 'codigo_lote']
+                ['descripcion_af', 'id_activo_fijo', 'codigo_lote'],
+                10,
+                $this->configTablaActivos()
             );
 
             $respuesta = [
@@ -199,7 +308,9 @@ class ActivosFijosController extends Controller
             $resultado = $this->paginar(
                 $request,
                 ActivosFijos::porUbicacion($idUbicacion)->orderBy('id_activo_fijo', 'asc'),
-                ['descripcion_af', 'id_activo_fijo', 'codigo_lote']
+                ['descripcion_af', 'id_activo_fijo', 'codigo_lote'],
+                10,
+                $this->configTablaActivos()
             );
 
             $respuesta = [
@@ -230,7 +341,9 @@ class ActivosFijosController extends Controller
             $resultado = $this->paginar(
                 $request,
                 ActivosFijos::porClasificacion($idClasificacion)->orderBy('id_activo_fijo', 'asc'),
-                ['descripcion_af', 'id_activo_fijo', 'codigo_lote']
+                ['descripcion_af', 'id_activo_fijo', 'codigo_lote'],
+                10,
+                $this->configTablaActivos()
             );
 
             $respuesta = [
@@ -261,7 +374,9 @@ class ActivosFijosController extends Controller
             $resultado = $this->paginar(
                 $request,
                 ActivosFijos::porResponsable($idEmpleado)->orderBy('id_activo_fijo', 'asc'),
-                ['descripcion_af', 'id_activo_fijo', 'codigo_lote']
+                ['descripcion_af', 'id_activo_fijo', 'codigo_lote'],
+                10,
+                $this->configTablaActivos()
             );
 
             $activosPorEmpleado = $resultado['items']
@@ -319,7 +434,9 @@ class ActivosFijosController extends Controller
             $resultado = $this->paginar(
                 $request,
                 ActivosFijos::dadosDeBaja()->orderBy('id_activo_fijo', 'asc'),
-                ['descripcion_af', 'id_activo_fijo', 'codigo_lote']
+                ['descripcion_af', 'id_activo_fijo', 'codigo_lote'],
+                10,
+                $this->configTablaActivos()
             );
 
             $respuesta = [
@@ -348,7 +465,9 @@ class ActivosFijosController extends Controller
             $resultado = $this->paginar(
                 $request,
                 ActivosFijos::noPropios()->orderBy('id_activo_fijo', 'asc'),
-                ['descripcion_af', 'id_activo_fijo', 'codigo_lote']
+                ['descripcion_af', 'id_activo_fijo', 'codigo_lote'],
+                10,
+                $this->configTablaActivos()
             );
 
             $respuesta = [
@@ -377,7 +496,9 @@ class ActivosFijosController extends Controller
             $resultado = $this->paginar(
                 $request,
                 ActivosFijos::activosMenores()->orderBy('id_activo_fijo', 'asc'),
-                ['descripcion_af', 'id_activo_fijo', 'codigo_lote']
+                ['descripcion_af', 'id_activo_fijo', 'codigo_lote'],
+                10,
+                $this->configTablaActivos()
             );
 
             $respuesta = [
@@ -406,7 +527,9 @@ class ActivosFijosController extends Controller
             $resultado = $this->paginar(
                 $request,
                 ActivosFijos::sinFactura()->orderBy('id_activo_fijo', 'asc'),
-                ['descripcion_af', 'id_activo_fijo', 'codigo_lote']
+                ['descripcion_af', 'id_activo_fijo', 'codigo_lote'],
+                10,
+                $this->configTablaActivos()
             );
 
             $respuesta = [

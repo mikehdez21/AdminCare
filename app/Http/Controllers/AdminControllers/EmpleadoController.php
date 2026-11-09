@@ -18,27 +18,73 @@ class EmpleadoController extends Controller
         $response = ['success' => false, 'data' => [], 'message' => ''];
 
         try {
+            $nombreCompleto = "LOWER(COALESCE(nombre_empleado, '') || ' ' || COALESCE(apellido_paterno, '') || ' ' || COALESCE(apellido_materno, ''))";
+
             $resultado = $this->paginar(
                 $request,
                 Empleado::with('departamento')
-                    ->orderBy('id_empleado', 'asc')
+                    ->leftJoin(
+                        'tableDepartamentos as d',
+                        'd.id_departamento',
+                        '=',
+                        'tableEmpleados.id_departamento'
+                    )
                     ->select([
-                        'id_empleado',
-                        'nombre_empleado',
-                        'apellido_paterno',
-                        'apellido_materno',
-                        'genero',
-                        'fecha_nacimiento',
-                        'estatus_activo',
-                        'jefatura_empleado',
-                        'fecha_alta',
-                        'fecha_baja',
-                        'foto_empleado',
-                        'created_at',
-                        'updated_at',
-                        'id_departamento',
-                    ]),
-                ['nombre_empleado', 'id_empleado']
+                        'tableEmpleados.id_empleado',
+                        'tableEmpleados.nombre_empleado',
+                        'tableEmpleados.apellido_paterno',
+                        'tableEmpleados.apellido_materno',
+                        'tableEmpleados.genero',
+                        'tableEmpleados.fecha_nacimiento',
+                        'tableEmpleados.estatus_activo',
+                        'tableEmpleados.jefatura_empleado',
+                        'tableEmpleados.fecha_alta',
+                        'tableEmpleados.fecha_baja',
+                        'tableEmpleados.foto_empleado',
+                        'tableEmpleados.created_at',
+                        'tableEmpleados.updated_at',
+                        'tableEmpleados.id_departamento',
+                    ])
+                    ->when($request->boolean('solo_activos'), fn ($query) => $query->where('tableEmpleados.estatus_activo', true)),
+                ['nombre_empleado', 'id_empleado'],
+                10,
+                [
+                    'orden' => [
+                        'id' => '"tableEmpleados"."id_empleado"',
+                        'nombre' => $nombreCompleto,
+                        'genero' => 'LOWER("tableEmpleados"."genero")',
+                        'fecha_nacimiento' => '"tableEmpleados"."fecha_nacimiento"',
+                        'estatus' => '"tableEmpleados"."estatus_activo"',
+                        'jefatura' => '"tableEmpleados"."jefatura_empleado"',
+                        'fecha_alta' => '"tableEmpleados"."fecha_alta"',
+                        'fecha_baja' => '"tableEmpleados"."fecha_baja"',
+                        'departamento' => 'LOWER("d"."nombre_departamento")',
+                        'creado' => '"tableEmpleados"."created_at"',
+                        'modificado' => '"tableEmpleados"."updated_at"',
+                    ],
+                    'orden_default' => ['id', 'asc'],
+                    'filtros' => [
+                        'id' => ['tipo' => 'texto', 'expresion' => '"tableEmpleados"."id_empleado"'],
+                        'nombre' => ['tipo' => 'texto', 'expresion' => $nombreCompleto],
+                        'genero' => ['tipo' => 'exacto', 'expresion' => 'tableEmpleados.genero'],
+                        'fecha_nacimiento' => ['tipo' => 'fecha', 'expresion' => 'tableEmpleados.fecha_nacimiento'],
+                        'estatus' => ['tipo' => 'booleano', 'expresion' => 'tableEmpleados.estatus_activo'],
+                        'jefatura' => ['tipo' => 'booleano', 'expresion' => 'tableEmpleados.jefatura_empleado'],
+                        'fecha_alta' => ['tipo' => 'fecha', 'expresion' => 'tableEmpleados.fecha_alta'],
+                        'fecha_baja' => ['tipo' => 'fecha', 'expresion' => 'tableEmpleados.fecha_baja'],
+                        'departamento' => [
+                            'tipo' => 'callback',
+                            'expresion' => 'd.id_departamento',
+                            'callback' => function ($query, string $valor): void {
+                                if (ctype_digit($valor)) {
+                                    $query->where('d.id_departamento', (int) $valor);
+                                }
+                            },
+                        ],
+                        'creado' => ['tipo' => 'fecha', 'expresion' => 'tableEmpleados.created_at'],
+                        'modificado' => ['tipo' => 'fecha', 'expresion' => 'tableEmpleados.updated_at'],
+                    ],
+                ]
             );
 
             $items = $resultado['items'];

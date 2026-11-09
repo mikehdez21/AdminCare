@@ -96,6 +96,48 @@ export const getEmpleados = createAsyncThunk<ResultadoEmpleados, PaginacionParam
   },
 );
 
+export const getEmpleadosActivos = createAsyncThunk<ResultadoEmpleados>(
+  '/getEmpleadosActivos',
+  async () => {
+    try {
+      const response = await api.get(
+        `${API_BASE_URL}/api/admin/empleados`,
+        { params: { solo_activos: 1 } },
+      );
+
+      const empleadosFormateados = response.data.data.map((empleado: Empleados) => {
+        return {
+          ...empleado,
+          fecha_nacimiento: empleado.fecha_nacimiento
+            ? formatDateNacimientoToFrontend(empleado.fecha_nacimiento)
+            : null,
+          created_at: empleado.created_at ? formatDateHorasToFrontend(empleado.created_at) : null,
+          updated_at: empleado.updated_at ? formatDateHorasToFrontend(empleado.updated_at) : null,
+        };
+      });
+
+      return {
+        success: response.data.success,
+        empleados: empleadosFormateados as Empleados[],
+        meta: response.data.meta ?? null,
+        message: response.data.message,
+      };
+    } catch (error) {
+      if (isAxiosError(error) && error.response) {
+        return {
+          success: false,
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
+        };
+      }
+
+      return {
+        success: false,
+        message: 'Error inesperado',
+      };
+    }
+  },
+);
+
 // Editar un empleado existente
 export const editEmpleado = createAsyncThunk<{ success: boolean; message: string }, FormData>(
   '/editEmpleado',

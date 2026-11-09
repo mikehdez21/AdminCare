@@ -1,0 +1,86 @@
+/* Encabezados ordenables y fila de filtros compartida por las tablas. */
+
+.tablaEntidades__thBoton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+
+.tablaEntidades__thBoton:hover {
+  color: #2563eb;
+}
+
+.tablaEntidades__thBoton:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.tablaEntidades__indicador {
+  display: inline-flex;
+  flex: 0 0 auto;
+  opacity: 0.35;
+}
+
+.tablaEntidades__indicador--activo {
+  opacity: 1;
+}
+
+.tablaEntidades__filaFiltros th {
+  padding: 4px 6px;
+  background: rgba(0, 0, 0, 0.035);
+}
+
+/* La fila de filtros debe seguir el mismo anclaje horizontal que el encabezado
+   y las celdas; sin esto los inputs se deslizan por debajo de las columnas
+   fijas y se enciman con Acciones. */
+.tablaEntidades__filaFiltros .tablaEntidades__celdaFija--izquierda {
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.tablaEntidades__filaFiltros .tablaEntidades__celdaFija--derecha {
+  border-left: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.tablaEntidades__filtro {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 20px;
+  height: 28px;
+  padding: 2px 4px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: 4px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 400;
+}
+
+/* El date nativo trae un ancho intrínseco mayor; en columnas angostas se
+   recorta dentro de su celda en vez de invadir la columna de acciones. */
+.tablaEntidades__filtro[type='date'] {
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+.tablaEntidades__filtro:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 0;
+}
+
+.tablaEntidades__vacio {
+  padding: 16px;
+  text-align: center;
+}

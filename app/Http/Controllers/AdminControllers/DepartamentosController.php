@@ -32,8 +32,31 @@ class DepartamentosController extends Controller
                         'created_at',
                         'updated_at',
                     ])
-                    ->orderBy('id_departamento', 'asc'),
-                ['nombre_departamento', 'id_departamento']
+                    ->orderBy('id_departamento', 'asc')
+                    ->when($request->boolean('solo_activos'), fn ($query) => $query->where('estatus_activo', true)),
+                ['nombre_departamento', 'id_departamento'],
+                10,
+                [
+                    'orden' => [
+                        'id' => 'id_departamento',
+                        'nombre' => 'LOWER(nombre_departamento)',
+                        'descripcion' => 'LOWER(descripcion)',
+                        'atiende_px' => 'atiende_pacientes',
+                        'estatus' => 'estatus_activo',
+                        'creado' => 'created_at',
+                        'modificado' => 'updated_at',
+                    ],
+                    'orden_default' => ['id', 'asc'],
+                    'filtros' => [
+                        'id' => ['tipo' => 'texto', 'expresion' => 'id_departamento'],
+                        'nombre' => ['tipo' => 'texto', 'expresion' => 'nombre_departamento'],
+                        'descripcion' => ['tipo' => 'texto', 'expresion' => 'descripcion'],
+                        'atiende_px' => ['tipo' => 'booleano', 'expresion' => 'atiende_pacientes'],
+                        'estatus' => ['tipo' => 'booleano', 'expresion' => 'estatus_activo'],
+                        'creado' => ['tipo' => 'fecha', 'expresion' => 'created_at'],
+                        'modificado' => ['tipo' => 'fecha', 'expresion' => 'updated_at'],
+                    ],
+                ]
             );
 
             $items = $resultado['items'];

@@ -8,6 +8,7 @@ import { useGetPermisosQuery } from '@/store/api/permisosApi';
 
 // Componentes
 import Paginacion from '@/components/00_Utils/Paginacion';
+import TablaEntidades, { type ColumnaTabla } from '@/components/00_Utils/TablaEntidades';
 import { usePaginacionRtk } from '@/hooks/usePaginacionRtk';
 import AddRolesControl from './AddRol';
 import DeleteRoles from './DeleteRol';
@@ -43,6 +44,10 @@ const Main_RolesControl: React.FC = () => {
     refetch,
     handleSearch,
     handleChangePerPage: handleChangeRolesPorPagina,
+    orden,
+    alternarOrden,
+    filtros,
+    cambiarFiltro,
   } = usePaginacionRtk<Roles>({
     useQuery: useGetRolesQuery,
     perPageDefault: 5,
@@ -51,13 +56,89 @@ const Main_RolesControl: React.FC = () => {
   const { data: permisosData } = useGetPermisosQuery();
   const permisos = permisosData ?? [];
 
+  const hayFiltrosActivos = Object.keys(filtros).length > 0;
+  const hayBusqueda = busqueda.trim() !== '';
+
+  const columnas: ColumnaTabla<Roles>[] = [
+    {
+      clave: 'id',
+      encabezado: 'ID',
+      thId: 'roles_th_RolID',
+      tdId: 'roles_td_RolID',
+      fija: 'izquierda',
+      render: (rol) => rol.id,
+      filtro: { tipo: 'texto', placeholder: 'ID' },
+    },
+    {
+      clave: 'nombre',
+      encabezado: 'Rol',
+      thId: 'roles_th_NombreRol',
+      tdId: 'roles_td_NombreRol',
+      fija: 'izquierda',
+      render: (rol) => rol.name,
+      filtro: { tipo: 'texto', placeholder: 'Rol' },
+    },
+    {
+      clave: 'permisos',
+      encabezado: 'Permisos Asignados',
+      thId: 'roles_th_PermisosRol',
+      tdId: 'roles_td_PermisosRol',
+      ordenable: false,
+      render: (rol) => (
+        <>
+          {rol.permissions?.length || 0} |{' '}
+          <button
+            type='button'
+            className='button_viewPermisos'
+            onClick={() => openModalViewPermisos(rol)}
+          >
+            Ver
+          </button>
+        </>
+      ),
+    },
+    {
+      clave: 'creado',
+      encabezado: 'Fecha Creación',
+      thId: 'roles_th_FechaCreacion',
+      tdId: 'roles_td_FechaCreacion',
+      render: (rol) => rol.created_at,
+      filtro: { tipo: 'fecha' },
+    },
+    {
+      clave: 'modificado',
+      encabezado: 'Fecha Modificación',
+      thId: 'roles_th_FechaModificacion',
+      tdId: 'roles_td_FechaModificacion',
+      render: (rol) => rol.updated_at,
+      filtro: { tipo: 'fecha' },
+    },
+    {
+      clave: 'acciones',
+      encabezado: 'ACCIONES',
+      thId: 'roles_th_Acciones',
+      tdId: 'roles_td_Acciones',
+      fija: 'derecha',
+      ordenable: false,
+      render: (rol) => (
+        <div className='divActions'>
+          <button className='button_editEntity' onClick={() => openModalEditRoles(rol)}>
+            <MdEdit />
+          </button>
+          <button className='button_deleteEntity' onClick={() => openAlertDeleteRoles(rol)}>
+            <MdDeleteForever />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   // Añadir Roles
   const openModalAddRoles = () => {
     setModalAddRolesOpen(true);
   };
   const closeModalAddRoles = () => {
     setModalAddRolesOpen(false);
-    // Recargar la tabla paginada tras crear un rol.
     refetch();
   };
 
@@ -69,7 +150,6 @@ const Main_RolesControl: React.FC = () => {
   const closeModalEditRoles = () => {
     setModalEditRolesOpen(false);
     setRolesToEdit_Delete(null);
-    // Recargar la tabla paginada tras editar un rol.
     refetch();
   };
 
@@ -81,7 +161,6 @@ const Main_RolesControl: React.FC = () => {
   const closeAlertDeleteRoles = () => {
     setModalDeleteRolesOpen(false);
     setRolesToEdit_Delete(null);
-    // Recargar la tabla paginada tras eliminar un rol.
     refetch();
   };
 
@@ -94,7 +173,6 @@ const Main_RolesControl: React.FC = () => {
     setModalViewPermisosOpen(false);
   };
 
-  // Crear nuevos roles
   const handleNuevoRol = () => {
     openModalAddRoles();
   };
@@ -110,7 +188,7 @@ const Main_RolesControl: React.FC = () => {
         </div>
 
         <div className='buttons_Div'>
-          <select className='selectList' value={rolesPorPagina} id='selectList' name='selectList' onChange={handleChangeRolesPorPagina}>
+          <select className='selectList' value={rolesPorPagina} name='selectList' onChange={handleChangeRolesPorPagina}>
             <option value={5}>5</option>
             <option value={10}>10</option>
             <option value={20}>20</option>
@@ -121,7 +199,6 @@ const Main_RolesControl: React.FC = () => {
             type="text"
             placeholder="Buscar por nombre o ID"
             value={busqueda}
-            id='busqueda'
             name='busqueda'
             onChange={handleSearch}
           />
@@ -134,13 +211,12 @@ const Main_RolesControl: React.FC = () => {
 
       <hr />
 
-      {!loading && rolesPaginaActual.length === 0 ? (
+      {!loading && rolesPaginaActual.length === 0 && !hayFiltrosActivos && !hayBusqueda ? (
         <div className='noEntities'>
           <FiAlertTriangle /> <p>  No hay roles registrados </p> <FiAlertTriangle />
         </div>
       ) : (
         <>
-          {/* Paginación */}
           <Paginacion
             paginaActual={paginaActual}
             numeroTotalPaginas={numeroTotalPaginas}
@@ -149,47 +225,18 @@ const Main_RolesControl: React.FC = () => {
             onPaginaSiguiente={() => setPaginaActual(paginaActual + 1)}
           />
 
-          <div className='list_entitiesDiv'>
-            <table>
+          <TablaEntidades
+            className='list_entitiesDiv_roles'
+            filas={rolesPaginaActual}
+            columnas={columnas}
+            clave={(rol) => rol.id ?? ''}
+            orden={orden}
+            onOrden={alternarOrden}
+            filtros={filtros}
+            onFiltro={cambiarFiltro}
+            mensajeVacio={<p>No hay coincidencias con los filtros seleccionados.</p>}
+          />
 
-              <thead>
-                <tr>
-                  <th id='th_RolID'>ID</th>
-                  <th id='th_NombreRol'>Rol</th>
-                  <th id='th_PermisosRol'>Permisos Asignados</th>
-                  <th id='th_FechaCreacion'>Fecha Creación</th>
-                  <th id='th_FechaModificacion'>Fecha Modificación</th>
-
-                  <th id='th_Acciones'>ACCIONES</th>
-                </tr>
-              </thead>
-
-
-              <tbody>
-                {rolesPaginaActual.map(rol => (
-                  <tr key={rol.id}>
-                    <td id='td_RolID'>{rol.id}</td>
-                    <td id='td_NombreRol'>{rol.name}</td>
-                    <td id='td_PermisosRol' onClick={() => openModalViewPermisos(rol)}>
-                      {rol.permissions?.length || 0} | Ver
-                    </td>
-                    <td id='td_FechaCreacion'>{rol.created_at}</td>
-                    <td id='td_FechaModificacion'>{rol.updated_at}</td>
-
-
-                    <td id='td_Acciones'>
-                      <div className='divActions'>
-                        <button className='button_editEntity' onClick={() => openModalEditRoles(rol)}> <MdEdit /></button>
-                        <button className='button_deleteEntity' onClick={() => openAlertDeleteRoles(rol)}><MdDeleteForever /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Paginación */}
           <Paginacion
             paginaActual={paginaActual}
             numeroTotalPaginas={numeroTotalPaginas}
@@ -199,7 +246,6 @@ const Main_RolesControl: React.FC = () => {
           />
         </>
       )}
-
 
       {isModalAddRolesOpen && (
         <AddRolesControl isOpen={isModalAddRolesOpen} onClose={closeModalAddRoles} permisos={permisos} />
@@ -216,9 +262,6 @@ const Main_RolesControl: React.FC = () => {
       {isModalViewPermisosOpen && rolesToEdit_Delete && (
         <ShowPermisosRole isOpen={isModalViewPermisosOpen} onClose={closeModalViewPermisos} rolToShow={rolesToEdit_Delete} permisos={permisos} />
       )}
-
-
-
 
     </div>
   );

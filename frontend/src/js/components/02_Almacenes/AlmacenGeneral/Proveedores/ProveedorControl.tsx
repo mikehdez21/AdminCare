@@ -17,6 +17,7 @@ import { getTiposMoneda } from '@/store/almacengeneral/TipoMoneda/tipoMonedaActi
 
 // Componentes
 import Paginacion from '@/components/00_Utils/Paginacion';
+import TablaEntidades, { type ColumnaTabla } from '@/components/00_Utils/TablaEntidades';
 import { usePaginacionServidor } from '@/hooks/usePaginacionServidor';
 import AddProveedor from './AddProveedor';
 import EditProveedor from './EditProveedor';
@@ -31,8 +32,21 @@ import { FiAlertTriangle } from 'react-icons/fi';
 // Styles
 import '@styles/02_Almacenes/AlmacenGeneral/Proveedores/proveedoresControl.css';
 
+function opcionesCatalogo<T>(
+  items: T[],
+  id: (item: T) => number | undefined,
+  etiqueta: (item: T) => string,
+): Array<{ valor: string; etiqueta: string }> {
+  return items.reduce<Array<{ valor: string; etiqueta: string }>>((opciones, item) => {
+    const valor = id(item);
 
+    if (typeof valor === 'number') {
+      opciones.push({ valor: String(valor), etiqueta: etiqueta(item) });
+    }
 
+    return opciones;
+  }, []);
+}
 
 const AlmacenGeneral_ControlProveedor: React.FC = () => {
 
@@ -80,10 +94,265 @@ const AlmacenGeneral_ControlProveedor: React.FC = () => {
     refetch,
     handleSearch,
     handleChangePerPage: handleChangeProveedoresPorPagina,
+    orden,
+    alternarOrden,
+    filtros,
+    cambiarFiltro,
   } = usePaginacionServidor<Proveedores>({
     fetcher,
     perPageDefault: 5,
   });
+
+  const hayFiltrosActivos = Object.keys(filtros).length > 0;
+  const hayBusqueda = busqueda.trim() !== '';
+
+  const columnas: ColumnaTabla<Proveedores>[] = [
+    {
+      clave: 'id',
+      encabezado: 'ID',
+      thId: 'proveedores_th_ID',
+      tdId: 'proveedores_td_ID',
+      fija: 'izquierda',
+      render: (proveedor) => proveedor.id_proveedor,
+      filtro: { tipo: 'texto', placeholder: 'ID' },
+    },
+    {
+      clave: 'nombre',
+      encabezado: 'Empresa/Proveedor',
+      thId: 'proveedores_th_Proveedor_Empresa',
+      tdId: 'proveedores_td_Proveedor_Empresa',
+      fija: 'izquierda',
+      desplazamientoFijo: '80px',
+      render: (proveedor) => proveedor.nombre_proveedor,
+      filtro: { tipo: 'texto', placeholder: 'Empresa' },
+    },
+    {
+      clave: 'razon_social',
+      encabezado: 'Razón Social',
+      thId: 'proveedores_th_RazonSocial',
+      tdId: 'proveedores_td_RazonSocial',
+      render: (proveedor) => <p>{proveedor.razon_social}</p>,
+      filtro: { tipo: 'texto', placeholder: 'Razón Social' },
+    },
+    {
+      clave: 'email',
+      encabezado: 'Email',
+      thId: 'proveedores_th_EmailProveedor',
+      tdId: 'proveedores_td_Email',
+      render: (proveedor) => proveedor.email_proveedor,
+      filtro: { tipo: 'texto', placeholder: 'Email' },
+    },
+    {
+      clave: 'telefono',
+      encabezado: 'Teléfono',
+      thId: 'proveedores_th_Telefono',
+      tdId: 'proveedores_td_Telefono',
+      render: (proveedor) => proveedor.telefono_proveedor,
+      filtro: { tipo: 'texto', placeholder: 'Teléfono' },
+    },
+    {
+      clave: 'sitio_web',
+      encabezado: 'Sitio Web',
+      thId: 'proveedores_th_Proveedor_SitioWeb',
+      tdId: 'proveedores_td_Proveedor_SitioWeb',
+      render: (proveedor) =>
+        proveedor.sitioWeb ? (
+          <a
+            href={`https://${proveedor.sitioWeb}`}
+            target='_blank'
+            rel='noopener noreferrer'
+          >
+            {proveedor.sitioWeb}
+          </a>
+        ) : (
+          'No disponible'
+        ),
+      filtro: { tipo: 'texto', placeholder: 'Sitio Web' },
+    },
+    {
+      clave: 'rfc',
+      encabezado: 'RFC',
+      thId: 'proveedores_th_Proveedor_RFC',
+      tdId: 'proveedores_td_Proveedor_RFC',
+      render: (proveedor) => proveedor.rfc,
+      filtro: { tipo: 'texto', placeholder: 'RFC' },
+    },
+    {
+      clave: 'estatus',
+      encabezado: 'Estatus',
+      thId: 'proveedores_th_EstatusActivo',
+      tdId: 'proveedores_td_EstatusActivo',
+      render: (proveedor) => (
+        <span className={proveedor.estatus_activo ? 'status-activo' : 'status-inactivo'}>
+          {proveedor.estatus_activo ? 'Activo' : 'Inactivo'}
+        </span>
+      ),
+      filtro: {
+        tipo: 'booleano',
+        opciones: [
+          { valor: '1', etiqueta: 'Activo' },
+          { valor: '0', etiqueta: 'Inactivo' },
+        ],
+      },
+    },
+    {
+      clave: 'moneda',
+      encabezado: 'Moneda',
+      thId: 'proveedores_th_tipoMoneda',
+      tdId: 'proveedores_td_tipoMoneda',
+      render: (proveedor) => (
+        <div className='divTipoMoneda'>
+          {tiposMoneda.find((tipo) => tipo.id_tipomoneda === proveedor.id_tipo_moneda)
+            ?.descripcion_tipomoneda ?? ''}
+        </div>
+      ),
+      filtro: {
+        tipo: 'seleccion',
+        opciones: opcionesCatalogo(
+          tiposMoneda,
+          (tipo) => tipo.id_tipomoneda,
+          (tipo) => tipo.descripcion_tipomoneda,
+        ),
+      },
+    },
+    {
+      clave: 'tipo_proveedor',
+      encabezado: 'Tipo Proveedor',
+      thId: 'proveedores_th_tipoProveedor',
+      tdId: 'proveedores_td_tipoProveedor',
+      render: (proveedor) => (
+        <div className='divTipoProveedor'>
+          {tiposProveedores.find((tipo) => tipo.id_tipoproveedor === proveedor.id_tipo_proveedor)
+            ?.descripcion_tipoproveedor ?? ''}
+        </div>
+      ),
+      filtro: {
+        tipo: 'seleccion',
+        opciones: opcionesCatalogo(
+          tiposProveedores,
+          (tipo) => tipo.id_tipoproveedor,
+          (tipo) => tipo.descripcion_tipoproveedor,
+        ),
+      },
+    },
+    {
+      clave: 'forma_pago',
+      encabezado: 'Forma de Pago',
+      thId: 'proveedores_th_formaPago',
+      tdId: 'proveedores_td_formaPago',
+      render: (proveedor) => (
+        <div className='divTipoFormaPago'>
+          {formasPago.find((forma) => forma.id_formapago === proveedor.id_forma_pago)
+            ?.descripcion_formaspago ?? ''}
+        </div>
+      ),
+      filtro: {
+        tipo: 'seleccion',
+        opciones: opcionesCatalogo(
+          formasPago,
+          (forma) => forma.id_formapago,
+          (forma) => forma.descripcion_formaspago,
+        ),
+      },
+    },
+    {
+      clave: 'regimen',
+      encabezado: 'Régimen Fiscal',
+      thId: 'proveedores_th_tipoRegimen',
+      tdId: 'proveedores_td_tipoRegimen',
+      render: (proveedor) => (
+        <div className='divTipoRegimen'>
+          {regimenesFiscales.find(
+            (regimen) => regimen.id_regimenfiscal === proveedor.id_tipo_regimen,
+          )?.descripcion_regimenfiscal ?? ''}
+        </div>
+      ),
+      filtro: {
+        tipo: 'seleccion',
+        opciones: opcionesCatalogo(
+          regimenesFiscales,
+          (regimen) => regimen.id_regimenfiscal,
+          (regimen) => regimen.descripcion_regimenfiscal,
+        ),
+      },
+    },
+    {
+      clave: 'descuento',
+      encabezado: 'Tipo Descuento',
+      thId: 'proveedores_th_tipoDescuento',
+      tdId: 'proveedores_td_tipoDescuento',
+      render: (proveedor) => (
+        <div className='divTipoDescuento'>
+          {descuentosProveedor.find(
+            (descuento) => descuento.id_descuento_proveedor === proveedor.id_tipo_descuento,
+          )?.descripcion_descuentoproveedor ?? ''}
+        </div>
+      ),
+      filtro: {
+        tipo: 'seleccion',
+        opciones: opcionesCatalogo(
+          descuentosProveedor,
+          (descuento) => descuento.id_descuento_proveedor,
+          (descuento) => descuento.descripcion_descuentoproveedor,
+        ),
+      },
+    },
+    {
+      clave: 'facturacion',
+      encabezado: 'Tipo Facturación',
+      thId: 'proveedores_th_tipoFacturacion',
+      tdId: 'proveedores_td_tipoFacturacion',
+      render: (proveedor) => (
+        <div className='divTipoFacturacion'>
+          {tiposFacturacion.find(
+            (tipo) => tipo.id_tipofacturacion === proveedor.id_tipo_facturacion,
+          )?.descripcion_tipofacturacion ?? ''}
+        </div>
+      ),
+      filtro: {
+        tipo: 'seleccion',
+        opciones: opcionesCatalogo(
+          tiposFacturacion,
+          (tipo) => tipo.id_tipofacturacion,
+          (tipo) => tipo.descripcion_tipofacturacion,
+        ),
+      },
+    },
+    {
+      clave: 'creado',
+      encabezado: 'Fecha Creación',
+      thId: 'proveedores_th_FechaCreacion',
+      tdId: 'proveedores_td_FechaCreacion',
+      render: (proveedor) => proveedor.created_at,
+      filtro: { tipo: 'fecha' },
+    },
+    {
+      clave: 'modificado',
+      encabezado: 'Fecha Modificación',
+      thId: 'proveedores_th_FechaModificacion',
+      tdId: 'proveedores_td_FechaModificacion',
+      render: (proveedor) => proveedor.updated_at,
+      filtro: { tipo: 'fecha' },
+    },
+    {
+      clave: 'acciones',
+      encabezado: 'ACCIONES',
+      thId: 'proveedores_th_Acciones',
+      tdId: 'proveedores_td_Acciones',
+      fija: 'derecha',
+      ordenable: false,
+      render: (proveedor) => (
+        <div className='divActions'>
+          <button className='button_editEntity' onClick={() => openModalEditProveedor(proveedor)}>
+            <MdEdit />
+          </button>
+          <button className='button_deleteEntity' onClick={() => openAlertDeleteProveedor(proveedor)}>
+            <MdDeleteForever />
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   // Añadir Proveedor
   const openModalAddProveedor = () => {
@@ -275,7 +544,7 @@ const AlmacenGeneral_ControlProveedor: React.FC = () => {
 
       <hr />
 
-      {!loading && proveedoresPaginaActual.length === 0 ? (
+      {!loading && proveedoresPaginaActual.length === 0 && !hayFiltrosActivos && !hayBusqueda ? (
         <div className='noEntities'>
           <FiAlertTriangle /> <p>  No hay proveedores registrados </p> <FiAlertTriangle />
         </div>
@@ -290,103 +559,17 @@ const AlmacenGeneral_ControlProveedor: React.FC = () => {
             onPaginaSiguiente={() => setPaginaActual(paginaActual + 1)}
           />
 
-          <div className='list_entitiesDiv'>
-            <table>
-              <thead>
-                <tr>
-                  <th id='th_ID'>ID</th>
-                  <th id='th_Proveedor_Empresa'>Empresa/Proveedor</th>
-                  <th id='th_RazonSocial'>Razón Social</th>
-                  <th id='th_EmailProveedor'>Email</th>
-                  <th id='th_Telefono'>Teléfono</th>
-                  <th id='th_Proveedor_SitioWeb'>Sitio Web</th>
-                  <th id='th_Proveedor_RFC'>RFC</th>
-                  <th id='th_EstatusActivo'>Estatus</th>
-                  <th id='th_tipoMoneda'>Moneda</th>
-                  <th id='th_tipoProveedor'>Tipo Proveedor</th>
-                  <th id='th_formaPago'>Forma de Pago</th>
-                  <th id='th_tipoRegimen'>Régimen Fiscal</th>
-                  <th id='th_tipoDescuento'>Tipo Descuento</th>
-                  <th id='th_tipoFacturacion'>Tipo Facturación</th>
-                  <th id='th_FechaCreacion'>Fecha Creación</th>
-                  <th id='th_FechaModificacion'>Fecha Modificación</th>
-                  <th id='th_Acciones'>ACCIONES</th>
-                </tr>
-              </thead>
-              <tbody>
-                {proveedoresPaginaActual.map(proveedor => (
-                  <tr key={proveedor.id_proveedor}>
-                    <td id='td_ID'>{proveedor.id_proveedor}</td>
-                    <td id='td_Proveedor_Empresa'>{proveedor.nombre_proveedor}</td>
-                    <td id='td_RazonSocial'><p>{proveedor.razon_social}</p></td>
-                    <td id='td_Email'>{proveedor.email_proveedor}</td>
-                    <td id='td_Telefono'>{proveedor.telefono_proveedor}</td>
-                    <td id='td_Proveedor_SitioWeb'>
-                      {proveedor.sitioWeb ? (
-                        <a href={`https://${proveedor.sitioWeb}`} target="_blank" rel="noopener noreferrer">
-                          {proveedor.sitioWeb}
-                        </a>
-                      ) : 'No disponible'}
-                    </td>
-                    <td id='td_Proveedor_RFC'>{proveedor.rfc}</td>
-
-                    <td id='td_EstatusActivo' className={proveedor.estatus_activo ? 'status-activo' : 'status-inactivo'}> {proveedor.estatus_activo ? 'Activo' : 'Inactivo'}</td>
-
-
-                    <td id='td_tipoMoneda'>{tiposMoneda.map((tipoMoneda) => (
-                      <div key={tipoMoneda.id_tipomoneda} className='divTipoMoneda'>
-                        {proveedor.id_tipo_moneda === tipoMoneda.id_tipomoneda ? tipoMoneda.descripcion_tipomoneda : ''}
-                      </div>
-                    ))}</td>
-
-
-                    <td id='td_tipoProveedor'>{tiposProveedores.map((tipoProveedor) => (
-                      <div key={tipoProveedor.id_tipoproveedor} className='divTipoProveedor'>
-                        {proveedor.id_tipo_proveedor === tipoProveedor.id_tipoproveedor ? tipoProveedor.descripcion_tipoproveedor : ''}
-                      </div>
-                    ))}</td>
-
-                    <td id='td_formaPago'>{formasPago.map((formaPago) => (
-                      <div key={formaPago.id_formapago} className='divTipoFormaPago'>
-                        {proveedor.id_forma_pago === formaPago.id_formapago ? formaPago.descripcion_formaspago : ''}
-                      </div>
-                    ))}</td>
-
-                    <td id='td_tipoRegimen'>{regimenesFiscales.map((regimenFiscal) => (
-                      <div key={regimenFiscal.id_regimenfiscal} className='divTipoRegimen'>
-                        {proveedor.id_tipo_regimen === regimenFiscal.id_regimenfiscal ? regimenFiscal.descripcion_regimenfiscal : ''}
-                      </div>
-                    ))}</td>
-
-                    <td id='td_tipoDescuento'>{descuentosProveedor.map((descuentoProveedor) => (
-                      <div key={descuentoProveedor.id_descuento_proveedor} className='divTipoDescuento'>
-                        {proveedor.id_tipo_descuento === descuentoProveedor.id_descuento_proveedor ? descuentoProveedor.descripcion_descuentoproveedor : ''}
-                      </div>
-                    ))}</td>
-
-                    <td id='td_tipoFacturacion'>{tiposFacturacion.map((tipoFacturacion) => (
-                      <div key={tipoFacturacion.id_tipofacturacion} className='divTipoFacturacion'>
-                        {proveedor.id_tipo_facturacion === tipoFacturacion.id_tipofacturacion ? tipoFacturacion.descripcion_tipofacturacion : ''}
-                      </div>
-                    ))}</td>
-
-                    <td id='td_FechaCreacion'>{proveedor.created_at}</td>
-
-
-                    <td id='td_FechaModificacion'> {proveedor.updated_at} </td>
-
-
-                    <td id='td_Acciones'>
-                      <div className='divActions'>
-                        <button className='button_editEntity' onClick={() => openModalEditProveedor(proveedor)}> <MdEdit /> </button>
-                        <button className='button_deleteEntity' onClick={() => openAlertDeleteProveedor(proveedor)}><MdDeleteForever /> </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <TablaEntidades
+            className='list_entitiesDiv_proveedores'
+            filas={proveedoresPaginaActual}
+            columnas={columnas}
+            clave={(proveedor) => proveedor.id_proveedor ?? ''}
+            orden={orden}
+            onOrden={alternarOrden}
+            filtros={filtros}
+            onFiltro={cambiarFiltro}
+            mensajeVacio={<p>No hay coincidencias con los filtros seleccionados.</p>}
+          />
 
           {/* Paginación */}
           <Paginacion

@@ -10,6 +10,7 @@ use App\Models\AlmacenGeneral\FacturaActivos;
 use App\Models\AlmacenGeneral\FacturaAF;
 use App\Models\AlmacenGeneral\MovimientosActivos;
 use App\Services\FacturasActivos\FacturaActivoService;
+use App\Support\SchemaTable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +29,15 @@ class FacturaController extends Controller
     public function __construct(FacturaActivoService $facturaActivoService)
     {
         $this->facturaActivoService = $facturaActivoService;
+    }
+
+    private function filtroId(string $expresion): callable
+    {
+        return function ($query, string $valor) use ($expresion): void {
+            if (ctype_digit($valor)) {
+                $query->where($expresion, (int) $valor);
+            }
+        };
     }
 
     private function generarClaveLoteActivo(array $activoData): string
@@ -51,10 +61,68 @@ class FacturaController extends Controller
         $response = ['success' => false, 'data' => [], 'message' => ''];
 
         try {
+            $facturaTable = SchemaTable::almacen('tableAF_Facturas');
+            $proveedorTable = SchemaTable::almacen('tableAF_Proveedores');
+            $tipoFacturaTable = SchemaTable::almacen('tableRef_TiposFacturasAF');
+            $formaPagoTable = SchemaTable::almacen('tableRef_FormasPago');
+            $tipoMonedaTable = SchemaTable::almacen('tableRef_TiposMonedas');
+
             $resultado = $this->paginar(
                 $request,
-                FacturaAF::query()->orderBy('id_factura', 'asc'),
-                ['id_factura']
+                FacturaAF::query()
+                    ->from($facturaTable.' as f')
+                    ->leftJoin($proveedorTable.' as p', 'p.id_proveedor', '=', 'f.id_proveedor')
+                    ->leftJoin($tipoFacturaTable.' as tf', 'tf.id_tipofacturaaf', '=', 'f.id_tipo_factura')
+                    ->leftJoin($formaPagoTable.' as fp', 'fp.id_formapago', '=', 'f.id_forma_pago')
+                    ->leftJoin($tipoMonedaTable.' as tm', 'tm.id_tipomoneda', '=', 'f.id_tipo_moneda')
+                    ->select('f.*'),
+                ['id_factura'],
+                10,
+                [
+                    'orden' => [
+                        'id' => '"f"."id_factura"',
+                        'proveedor' => 'LOWER("p"."razon_social")',
+                        'num_factura' => 'LOWER("f"."num_factura")',
+                        'fecha_recepcion' => '"f"."fecha_fac_recepcion"',
+                        'fecha_compra' => '"f"."fecha_fac_compra"',
+                        'tipo_factura' => 'LOWER("tf"."nombre_tipofactura")',
+                        'forma_pago' => 'LOWER("fp"."descripcion_formaspago")',
+                        'moneda' => 'LOWER("tm"."descripcion_tipomoneda")',
+                        'observaciones' => 'LOWER("f"."observaciones_factura")',
+                        'creado' => '"f"."created_at"',
+                        'modificado' => '"f"."updated_at"',
+                    ],
+                    'orden_default' => ['id', 'asc'],
+                    'filtros' => [
+                        'id' => ['tipo' => 'texto', 'expresion' => '"f"."id_factura"'],
+                        'proveedor' => [
+                            'tipo' => 'callback',
+                            'expresion' => 'f.id_proveedor',
+                            'callback' => $this->filtroId('f.id_proveedor'),
+                        ],
+                        'num_factura' => ['tipo' => 'texto', 'expresion' => '"f"."num_factura"'],
+                        'fecha_recepcion' => ['tipo' => 'fecha', 'expresion' => 'f.fecha_fac_recepcion'],
+                        'fecha_compra' => ['tipo' => 'fecha', 'expresion' => 'f.fecha_fac_compra'],
+                        'tipo_factura' => [
+                            'tipo' => 'callback',
+                            'expresion' => 'f.id_tipo_factura',
+                            'callback' => $this->filtroId('f.id_tipo_factura'),
+                        ],
+                        'forma_pago' => [
+                            'tipo' => 'callback',
+                            'expresion' => 'f.id_forma_pago',
+                            'callback' => $this->filtroId('f.id_forma_pago'),
+                        ],
+                        'moneda' => [
+                            'tipo' => 'callback',
+                            'expresion' => 'f.id_tipo_moneda',
+                            'callback' => $this->filtroId('f.id_tipo_moneda'),
+                        ],
+                        'observaciones' => ['tipo' => 'texto', 'expresion' => '"f"."observaciones_factura"'],
+                        'creado' => ['tipo' => 'fecha', 'expresion' => 'f.created_at'],
+                        'modificado' => ['tipo' => 'fecha', 'expresion' => 'f.updated_at'],
+                    ],
+                ]
             );
 
             $items = $resultado['items'];

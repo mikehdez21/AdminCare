@@ -22,21 +22,68 @@ class UserController extends Controller
             $resultado = $this->paginar(
                 $request,
                 User::with('departamento', 'roles')
-                    ->orderBy('id_usuario', 'asc')
+                    ->leftJoin(
+                        'tableDepartamentos as d',
+                        'd.id_departamento',
+                        '=',
+                        'tableUsuarios.id_departamento'
+                    )
                     ->select([
-                        'id_usuario',
-                        'nombre_usuario',
-                        'email_usuario',
-                        'password',
-                        'estatus_activo',
-                        'usuario_compartido',
-                        'fecha_baja',
-                        'id_empleado',
-                        'id_departamento',
-                        'created_at',
-                        'updated_at',
+                        'tableUsuarios.id_usuario',
+                        'tableUsuarios.nombre_usuario',
+                        'tableUsuarios.email_usuario',
+                        'tableUsuarios.password',
+                        'tableUsuarios.estatus_activo',
+                        'tableUsuarios.usuario_compartido',
+                        'tableUsuarios.fecha_baja',
+                        'tableUsuarios.id_empleado',
+                        'tableUsuarios.id_departamento',
+                        'tableUsuarios.created_at',
+                        'tableUsuarios.updated_at',
                     ]),
-                ['nombre_usuario', 'id_usuario']
+                ['nombre_usuario', 'id_usuario'],
+                10,
+                [
+                    'orden' => [
+                        'id' => '"tableUsuarios"."id_usuario"',
+                        'nombre' => 'LOWER("tableUsuarios"."nombre_usuario")',
+                        'email' => 'LOWER("tableUsuarios"."email_usuario")',
+                        'estatus' => '"tableUsuarios"."estatus_activo"',
+                        'departamento' => 'LOWER("d"."nombre_departamento")',
+                        'fecha_baja' => '"tableUsuarios"."fecha_baja"',
+                        'creado' => '"tableUsuarios"."created_at"',
+                        'modificado' => '"tableUsuarios"."updated_at"',
+                    ],
+                    'orden_default' => ['id', 'asc'],
+                    'filtros' => [
+                        'id' => ['tipo' => 'texto', 'expresion' => '"tableUsuarios"."id_usuario"'],
+                        'nombre' => ['tipo' => 'texto', 'expresion' => '"tableUsuarios"."nombre_usuario"'],
+                        'email' => ['tipo' => 'texto', 'expresion' => '"tableUsuarios"."email_usuario"'],
+                        'estatus' => ['tipo' => 'booleano', 'expresion' => 'tableUsuarios.estatus_activo'],
+                        'roles' => [
+                            'tipo' => 'callback',
+                            'expresion' => 'roles.id',
+                            'callback' => function ($query, string $valor): void {
+                                $query->whereHas(
+                                    'roles',
+                                    fn ($roles) => $roles->where('roles.id', (int) $valor)
+                                );
+                            },
+                        ],
+                        'departamento' => [
+                            'tipo' => 'callback',
+                            'expresion' => 'd.id_departamento',
+                            'callback' => function ($query, string $valor): void {
+                                if (ctype_digit($valor)) {
+                                    $query->where('d.id_departamento', (int) $valor);
+                                }
+                            },
+                        ],
+                        'fecha_baja' => ['tipo' => 'fecha', 'expresion' => 'tableUsuarios.fecha_baja'],
+                        'creado' => ['tipo' => 'fecha', 'expresion' => 'tableUsuarios.created_at'],
+                        'modificado' => ['tipo' => 'fecha', 'expresion' => 'tableUsuarios.updated_at'],
+                    ],
+                ]
             );
 
             $items = $resultado['items'];

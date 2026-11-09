@@ -246,10 +246,17 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
     refetch,
     handleSearch,
     handleChangePerPage: handleChangeActivosFijosPorPagina,
+    orden,
+    alternarOrden,
+    filtros,
+    cambiarFiltro,
   } = usePaginacionServidor<ActivosFijos>({
     fetcher,
     perPageDefault: 5,
   });
+
+  const hayFiltrosActivos = Object.keys(filtros).length > 0;
+  const hayBusqueda = busqueda.trim() !== '';
 
   // Refrescar la página actual de la tabla tras crear/editar desde los modales.
   useEffect(() => {
@@ -438,8 +445,8 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
 
           {/* Mostrar solo cuando es ver todos los activos */}
           {(!DepartamentoSeleccionado && !UbicacionSeleccionada && !ClasificacionSeleccionada && !EmpleadoSeleccionado && !ActivosBajas && !ActivosNoPropios && !ActivosMenores) && (
-            <button className='buttonAdd' onClick={openModalAddActivoFijo}>
-              <IoAddCircleOutline className='iconAdd' /> <p>  Nuevo Activo Fijo </p>
+            <button className='buttonAddAF' onClick={openModalAddActivoFijo}>
+              <IoAddCircleOutline className='iconAdd' /> <p> Nuevo Activo Fijo </p>
             </button>
           )}
 
@@ -455,7 +462,7 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
       </div>
 
 
-      {!loading && activosFijosPaginaActual.length === 0 ? (
+      {!loading && activosFijosPaginaActual.length === 0 && !hayFiltrosActivos && !hayBusqueda ? (
         <div className='noEntities'>
           <FiAlertTriangle /> <p>  No hay activos fijos registrados </p> <FiAlertTriangle />
         </div>
@@ -474,6 +481,10 @@ const ListActivosFijos: React.FC<ListActivoFijoProps> = ({ DepartamentoSeleccion
             activosFijosPaginaActual={activosFijosPaginaActual}
             estatusActivoFijo={estatusActivoFijo}
             clasificacionActivoFijo={clasificacionActivoFijo}
+            orden={orden}
+            onOrden={alternarOrden}
+            filtros={filtros}
+            onFiltro={cambiarFiltro}
             onEdit={openModalEditActivoFijo}
             onDelete={openAlertDeleteActivoFijo}
           />

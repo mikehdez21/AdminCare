@@ -14,6 +14,7 @@ import { setListTipoMovimientoAF } from '@/store/almacengeneral/Activos/Movimien
 
 // Componentes
 import Paginacion from '@/components/00_Utils/Paginacion';
+import TablaEntidades, { type ColumnaTabla } from '@/components/00_Utils/TablaEntidades';
 import { usePaginacionServidor } from '@/hooks/usePaginacionServidor';
 import ModalAFDetails from './DetalleMovimientosAF';
 import EditMovimientoAF from './EditMovifimientoAF';
@@ -31,9 +32,17 @@ import { getEstatusAF } from '@/store/almacengeneral/Activos/EstatusAF/estatusAF
 import { setListEstatusAF } from '@/store/almacengeneral/Activos/EstatusAF/estatusAFReducer';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat';
 
-
 // Styles
-import '@styles/02_Almacenes/AlmacenGeneral/MovimientosAF/movimientosIndividual.css';
+import '@styles/02_Almacenes/AlmacenGeneral/MovimientosAF/movIndividual.css'
+
+const getEstatusClass = (descripcion: string): string => {
+  const estatus = descripcion.toLowerCase().trim();
+  if (estatus === 'activo') return 'estatus-activo';
+  if (estatus.includes('mantenimiento') || estatus.includes('revisión')) return 'estatus-mantenimiento-revision';
+  if (estatus.includes('baja') || estatus === 'perdido') return 'estatus-baja-perdido';
+  if (estatus === 'prestado') return 'estatus-prestado';
+  return 'estatus-default';
+};
 
 const AlmacenGeneral_MovimientoIndividual: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -81,10 +90,185 @@ const AlmacenGeneral_MovimientoIndividual: React.FC = () => {
     refetch,
     handleSearch,
     handleChangePerPage: handleChangeMovimientosPorPagina,
+    orden,
+    alternarOrden,
+    filtros,
+    cambiarFiltro,
   } = usePaginacionServidor<VwMovimientosAF>({
     fetcher,
     perPageDefault: 5,
   });
+
+  const hayFiltrosActivos = Object.keys(filtros).length > 0;
+  const hayBusqueda = busqueda.trim() !== '';
+
+  const columnas: ColumnaTabla<VwMovimientosAF>[] = [
+    {
+      clave: 'id',
+      encabezado: 'ID',
+      thId: 'movIndividual_th_ID',
+      tdId: 'movIndividual_td_ID',
+      fija: 'izquierda',
+      render: (movimiento) => (
+        <div className='divIDAF'>{movimiento.id_activo_fijo}</div>
+      ),
+      filtro: { tipo: 'texto', placeholder: 'ID' },
+    },
+    {
+      clave: 'codigo_unico',
+      encabezado: 'Código',
+      thId: 'movIndividual_th_CodigoUnico',
+      tdId: 'movIndividual_td_CodigoUnico',
+      fija: 'izquierda',
+      desplazamientoFijo: '80px',
+      render: (movimiento) => movimiento.codigo_unico,
+      filtro: { tipo: 'texto', placeholder: 'Código' },
+    },
+    {
+      clave: 'nombre',
+      encabezado: 'Activo Fijo',
+      thId: 'movIndividual_th_NombreAF',
+      tdId: 'movIndividual_td_NombreAF',
+      render: (movimiento) => (
+        <div className='divNombreAF'>{movimiento.nombre_af}</div>
+      ),
+      filtro: { tipo: 'texto', placeholder: 'Activo' },
+    },
+    {
+      clave: 'fecha_ultimo_movimiento',
+      encabezado: 'Fecha Último Movimiento',
+      thId: 'movIndividual_th_FechaUltimoMovimiento',
+      tdId: 'movIndividual_td_FechaUltimoMovimiento',
+      render: (movimiento) =>
+        formatDateHorasToFrontend(movimiento.fecha_ultimo_movimiento),
+      filtro: { tipo: 'fecha' },
+    },
+    {
+      clave: 'estado',
+      encabezado: 'Estado Actual',
+      thId: 'movIndividual_th_EstadoAF',
+      tdId: 'movIndividual_td_EstadoAF',
+      render: (movimiento) => {
+        if (!movimiento.estado_actual) return null;
+
+        return (
+          <div
+            className={`estatus-badge ${getEstatusClass(movimiento.estado_actual)}`}
+          >
+            {movimiento.estado_actual}
+          </div>
+        );
+      },
+      filtro: {
+        tipo: 'seleccion',
+        opciones: estatusActivoFijo
+          .filter((estatus) => estatus.descripcion_estatusaf)
+          .map((estatus) => ({
+            valor: estatus.descripcion_estatusaf,
+            etiqueta: estatus.descripcion_estatusaf,
+          })),
+      },
+    },
+    {
+      clave: 'ubicacion_actual',
+      encabezado: 'Ubicación Actual',
+      thId: 'movIndividual_th_UbicacionActual',
+      tdId: 'movIndividual_td_UbicacionActual',
+      render: (movimiento) => movimiento.ubicacion_actual,
+      filtro: { tipo: 'texto', placeholder: 'Ubicación' },
+    },
+    {
+      clave: 'responsable_actual',
+      encabezado: 'Responsable Actual',
+      thId: 'movIndividual_th_ResponsableActual',
+      tdId: 'movIndividual_td_ResponsableActual',
+      render: (movimiento) => (
+        <div className='divResponsableAF'>
+          {movimiento.responsable_actual_completo}
+        </div>
+      ),
+      filtro: { tipo: 'texto', placeholder: 'Responsable' },
+    },
+    {
+      clave: 'ubicacion_anterior',
+      encabezado: 'Ubicación Anterior',
+      thId: 'movIndividual_th_UbicacionAnterior',
+      tdId: 'movIndividual_td_UbicacionAnterior',
+      render: (movimiento) => movimiento.ubicacion_anterior,
+      filtro: { tipo: 'texto', placeholder: 'Ubicación anterior' },
+    },
+    {
+      clave: 'responsable_anterior',
+      encabezado: 'Responsable Anterior',
+      thId: 'movIndividual_th_ResponsableAnterior',
+      tdId: 'movIndividual_td_ResponsableAnterior',
+      render: (movimiento) => (
+        <div className='divResponsableAnteriorAF'>
+          {movimiento.responsable_anterior_completo}
+        </div>
+      ),
+      filtro: { tipo: 'texto', placeholder: 'Responsable anterior' },
+    },
+    {
+      clave: 'tipo_movimiento',
+      encabezado: 'Tipo de Movimiento',
+      thId: 'movIndividual_th_TipoMovimiento',
+      tdId: 'movIndividual_td_TipoMovimiento',
+      render: (movimiento) => movimiento.tipo_movimiento,
+      filtro: { tipo: 'texto', placeholder: 'Tipo' },
+    },
+    {
+      clave: 'departamento',
+      encabezado: 'Departamento Responsable',
+      thId: 'movIndividual_th_DepartamentoResponsable',
+      tdId: 'movIndividual_td_DepartamentoResponsable',
+      render: (movimiento) => movimiento.departamento_actual,
+      filtro: { tipo: 'texto', placeholder: 'Departamento' },
+    },
+    {
+      clave: 'motivo',
+      encabezado: 'Motivo Último Movimiento',
+      thId: 'movIndividual_th_UltimoMotivoMovimiento',
+      tdId: 'movIndividual_td_UltimoMotivoMovimiento',
+      render: (movimiento) => (
+        <div className='divMotivoMovimiento'>
+          {movimiento.ultimo_motivo_movimiento}
+        </div>
+      ),
+      filtro: { tipo: 'texto', placeholder: 'Motivo' },
+    },
+    {
+      clave: 'acciones',
+      encabezado: 'ACCIONES',
+      thId: 'movIndividual_th_Acciones',
+      tdId: 'movIndividual_td_Acciones',
+      fija: 'derecha',
+      ordenable: false,
+      render: (movimiento) => (
+        <div className='divActions'>
+          <button
+            type='button'
+            className='pdfButton'
+            onClick={() => handleOpenPDF(movimiento)}
+          >
+            <FaFilePdf />
+          </button>
+          <button
+            className='button_viewDetails'
+            onClick={() => openModalViewDetails(movimiento)}
+          >
+            <MdVisibility />
+          </button>
+          <button
+            className='button_editEntity'
+            onClick={() => openModalEditMovimiento(movimiento)}
+          >
+            <MdEdit />
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   // Detalles del MovimientoAF
   const openModalViewDetails = (vwMovimiento: VwMovimientosAF) => {
@@ -194,7 +378,7 @@ const AlmacenGeneral_MovimientoIndividual: React.FC = () => {
         </div>
       </div>
 
-      {!loading && movimientosPaginaActual.length === 0 ? (
+      {!loading && movimientosPaginaActual.length === 0 && !hayFiltrosActivos && !hayBusqueda ? (
         <div className='noEntities'>
           <FiAlertTriangle /> <p>No hay registros de movimientos</p> <FiAlertTriangle />
         </div>
@@ -208,110 +392,17 @@ const AlmacenGeneral_MovimientoIndividual: React.FC = () => {
             onPaginaSiguiente={() => setPaginaActual(paginaActual + 1)}
           />
 
-          <div className='list_entitiesDiv'>
-            <table>
-              <thead>
-                <tr>
-                  <th id='th_ID'>ID</th>
-                  <th id='th_CodigoUnico'>Código</th>
-                  <th id='th_NombreAF'>Activo Fijo</th>
-                  <th id='th_FechaUltimoMovimiento'>Fecha Último Movimiento</th>
-                  <th id='th_EstadoAF'>Estado Actual</th>
-                  <th id='th_UbicacionActual'>Ubicación Actual</th>
-                  <th id='th_ResponsableActual'>Responsable Actual</th>
-                  <th id='th_TipoMovimiento'>Tipo de Movimiento</th>
-                  <th id='th_DepartamentoResponsable'>Departamento Responsable</th>
-                  <th id='th_UltimoMotivoMovimiento'>Motivo Último Movimiento</th>
-                  <th id='th_Acciones'>ACCIONES</th>
-
-                </tr>
-              </thead>
-
-              <tbody>
-                {movimientosPaginaActual.map(vwMovimiento => (
-                  <tr key={vwMovimiento.id_activo_fijo}>
-                    <td id='td_ID'>{vwMovimiento.id_activo_fijo}</td>
-                    <td id='td_CodigoUnico'>{vwMovimiento.codigo_unico}</td>
-
-                    <td id='td_NombreAF'>
-                      <div className='divNombreAF'>
-                        {vwMovimiento.nombre_af}
-                      </div>
-                    </td>
-
-                    <td id='td_FechaUltimoMovimiento'>{formatDateHorasToFrontend(vwMovimiento.fecha_ultimo_movimiento)}</td>
-
-                    <td id='td_EstadoAF'>
-
-                      {estatusActivoFijo.map((estatusAF) => {
-                        if (vwMovimiento.estado_actual !== estatusAF.descripcion_estatusaf) return null;
-
-                        const getEstatusClass = (descripcion: string) => {
-                          const estatus = descripcion.toLowerCase().trim();
-                          if (estatus === 'activo') return 'estatus-activo';
-                          if (estatus.includes('mantenimiento') || estatus.includes('revisión')) return 'estatus-mantenimiento-revision';
-                          if (estatus.includes('baja') || estatus === 'perdido') return 'estatus-baja-perdido';
-                          if (estatus === 'prestado') return 'estatus-prestado';
-                          return 'estatus-default';
-                        };
-
-                        return (
-                          <div key={estatusAF.id_estatusaf} className={`estatus-badge ${getEstatusClass(estatusAF.descripcion_estatusaf)}`}>
-                            {estatusAF.descripcion_estatusaf}
-                          </div>
-                        );
-                      })}
-
-                    </td>
-
-                    <td id='td_UbicacionActual'>{vwMovimiento.ubicacion_actual}</td>
-
-                    <td id='td_ResponsableActual'>
-                      <div className='divResponsableAF'>
-                        {vwMovimiento.responsable_actual_completo}
-                      </div>
-                    </td>
-
-                    <td id='td_TipoMovimiento'>{vwMovimiento.tipo_movimiento}</td>
-
-
-                    <td id='td_DepartamentoResponsable'>{vwMovimiento.departamento_actual}</td>
-
-                    <td id='td_UltimoMotivoMovimiento'>
-                      <div className='divMotivoMovimiento'>
-                        {vwMovimiento.ultimo_motivo_movimiento}
-                      </div>
-                    </td>
-
-
-
-                    <td id='td_Acciones'>
-                      <div className='divActions'>
-                        <button
-                          type='button'
-                          className="pdfButton"
-                          onClick={() => {
-
-                            handleOpenPDF(vwMovimiento);
-                          }}
-                        >
-                          <FaFilePdf />
-                        </button>
-
-                        <button className='button_viewDetails' onClick={() => openModalViewDetails(vwMovimiento)}>
-                          <MdVisibility />
-                        </button>
-                        <button className='button_editEntity' onClick={() => openModalEditMovimiento(vwMovimiento)}>
-                          <MdEdit />
-                        </button>
-
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <TablaEntidades
+            className='list_entitiesDiv_movIndividual'
+            filas={movimientosPaginaActual}
+            columnas={columnas}
+            clave={(movimiento) => movimiento.id_activo_fijo ?? ''}
+            orden={orden}
+            onOrden={alternarOrden}
+            filtros={filtros}
+            onFiltro={cambiarFiltro}
+            mensajeVacio={<p>No hay coincidencias con los filtros seleccionados.</p>}
+          />
 
           <Paginacion
             paginaActual={paginaActual}

@@ -86,24 +86,190 @@ trait Paginable
     }
 
     /**
+     * Aplica el orden solicitado por `sort`/`direction` usando una whitelist.
+     *
+     * `$columnas` es un mapa clave pública => expresión SQL constante. Nunca se
+     * interpola el valor que llega del cliente. Si `sort` no está en el mapa se
+     * usa el orden default; si tampoco hay default, se conserva el orden que ya
+     * traía la consulta.
+     *
+     * @param  array<string, string>  $columnas
+     * @param  array{0?: string, 1?: string}  $porDefecto
+     * @return array{sort: string|null, direction: string|null}
+     */
+    protected function aplicarOrden(Request $request, $query, array $columnas, array $porDefecto = []): array
+    {
+        if ($columnas === []) {
+            return ['sort' => null, 'direction' => null];
+        }
+
+        $sort = trim((string) $request->query('sort', ''));
+        $direction = mb_strtolower(trim((string) $request->query('direction', '')), 'UTF-8');
+
+        if ($sort === '' || ! array_key_exists($sort, $columnas)) {
+            $sort = (string) ($porDefecto[0] ?? '');
+            $direction = mb_strtolower((string) ($porDefecto[1] ?? 'asc'), 'UTF-8');
+
+            if ($sort === '' || ! array_key_exists($sort, $columnas)) {
+                return ['sort' => null, 'direction' => null];
+            }
+        }
+
+        if (! in_array($direction, ['asc', 'desc'], true)) {
+            $direction = 'asc';
+        }
+
+        $this->ordenarPorExpresion($query, $columnas[$sort], $direction);
+
+        return ['sort' => $sort, 'direction' => $direction];
+    }
+
+    /**
+     * Aplica filtros por columna recibidos como `filtros[clave]=valor`.
+     *
+     * Solo se procesan las claves declaradas en `$filtros`; las demás se
+     * ignoran. El valor siempre se enlaza como parámetro. El texto se escapa
+     * igual que la búsqueda global para que `%` y `_` sean literales.
+     *
+     * @param  array<string, array{tipo?: string, expresion: string, callback?: callable}>  $filtros
+     */
+    protected function aplicarFiltrosColumna(Request $request, $query, array $filtros): void
+    {
+        $valores = $request->query('filtros');
+
+        if (! is_array($valores) || $filtros === []) {
+            return;
+        }
+
+        foreach ($filtros as $clave => $config) {
+            if (! array_key_exists($clave, $valores)) {
+                continue;
+            }
+
+            $valor = $valores[$clave];
+
+            if (is_array($valor) || $valor === null) {
+                continue;
+            }
+
+            $valor = trim((string) $valor);
+
+            if ($valor === '') {
+                continue;
+            }
+
+            // Evita valores desmesurados sin cambiar el comportamiento normal.
+            if (mb_strlen($valor, 'UTF-8') > 255) {
+                $valor = mb_substr($valor, 0, 255, 'UTF-8');
+            }
+
+            $tipo = $config['tipo'] ?? 'texto';
+            $expresion = $config['expresion'];
+
+            switch ($tipo) {
+                case 'booleano':
+                    $booleano = filter_var($valor, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+                    if ($booleano !== null) {
+                        $query->where($expresion, $booleano);
+                    }
+                    break;
+
+                case 'fecha':
+                    // Valida forma y fecha real: 2026-02-31 no debe llegar al
+                    // driver y provocar un 500.
+                    $fecha = \DateTimeImmutable::createFromFormat('!Y-m-d', $valor);
+
+                    if ($fecha !== false && $fecha->format('Y-m-d') === $valor) {
+                        $query->whereDate($expresion, $valor);
+                    }
+                    break;
+
+                case 'exacto':
+                    $query->where($expresion, $valor);
+                    break;
+
+                case 'callback':
+                    // Filtros que no caben en un WHERE simple (relaciones
+                    // many-to-many, subconsultas). El callback es constante del
+                    // backend y recibe el valor ya normalizado.
+                    if (isset($config['callback']) && is_callable($config['callback'])) {
+                        ($config['callback'])($query, $valor);
+                    }
+                    break;
+
+                case 'texto':
+                default:
+                    $termino = addcslashes(mb_strtolower($valor, 'UTF-8'), '%_\\');
+                    $query->whereRaw($this->expresionBusqueda($expresion).' LIKE ?', ['%'.$termino.'%']);
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Ordena por una expresión SQL constante ya validada por la whitelist.
+     * En PostgreSQL los nulos siempre van al final para que no dominen el
+     * orden descendente.
+     *
+     * La config de tabla es la fuente de verdad del orden: se descarta cualquier
+     * orden previo del query para que el default o el solicitado no queden como
+     * criterio secundario.
+     */
+    protected function ordenarPorExpresion($query, string $expresion, string $direction): void
+    {
+        $direction = $direction === 'desc' ? 'desc' : 'asc';
+        $sufijo = DB::connection()->getDriverName() === 'pgsql' ? ' NULLS LAST' : '';
+
+        if ($query instanceof Builder) {
+            $query->getQuery()->orders = null;
+        } else {
+            $query->orders = null;
+        }
+
+        $query->orderByRaw($expresion.' '.$direction.$sufijo);
+    }
+
+    /**
      * Devuelve ['items' => Collection, 'meta' => array|null].
      *
      * - Si el request pidió `per_page` válido (>0 numérico): pagina con
      *   `->paginate($perPage)` y devuelve meta
-     *   { current_page, per_page, total, last_page, search }.
+     *   { current_page, per_page, total, last_page, search, sort, direction }.
      * - Si no: `->get()` y meta null (lista completa, igual a hoy).
+     *
+     * `$tabla` es opcional y declara la whitelist de orden y filtros por
+     * columna. Si es null, el comportamiento es exactamente el histórico.
      *
      * Acepta un builder Eloquent o un query builder de `DB::table()`.
      *
      * @param  Builder|\Illuminate\Database\Query\Builder  $query
      * @param  array<int, string>  $camposBusqueda
+     * @param  array{orden?: array<string, string>, orden_default?: array{0?: string, 1?: string}, filtros?: array<string, array{tipo?: string, expresion: string, callback?: callable}>} | null  $tabla
      * @return array{items: Collection, meta: array<string, mixed>|null}
      */
-    protected function paginar(Request $request, $query, array $camposBusqueda = [], int $perPageDefault = 10): array
+    protected function paginar(Request $request, $query, array $camposBusqueda = [], int $perPageDefault = 10, ?array $tabla = null): array
     {
         [$page, $perPage, $search] = $this->paramsPaginacion($request, $perPageDefault);
 
         $this->aplicarBusqueda($query, $camposBusqueda, $search);
+
+        $ordenAplicado = ['sort' => null, 'direction' => null];
+
+        if ($tabla !== null) {
+            if (! empty($tabla['filtros'])) {
+                $this->aplicarFiltrosColumna($request, $query, $tabla['filtros']);
+            }
+
+            if (! empty($tabla['orden'])) {
+                $ordenAplicado = $this->aplicarOrden(
+                    $request,
+                    $query,
+                    $tabla['orden'],
+                    $tabla['orden_default'] ?? []
+                );
+            }
+        }
 
         if ($perPage !== null) {
             $items = $query->paginate($perPage, ['*'], 'page', $page);
@@ -115,6 +281,8 @@ trait Paginable
                 'total' => $paginador['total'],
                 'last_page' => $paginador['last_page'],
                 'search' => $search,
+                'sort' => $ordenAplicado['sort'],
+                'direction' => $ordenAplicado['direction'],
             ];
 
             return ['items' => $items->getCollection(), 'meta' => $meta];

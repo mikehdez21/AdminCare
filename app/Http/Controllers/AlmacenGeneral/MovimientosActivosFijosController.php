@@ -13,6 +13,53 @@ class MovimientosActivosFijosController extends Controller
 {
     use Paginable;
 
+    /**
+     * Config de orden/filtros de la vista de movimientos completos.
+     */
+    private function configTablaMovimientos(): array
+    {
+        $driver = DB::connection()->getDriverName();
+        $responsable = static function (string $alias) use ($driver): string {
+            if ($driver === 'mysql') {
+                return "NULLIF(TRIM(CONCAT_WS(' ', {$alias}.nombre_empleado, {$alias}.apellido_paterno, {$alias}.apellido_materno)), '')";
+            }
+
+            return "NULLIF(TRIM(COALESCE({$alias}.nombre_empleado, '') || ' ' || COALESCE({$alias}.apellido_paterno, '') || ' ' || COALESCE({$alias}.apellido_materno, '')), '')";
+        };
+
+        return [
+            'orden' => [
+                'id' => '"af"."id_activo_fijo"',
+                'codigo_unico' => 'LOWER("af"."codigo_unico")',
+                'nombre' => 'LOWER("af"."nombre_af")',
+                'fecha_ultimo_movimiento' => '"mov_actual"."fecha_movimiento"',
+                'estado' => 'LOWER("est"."descripcion_estatusaf")',
+                'ubicacion_actual' => 'LOWER("ub_actual"."nombre_ubicacion")',
+                'responsable_actual' => 'LOWER('.$responsable('emp_actual').')',
+                'ubicacion_anterior' => 'LOWER("ub_anterior"."nombre_ubicacion")',
+                'responsable_anterior' => 'LOWER('.$responsable('emp_anterior').')',
+                'tipo_movimiento' => 'LOWER("tipmov"."nombre_tipomovimientoaf")',
+                'departamento' => 'LOWER("dep_actual"."nombre_departamento")',
+                'motivo' => 'LOWER("mov_actual"."motivo_movimiento")',
+            ],
+            'orden_default' => ['fecha_ultimo_movimiento', 'desc'],
+            'filtros' => [
+                'id' => ['tipo' => 'texto', 'expresion' => '"af"."id_activo_fijo"'],
+                'codigo_unico' => ['tipo' => 'texto', 'expresion' => '"af"."codigo_unico"'],
+                'nombre' => ['tipo' => 'texto', 'expresion' => '"af"."nombre_af"'],
+                'fecha_ultimo_movimiento' => ['tipo' => 'fecha', 'expresion' => 'mov_actual.fecha_movimiento'],
+                'estado' => ['tipo' => 'texto', 'expresion' => '"est"."descripcion_estatusaf"'],
+                'ubicacion_actual' => ['tipo' => 'texto', 'expresion' => '"ub_actual"."nombre_ubicacion"'],
+                'responsable_actual' => ['tipo' => 'texto', 'expresion' => $responsable('emp_actual')],
+                'ubicacion_anterior' => ['tipo' => 'texto', 'expresion' => '"ub_anterior"."nombre_ubicacion"'],
+                'responsable_anterior' => ['tipo' => 'texto', 'expresion' => $responsable('emp_anterior')],
+                'tipo_movimiento' => ['tipo' => 'texto', 'expresion' => '"tipmov"."nombre_tipomovimientoaf"'],
+                'departamento' => ['tipo' => 'texto', 'expresion' => '"dep_actual"."nombre_departamento"'],
+                'motivo' => ['tipo' => 'texto', 'expresion' => '"mov_actual"."motivo_movimiento"'],
+            ],
+        ];
+    }
+
     // Obtener todos los movimientos de activos fijos de la TABLE
     public function index(Request $request)
     {
@@ -212,7 +259,9 @@ class MovimientosActivosFijosController extends Controller
             $resultado = $this->paginar(
                 $request,
                 $movimientos,
-                ['af.codigo_unico', 'af.nombre_af', 'af.id_activo_fijo']
+                ['af.codigo_unico', 'af.nombre_af', 'af.id_activo_fijo'],
+                10,
+                $this->configTablaMovimientos()
             );
 
             $respuesta = [

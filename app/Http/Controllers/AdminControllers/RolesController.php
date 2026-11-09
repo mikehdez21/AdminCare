@@ -32,7 +32,23 @@ class RolesController extends Controller
                         'created_at',
                         'updated_at',
                     ]),
-                ['name']
+                ['name'],
+                10,
+                [
+                    'orden' => [
+                        'id' => '"roles"."id"',
+                        'nombre' => 'LOWER("roles"."name")',
+                        'creado' => '"roles"."created_at"',
+                        'modificado' => '"roles"."updated_at"',
+                    ],
+                    'orden_default' => ['id', 'asc'],
+                    'filtros' => [
+                        'id' => ['tipo' => 'texto', 'expresion' => '"roles"."id"'],
+                        'nombre' => ['tipo' => 'texto', 'expresion' => '"roles"."name"'],
+                        'creado' => ['tipo' => 'fecha', 'expresion' => 'roles.created_at'],
+                        'modificado' => ['tipo' => 'fecha', 'expresion' => 'roles.updated_at'],
+                    ],
+                ]
             );
 
             $items = $resultado['items'];

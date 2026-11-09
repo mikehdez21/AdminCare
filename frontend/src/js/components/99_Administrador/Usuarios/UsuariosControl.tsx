@@ -10,11 +10,11 @@ import { getUsers } from '@/store/administrador/Users/usersActions';
 import { setListUsuarios } from '@/store/administrador/Users/usersReducer';
 
 // Departamentos
-import { getDepartamentos } from '@/store/administrador/Departamentos/departamentosActions';
+import { getDepartamentosActivos } from '@/store/administrador/Departamentos/departamentosActions';
 import { setListDepartamentos } from '@/store/administrador/Departamentos/departamentosReducer';
 
 // Empleados
-import { getEmpleados } from '@/store/administrador/Empleados/empleadosActions';
+import { getEmpleadosActivos } from '@/store/administrador/Empleados/empleadosActions';
 import { setListEmpleados } from '@/store/administrador/Empleados/empleadosReducer';
 
 // Componentes
@@ -24,7 +24,9 @@ import DeleteUser from './DeleteUser';
 
 import ShowUserRoles from '@/components/99_Administrador/Usuarios/ShowUserRoles'
 import Paginacion from '@/components/00_Utils/Paginacion';
+import TablaEntidades, { type ColumnaTabla } from '@/components/00_Utils/TablaEntidades';
 import { usePaginacionServidor } from '@/hooks/usePaginacionServidor';
+import { useGetRolesQuery } from '@/store/api/rolesApi';
 
 // Icons
 import { IoAddCircleOutline } from 'react-icons/io5';
@@ -45,6 +47,11 @@ const Main_UsuariosControl: React.FC = () => {
   const departamentos = useSelector((state: RootState) => state.departamentos.departamentos);
   const empleados = useSelector((state: RootState) => state.empleados.empleados);
   const usuarios = useSelector((state: RootState) => state.users.users || []);
+
+  // Catálogo de roles para el filtro por columna. RTK Query lo cachea; sin
+  // argumentos el endpoint devuelve la lista completa.
+  const { data: rolesData } = useGetRolesQuery();
+  const roles = rolesData?.items ?? [];
 
   const [usuarioToEdit_Delete, setUsuarioToEdit_Delete] = useState<User | null>(null); // Usuario seleccionado para editar_eliminar
   const [usuarioToShow, setUsuarioToShow] = useState<User | null>(null); // Usuario seleccionado para editar_eliminar
@@ -86,10 +93,148 @@ const Main_UsuariosControl: React.FC = () => {
     refetch,
     handleSearch,
     handleChangePerPage: handleChangeUsuariosPorPagina,
+    orden,
+    alternarOrden,
+    filtros,
+    cambiarFiltro,
   } = usePaginacionServidor<User>({
     fetcher,
     perPageDefault: 5,
   });
+
+  const hayFiltrosActivos = Object.keys(filtros).length > 0;
+  const hayBusqueda = busqueda.trim() !== '';
+
+  const columnas: ColumnaTabla<User>[] = [
+    {
+      clave: 'id',
+      encabezado: 'ID',
+      thId: 'usuarios_th_UserID',
+      tdId: 'usuarios_td_UserID',
+      fija: 'izquierda',
+      render: (usuario) => usuario.id_usuario,
+      filtro: { tipo: 'texto', placeholder: 'ID' },
+    },
+    {
+      clave: 'nombre',
+      encabezado: 'Usuario',
+      thId: 'usuarios_th_NombreUsuario',
+      tdId: 'usuarios_td_NombreUsuario',
+      fija: 'izquierda',
+      render: (usuario) => usuario.nombre_usuario,
+      filtro: { tipo: 'texto', placeholder: 'Usuario' },
+    },
+    {
+      clave: 'email',
+      encabezado: 'Email',
+      thId: 'usuarios_th_EmailUsuario',
+      tdId: 'usuarios_td_EmailUsuario',
+      render: (usuario) => usuario.email_usuario,
+      filtro: { tipo: 'texto', placeholder: 'Email' },
+    },
+    {
+      clave: 'estatus',
+      encabezado: 'Estatus',
+      thId: 'usuarios_th_EstatusActivo',
+      tdId: 'usuarios_td_EstatusActivo',
+      render: (usuario) => (
+        <span className={usuario.estatus_activo ? 'status-activo' : 'status-inactivo'}>
+          {usuario.estatus_activo ? 'Activo' : 'Inactivo'}
+        </span>
+      ),
+      filtro: {
+        tipo: 'booleano',
+        opciones: [
+          { valor: '1', etiqueta: 'Activo' },
+          { valor: '0', etiqueta: 'Inactivo' },
+        ],
+      },
+    },
+    {
+      clave: 'roles',
+      encabezado: 'Roles',
+      thId: 'usuarios_th_UserRol',
+      tdId: 'usuarios_td_UserRol',
+      ordenable: false,
+      render: (usuario) => (
+        <PiUserList
+          id='usuarios_rolesIcon'
+          onClick={() => openModalShowUserRoles(usuario)}
+        />
+      ),
+      filtro: {
+        tipo: 'seleccion',
+        opciones: roles
+          .filter((rol) => typeof rol.id === 'number')
+          .map((rol) => ({ valor: String(rol.id), etiqueta: rol.name })),
+      },
+    },
+    {
+      clave: 'departamento',
+      encabezado: 'Departamento',
+      thId: 'usuarios_th_Departamento',
+      tdId: 'usuarios_td_Departamento',
+      render: (usuario) =>
+        departamentos.find(
+          (departamento) => departamento.id_departamento === usuario.id_departamento,
+        )?.nombre_departamento ?? '',
+      filtro: {
+        tipo: 'seleccion',
+        opciones: departamentos
+          .filter((departamento) => typeof departamento.id_departamento === 'number')
+          .map((departamento) => ({
+            valor: String(departamento.id_departamento),
+            etiqueta: departamento.nombre_departamento,
+          })),
+      },
+    },
+    {
+      clave: 'fecha_baja',
+      encabezado: 'Fecha Baja',
+      thId: 'usuarios_th_FechaBaja',
+      tdId: 'usuarios_td_FechaBaja',
+      render: (usuario) => (
+        <span className={usuario.estatus_activo ? '' : 'status-inactivo'}>
+          {formatDateHorasToFrontend(usuario.fecha_baja) || 'Sin Registro'}
+        </span>
+      ),
+      filtro: { tipo: 'fecha' },
+    },
+    {
+      clave: 'creado',
+      encabezado: 'Fecha Creación',
+      thId: 'usuarios_th_FechaCreacion',
+      tdId: 'usuarios_td_FechaCreacion',
+      render: (usuario) => usuario.created_at,
+      filtro: { tipo: 'fecha' },
+    },
+    {
+      clave: 'modificado',
+      encabezado: 'Fecha Modificación',
+      thId: 'usuarios_th_FechaModificacion',
+      tdId: 'usuarios_td_FechaModificacion',
+      render: (usuario) => usuario.updated_at,
+      filtro: { tipo: 'fecha' },
+    },
+    {
+      clave: 'acciones',
+      encabezado: 'ACCIONES',
+      thId: 'usuarios_th_Acciones',
+      tdId: 'usuarios_td_Acciones',
+      fija: 'derecha',
+      ordenable: false,
+      render: (usuario) => (
+        <div className='divActions'>
+          <button className='button_editEntity' onClick={() => openModalEditUsuario(usuario)}>
+            <MdEdit />
+          </button>
+          <button className='button_deleteEntity' onClick={() => openAlertDeleteUsuario(usuario)}>
+            <MdDeleteForever />
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   // Añadir Usuario
   const openModalAddUsuario = () => {
@@ -166,7 +311,7 @@ const Main_UsuariosControl: React.FC = () => {
     if (departamentos.length === 0) { // Si no hay departamentos en el store
       const cargarDepartamentos = async () => {
         try {
-          const resultAction = await dispatch(getDepartamentos()).unwrap();
+          const resultAction = await dispatch(getDepartamentosActivos()).unwrap();
           if (resultAction.success) {
             dispatch(setListDepartamentos(resultAction.departamentos!)); // Guarda los departamentos en el store
           } else {
@@ -182,7 +327,7 @@ const Main_UsuariosControl: React.FC = () => {
     if (empleados.length === 0) { // Si no hay empleados en el store
       const cargarEmpleados = async () => {
         try {
-          const resultAction = await dispatch(getEmpleados()).unwrap();
+          const resultAction = await dispatch(getEmpleadosActivos()).unwrap();
           if (resultAction.success) {
             dispatch(setListEmpleados(resultAction.empleados!)); // Guarda los empleados en el store
           } else {
@@ -213,7 +358,7 @@ const Main_UsuariosControl: React.FC = () => {
         </div>
 
         <div className='buttons_Div'>
-          <select className='selectList' value={usuariosPorPagina} id='selectList' name='selectList' onChange={handleChangeUsuariosPorPagina}>
+          <select className='selectList' value={usuariosPorPagina} name='selectList' onChange={handleChangeUsuariosPorPagina}>
             <option value={5}>5</option>
             <option value={10}>10</option>
             <option value={20}>20</option>
@@ -224,7 +369,7 @@ const Main_UsuariosControl: React.FC = () => {
             type="text"
             placeholder="Buscar por nombre o ID"
             value={busqueda}
-            id='busqueda'
+
             name='busqueda'
             onChange={handleSearch}
           />
@@ -237,7 +382,7 @@ const Main_UsuariosControl: React.FC = () => {
 
       <hr />
 
-      {!loading && usuariosPaginaActual.length === 0 ? (
+      {!loading && usuariosPaginaActual.length === 0 && !hayFiltrosActivos && !hayBusqueda ? (
         <div className='noEntities'>
           <FiAlertTriangle /> <p>  No hay usuarios registrados </p> <FiAlertTriangle />
         </div>
@@ -252,63 +397,17 @@ const Main_UsuariosControl: React.FC = () => {
             onPaginaSiguiente={() => setPaginaActual(paginaActual + 1)}
           />
 
-          <div className='list_entitiesDiv'>
-            <table>
-
-              <thead>
-                <tr>
-                  <th id='th_UserID'>ID</th>
-                  <th id='th_NombreUsuario'>Usuario</th>
-                  <th id='th_EmailUsuario'>Email</th>
-                  <th id='th_EstatusActivo'>Estatus</th>
-                  <th id='th_UserRol'>Roles</th>
-                  <th id='th_Departamento'>Departamento</th>
-                  <th id='th_FechaBaja'>Fecha Baja</th>
-                  <th id='th_FechaCreacion'>Fecha Creación</th>
-                  <th id='th_FechaModificacion'>Fecha Modificación</th>
-                  <th id='th_Acciones'>ACCIONES</th>
-                </tr>
-              </thead>
-
-
-              <tbody>
-                {usuariosPaginaActual.map(usuarios => (
-                  <tr key={usuarios.id_usuario}>
-                    <td id='td_UserID'>{usuarios.id_usuario}</td>
-                    <td id='td_NombreUsuario'>{usuarios.nombre_usuario}</td>
-                    <td id='td_EmailUsuario'>{usuarios.email_usuario}</td>
-                    <td id='td_EstatusActivo' className={usuarios.estatus_activo ? 'status-activo' : 'status-inactivo'}> {usuarios.estatus_activo ? 'Activo' : 'Inactivo'}</td>
-
-
-                    <td id='td_UserRol' >
-                      <PiUserList id='rolesIcon' onClick={() => openModalShowUserRoles(usuarios)} />
-                    </td>
-
-                    <td id='td_Departamento'>{departamentos.map((departamento) => (
-                      <div key={departamento.id_departamento} className='divDepartamento'>
-                        {usuarios.id_departamento === departamento.id_departamento ? departamento.nombre_departamento : ''}
-                      </div>
-                    ))}</td>
-
-                    <td id='td_FechaBaja' className={usuarios.estatus_activo ? '' : 'status-inactivo'}>
-                      {formatDateHorasToFrontend(usuarios.fecha_baja) || 'Sin Registro'}
-                    </td>
-
-
-                    <td id='td_FechaCreacion'>{usuarios.created_at}</td>
-                    <td id='td_FechaModificacion'>{usuarios.updated_at}</td>
-
-                    <td id='td_Acciones'>
-                      <div className='divActions'>
-                        <button className='button_editEntity' onClick={() => openModalEditUsuario(usuarios)}> <MdEdit /></button>
-                        <button className='button_deleteEntity' onClick={() => openAlertDeleteUsuario(usuarios)}><MdDeleteForever /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <TablaEntidades
+            className='list_entitiesDiv_usuarios'
+            filas={usuariosPaginaActual}
+            columnas={columnas}
+            clave={(usuario) => usuario.id_usuario ?? ''}
+            orden={orden}
+            onOrden={alternarOrden}
+            filtros={filtros}
+            onFiltro={cambiarFiltro}
+            mensajeVacio={<p>No hay coincidencias con los filtros seleccionados.</p>}
+          />
 
           {/* Paginación */}
           <Paginacion

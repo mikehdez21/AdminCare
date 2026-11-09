@@ -8,12 +8,22 @@
 //   `{ success, message, ...data }` (sin `meta`).
 // ---------------------------------------------------------------------------
 
+export type DireccionOrden = 'asc' | 'desc';
+
+/** Orden activo de una tabla. `null` significa el orden default del endpoint. */
+export interface OrdenTabla {
+  columna: string;
+  direccion: DireccionOrden;
+}
+
 export interface PaginacionMeta {
   current_page: number;
   per_page: number;
   total: number;
   last_page: number;
   search: string | null;
+  sort?: string | null;
+  direction?: DireccionOrden | null;
 }
 
 export interface PaginacionResponse<T> {
@@ -26,6 +36,11 @@ export interface PaginacionParams {
   page: number;
   per_page: number;
   search: string;
+  /** Clave de la whitelist de orden del endpoint. */
+  sort?: string;
+  direction?: DireccionOrden;
+  /** Filtros por columna: clave pública => valor. */
+  filtros?: Record<string, string>;
 }
 
 /** Parámetros paginados para recursos que dependen de una entidad (id). */

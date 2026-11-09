@@ -32,7 +32,27 @@ class UbicacionController extends Controller
                         'updated_at',
                     ])
                     ->orderBy('id_ubicacion', 'asc'),
-                ['nombre_ubicacion', 'id_ubicacion']
+                ['nombre_ubicacion', 'id_ubicacion'],
+                10,
+                [
+                    'orden' => [
+                        'id' => '"tableUbicaciones"."id_ubicacion"',
+                        'nombre' => 'LOWER("tableUbicaciones"."nombre_ubicacion")',
+                        'descripcion' => 'LOWER("tableUbicaciones"."descripcion_ubicacion")',
+                        'estatus' => '"tableUbicaciones"."estatus_activo"',
+                        'creado' => '"tableUbicaciones"."created_at"',
+                        'modificado' => '"tableUbicaciones"."updated_at"',
+                    ],
+                    'orden_default' => ['id', 'asc'],
+                    'filtros' => [
+                        'id' => ['tipo' => 'texto', 'expresion' => '"tableUbicaciones"."id_ubicacion"'],
+                        'nombre' => ['tipo' => 'texto', 'expresion' => '"tableUbicaciones"."nombre_ubicacion"'],
+                        'descripcion' => ['tipo' => 'texto', 'expresion' => '"tableUbicaciones"."descripcion_ubicacion"'],
+                        'estatus' => ['tipo' => 'booleano', 'expresion' => 'tableUbicaciones.estatus_activo'],
+                        'creado' => ['tipo' => 'fecha', 'expresion' => 'tableUbicaciones.created_at'],
+                        'modificado' => ['tipo' => 'fecha', 'expresion' => 'tableUbicaciones.updated_at'],
+                    ],
+                ]
             );
 
             $items = $resultado['items'];

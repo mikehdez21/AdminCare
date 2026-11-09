@@ -11,6 +11,7 @@ import { setListUbicaciones } from '@/store/administrador/Ubicaciones/ubicacione
 
 // Componentes
 import Paginacion from '@/components/00_Utils/Paginacion';
+import TablaEntidades, { type ColumnaTabla } from '@/components/00_Utils/TablaEntidades';
 import { usePaginacionServidor } from '@/hooks/usePaginacionServidor';
 import AddUbicacionControl from './AddUbicacion';
 import EditUbicacion from './EditUbicacion';
@@ -31,7 +32,7 @@ const Main_UbicacionesControl: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>(); // Tipar el dispatch aquí
   const [ubicacionToEdit_Delete, setUbicacionToEdit_Delete] = useState<Ubicaciones | null>(null); // Usuario seleccionado para editar_eliminar
 
-  
+
   const [isModalAddUbicacionOpen, setModalAddUbicacionOpen] = useState(false);
   const [isModalEditUbicacionOpen, setModalEditUbicacionOpen] = useState(false);
   const [isModalDeleteUbicacionOpen, setModalDeleteUbicacionOpen] = useState(false);
@@ -65,10 +66,98 @@ const Main_UbicacionesControl: React.FC = () => {
     refetch,
     handleSearch,
     handleChangePerPage: handleChangeUbicacionesPorPagina,
+    orden,
+    alternarOrden,
+    filtros,
+    cambiarFiltro,
   } = usePaginacionServidor<Ubicaciones>({
     fetcher,
     perPageDefault: 5,
   });
+
+  const hayFiltrosActivos = Object.keys(filtros).length > 0;
+  const hayBusqueda = busqueda.trim() !== '';
+
+  const columnas: ColumnaTabla<Ubicaciones>[] = [
+    {
+      clave: 'id',
+      encabezado: 'ID',
+      thId: 'ubicaciones_th_UbicacionID',
+      tdId: 'ubicaciones_td_UbicacionID',
+      fija: 'izquierda',
+      render: (ubicacion) => ubicacion.id_ubicacion,
+      filtro: { tipo: 'texto', placeholder: 'ID' },
+    },
+    {
+      clave: 'nombre',
+      encabezado: 'Ubicación',
+      thId: 'ubicaciones_th_NombreUbicacion',
+      tdId: 'ubicaciones_td_NombreUbicacion',
+      fija: 'izquierda',
+      render: (ubicacion) => ubicacion.nombre_ubicacion,
+      filtro: { tipo: 'texto', placeholder: 'Ubicación' },
+    },
+    {
+      clave: 'descripcion',
+      encabezado: 'Descripción',
+      thId: 'ubicaciones_th_DescripcionUbicacion',
+      tdId: 'ubicaciones_td_DescripcionUbicacion',
+      render: (ubicacion) => ubicacion.descripcion_ubicacion,
+      filtro: { tipo: 'texto', placeholder: 'Descripción' },
+    },
+    {
+      clave: 'estatus',
+      encabezado: 'Estatus',
+      thId: 'ubicaciones_th_EstatusActivo',
+      tdId: 'ubicaciones_td_EstatusActivo',
+      render: (ubicacion) => (
+        <span className={ubicacion.estatus_activo ? 'status-activo' : 'status-inactivo'}>
+          {ubicacion.estatus_activo ? 'Activo' : 'Inactivo'}
+        </span>
+      ),
+      filtro: {
+        tipo: 'booleano',
+        opciones: [
+          { valor: '1', etiqueta: 'Activo' },
+          { valor: '0', etiqueta: 'Inactivo' },
+        ],
+      },
+    },
+    {
+      clave: 'creado',
+      encabezado: 'Fecha Creación',
+      thId: 'ubicaciones_th_FechaCreacion',
+      tdId: 'ubicaciones_td_FechaCreacion',
+      render: (ubicacion) => ubicacion.created_at,
+      filtro: { tipo: 'fecha' },
+    },
+    {
+      clave: 'modificado',
+      encabezado: 'Fecha Modificación',
+      thId: 'ubicaciones_th_FechaModificacion',
+      tdId: 'ubicaciones_td_FechaModificacion',
+      render: (ubicacion) => ubicacion.updated_at,
+      filtro: { tipo: 'fecha' },
+    },
+    {
+      clave: 'acciones',
+      encabezado: 'ACCIONES',
+      thId: 'ubicaciones_th_Acciones',
+      tdId: 'ubicaciones_td_Acciones',
+      fija: 'derecha',
+      ordenable: false,
+      render: (ubicacion) => (
+        <div className='divActions'>
+          <button className='button_editEntity' onClick={() => openModalEditUbicacion(ubicacion)}>
+            <MdEdit />
+          </button>
+          <button className='button_deleteEntity' onClick={() => openAlertDeleteUbicacion(ubicacion)}>
+            <MdDeleteForever />
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   // Anadir Ubicacion
   const openModalAddUbicacion = () => {
@@ -121,7 +210,7 @@ const Main_UbicacionesControl: React.FC = () => {
     };
     cargarUbicaciones();
   }, []); // Solo ejecuta el effect si los departamentos no están en el store
-  
+
 
   const ubicaciones = useSelector((state: RootState) => state.ubicaciones?.ubicaciones || []);
   console.log(ubicaciones)
@@ -134,14 +223,14 @@ const Main_UbicacionesControl: React.FC = () => {
   return (
     <div className='mainDiv_UbicacionControl'>
       <div className='searchAdd_ButtonDiv'>
- 
+
         <div className='text_Div'>
           <h1>Ubicaciones</h1>
           <p>Mostrando {ubicacionesPaginaActual.length} de {totalUbicaciones} ubicaciones</p>
         </div>
-        
+
         <div className='buttons_Div'>
-          <select className='selectList' value={ubicacionesPorPagina} id='selectList' name='selectList' onChange={handleChangeUbicacionesPorPagina}>
+          <select className='selectList' value={ubicacionesPorPagina} name='selectList' onChange={handleChangeUbicacionesPorPagina}>
             <option value={5}>5</option>
             <option value={10}>10</option>
             <option value={20}>20</option>
@@ -152,7 +241,7 @@ const Main_UbicacionesControl: React.FC = () => {
             type="text"
             placeholder="Buscar por nombre o ID"
             value={busqueda}
-            id='busqueda'
+
             name='busqueda'
             onChange={handleSearch}
           />
@@ -165,7 +254,7 @@ const Main_UbicacionesControl: React.FC = () => {
 
       <hr />
 
-      {!loading && ubicacionesPaginaActual.length === 0 ? (
+      {!loading && ubicacionesPaginaActual.length === 0 && !hayFiltrosActivos && !hayBusqueda ? (
         <div className='noEntities'>
           <FiAlertTriangle /> <p>  No hay ubicaciones registradas </p> <FiAlertTriangle />
         </div>
@@ -180,45 +269,17 @@ const Main_UbicacionesControl: React.FC = () => {
             onPaginaSiguiente={() => setPaginaActual(paginaActual + 1)}
           />
 
-          <div className='list_entitiesDiv'>
-            <table>
-
-              <thead>
-                <tr>
-                  <th id='th_UbicacionID'>ID</th>
-                  <th id='th_NombreUbicacion'>Ubicación</th>
-                  <th id='th_DescripcionUbicacion'>Descripción</th>
-                  <th id='th_EstatusActivo'>Estatus</th>
-                  <th id='th_FechaCreacion'>Fecha Creación</th>
-                  <th id='th_FechaModificacion'>Fecha Modificación</th>
-                  <th id='th_Acciones'>ACCIONES</th>
-                </tr>
-              </thead>
-
-
-              <tbody>
-                {ubicacionesPaginaActual.map(ubicacion => ( 
-                  <tr key={ubicacion.id_ubicacion}>
-                    <td id='td_UbicacionID'>{ubicacion.id_ubicacion}</td>
-                    <td id='td_NombreUbicacion'>{ubicacion.nombre_ubicacion}</td>
-                    <td id='td_DescripcionUbicacion'>{ubicacion.descripcion_ubicacion}</td>
-                    <td id='td_EstatusActivo'   className={ubicacion.estatus_activo ? 'status-activo' : 'status-inactivo'}> {ubicacion.estatus_activo ? 'Activo' : 'Inactivo'}</td>
-                    <td id='td_FechaCreacion'>{ubicacion.created_at}</td>
-                    <td id='td_FechaModificacion'>{ubicacion.updated_at}</td>
-                    
-
-
-                    <td id='td_Acciones'>
-                      <div className='divActions'>
-                        <button className='button_editEntity' onClick={() => openModalEditUbicacion(ubicacion)}> <MdEdit/></button>
-                        <button className='button_deleteEntity' onClick={() => openAlertDeleteUbicacion(ubicacion)}><MdDeleteForever/></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <TablaEntidades
+            className='list_entitiesDiv_ubicaciones'
+            filas={ubicacionesPaginaActual}
+            columnas={columnas}
+            clave={(ubicacion) => ubicacion.id_ubicacion ?? ''}
+            orden={orden}
+            onOrden={alternarOrden}
+            filtros={filtros}
+            onFiltro={cambiarFiltro}
+            mensajeVacio={<p>No hay coincidencias con los filtros seleccionados.</p>}
+          />
 
           {/* Paginación */}
           <Paginacion

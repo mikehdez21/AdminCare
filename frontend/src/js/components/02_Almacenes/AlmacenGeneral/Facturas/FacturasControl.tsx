@@ -27,13 +27,13 @@ import { getTiposFacturas } from '@/store/almacengeneral/Facturas/facturasAction
 
 // Componentes
 import Paginacion from '@/components/00_Utils/Paginacion';
+import TablaEntidades, { type ColumnaTabla } from '@/components/00_Utils/TablaEntidades';
 import { usePaginacionServidor } from '@/hooks/usePaginacionServidor';
 import AddFactura from './AddFactura';
 import EditFactura from './EditFactura';
 import ImpresionFactura from '../Etiquetas/ImpresionFactura';
 import ResponsivasAF from './ResponsivasAF';
 import { formatDateHorasToFrontend, formatDateNacimientoToFrontend } from '@/utils/dateFormat';
-// import DeleteFactura from './DeleteFactura';
 
 // Icons
 import { FaArrowCircleRight } from 'react-icons/fa';
@@ -47,6 +47,21 @@ Modal.setAppElement('#root');
 // Styles
 import '@styles/02_Almacenes/AlmacenGeneral/Facturas/facturasControl.css'
 
+function opcionesCatalogo<T>(
+  items: T[],
+  id: (item: T) => number | undefined,
+  etiqueta: (item: T) => string,
+): Array<{ valor: string; etiqueta: string }> {
+  return items.reduce<Array<{ valor: string; etiqueta: string }>>((opciones, item) => {
+    const valor = id(item);
+
+    if (typeof valor === 'number') {
+      opciones.push({ valor: String(valor), etiqueta: etiqueta(item) });
+    }
+
+    return opciones;
+  }, []);
+}
 
 const AlmacenGeneral_Facturas: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -69,8 +84,6 @@ const AlmacenGeneral_Facturas: React.FC = () => {
   const [showImpresionFactura, setShowImpresionFactura] = useState<boolean>(false);
   const [showResponsivasAF, setShowResponsivasAF] = useState<boolean>(false);
   const [facturaCreadaId, setFacturaCreadaId] = useState<number | null>(null);
-
-  /*const [isModalDeleteFacturaOpen, setModalDeleteFacturaOpen] = useState<boolean>(false);*/
 
   // ---------------------------------------------------------------------------
   // Paginación servidor: fetcher que llama al thunk de facturas con
@@ -101,10 +114,187 @@ const AlmacenGeneral_Facturas: React.FC = () => {
     refetch,
     handleSearch,
     handleChangePerPage: handleChangeFacturasPorPagina,
+    orden,
+    alternarOrden,
+    filtros,
+    cambiarFiltro,
   } = usePaginacionServidor<FacturasAF>({
     fetcher,
     perPageDefault: 5,
   });
+
+  const hayFiltrosActivos = Object.keys(filtros).length > 0;
+  const hayBusqueda = busqueda.trim() !== '';
+
+  const columnas: ColumnaTabla<FacturasAF>[] = [
+    {
+      clave: 'id',
+      encabezado: 'ID',
+      thId: 'facturas_th_ID',
+      tdId: 'facturas_td_ID',
+      fija: 'izquierda',
+      render: (factura) => factura.id_factura,
+      filtro: { tipo: 'texto', placeholder: 'ID' },
+    },
+    {
+      clave: 'proveedor',
+      encabezado: 'Proveedor',
+      thId: 'facturas_th_ProveedorFactura',
+      tdId: 'facturas_td_ProveedorFactura',
+      fija: 'izquierda',
+      desplazamientoFijo: '80px',
+      render: (factura) =>
+        proveedores.find((proveedor) => proveedor.id_proveedor === factura.id_proveedor)
+          ?.razon_social ?? '',
+      filtro: {
+        tipo: 'seleccion',
+        opciones: opcionesCatalogo(
+          proveedores,
+          (proveedor) => proveedor.id_proveedor,
+          (proveedor) => proveedor.razon_social,
+        ),
+      },
+    },
+    {
+      clave: 'num_factura',
+      encabezado: 'Número de Factura',
+      thId: 'facturas_th_NumFactura',
+      tdId: 'facturas_td_NumFactura',
+      render: (factura) => factura.num_factura,
+      filtro: { tipo: 'texto', placeholder: 'Número' },
+    },
+    {
+      clave: 'fecha_recepcion',
+      encabezado: 'Fecha Recepción',
+      thId: 'facturas_th_FechaRecepcion',
+      tdId: 'facturas_td_FechaRecepcion',
+      render: (factura) => formatDateHorasToFrontend(factura.fecha_fac_recepcion),
+      filtro: { tipo: 'fecha' },
+    },
+    {
+      clave: 'fecha_compra',
+      encabezado: 'Fecha Compra',
+      thId: 'facturas_th_FechaCompra',
+      tdId: 'facturas_td_FechaCompra',
+      render: (factura) =>
+        factura.fecha_fac_compra
+          ? formatDateNacimientoToFrontend(factura.fecha_fac_compra)
+          : '—',
+      filtro: { tipo: 'fecha' },
+    },
+    {
+      clave: 'tipo_factura',
+      encabezado: 'Tipo de Factura',
+      thId: 'facturas_th_TiposFactura',
+      tdId: 'facturas_td_TiposFactura',
+      render: (factura) =>
+        tiposFacturas.find(
+          (tipo) => tipo.id_tipofacturaaf === factura.id_tipo_factura,
+        )?.nombre_tipofactura ?? '',
+      filtro: {
+        tipo: 'seleccion',
+        opciones: opcionesCatalogo(
+          tiposFacturas,
+          (tipo) => tipo.id_tipofacturaaf,
+          (tipo) => tipo.nombre_tipofactura,
+        ),
+      },
+    },
+    {
+      clave: 'forma_pago',
+      encabezado: 'Forma de Pago',
+      thId: 'facturas_th_FormaPago',
+      tdId: 'facturas_td_FormaPago',
+      render: (factura) =>
+        formasPago.find((forma) => forma.id_formapago === factura.id_forma_pago)
+          ?.descripcion_formaspago ?? '',
+      filtro: {
+        tipo: 'seleccion',
+        opciones: opcionesCatalogo(
+          formasPago,
+          (forma) => forma.id_formapago,
+          (forma) => forma.descripcion_formaspago,
+        ),
+      },
+    },
+    {
+      clave: 'moneda',
+      encabezado: 'Moneda de Pago',
+      thId: 'facturas_th_TiposMoneda',
+      tdId: 'facturas_td_TiposMoneda',
+      render: (factura) =>
+        tiposMoneda.find((moneda) => moneda.id_tipomoneda === factura.id_tipo_moneda)
+          ?.descripcion_tipomoneda ?? '',
+      filtro: {
+        tipo: 'seleccion',
+        opciones: opcionesCatalogo(
+          tiposMoneda,
+          (moneda) => moneda.id_tipomoneda,
+          (moneda) => moneda.descripcion_tipomoneda,
+        ),
+      },
+    },
+    {
+      clave: 'observaciones',
+      encabezado: 'Observaciones',
+      thId: 'facturas_th_ObservacionesFactura',
+      tdId: 'facturas_td_ObservacionesFactura',
+      render: (factura) => (
+        <button
+          className='btnObservacion'
+          type='button'
+          onClick={() => {
+            setObsSeleccionada(factura.observaciones_factura || '');
+            setShowObsModal(true);
+          }}
+        >
+          {factura.observaciones_factura
+            ? factura.observaciones_factura.length > 20
+              ? factura.observaciones_factura.slice(0, 20) + '...'
+              : factura.observaciones_factura
+            : 'Sin observaciones'}
+        </button>
+      ),
+      filtro: { tipo: 'texto', placeholder: 'Observaciones' },
+    },
+    {
+      clave: 'creado',
+      encabezado: 'Fecha Creación',
+      thId: 'facturas_th_FechaCreacion',
+      tdId: 'facturas_td_FechaCreacion',
+      render: (factura) => factura.created_at,
+      filtro: { tipo: 'fecha' },
+    },
+    {
+      clave: 'modificado',
+      encabezado: 'Fecha Modificación',
+      thId: 'facturas_th_FechaModificacion',
+      tdId: 'facturas_td_FechaModificacion',
+      render: (factura) => factura.updated_at,
+      filtro: { tipo: 'fecha' },
+    },
+    {
+      clave: 'acciones',
+      encabezado: 'ACCIONES',
+      thId: 'facturas_th_Acciones',
+      tdId: 'facturas_td_Acciones',
+      fija: 'derecha',
+      ordenable: false,
+      render: (factura) => (
+        <div className='divActions'>
+          <button className='button_editEntity' onClick={() => handleEditarFactura(factura)}>
+            <MdEdit />
+          </button>
+          <button
+            className='button_pdfResponsivas'
+            onClick={() => handleImprimirResponsivas(factura)}
+          >
+            <FaFilePdf />
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   // Añadir Factura - Control de Rutas
   const handleNuevaFactura = () => {
@@ -199,18 +389,6 @@ const AlmacenGeneral_Facturas: React.FC = () => {
     setShowResponsivasAF(true);
   }
 
-
-  /*
-  // Eliminar Factura
-  const openAlertDeleteFactura = (factura: FacturasAF) => {
-    setFacturaToEdit_Delete(factura);
-    setModalDeleteFacturaOpen(true);
-  };
-  const closeAlertDeleteFactura = () => {
-    setFacturaToEdit_Delete(null);
-    setModalDeleteFacturaOpen(false);
-  };
-  */
 
   // Recordar la ruta previa para refrescar la tabla paginada al regresar al
   // listado (después de crear/editar/imprimir/ver responsivas).
@@ -365,7 +543,7 @@ const AlmacenGeneral_Facturas: React.FC = () => {
 
       <hr />
 
-      {!loading && facturasPaginaActual.length === 0 ? (
+      {!loading && facturasPaginaActual.length === 0 && !hayFiltrosActivos && !hayBusqueda ? (
         <div className='noEntities'>
           <FiAlertTriangle /> <p>  No hay facturas registradas </p> <FiAlertTriangle />
         </div>
@@ -379,91 +557,17 @@ const AlmacenGeneral_Facturas: React.FC = () => {
             onPaginaSiguiente={() => setPaginaActual(paginaActual + 1)}
           />
 
-          <div className='list_entitiesDiv'>
-            <table>
-              <thead>
-                <tr>
-                  <th id='th_ID'>ID</th>
-                  <th id='th_ProveedorFactura'>Proveedor</th>
-                  <th id='th_NumFactura'>Número de Factura</th>
-                  <th id='th_FechaRecepcion'>Fecha Recepción</th>
-                  <th id='th_FechaCompra'>Fecha Compra</th>
-                  <th id='th_TiposFactura'>Tipo de Factura</th>
-                  <th id='th_FormaPago'>Forma de Pago</th>
-                  <th id='th_TiposMoneda'>Moneda de Pago</th>
-                  <th id='th_ObservacionesFactura'>Observaciones</th>
-                  <th id='th_FechaCreacion'>Fecha Creación</th>
-                  <th id='th_FechaModificacion'>Fecha Modificación</th>
-                  <th id='th_Acciones'>ACCIONES</th>
-                </tr>
-              </thead>
-              <tbody>
-                {facturasPaginaActual.map(factura => (
-                  <tr key={factura.id_factura}>
-                    <td id='td_ID'>{factura.id_factura}</td>
-
-                    <td id='td_ProveedorFactura'>
-                      {(() => {
-                        const proveedor = proveedores.find(p => p.id_proveedor === factura.id_proveedor);
-                        return proveedor ? proveedor.razon_social : '';
-                      })()}
-                    </td>
-
-                    <td id='td_NumFactura'>{factura.num_factura}</td>
-                    <td id='td_FechaRecepcion'>{formatDateHorasToFrontend(factura.fecha_fac_recepcion)}</td>
-                    <td id='td_FechaCompra'>{factura.fecha_fac_compra ? formatDateNacimientoToFrontend(factura.fecha_fac_compra) : '—'}</td>
-
-                    <td id='td_TiposFactura'>
-                      {(() => {
-                        const tipoFactura = tiposFacturas.find(t => t.id_tipofacturaaf === factura.id_tipo_factura);
-                        return tipoFactura ? tipoFactura.nombre_tipofactura : '';
-                      })()}
-                    </td>
-
-                    <td id='td_FormaPago'>
-                      {(() => {
-                        const formaPago = formasPago.find(f => f.id_formapago === factura.id_forma_pago);
-                        return formaPago ? formaPago.descripcion_formaspago : '';
-                      })()}
-                    </td>
-
-                    <td id='td_TiposMoneda'>
-                      {(() => {
-                        const tipoMoneda = tiposMoneda.find(m => m.id_tipomoneda === factura.id_tipo_moneda);
-                        return tipoMoneda ? tipoMoneda.descripcion_tipomoneda : '';
-                      })()}
-                    </td>
-
-                    <td id='td_ObservacionesFactura' onClick={() => {
-                      setObsSeleccionada(factura.observaciones_factura || '');
-                      setShowObsModal(true);
-                    }}>
-                      <button
-                        className="btnObservacion"
-                        type='button'
-
-                      >
-                        {factura.observaciones_factura
-                          ? factura.observaciones_factura.length > 20
-                            ? factura.observaciones_factura.slice(0, 20) + '...'
-                            : factura.observaciones_factura
-                          : 'Sin observaciones'}
-                      </button>
-                    </td>
-                    <td id='td_FechaCreacion'>{factura.created_at}</td>
-                    <td id='td_FechaModificacion'> {factura.updated_at} </td>
-                    <td id='td_Acciones'>
-                      <div className='divActions'>
-                        <button className='button_editEntity' onClick={() => handleEditarFactura(factura)}> <MdEdit /> </button>
-                        <button className='button_pdfResponsivas' onClick={() => handleImprimirResponsivas(factura)}> <FaFilePdf /> </button>
-                        {/*<button className='button_deleteEntity' disabled onClick={() => openAlertDeleteFactura(factura)}><MdDeleteForever/> </button>*/}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <TablaEntidades
+            className='list_entitiesDiv_facturas'
+            filas={facturasPaginaActual}
+            columnas={columnas}
+            clave={(factura) => factura.id_factura ?? ''}
+            orden={orden}
+            onOrden={alternarOrden}
+            filtros={filtros}
+            onFiltro={cambiarFiltro}
+            mensajeVacio={<p>No hay coincidencias con los filtros seleccionados.</p>}
+          />
 
           <Paginacion
             paginaActual={paginaActual}
@@ -474,12 +578,6 @@ const AlmacenGeneral_Facturas: React.FC = () => {
           />
         </>
       )}
-
-      {/* Modal solo para eliminar 
-      {isModalDeleteFacturaOpen && (
-        <DeleteFactura isOpen={isModalDeleteFacturaOpen} onClose={closeAlertDeleteFactura} facturaToDelete={facturaToEdit_Delete}/>
-      )}
-      */}
 
     </div>
   );

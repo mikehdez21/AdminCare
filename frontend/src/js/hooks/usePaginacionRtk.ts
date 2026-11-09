@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ChangeEvent } from 'react';
-import type { PaginacionMeta, PaginacionParams } from '@/@types/paginacionTypes';
+import type {
+  OrdenTabla,
+  PaginacionMeta,
+  PaginacionParams,
+} from '@/@types/paginacionTypes';
 
 interface RtkQueryResult<T> {
   data?: { items: T[]; meta?: PaginacionMeta | null } | T[];
@@ -24,6 +28,18 @@ function normalizarRespuesta<T>(
   return { items: respuesta?.items ?? [], meta: respuesta?.meta ?? null };
 }
 
+function mismosFiltros(
+  a: Record<string, string>,
+  b: Record<string, string>,
+): boolean {
+  const clavesA = Object.keys(a);
+  const clavesB = Object.keys(b);
+
+  if (clavesA.length !== clavesB.length) return false;
+
+  return clavesA.every((clave) => a[clave] === b[clave]);
+}
+
 export interface UsePaginacionRtkResult<T> {
   items: T[];
   meta: PaginacionMeta | null;
@@ -40,6 +56,11 @@ export interface UsePaginacionRtkResult<T> {
   refetch: () => void;
   handleSearch: (e: ChangeEvent<HTMLInputElement>) => void;
   handleChangePerPage: (e: ChangeEvent<HTMLSelectElement>) => void;
+  orden: OrdenTabla | null;
+  alternarOrden: (columna: string) => void;
+  filtros: Record<string, string>;
+  cambiarFiltro: (columna: string, valor: string) => void;
+  limpiarFiltros: () => void;
 }
 
 export function usePaginacionRtk<T>({
@@ -52,21 +73,38 @@ export function usePaginacionRtk<T>({
   const [paginaActual, setPaginaActual] = useState<number>(1);
   const [perPage, setPerPage] = useState<number>(perPageDefault);
 
+  const [orden, setOrden] = useState<OrdenTabla | null>(null);
+  const [filtros, setFiltros] = useState<Record<string, string>>({});
+  const [filtrosAplicados, setFiltrosAplicados] = useState<Record<string, string>>({});
+
   const args: PaginacionParams = {
     page: paginaActual,
     per_page: perPage,
     search: busquedaAplicada,
   };
 
+  if (orden !== null) {
+    args.sort = orden.columna;
+    args.direction = orden.direccion;
+  }
+
+  if (Object.keys(filtrosAplicados).length > 0) {
+    args.filtros = filtrosAplicados;
+  }
+
   const { data, isLoading, error, refetch } = useQuery(args);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setBusquedaAplicada(busqueda.trim());
+      setFiltrosAplicados((anteriores) =>
+        mismosFiltros(anteriores, filtros) ? anteriores : filtros,
+      );
       setPaginaActual(1);
     }, searchDelayMs);
+
     return () => window.clearTimeout(timer);
-  }, [busqueda, searchDelayMs]);
+  }, [busqueda, filtros, searchDelayMs]);
 
   const { items, meta } = useMemo(() => normalizarRespuesta(data), [data]);
 
@@ -105,6 +143,37 @@ export function usePaginacionRtk<T>({
     setPaginaActual(1);
   }, []);
 
+  const alternarOrden = useCallback((columna: string) => {
+    setOrden((anterior) => {
+      if (anterior === null || anterior.columna !== columna) {
+        return { columna, direccion: 'asc' };
+      }
+
+      if (anterior.direccion === 'asc') {
+        return { columna, direccion: 'desc' };
+      }
+
+      return null;
+    });
+    setPaginaActual(1);
+  }, []);
+
+  const cambiarFiltro = useCallback((columna: string, valor: string) => {
+    setFiltros((anteriores) => {
+      const siguientes = { ...anteriores };
+
+      if (valor.trim() === '') {
+        delete siguientes[columna];
+      } else {
+        siguientes[columna] = valor;
+      }
+
+      return siguientes;
+    });
+  }, []);
+
+  const limpiarFiltros = useCallback(() => setFiltros({}), []);
+
   return {
     items,
     meta,
@@ -121,5 +190,10 @@ export function usePaginacionRtk<T>({
     refetch,
     handleSearch,
     handleChangePerPage,
+    orden,
+    alternarOrden,
+    filtros,
+    cambiarFiltro,
+    limpiarFiltros,
   };
 }

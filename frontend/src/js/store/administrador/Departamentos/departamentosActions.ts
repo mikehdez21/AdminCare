@@ -90,6 +90,49 @@ export const getDepartamentos = createAsyncThunk<ResultadoDepartamentos, Paginac
   }
 )
 
+export const getDepartamentosActivos = createAsyncThunk<ResultadoDepartamentos>(
+  '/getDepartamentosActivos',
+  async () => {
+    try {
+      const response = await api.get(
+        `${API_BASE_URL}/api/admin/departamentos`,
+        { params: { solo_activos: 1 } },
+      );
+
+      const departamentosFormateados = response.data.data.map((departamento: Departamentos) => {
+        return {
+          ...departamento,
+          created_at: departamento.created_at
+            ? formatDateHorasToFrontend(departamento.created_at)
+            : null,
+          updated_at: departamento.updated_at
+            ? formatDateHorasToFrontend(departamento.updated_at)
+            : null,
+        };
+      });
+
+      return {
+        success: response.data.success,
+        departamentos: departamentosFormateados as Departamentos[],
+        meta: response.data.meta ?? null,
+        message: response.data.message,
+      };
+    } catch (error) {
+      if (isAxiosError(error) && error.response) {
+        return {
+          success: false,
+          message: getBackendErrorMessage(error.response.data, 'Error inesperado'),
+        };
+      }
+
+      return {
+        success: false,
+        message: 'Error inesperado',
+      };
+    }
+  },
+);
+
 // Editar un departamento
 export const editDepartamento = createAsyncThunk<{ success: boolean; message: string }, Departamentos>(
   '/editDepartamento',

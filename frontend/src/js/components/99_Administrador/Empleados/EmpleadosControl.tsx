@@ -19,6 +19,7 @@ import AddEmpleado from './AddEmpleado';
 import EditEmpleado from './EditEmpleado';
 import DeleteEmpleado from './DeleteEmpleado';
 import Paginacion from '@/components/00_Utils/Paginacion';
+import TablaEntidades, { type ColumnaTabla } from '@/components/00_Utils/TablaEntidades';
 import { usePaginacionServidor } from '@/hooks/usePaginacionServidor';
 import ShowPhotoEmpleado from './ShowPhotoEmpleado';
 
@@ -76,10 +77,187 @@ const Main_EmpleadosControl: React.FC = () => {
     refetch,
     handleSearch,
     handleChangePerPage: handleChangeEmpleadosPorPagina,
+    orden,
+    alternarOrden,
+    filtros,
+    cambiarFiltro,
   } = usePaginacionServidor<Empleados>({
     fetcher,
     perPageDefault: 5,
   });
+
+  const hayFiltrosActivos = Object.keys(filtros).length > 0;
+  const hayBusqueda = busqueda.trim() !== '';
+
+  const columnas: ColumnaTabla<Empleados>[] = [
+    {
+      clave: 'id',
+      encabezado: 'ID',
+      thId: 'empleados_th_EmpleadoID',
+      tdId: 'empleados_td_EmpleadoID',
+      fija: 'izquierda',
+      render: (empleado) => empleado.id_empleado,
+      filtro: { tipo: 'texto', placeholder: 'ID' },
+    },
+    {
+      clave: 'nombre',
+      encabezado: 'Nombre',
+      thId: 'empleados_th_NombreEmpleado',
+      tdId: 'empleados_td_NombreEmpleado',
+      fija: 'izquierda',
+      desplazamientoFijo: '50px',
+      render: (empleado) => (
+        <p>
+          {empleado.nombre_empleado} {empleado.apellido_paterno} {empleado.apellido_materno}
+        </p>
+      ),
+      filtro: { tipo: 'texto', placeholder: 'Nombre' },
+    },
+    {
+      clave: 'genero',
+      encabezado: 'Género',
+      thId: 'empleados_th_Genero',
+      tdId: 'empleados_td_Genero',
+      render: (empleado) => empleado.genero,
+      filtro: {
+        tipo: 'seleccion',
+        opciones: [
+          { valor: 'Masculino', etiqueta: 'Masculino' },
+          { valor: 'Femenino', etiqueta: 'Femenino' },
+        ],
+      },
+    },
+    {
+      clave: 'fecha_nacimiento',
+      encabezado: 'Fecha Nacimiento',
+      thId: 'empleados_th_FechaNacimiento',
+      tdId: 'empleados_td_FechaNacimiento',
+      render: (empleado) => empleado.fecha_nacimiento,
+      filtro: { tipo: 'fecha' },
+    },
+    {
+      clave: 'estatus',
+      encabezado: 'Estatus',
+      thId: 'empleados_th_EstatusActivo',
+      tdId: 'empleados_td_EstatusActivo',
+      render: (empleado) => (
+        <span className={empleado.estatus_activo ? 'status-activo' : 'status-inactivo'}>
+          {empleado.estatus_activo ? 'Activo' : 'Inactivo'}
+        </span>
+      ),
+      filtro: {
+        tipo: 'booleano',
+        opciones: [
+          { valor: '1', etiqueta: 'Activo' },
+          { valor: '0', etiqueta: 'Inactivo' },
+        ],
+      },
+    },
+    {
+      clave: 'jefatura',
+      encabezado: 'Jefatura',
+      thId: 'empleados_th_JefaturaEmpleado',
+      tdId: 'empleados_td_JefaturaEmpleado',
+      render: (empleado) => (
+        <span className={empleado.jefatura_empleado ? 'status-jefe' : 'status-no-jefe'}>
+          {empleado.jefatura_empleado ? 'Si' : 'No'}
+        </span>
+      ),
+      filtro: {
+        tipo: 'booleano',
+        opciones: [
+          { valor: '1', etiqueta: 'Sí' },
+          { valor: '0', etiqueta: 'No' },
+        ],
+      },
+    },
+    {
+      clave: 'fecha_alta',
+      encabezado: 'Fecha Alta',
+      thId: 'empleados_th_FechaAlta',
+      tdId: 'empleados_td_FechaAlta',
+      render: (empleado) => formatDateHorasToFrontend(empleado.fecha_alta) || 'Sin Registro',
+      filtro: { tipo: 'fecha' },
+    },
+    {
+      clave: 'fecha_baja',
+      encabezado: 'Fecha Baja',
+      thId: 'empleados_th_FechaBaja',
+      tdId: 'empleados_td_FechaBaja',
+      render: (empleado) => (
+        <span className={empleado.estatus_activo ? '' : 'status-inactivo'}>
+          {formatDateHorasToFrontend(empleado.fecha_baja) || 'Sin Registro'}
+        </span>
+      ),
+      filtro: { tipo: 'fecha' },
+    },
+    {
+      clave: 'departamento',
+      encabezado: 'Departamento',
+      thId: 'empleados_th_Departamento',
+      tdId: 'empleados_td_Departamento',
+      render: (empleado) =>
+        departamentos.find(
+          (departamento) => departamento.id_departamento === empleado.id_departamento,
+        )?.nombre_departamento ?? '',
+      filtro: {
+        tipo: 'seleccion',
+        opciones: departamentos
+          .filter((departamento) => typeof departamento.id_departamento === 'number')
+          .map((departamento) => ({
+            valor: String(departamento.id_departamento),
+            etiqueta: departamento.nombre_departamento,
+          })),
+      },
+    },
+    {
+      clave: 'foto',
+      encabezado: 'Foto',
+      thId: 'empleados_th_Foto',
+      tdId: 'empleados_td_Foto',
+      ordenable: false,
+      render: (empleado) => (
+        <FaImagePortrait
+          id='empleados_imageIcon'
+          onClick={() => openModalFotoEmpleado(empleado)}
+        />
+      ),
+    },
+    {
+      clave: 'creado',
+      encabezado: 'Fecha Creación',
+      thId: 'empleados_th_FechaCreacion',
+      tdId: 'empleados_td_FechaCreacion',
+      render: (empleado) => empleado.created_at,
+      filtro: { tipo: 'fecha' },
+    },
+    {
+      clave: 'modificado',
+      encabezado: 'Fecha Modificación',
+      thId: 'empleados_th_FechaModificacion',
+      tdId: 'empleados_td_FechaModificacion',
+      render: (empleado) => empleado.updated_at,
+      filtro: { tipo: 'fecha' },
+    },
+    {
+      clave: 'acciones',
+      encabezado: 'ACCIONES',
+      thId: 'empleados_th_Acciones',
+      tdId: 'empleados_td_Acciones',
+      fija: 'derecha',
+      ordenable: false,
+      render: (empleado) => (
+        <div className='divActions'>
+          <button className='button_editEntity' onClick={() => openModalEditEmpleado(empleado)}>
+            <MdEdit />
+          </button>
+          <button className='button_deleteEntity' onClick={() => openModalDeleteEmpleado(empleado)}>
+            <MdDeleteForever />
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   // Abrir y cerrar modal de foto de empleado
   const openModalFotoEmpleado = (empleado: Empleados) => {
@@ -179,7 +357,7 @@ const Main_EmpleadosControl: React.FC = () => {
         </div>
 
         <div className='buttons_Div'>
-          <select className='selectList' value={empleadosPorPagina} id='selectList' name='selectList' onChange={handleChangeEmpleadosPorPagina}>
+          <select className='selectList' value={empleadosPorPagina} name='selectList' onChange={handleChangeEmpleadosPorPagina}>
             <option value={5}>5</option>
             <option value={10}>10</option>
             <option value={20}>20</option>
@@ -190,7 +368,7 @@ const Main_EmpleadosControl: React.FC = () => {
             type="text"
             placeholder="Buscar por nombre o ID"
             value={busqueda}
-            id='busqueda'
+
             name='busqueda'
             onChange={handleSearch}
           />
@@ -203,7 +381,7 @@ const Main_EmpleadosControl: React.FC = () => {
 
       <hr />
 
-      {!loading && empleadosPaginaActual.length === 0 ? (
+      {!loading && empleadosPaginaActual.length === 0 && !hayFiltrosActivos && !hayBusqueda ? (
         <div className='noEntities'>
           <FiAlertTriangle /> <p>  No hay empleados registrados </p> <FiAlertTriangle />
         </div>
@@ -217,72 +395,18 @@ const Main_EmpleadosControl: React.FC = () => {
             onPaginaAnterior={() => setPaginaActual(paginaActual - 1)}
             onPaginaSiguiente={() => setPaginaActual(paginaActual + 1)}
           />
-          <div className='list_entitiesDiv' >
-            <table>
 
-              <thead>
-                <tr>
-                  <th id='th_EmpleadoID'>ID</th>
-                  <th id='th_NombreEmpleado'>Nombre</th>
-
-                  <th id='th_Genero'>Género</th>
-                  <th id='th_FechaNacimiento'>Fecha Nacimiento</th>
-                  <th id='th_EstatusActivo'>Estatus</th>
-                  <th id='th_EstatusActivo'>Jefatura</th>
-                  <th id='th_FechaAlta'>Fecha Alta</th>
-                  <th id='th_FechaBaja'>Fecha Baja</th>
-                  <th id='th_Departamento'>Departamento</th>
-
-                  <th id='th_Foto'>Foto</th>
-
-                  <th id='th_FechaCreacion'>Fecha Creación</th>
-                  <th id='th_FechaModificacion'>Fecha Modificación</th>
-
-                  <th id='th_Acciones'>ACCIONES</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {empleadosPaginaActual.map(empleados => (
-                  <tr key={empleados.id_empleado}>
-                    <td id='td_EmpleadoID'>{empleados.id_empleado}</td>
-                    <td id='td_NombreEmpleado'><p>{empleados.nombre_empleado} {empleados.apellido_paterno} {empleados.apellido_materno}</p></td>
-                    <td id='td_Genero'>{empleados.genero}</td>
-                    <td id='td_FechaNacimiento'>{empleados.fecha_nacimiento}</td>
-                    <td id='td_EstatusActivo' className={empleados.estatus_activo ? 'status-activo' : 'status-inactivo'}> {empleados.estatus_activo ? 'Activo' : 'Inactivo'}</td>
-                    <td id='td_JefaturaEmpleado' className={empleados.jefatura_empleado ? 'status-jefe' : 'status-no-jefe'}> {empleados.jefatura_empleado ? 'Si' : 'No'}</td>
-                    <td id='td_FechaAlta'>{formatDateHorasToFrontend(empleados.fecha_alta) || 'Sin Registro'}</td>
-
-                    <td id='td_FechaBaja' className={empleados.estatus_activo ? '' : 'status-inactivo'}>
-                      {formatDateHorasToFrontend(empleados.fecha_baja) || 'Sin Registro'}
-                    </td>
-
-                    <td id='td_Departamento'>{departamentos.map((departamento) => (
-                      <div key={departamento.id_departamento} className='divDepartamento'>
-                        {empleados.id_departamento === departamento.id_departamento ? departamento.nombre_departamento : ''}
-                      </div>
-                    ))}</td>
-
-                    <td id='td_Foto'>
-                      <FaImagePortrait id='imageIcon' onClick={() => openModalFotoEmpleado(empleados)} />
-                    </td>
-
-                    <td id='td_FechaCreacion'>{empleados.created_at}</td>
-                    <td id='td_FechaModificacion'>{empleados.updated_at}</td>
-
-                    <td id='td_Acciones'>
-                      <div className='divActions'>
-                        <button className='button_editEntity' onClick={() => openModalEditEmpleado(empleados)}> <MdEdit /></button>
-                        <button className='button_deleteEntity' onClick={() => openModalDeleteEmpleado(empleados)}><MdDeleteForever /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-
-            </table>
-
-          </div>
+          <TablaEntidades
+            className='list_entitiesDiv_empleados'
+            filas={empleadosPaginaActual}
+            columnas={columnas}
+            clave={(empleado) => empleado.id_empleado ?? ''}
+            orden={orden}
+            onOrden={alternarOrden}
+            filtros={filtros}
+            onFiltro={cambiarFiltro}
+            mensajeVacio={<p>No hay coincidencias con los filtros seleccionados.</p>}
+          />
 
           {/* Paginación */}
           <Paginacion
