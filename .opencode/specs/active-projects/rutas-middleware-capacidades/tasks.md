@@ -9,6 +9,8 @@
 - [x] Retirar permisos legacy del seeder.
 - [x] Retirar la unión legacy del guardado de roles.
 - [x] Retirar la expansión legacy de `.control` en `AuthController`.
+- [x] Agregar migración `SQLITE/021_remove_legacy_permissions.php` para borrar permisos legacy reinsertados por la migración 017.
+- [x] Filtrar permisos legacy en `PermissionsController` para que no aparezcan en "Otros permisos" ni siquiera antes de correr la migración.
 - [x] Exponer DELETE de métodos/estatus de depreciación que el frontend ya invocaba y el controlador ya implementaba.
 - [x] Revisar que no quede `permission:sidebar_*`.
 - [x] `git diff --check`.

@@ -7,6 +7,8 @@
 - [ ] Administrador usa `admin.*`.
 - [ ] Catálogos usan `catalogos.*` con OR.
 - [ ] No quedan `permission:sidebar_*`.
+- [ ] No queda `sidebar_menu_admindashboard` en la tabla de permisos.
+- [ ] Los permisos legacy se eliminan con la migración `021_remove_legacy_permissions`.
 - [ ] No quedan permisos legacy en el seeder.
 - [ ] No queda unión legacy en el guardado de roles.
 - [ ] El sidebar usa capacidades nuevas.

@@ -16,13 +16,19 @@ class PermissionsController extends Controller
         $response = ["success" => false, "data" => [], "message" => ""];
 
         try {
-            $permissions = Permission::all([
-                'id',
-                'name',
-                'guard_name',
-                'created_at',
-                'updated_at',
-            ])->map(fn (Permission $permission) => $this->presentar($permission));
+            $permissions = Permission::query()
+                ->where(function ($query) {
+                    $query->where('name', 'not like', 'sidebar_%')
+                        ->where('name', 'not like', 'almacengeneral_navbar_%')
+                        ->where('name', 'not like', '%.control');
+                })
+                ->get([
+                    'id',
+                    'name',
+                    'guard_name',
+                    'created_at',
+                    'updated_at',
+                ])->map(fn (Permission $permission) => $this->presentar($permission));
 
             if ($permissions->isEmpty()) {
                 $response['message'] = 'No se encontraron permisos.';
