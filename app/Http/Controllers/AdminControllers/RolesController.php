@@ -144,7 +144,9 @@ class RolesController extends Controller
             $rol->update($request->only(['name', 'guard_name']));
 
             if ($request->has('permissions')) {
-                $permisos = $this->expandirPermisosConBase($request->input('permissions', []));
+                $permisos = $this->expandirPermisosConBase(
+                    $this->permisosConLegacy($rol, $request->input('permissions', []))
+                );
                 $rol->syncPermissions($permisos);
             }
 
@@ -181,7 +183,9 @@ class RolesController extends Controller
 
         try {
             $role = Role::findOrFail($id);
-            $permisos = $this->expandirPermisosConBase($request->input('permissions', []));
+            $permisos = $this->expandirPermisosConBase(
+                $this->permisosConLegacy($role, $request->input('permissions', []))
+            );
             $role->syncPermissions($permisos);
 
             $response['success'] = true;
@@ -222,6 +226,25 @@ class RolesController extends Controller
             ->all();
 
         return array_values(array_unique(array_merge($permissionIds, $baseIds)));
+    }
+
+    /**
+     * Conserva los permisos legacy del rol hasta que las rutas y menús se
+     * cambien a capacidades. La UI nueva no los elimina por accidente.
+     */
+    private function permisosConLegacy(Role $role, array $permissionIds): array
+    {
+        $legacyIds = $role->permissions()
+            ->where(function ($query) {
+                $query->where('name', 'like', 'sidebar_%')
+                    ->orWhere('name', 'like', 'almacengeneral_navbar_%')
+                    ->orWhere('name', 'like', '%.control');
+            })
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        return array_values(array_unique(array_merge($permissionIds, $legacyIds)));
     }
 
     // Eliminar un ROL

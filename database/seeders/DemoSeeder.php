@@ -263,7 +263,16 @@ class DemoSeeder extends Seeder
 
         $warehouseRole->syncPermissions(collect($almacenModules)->flatMap(function (string $module): array {
             return [$module, $module.'.lectura', $module.'.escritura', $module.'.control'];
-        })->all());
+        })->merge([
+            // Capacidades nuevas: conviven con las legacy hasta la fase de
+            // rutas/middleware.
+            'almacen.lectura',
+            'almacen.escritura',
+            'almacen.eliminar',
+            'catalogos.departamentos.lectura',
+            'catalogos.ubicaciones.lectura',
+            'catalogos.empleados.lectura',
+        ])->unique()->all());
 
         $warehouseUser = User::firstOrCreate(
             ['nombre_usuario' => 'DEMOALMACEN'],

@@ -2,24 +2,25 @@
 
 ## Fase 1.1 — Backend
 
-- [ ] Crear `config/permisos.php` adaptado.
-- [ ] Crear `app/Support/Permisos.php`.
-- [ ] Actualizar `table_PermissionsSeeder` de forma aditiva.
-- [ ] Actualizar `table_RolesSeeder` si hace falta.
-- [ ] Actualizar `DemoSeeder` para asignar legacy + nuevos.
-- [ ] Adaptar el guardado de roles para conservar legacy.
-- [ ] Ejecutar `git diff --check`.
+- [x] Crear `config/permisos.php` adaptado.
+- [x] Crear `app/Support/Permisos.php`.
+- [x] Actualizar `table_PermissionsSeeder` de forma aditiva.
+- [x] Actualizar `table_RolesSeeder` si hace falta. (Sin cambios: solo crea roles.)
+- [x] Actualizar `DemoSeeder` para asignar legacy + nuevos.
+- [x] Adaptar el guardado de roles para conservar legacy.
+- [x] Ejecutar `git diff --check`.
 
 ## Fase 1.2 — Frontend
 
-- [ ] Portar `utils/permissions.ts`.
-- [ ] Portar `TablaPermisosRol`, `ModalInfoPermiso` y cambios de Roles.
-- [ ] Adaptar `rolesApi.ts`.
-- [ ] Mostrar aviso de convivencia legacy.
-- [ ] No tocar menús.
-- [ ] Ejecutar `pnpm exec tsc --noEmit`.
-- [ ] Ejecutar `pnpm run lint`.
-- [ ] Ejecutar `pnpm run build`.
+- [x] Portar `utils/permissions.ts`.
+- [x] Portar `TablaPermisosRol`, `ModalInfoPermiso` y cambios de Roles.
+- [x] Adaptar `rolesApi.ts`. (Sin cambios: el contrato de roles no cambió en esta fase.)
+- [x] Mostrar aviso de convivencia legacy.
+- [x] No tocar menús.
+- [x] Ejecutar `pnpm exec tsc --noEmit`.
+- [x] Ejecutar ESLint directo sobre los archivos modificados.
+- [ ] Ejecutar `pnpm run lint`. Falla por 37 errores preexistentes de indentación en `App.tsx`, ajenos a esta fase.
+- [x] Ejecutar `pnpm run build`.
 
 ## Verificación manual
 

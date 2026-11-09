@@ -1,0 +1,82 @@
+/* Modal que explica qué hace cada acción de un permiso. Se abre desde el nombre del
+   permiso en la tabla de Roles. */
+
+.modalInfoPermiso {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: rgba(0, 0, 0, 0.5);
+	/* Por encima del overlay de react-modal (`app.css` lo fija en 1000): este modal se
+	   abre desde dentro del de Roles, y con menos z-index quedaría detrás. */
+	z-index: 1100;
+
+	.mainDiv_modalInfoPermiso {
+		display: flex;
+		flex-direction: column;
+		gap: 15px;
+		width: 540px;
+		max-width: 90vw;
+		max-height: 85vh;
+		overflow-y: auto;
+		padding: 25px;
+		border-radius: 10px;
+		background-color: #ffffff;
+		color: #383838d5;
+
+		h2 {
+			margin: 0;
+			font-size: 20px;
+		}
+
+		.permisoQueCubre {
+			margin: 0;
+			font-size: 14px;
+			color: #6b6b6b;
+		}
+
+		.accionesPermiso {
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+
+			.accionPermiso {
+				padding: 10px 12px;
+				border-left: 3px solid #c9c9c9;
+				border-radius: 0 8px 8px 0;
+				background-color: #f7f7f7;
+
+				h3 {
+					margin: 0 0 4px;
+					font-size: 15px;
+				}
+
+				p {
+					margin: 0;
+					font-size: 14px;
+				}
+
+				/* Un color por acción, el mismo criterio que el resto del módulo:
+				   violeta lo que modifica, azul lo que consulta, verde el alcance. */
+				&.accionPermiso_escritura {
+					border-left-color: #da29fd;
+					background-color: #faf2fd;
+				}
+
+				&.accionPermiso_lectura {
+					border-left-color: #0088ff;
+					background-color: #f2f8ff;
+				}
+
+				&.accionPermiso_eliminar {
+					border-left-color: #00a651;
+					background-color: #f1faf4;
+				}
+			}
+		}
+	}
+}

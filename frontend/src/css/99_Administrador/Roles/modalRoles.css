@@ -137,6 +137,23 @@
                             text-align: left;
                         }
 
+                        /* El nombre abre el modal que explica el permiso. */
+                        .nombrePermiso_Roles {
+                            padding: 0;
+                            border: none;
+                            background: none;
+                            color: #6a1b9a;
+                            font-family: inherit;
+                            font-size: inherit;
+                            font-weight: 600;
+                            text-align: left;
+                            cursor: pointer;
+
+                            &:hover {
+                                text-decoration: underline;
+                            }
+                        }
+
                         .celdaCheckbox_Roles {
                             text-align: center;
                         }
@@ -144,6 +161,10 @@
                         .checkboxPermisoDeshabilitado_Roles {
                             cursor: not-allowed;
                             opacity: 0.5;
+                        }
+
+                        .checkboxPermisoSoloLectura_Roles {
+                            cursor: default;
                         }
 
                         .filaOtrosPermisosEncabezado_Roles {

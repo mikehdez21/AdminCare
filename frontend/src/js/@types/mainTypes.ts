@@ -1,5 +1,7 @@
 import { ActivoEntityResponse } from './AlmacenGeneralTypes/activosFijosTypes';
 
+export type AccionPermiso = 'lectura' | 'escritura' | 'eliminar';
+
 // Roles
 export interface Roles {
   id?: number;
@@ -22,15 +24,26 @@ export interface Permission {
   created_at?: string;
   updated_at?: string | null;
 
-  action?: 'lectura' | 'escritura' | 'control'; // El backend no envía este campo; se deriva del nombre del permiso
-
+  /** Metadatos de `config/permisos.php`; null en permisos legacy o manuales. */
+  recurso?: string | null;
+  accion?: AccionPermiso | null;
+  dominio?: string | null;
+  dominio_etiqueta?: string | null;
+  etiqueta?: string | null;
+  descripcion?: string | null;
+  acciones?: AccionPermiso[];
 }
 
 export interface GroupedPermission {
-  modulo: string;
+  recurso: string;
+  etiqueta: string;
+  dominio: string;
+  dominio_etiqueta: string;
+  descripcion: string;
+  acciones: AccionPermiso[];
   lectura?: Permission;
   escritura?: Permission;
-  control?: Permission;
+  eliminar?: Permission;
 }
 
 // Departamentos

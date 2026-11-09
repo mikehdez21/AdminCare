@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\AdminControllers;
 
 use App\Models\Permission;
+use App\Support\Permisos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
@@ -21,7 +22,7 @@ class PermissionsController extends Controller
                 'guard_name',
                 'created_at',
                 'updated_at',
-            ]);
+            ])->map(fn (Permission $permission) => $this->presentar($permission));
 
             if ($permissions->isEmpty()) {
                 $response['message'] = 'No se encontraron permisos.';
@@ -111,5 +112,33 @@ class PermissionsController extends Controller
         }
 
         return response()->json($response, $response['success'] ? 200 : 500);
+    }
+
+    /**
+     * Permiso con las etiquetas del catálogo. Un permiso manual o legacy
+     * (fuera de `config/permisos.php`) viaja sin metadatos y la pantalla lo
+     * muestra en "Otros permisos".
+     *
+     * @return array<string, mixed>
+     */
+    private function presentar(Permission $permission): array
+    {
+        $meta = Permisos::mapa()[$permission->name] ?? null;
+        $dominios = config('permisos.dominios', []);
+
+        return [
+            'id' => $permission->id,
+            'name' => $permission->name,
+            'guard_name' => $permission->guard_name,
+            'created_at' => $permission->created_at,
+            'updated_at' => $permission->updated_at,
+            'recurso' => $meta['recurso'] ?? null,
+            'accion' => $meta['accion'] ?? null,
+            'dominio' => $meta['dominio'] ?? null,
+            'dominio_etiqueta' => $meta ? ($dominios[$meta['dominio']] ?? $meta['dominio']) : null,
+            'etiqueta' => $meta['etiqueta'] ?? null,
+            'descripcion' => $meta['descripcion'] ?? null,
+            'acciones' => $meta['acciones'] ?? [],
+        ];
     }
 }
