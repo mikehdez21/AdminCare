@@ -9,7 +9,7 @@ import { RiDashboardLine } from 'react-icons/ri';
 
 
 // Permissions
-import { hasActionPermission } from '@/utils/permissions.ts';
+import { hasActionPermission, tieneCapacidadEn } from '@/utils/permissions.ts';
 
 // Sections helpers
 import { isSectionActive } from '@/router/sections';
@@ -44,7 +44,7 @@ const Sidebar_OptionsList: React.FC<Sidebar_OptionsListProps> = ({ role, departa
     <ul className='Sidebar_Options'>
 
       {/* AdminDashboard */}
-      {hasActionPermission(userPermissions, 'sidebar_menu_admindashboard', 'lectura') && (
+      {hasActionPermission(userPermissions, 'nav.dashboard', 'lectura') && (
         <li className={isSectionActive(location.pathname, '/admin') ? 'sidebar_SectionSelected' : ''}>
           <div onClick={() => handleSelectSection('/admin')} className="divOption_IconTitle" >
             <RiDashboardLine className='iconOption_Sidebar' /> <span>Admin Dashboard</span>
@@ -54,7 +54,7 @@ const Sidebar_OptionsList: React.FC<Sidebar_OptionsListProps> = ({ role, departa
 
 
       {/* Almacenes */}
-      {hasActionPermission(userPermissions, 'sidebar_menu_almacenes', 'lectura') && (
+      {tieneCapacidadEn(userPermissions, 'almacen') && (
         <li>
           {/* Almacenes */}
           <div className="divOption_IconTitle">
@@ -66,7 +66,7 @@ const Sidebar_OptionsList: React.FC<Sidebar_OptionsListProps> = ({ role, departa
 
 
       {/* Contabilidad */}
-      {hasActionPermission(userPermissions, 'sidebar_menu_contabilidad', 'lectura') && (
+      {tieneCapacidadEn(userPermissions, 'contabilidad') && (
         <li
         >
           <div className="divOption_IconTitle" >
@@ -77,7 +77,7 @@ const Sidebar_OptionsList: React.FC<Sidebar_OptionsListProps> = ({ role, departa
 
 
       {/* Administrador */}
-      {hasActionPermission(userPermissions, 'sidebar_menu_administrador', 'lectura') && (
+      {tieneCapacidadEn(userPermissions, 'admin') && (
         <li>
           <div className="divOption_IconTitle">
             <SubMenuOptions_Administrador pathname={location.pathname} role={role} departamento={departamento} />

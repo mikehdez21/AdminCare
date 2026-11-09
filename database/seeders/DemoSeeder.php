@@ -247,32 +247,16 @@ class DemoSeeder extends Seeder
 
         $warehouseRole = Role::firstOrCreate(['name' => 'Almacen', 'guard_name' => 'web']);
 
-        // Permisos asignados: base de cada módulo de Almacén + variantes de acción
-        // (<modulo>.lectura|escritura|control), convención de table_PermissionsSeeder.
-        $almacenModules = [
-            'sidebar_menu_almacenes',
-            'sidebar_submenu_almacenes_almacengeneral',
-            'almacengeneral_navbar_inicio',
-            'almacengeneral_navbar_facturas',
-            'almacengeneral_navbar_activos',
-            'almacengeneral_navbar_movimientosactivos',
-            'almacengeneral_navbar_etiquetas',
-            'almacengeneral_navbar_proveedores',
-            'almacengeneral_navbar_parametros',
-        ];
-
-        $warehouseRole->syncPermissions(collect($almacenModules)->flatMap(function (string $module): array {
-            return [$module, $module.'.lectura', $module.'.escritura', $module.'.control'];
-        })->merge([
-            // Capacidades nuevas: conviven con las legacy hasta la fase de
-            // rutas/middleware.
+        // Permisos por capacidad: el módulo de Almacén y lectura de catálogos
+        // compartidos para sus formularios.
+        $warehouseRole->syncPermissions([
             'almacen.lectura',
             'almacen.escritura',
             'almacen.eliminar',
             'catalogos.departamentos.lectura',
             'catalogos.ubicaciones.lectura',
             'catalogos.empleados.lectura',
-        ])->unique()->all());
+        ]);
 
         $warehouseUser = User::firstOrCreate(
             ['nombre_usuario' => 'DEMOALMACEN'],

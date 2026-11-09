@@ -134,10 +134,6 @@ const Main_RolesControl: React.FC = () => {
 
       <hr />
 
-      <p className='avisoLegacy_Roles'>
-        Los permisos legacy siguen activos hasta la fase de rutas y middleware; se conservan al guardar un rol.
-      </p>
-
       {!loading && rolesPaginaActual.length === 0 ? (
         <div className='noEntities'>
           <FiAlertTriangle /> <p>  No hay roles registrados </p> <FiAlertTriangle />

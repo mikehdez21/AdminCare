@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
 
 // Permissions
-import { hasPermission } from '@/utils/permissions.ts';
+import { hasActionPermission } from '@/utils/permissions.ts';
 
 // Sections helpers
 import { isSectionActive } from '@/router/sections';
@@ -81,7 +81,7 @@ const SubMenuOptions_Contabilidad: React.FC<MenuOptions_ParentProps> = ({ pathna
 
             <ul>
 
-              {hasPermission(userPermissions, 'sidebar_submenu_contabilidad_depreciacionaf') && (
+              {hasActionPermission(userPermissions, 'contabilidad.depreciacion', 'lectura') && (
                 <li
                   onClick={() => handleSelectSection('/contabilidad/depreciacion-af')}
                   id='SubMenu_Option'
@@ -92,7 +92,7 @@ const SubMenuOptions_Contabilidad: React.FC<MenuOptions_ParentProps> = ({ pathna
                 </li>
               )}
 
-              {hasPermission(userPermissions, 'sidebar_submenu_contabilidad_configuracion') && (
+              {hasActionPermission(userPermissions, 'contabilidad.metodos', 'lectura') && (
                 <li
                   onClick={() => handleSelectSection('/contabilidad/configuracion')}
                   id='SubMenu_Option'

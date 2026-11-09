@@ -22,7 +22,7 @@ import AlmacenGeneral_ControlTipoMoneda from './Parametros/TipoMoneda/TipoMoneda
 import AlmacenGeneral_ControlEstatusAF from './Parametros/EstatusAF/EstatusAFControl';
 
 // Permissions
-import { hasPermission } from '@/utils/permissions.ts';
+import { hasActionPermission } from '@/utils/permissions.ts';
 
 // Icons
 import { MdOutlineKeyboardArrowUp } from 'react-icons/md';
@@ -39,6 +39,7 @@ const Main_AlmacenGeneral: React.FC = () => {
   const [isSubMenuOpen, setIsSubMenuOpen] = React.useState(false);
 
   const userPermissions = useSelector((s: RootState) => s.auth.permissions);
+  const puedeVerAlmacen = hasActionPermission(userPermissions, 'almacen', 'lectura');
 
   const isKnownSection =
     location.pathname.startsWith('/almacen-general/facturas') ||
@@ -72,7 +73,7 @@ const Main_AlmacenGeneral: React.FC = () => {
       <nav className='navbar_AlmacenGeneral'>
         <ul>
 
-          {hasPermission(userPermissions, 'almacengeneral_navbar_inicio') && (
+          {puedeVerAlmacen && (
             <li
               onClick={() => handleSelectSection('/almacen-general')}
               className={location.pathname === '/almacen-general' ? 'selectedNavbarAlmacen' : ''}
@@ -82,7 +83,7 @@ const Main_AlmacenGeneral: React.FC = () => {
             </li>
           )}
 
-          {hasPermission(userPermissions, 'almacengeneral_navbar_facturas') && (
+          {puedeVerAlmacen && (
             <li
               onClick={() => handleSelectSection('/almacen-general/facturas')}
               className={location.pathname.startsWith('/almacen-general/facturas') ? 'selectedNavbarAlmacen' : ''}
@@ -92,7 +93,7 @@ const Main_AlmacenGeneral: React.FC = () => {
           )}
 
 
-          {hasPermission(userPermissions, 'almacengeneral_navbar_activos') && (
+          {puedeVerAlmacen && (
             <li
               onClick={() => handleSelectSection('/almacen-general/activos')}
               className={location.pathname.startsWith('/almacen-general/activos') ? 'selectedNavbarAlmacen' : ''}
@@ -101,7 +102,7 @@ const Main_AlmacenGeneral: React.FC = () => {
             </li>
           )}
 
-          {hasPermission(userPermissions, 'almacengeneral_navbar_movimientosactivos') && (
+          {puedeVerAlmacen && (
             <li
               onClick={() => handleSelectSection('/almacen-general/movimientos-activos')}
               className={location.pathname.startsWith('/almacen-general/movimientos-activos') ? 'selectedNavbarAlmacen' : ''}
@@ -112,7 +113,7 @@ const Main_AlmacenGeneral: React.FC = () => {
           )}
 
 
-          {hasPermission(userPermissions, 'almacengeneral_navbar_etiquetas') && (
+          {puedeVerAlmacen && (
             <li
               onClick={() => handleSelectSection('/almacen-general/etiquetas')}
               className={location.pathname.startsWith('/almacen-general/etiquetas') ? 'selectedNavbarAlmacen' : ''}
@@ -121,7 +122,7 @@ const Main_AlmacenGeneral: React.FC = () => {
             </li>
           )}
 
-          {hasPermission(userPermissions, 'almacengeneral_navbar_proveedores') && (
+          {puedeVerAlmacen && (
             <li
               onClick={() => handleSelectSection('/almacen-general/proveedores')}
 
@@ -132,7 +133,7 @@ const Main_AlmacenGeneral: React.FC = () => {
           )}
 
 
-          {hasPermission(userPermissions, 'almacengeneral_navbar_parametros') && (
+          {puedeVerAlmacen && (
             <li onClick={handleOpenSubMenu}
 
               className={
@@ -204,7 +205,7 @@ const Main_AlmacenGeneral: React.FC = () => {
         </ul>
       </nav>
 
-      {!isKnownSection && hasPermission(userPermissions, 'almacengeneral_navbar_inicio') ?
+      {!isKnownSection && puedeVerAlmacen ?
 
         <div className='noLocationSelected'>
 

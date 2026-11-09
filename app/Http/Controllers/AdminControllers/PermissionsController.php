@@ -115,7 +115,7 @@ class PermissionsController extends Controller
     }
 
     /**
-     * Permiso con las etiquetas del catálogo. Un permiso manual o legacy
+     * Permiso con las etiquetas del catálogo. Un permiso manual
      * (fuera de `config/permisos.php`) viaja sin metadatos y la pantalla lo
      * muestra en "Otros permisos".
      *

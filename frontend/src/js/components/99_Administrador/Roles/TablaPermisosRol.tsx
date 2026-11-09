@@ -15,7 +15,7 @@ const ACCIONES: AccionPermiso[] = ['lectura', 'escritura', 'eliminar'];
 
 /**
  * Agrupa por recurso usando los metadatos del backend. Un permiso sin recurso
- * conocido (legacy o manual) cae en "otros".
+ * conocido (manual, fuera de `config/permisos.php`) cae en "otros".
  */
 export const agruparPermisosPorRecurso = (
   permisos: Permission[]
@@ -176,7 +176,7 @@ export const TablaPermisosRol: React.FC<TablaPermisosRolProps> = ({
             {otrosFiltrados.length > 0 && (
               <>
                 <tr className='filaOtrosPermisosEncabezado_Roles'>
-                  <th colSpan={4}>Otros permisos (legacy, se conservan)</th>
+                  <th colSpan={4}>Otros permisos</th>
                 </tr>
                 {otrosFiltrados.map((permiso) => (
                   <tr key={permiso.id ?? permiso.name}>
@@ -188,7 +188,7 @@ export const TablaPermisosRol: React.FC<TablaPermisosRolProps> = ({
                         type="checkbox"
                         checked={permiso.id != null && selectedPermisos.includes(Number(permiso.id))}
                         disabled
-                        title="Permiso legacy: se conserva hasta la fase de rutas y middleware"
+                        title="Permiso fuera del catálogo"
                         className="checkboxPermiso_Roles checkboxPermisoSoloLectura_Roles"
                       />
                     </td>

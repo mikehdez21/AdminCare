@@ -45,6 +45,13 @@ catalogos.ubicaciones.lectura|admin.ubicaciones.lectura
 catalogos.empleados.lectura|admin.empleados.lectura
 ```
 
+## Nota de compatibilidad
+
+Se conservan las rutas existentes. Además se habilitan los `DELETE` de
+`contabilidad/metodos-depreciacion` y `contabilidad/estatus-depreciacion`:
+los controladores ya implementaban `destroy` y la UI de métodos ya llamaba
+`DELETE`, pero la ruta no estaba expuesta en el fork.
+
 ## Fuera de alcance
 
 - Helpdesk.

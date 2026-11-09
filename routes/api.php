@@ -6,21 +6,19 @@ use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Spatie\Permission\Middleware\PermissionMiddleware;
 
 // Api/Controllers
 use App\Http\Controllers\ApiStatusController;
 use App\Http\Controllers\AuthController;
 
-// SoftComputing Controller
-
-// Admin/Controllers 
+// Admin/Controllers
 use App\Http\Controllers\AdminControllers\UserController as UserAdminController;
 use App\Http\Controllers\AdminControllers\RolesController as RolesAdminController;
 use App\Http\Controllers\AdminControllers\PermissionsController as PermissionsAdminController;
 use App\Http\Controllers\AdminControllers\DepartamentosController as DepartamentosAdminController;
 use App\Http\Controllers\AdminControllers\EmpleadoController as EmpleadoAdminController;
 use App\Http\Controllers\AdminControllers\UbicacionController;
-
 
 // AlmacenGeneral_Controllers
 use App\Http\Controllers\AlmacenGeneral\ProveedorController;
@@ -38,14 +36,16 @@ use App\Http\Controllers\AlmacenGeneral\TiposMonedaController;
 use App\Http\Controllers\AlmacenGeneral\EstatusAFController;
 use App\Http\Controllers\AlmacenGeneral\CodigosQRAFController;
 
-
-//  -   // AlmacenGeneral
+// AlmacenGeneral -- FillTypes
 use App\Http\Controllers\FillTypes\AlmacenGeneral\TypesProveedorController;
 
 // Contabilidad
 use App\Http\Controllers\AlmacenGeneral\DepreciacionController;
 use App\Http\Controllers\AlmacenGeneral\MetodoDepreciacionController;
 use App\Http\Controllers\AlmacenGeneral\EstatusDepreciacionController;
+
+// Permisos
+use App\Support\Permisos;
 
     // ============================================================
     // RUTAS PÚBLICAS (sin autenticación, con sesión + CSRF)
@@ -85,161 +85,246 @@ use App\Http\Controllers\AlmacenGeneral\EstatusDepreciacionController;
     // ============================================================
     // RUTAS DE AUTENTICACIÓN (sin protección, con sesión + CSRF)
     // ============================================================
-    // Estas rutas obtienen sesión + CSRF automáticamente del middleware de API
     Route::get('/auth/check', [AuthController::class, 'check'])->name('check');
     Route::post('/auth/register', [AuthController::class, 'register'])->name('register');
     Route::post('/auth/login', [AuthController::class, 'login'])->name('login');
 
-     Route::middleware(['auth'])->group(function () {
+    Route::middleware(['auth'])->group(function () {
         Route::get('/auth/permissions', [AuthController::class, 'permissions']);
     });
-
 
     // ============================================================
     // RUTAS PROTEGIDAS (auth:sanctum con sesión + CSRF)
     // ============================================================
-    
     Route::group(['middleware' => 'auth:sanctum'], function () {
-
 
         // Auth
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::post('/auth/logout-inactive', [AuthController::class, 'logoutInactive']);
 
-        
-        // ALMACENES - TIPOS
+        // ============================================================
+        // ALMACÉN GENERAL
+        // ============================================================
+        $permAlmacenLectura = Permisos::middleware('almacen', 'lectura');
+        $permAlmacenEscritura = Permisos::middleware('almacen', 'escritura');
+        $permAlmacenEliminar = Permisos::middleware('almacen', 'eliminar');
 
-        Route::middleware(['auth', 'permission:sidebar_submenu_almacenes_almacengeneral'])->group(function () {
-
+        Route::middleware(PermissionMiddleware::class.':'.$permAlmacenLectura)->group(function () {
             Route::get('/almacengeneral/tipos-proveedor', [TypesProveedorController::class, 'getTiposProveedor']);
             Route::get('/almacengeneral/tipos-regimen', [TypesProveedorController::class, 'getTiposRegimen']);
             Route::get('/almacengeneral/descuentos-proveedor', [TypesProveedorController::class, 'getDescuentosProveedor']);
             Route::get('/almacengeneral/tipos-facturacion', [TypesProveedorController::class, 'getTiposFacturacion']);
 
-            // FACTURAS
-            Route::apiResource('/almacengeneral/facturas', FacturaController::class);
-            
-            // FACTURA-ACTIVOS
+            Route::apiResource('/almacengeneral/facturas', FacturaController::class)->only(['index', 'show']);
             Route::get('/almacengeneral/facturas/{idFactura}/activos', [FacturaActivosController::class, 'getActivosByFactura']);
-            Route::post('/almacengeneral/facturas/activos', [FacturaActivosController::class, 'addActivosToFactura']);
-            Route::put('/almacengeneral/facturas/{idFactura}/activos', [FacturaActivosController::class, 'updateActivosFactura']);
-            Route::delete('/almacengeneral/facturas/{idFactura}/activos/{idActivo}', [FacturaActivosController::class, 'removeActivoFromFactura']);
 
-            // PROVEEDORES 
-            Route::apiResource('/almacengeneral/proveedores', ProveedorController::class);
-            
-            // CLASIFICACIONES
-            Route::apiResource('/almacengeneral/clasificaciones', ClasificacionController::class);
-            
-            // TIPOS DE FACTURA. El recurso canónico es plural en todos sus verbos.
-            Route::apiResource('/almacengeneral/tiposfacturas', TiposFacturaController::class);
+            Route::apiResource('/almacengeneral/proveedores', ProveedorController::class)->only(['index', 'show']);
+            Route::apiResource('/almacengeneral/clasificaciones', ClasificacionController::class)->only(['index', 'show']);
+            Route::apiResource('/almacengeneral/tiposfacturas', TiposFacturaController::class)->only(['index', 'show']);
+            Route::apiResource('/almacengeneral/formaspago', FormaPagoController::class)->only(['index', 'show']);
+            Route::apiResource('/almacengeneral/tiposmoneda', TiposMonedaController::class)->only(['index', 'show']);
+            Route::apiResource('/almacengeneral/activosfijos', ActivosFijosController::class)->only(['index', 'show']);
+            Route::apiResource('/almacengeneral/activosfijos-estatus', EstatusAFController::class)->only(['index', 'show']);
 
-            // FORMAS DE PAGO
-            Route::apiResource('/almacengeneral/formaspago', FormaPagoController::class);
-
-            // TIPOS DE MONEDA
-            Route::apiResource('/almacengeneral/tiposmoneda', TiposMonedaController::class);
-            
-            // ACTIVOS FIJOS
-            Route::apiResource('/almacengeneral/activosfijos', ActivosFijosController::class);
-
-            // ESTATUS DE ACTIVOS FIJOS
-            Route::apiResource('/almacengeneral/activosfijos-estatus', EstatusAFController::class);
-
-            // ACTIVOS FIJOS FILTRADOS
             Route::get('/almacengeneral/activosfijos/departamento/{idDepartamento}', [ActivosFijosController::class, 'getActivosPorDepartamento']);
             Route::get('/almacengeneral/activosfijos/ubicacion/{idUbicacion}', [ActivosFijosController::class, 'getActivosPorUbicacion']);
             Route::get('/almacengeneral/activosfijos/clasificacion/{idClasificacion}', [ActivosFijosController::class, 'getActivosPorClasificacion']);
             Route::get('/almacengeneral/activosfijos/responsable/{idEmpleado}', [ActivosFijosController::class, 'getActivosPorResponsable']);
-             Route::get('/almacengeneral/activosfijos-bajas', [ActivosFijosController::class, 'getActivosDadosDeBaja']);
-             Route::get('/almacengeneral/activosfijos-nopropios', [ActivosFijosController::class, 'getActivosNoPropios']);
-             Route::get('/almacengeneral/activosfijos-sinfactura', [ActivosFijosController::class, 'getActivosSinFactura']);
+            Route::get('/almacengeneral/activosfijos-bajas', [ActivosFijosController::class, 'getActivosDadosDeBaja']);
+            Route::get('/almacengeneral/activosfijos-nopropios', [ActivosFijosController::class, 'getActivosNoPropios']);
+            Route::get('/almacengeneral/activosfijos-sinfactura', [ActivosFijosController::class, 'getActivosSinFactura']);
 
-            // ACTIVOS FIJOS - MOVIMIENTOS 
-            Route::apiResource('/almacengeneral/movimientos-activosfijos', MovimientosActivosFijosController::class);
+            Route::apiResource('/almacengeneral/movimientos-activosfijos', MovimientosActivosFijosController::class)->only(['index', 'show']);
             Route::get('/almacengeneral/view-activosfijos', [MovimientosActivosFijosController::class, 'getVWMovimientosAFCompletos']);
             Route::get('/almacengeneral/tipos-movimientosaf', [MovimientosActivosFijosController::class, 'getTiposMovimientosAF']);
 
-            // ACTIVOS FIJOS - CÓDIGOS QR
-            // Las restricciones de DEMO_MODE permanecen en los métodos del controlador.
+            Route::prefix('almacengeneral/qraf')->group(function () {
+                Route::get('descargar/{idActivo}', [CodigosQRAFController::class, 'descargarQR']);
+                Route::get('listar', [CodigosQRAFController::class, 'index']);
+            });
+
+            Route::prefix('almacengeneral/printer')->group(function () {
+                Route::get('test', [PrinterController::class, 'testConexion']);
+                Route::get('config', [PrinterController::class, 'obtenerConfiguracion']);
+            });
+        });
+
+        Route::middleware(PermissionMiddleware::class.':'.$permAlmacenEscritura)->group(function () {
+            Route::apiResource('/almacengeneral/facturas', FacturaController::class)->only(['store']);
+            Route::put('/almacengeneral/facturas/{id}', [FacturaController::class, 'update']);
+            Route::post('/almacengeneral/facturas/activos', [FacturaActivosController::class, 'addActivosToFactura']);
+            Route::put('/almacengeneral/facturas/{idFactura}/activos', [FacturaActivosController::class, 'updateActivosFactura']);
+
+            Route::apiResource('/almacengeneral/proveedores', ProveedorController::class)->only(['store', 'update']);
+            Route::apiResource('/almacengeneral/clasificaciones', ClasificacionController::class)->only(['store', 'update']);
+            Route::apiResource('/almacengeneral/tiposfacturas', TiposFacturaController::class)->only(['store', 'update']);
+            Route::apiResource('/almacengeneral/formaspago', FormaPagoController::class)->only(['store', 'update']);
+            Route::apiResource('/almacengeneral/tiposmoneda', TiposMonedaController::class)->only(['store', 'update']);
+            Route::apiResource('/almacengeneral/activosfijos', ActivosFijosController::class)->only(['store', 'update']);
+            Route::apiResource('/almacengeneral/activosfijos-estatus', EstatusAFController::class)->only(['store', 'update']);
+            Route::apiResource('/almacengeneral/movimientos-activosfijos', MovimientosActivosFijosController::class)->only(['store', 'update']);
+
             Route::prefix('almacengeneral/qraf')->group(function () {
                 Route::post('generar/{idActivo}', [CodigosQRAFController::class, 'generarQR']);
                 Route::post('generar-con-logo/{idActivo}', [CodigosQRAFController::class, 'generarQRConLogo']);
-                Route::get('descargar/{idActivo}', [CodigosQRAFController::class, 'descargarQR']);
-                Route::get('listar', [CodigosQRAFController::class, 'index']);
                 Route::put('desactivar/{idQR}', [CodigosQRAFController::class, 'desactivar']);
             });
 
-            // IMPRESIÓN - ZEBRA PRINTER
             Route::prefix('almacengeneral/printer')->group(function () {
                 Route::post('etiqueta/{idActivo}', [PrinterController::class, 'imprimirEtiquetaZebra']);
                 Route::post('etiquetas-batch', [PrinterController::class, 'imprimirEtiquetasBatch']);
                 Route::post('preview-zpl/{idActivo}', [PrinterController::class, 'previewZPL']);
-                Route::get('test', [PrinterController::class, 'testConexion']);
-                Route::get('config', [PrinterController::class, 'obtenerConfiguracion']);
             });
-
-         });
-       // CONTABILIDAD
-        Route::middleware(['auth', 'permission:sidebar_menu_contabilidad'])->group(function () {
-
-
-            // Contabilidad - Depreciación
-            Route::prefix('/contabilidad/depreciacion')->group(function () {
-                Route::get('/activos-sin-depreciar', [DepreciacionController::class, 'activosSinDepreciar']);
-                Route::get('/activos-en-depreciacion', [DepreciacionController::class, 'activosEnDepreciacion']);
-                Route::post('/activar/{idActivo}', [DepreciacionController::class, 'activarDepreciacion']);
-                Route::get('/historico/{idActivo}', [DepreciacionController::class, 'historicoDepreciaciones']);
-                Route::post('/calcular/{idActivo}', [DepreciacionController::class, 'calcularDepreciacion']);
-            });
-
-            // Configuración - Métodos de Depreciación
-            Route::prefix('/contabilidad/metodos-depreciacion')->group(function () {
-                Route::get('/', [MetodoDepreciacionController::class, 'index']);
-                Route::post('/', [MetodoDepreciacionController::class, 'store']);
-                Route::put('/{id}', [MetodoDepreciacionController::class, 'update']);
-            });
-
-            // Configuración - Estatus de Depreciación
-            Route::prefix('/contabilidad/estatus-depreciacion')->group(function () {
-                Route::get('/', [EstatusDepreciacionController::class, 'index']);
-                Route::post('/', [EstatusDepreciacionController::class, 'store']);
-                Route::put('/{id}', [EstatusDepreciacionController::class, 'update']);
-            });
-
         });
 
+        Route::middleware(PermissionMiddleware::class.':'.$permAlmacenEliminar)->group(function () {
+            Route::apiResource('/almacengeneral/facturas', FacturaController::class)->only(['destroy']);
+            Route::delete('/almacengeneral/facturas/{idFactura}/activos/{idActivo}', [FacturaActivosController::class, 'removeActivoFromFactura']);
+            Route::apiResource('/almacengeneral/proveedores', ProveedorController::class)->only(['destroy']);
+            Route::apiResource('/almacengeneral/clasificaciones', ClasificacionController::class)->only(['destroy']);
+            Route::apiResource('/almacengeneral/tiposfacturas', TiposFacturaController::class)->only(['destroy']);
+            Route::apiResource('/almacengeneral/formaspago', FormaPagoController::class)->only(['destroy']);
+            Route::apiResource('/almacengeneral/tiposmoneda', TiposMonedaController::class)->only(['destroy']);
+            Route::apiResource('/almacengeneral/activosfijos', ActivosFijosController::class)->only(['destroy']);
+            Route::apiResource('/almacengeneral/activosfijos-estatus', EstatusAFController::class)->only(['destroy']);
+            Route::apiResource('/almacengeneral/movimientos-activosfijos', MovimientosActivosFijosController::class)->only(['destroy']);
+        });
 
+        // ============================================================
+        // CONTABILIDAD
+        // ============================================================
+        $permDepreciacionLectura = Permisos::middleware('contabilidad.depreciacion', 'lectura');
+        $permDepreciacionEscritura = Permisos::middleware('contabilidad.depreciacion', 'escritura');
+        $permMetodosLectura = Permisos::middleware('contabilidad.metodos', 'lectura');
+        $permMetodosEscritura = Permisos::middleware('contabilidad.metodos', 'escritura');
+        $permMetodosEliminar = Permisos::middleware('contabilidad.metodos', 'eliminar');
+        $permAuditoriaLectura = Permisos::middleware('contabilidad.auditoria', 'lectura');
+        $permAuditoriaEscritura = Permisos::middleware('contabilidad.auditoria', 'escritura');
+        $permAuditoriaEliminar = Permisos::middleware('contabilidad.auditoria', 'eliminar');
 
+        Route::middleware(PermissionMiddleware::class.':'.$permDepreciacionLectura)->group(function () {
+            Route::get('/contabilidad/depreciacion/activos-sin-depreciar', [DepreciacionController::class, 'activosSinDepreciar']);
+            Route::get('/contabilidad/depreciacion/activos-en-depreciacion', [DepreciacionController::class, 'activosEnDepreciacion']);
+            Route::get('/contabilidad/depreciacion/historico/{idActivo}', [DepreciacionController::class, 'historicoDepreciaciones']);
+        });
+
+        Route::middleware(PermissionMiddleware::class.':'.$permDepreciacionEscritura)->group(function () {
+            Route::post('/contabilidad/depreciacion/activar/{idActivo}', [DepreciacionController::class, 'activarDepreciacion']);
+            Route::post('/contabilidad/depreciacion/calcular/{idActivo}', [DepreciacionController::class, 'calcularDepreciacion']);
+        });
+
+        Route::middleware(PermissionMiddleware::class.':'.$permMetodosLectura)->group(function () {
+            Route::get('/contabilidad/metodos-depreciacion', [MetodoDepreciacionController::class, 'index']);
+        });
+
+        Route::middleware(PermissionMiddleware::class.':'.$permMetodosEscritura)->group(function () {
+            Route::post('/contabilidad/metodos-depreciacion', [MetodoDepreciacionController::class, 'store']);
+            Route::put('/contabilidad/metodos-depreciacion/{id}', [MetodoDepreciacionController::class, 'update']);
+        });
+
+        Route::middleware(PermissionMiddleware::class.':'.$permMetodosEliminar)->group(function () {
+            Route::delete('/contabilidad/metodos-depreciacion/{id}', [MetodoDepreciacionController::class, 'destroy']);
+        });
+
+        Route::middleware(PermissionMiddleware::class.':'.$permAuditoriaLectura)->group(function () {
+            Route::get('/contabilidad/estatus-depreciacion', [EstatusDepreciacionController::class, 'index']);
+        });
+
+        Route::middleware(PermissionMiddleware::class.':'.$permAuditoriaEscritura)->group(function () {
+            Route::post('/contabilidad/estatus-depreciacion', [EstatusDepreciacionController::class, 'store']);
+            Route::put('/contabilidad/estatus-depreciacion/{id}', [EstatusDepreciacionController::class, 'update']);
+        });
+
+        Route::middleware(PermissionMiddleware::class.':'.$permAuditoriaEliminar)->group(function () {
+            Route::delete('/contabilidad/estatus-depreciacion/{id}', [EstatusDepreciacionController::class, 'destroy']);
+        });
+
+        // ============================================================
         // ADMINISTRADOR
+        // ============================================================
+        $permRolesLectura = Permisos::middleware('admin.roles', 'lectura');
+        $permRolesEscritura = Permisos::middleware('admin.roles', 'escritura');
+        $permRolesEliminar = Permisos::middleware('admin.roles', 'eliminar');
 
-        // Rutas CRUD Roles
-        Route::middleware('permission:sidebar_submenu_administrador_gestionroles')->group(function () {
-            Route::apiResource('admin/roles', RolesAdminController::class);
+        Route::middleware(PermissionMiddleware::class.':'.$permRolesLectura)->group(function () {
+            Route::apiResource('admin/roles', RolesAdminController::class)->only(['index', 'show']);
+            Route::apiResource('admin/permisos', PermissionsAdminController::class)->only(['index', 'show']);
+        });
+
+        Route::middleware(PermissionMiddleware::class.':'.$permRolesEscritura)->group(function () {
+            Route::apiResource('admin/roles', RolesAdminController::class)->only(['store', 'update']);
             Route::put('admin/roles/{id}/asignarPermisosRole', [RolesAdminController::class, 'asignarPermisosRole']);
-            Route::apiResource('admin/permisos', PermissionsAdminController::class);
+            Route::apiResource('admin/permisos', PermissionsAdminController::class)->only(['store', 'update']);
         });
-        
-        // Rutas CRUD Departamentos
-        Route::middleware('permission:sidebar_submenu_administrador_gestiondepartamentos')->group(function () {
-            Route::apiResource('admin/departamentos', DepartamentosAdminController::class);
+
+        Route::middleware(PermissionMiddleware::class.':'.$permRolesEliminar)->group(function () {
+            Route::apiResource('admin/roles', RolesAdminController::class)->only(['destroy']);
+            Route::apiResource('admin/permisos', PermissionsAdminController::class)->only(['destroy']);
         });
-        
-        // Rutas CRUD Usuarios
-        Route::middleware('permission:sidebar_submenu_administrador_gestionusuarios')->group(function () {
-            Route::apiResource('/admin/users', UserAdminController::class);
+
+        $permDepartamentosLectura = Permisos::middleware('admin.departamentos', 'lectura').'|catalogos.departamentos.lectura';
+        $permDepartamentosEscritura = Permisos::middleware('admin.departamentos', 'escritura');
+        $permDepartamentosEliminar = Permisos::middleware('admin.departamentos', 'eliminar');
+
+        Route::middleware(PermissionMiddleware::class.':'.$permDepartamentosLectura)->group(function () {
+            Route::apiResource('admin/departamentos', DepartamentosAdminController::class)->only(['index', 'show']);
+        });
+
+        Route::middleware(PermissionMiddleware::class.':'.$permDepartamentosEscritura)->group(function () {
+            Route::apiResource('admin/departamentos', DepartamentosAdminController::class)->only(['store', 'update']);
+        });
+
+        Route::middleware(PermissionMiddleware::class.':'.$permDepartamentosEliminar)->group(function () {
+            Route::apiResource('admin/departamentos', DepartamentosAdminController::class)->only(['destroy']);
+        });
+
+        $permUsuariosLectura = Permisos::middleware('admin.usuarios', 'lectura');
+        $permUsuariosEscritura = Permisos::middleware('admin.usuarios', 'escritura');
+        $permUsuariosEliminar = Permisos::middleware('admin.usuarios', 'eliminar');
+
+        Route::middleware(PermissionMiddleware::class.':'.$permUsuariosLectura)->group(function () {
+            Route::apiResource('/admin/users', UserAdminController::class)->only(['index', 'show']);
+        });
+
+        Route::middleware(PermissionMiddleware::class.':'.$permUsuariosEscritura)->group(function () {
+            Route::apiResource('/admin/users', UserAdminController::class)->only(['store', 'update']);
             Route::put('/admin/empleados/{id}/bajaUsuario', [UserAdminController::class, 'updateBajaUsuario']);
         });
 
-        // Rutas CRUD Empleados
-        Route::middleware('permission:sidebar_submenu_administrador_gestionempleados')->group(function () {
-            Route::apiResource('/admin/empleados', EmpleadoAdminController::class);
+        Route::middleware(PermissionMiddleware::class.':'.$permUsuariosEliminar)->group(function () {
+            Route::apiResource('/admin/users', UserAdminController::class)->only(['destroy']);
+        });
+
+        $permEmpleadosLectura = Permisos::middleware('admin.empleados', 'lectura').'|catalogos.empleados.lectura';
+        $permEmpleadosEscritura = Permisos::middleware('admin.empleados', 'escritura');
+        $permEmpleadosEliminar = Permisos::middleware('admin.empleados', 'eliminar');
+
+        Route::middleware(PermissionMiddleware::class.':'.$permEmpleadosLectura)->group(function () {
+            Route::apiResource('/admin/empleados', EmpleadoAdminController::class)->only(['index', 'show']);
+        });
+
+        Route::middleware(PermissionMiddleware::class.':'.$permEmpleadosEscritura)->group(function () {
+            Route::apiResource('/admin/empleados', EmpleadoAdminController::class)->only(['store', 'update']);
             Route::put('/admin/empleados/{id}/bajaEmpleado', [EmpleadoAdminController::class, 'updateBajaEmpleado']);
         });
 
-        // Rutas CRUD Ubicaciones
-         Route::middleware('permission:sidebar_submenu_administrador_gestionubicaciones')->group(function () {
-             Route::apiResource('/admin/ubicaciones', UbicacionController::class);
-         });
+        Route::middleware(PermissionMiddleware::class.':'.$permEmpleadosEliminar)->group(function () {
+            Route::apiResource('/admin/empleados', EmpleadoAdminController::class)->only(['destroy']);
+        });
 
+        $permUbicacionesLectura = Permisos::middleware('admin.ubicaciones', 'lectura').'|catalogos.ubicaciones.lectura';
+        $permUbicacionesEscritura = Permisos::middleware('admin.ubicaciones', 'escritura');
+        $permUbicacionesEliminar = Permisos::middleware('admin.ubicaciones', 'eliminar');
+
+        Route::middleware(PermissionMiddleware::class.':'.$permUbicacionesLectura)->group(function () {
+            Route::apiResource('/admin/ubicaciones', UbicacionController::class)->only(['index', 'show']);
+        });
+
+        Route::middleware(PermissionMiddleware::class.':'.$permUbicacionesEscritura)->group(function () {
+            Route::apiResource('/admin/ubicaciones', UbicacionController::class)->only(['store', 'update']);
+        });
+
+        Route::middleware(PermissionMiddleware::class.':'.$permUbicacionesEliminar)->group(function () {
+            Route::apiResource('/admin/ubicaciones', UbicacionController::class)->only(['destroy']);
+        });
     });

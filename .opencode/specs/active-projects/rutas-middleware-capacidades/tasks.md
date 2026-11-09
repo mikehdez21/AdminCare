@@ -2,23 +2,27 @@
 
 ## Fase 2.1 — Backend
 
-- [ ] Reescribir `routes/api.php` con `Permisos::middleware`.
-- [ ] Agrupar lectura, escritura y eliminar.
-- [ ] Aplicar OR de `catalogos.*` en selects.
-- [ ] Mantener rutas públicas de QR/status.
-- [ ] Retirar permisos legacy del seeder.
-- [ ] Retirar la unión legacy del guardado de roles.
-- [ ] Revisar que no quede `permission:sidebar_*`.
-- [ ] `git diff --check`.
+- [x] Reescribir `routes/api.php` con `Permisos::middleware`.
+- [x] Agrupar lectura, escritura y eliminar.
+- [x] Aplicar OR de `catalogos.*` en selects.
+- [x] Mantener rutas públicas de QR/status.
+- [x] Retirar permisos legacy del seeder.
+- [x] Retirar la unión legacy del guardado de roles.
+- [x] Retirar la expansión legacy de `.control` en `AuthController`.
+- [x] Exponer DELETE de métodos/estatus de depreciación que el frontend ya invocaba y el controlador ya implementaba.
+- [x] Revisar que no quede `permission:sidebar_*`.
+- [x] `git diff --check`.
 
 ## Fase 2.2 — Frontend
 
-- [ ] Actualizar `Sidebar_OptionsList.tsx`.
-- [ ] Actualizar submenús de Almacén, Contabilidad y Administrador.
-- [ ] Retirar referencias a permisos legacy.
-- [ ] `pnpm exec tsc --noEmit`.
-- [ ] `pnpm run lint`.
-- [ ] `pnpm run build`.
+- [x] Actualizar `Sidebar_OptionsList.tsx`.
+- [x] Actualizar submenús de Almacén, Contabilidad y Administrador.
+- [x] Actualizar permisos internos de `AlmacenGeneral.tsx`.
+- [x] Retirar referencias a permisos legacy.
+- [x] `pnpm exec tsc --noEmit`.
+- [x] ESLint directo sobre los archivos modificados.
+- [ ] `pnpm run lint`. Falla por errores preexistentes de indentación en `App.tsx`, ajenos a esta fase.
+- [x] `pnpm run build`.
 
 ## Verificación manual
 

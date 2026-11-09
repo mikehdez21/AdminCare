@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
 
 // Permissions
-import { hasPermission } from '@/utils/permissions.ts';
+import { hasActionPermission } from '@/utils/permissions.ts';
 
 // Sections helpers
 import { isSectionActive } from '@/router/sections';
@@ -68,7 +68,7 @@ const SubMenuOptions_Almacen: React.FC<MenuOptions_ParentProps> = ({ pathname })
             <ul>
 
 
-              {hasPermission(userPermissions, 'sidebar_submenu_almacenes_almacengeneral') && (
+              {hasActionPermission(userPermissions, 'almacen', 'lectura') && (
                 <li
                   onClick={() => handleSelectSection('/almacen-general')}
                   id='SubMenu_Option'

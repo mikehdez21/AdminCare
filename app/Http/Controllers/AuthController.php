@@ -67,21 +67,9 @@ class AuthController extends Controller
             }
 
             $scopes = $user->getAllPermissions()
-                ->flatMap(function ($permission) {
-                    $name = $permission->name; // Ej: "sidebar_menu_home.control"
-                    $result = [$name];
-
-                    // Si el permiso es de control total, agregamos automáticamente lectura y escritura
-                    if (str_ends_with($name, '.control')) {
-                        $baseName = str_replace('.control', '', $name); // "sidebar_menu_home"
-                        $result[] = $baseName . '.lectura';
-                        $result[] = $baseName . '.escritura';
-                    }
-
-                    return $result;
-                })
-                ->unique()       // Elimina duplicados (por si ya tenía los 3 asignados)
-                ->values();      // Reindexa el array [0, 1, 2...]
+                ->pluck('name')
+                ->unique()
+                ->values();
 
 
             return response()->json([
@@ -289,21 +277,9 @@ class AuthController extends Controller
         $departamento = $user->departamento?->nombre_departamento ?? 'No asignado';
 
         $scopes = $user->getAllPermissions()
-            ->flatMap(function ($permission) {
-                $name = $permission->name; // Ej: "sidebar_menu_home.control"
-                $result = [$name];
-
-                // Si el permiso es de control total, agregamos automáticamente lectura y escritura
-                if (str_ends_with($name, '.control')) {
-                    $baseName = str_replace('.control', '', $name); // "sidebar_menu_home"
-                    $result[] = $baseName . '.lectura';
-                    $result[] = $baseName . '.escritura';
-                }
-
-                return $result;
-            })
-            ->unique()       // Elimina duplicados (por si ya tenía los 3 asignados)
-            ->values();      // Reindexa el array [0, 1, 2...]
+            ->pluck('name')
+            ->unique()
+            ->values();
 
         return [
             'user' => $user,

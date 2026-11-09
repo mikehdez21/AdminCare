@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
 
 // Permissions
-import { hasPermission } from '@/utils/permissions.ts';
+import { hasActionPermission } from '@/utils/permissions.ts';
 
 // Sections helpers
 import { isSectionActive } from '@/router/sections';
@@ -86,7 +86,7 @@ const SubMenuOptions_Administrador: React.FC<MenuOptions_ParentProps> = ({ pathn
 
             <ul>
 
-              {hasPermission(userPermissions, 'sidebar_submenu_administrador_gestionusuarios') && (
+              {hasActionPermission(userPermissions, 'admin.usuarios', 'lectura') && (
                 <li
                   onClick={() => handleSelectSection('/gestion-usuarios')}
                   id='SubMenu_Option'
@@ -97,7 +97,7 @@ const SubMenuOptions_Administrador: React.FC<MenuOptions_ParentProps> = ({ pathn
                 </li>
               )}
 
-              {hasPermission(userPermissions, 'sidebar_submenu_administrador_gestionempleados') && (
+              {hasActionPermission(userPermissions, 'admin.empleados', 'lectura') && (
                 <li
                   onClick={() => handleSelectSection('/gestion-empleados')}
                   id='SubMenu_Option'
@@ -108,7 +108,7 @@ const SubMenuOptions_Administrador: React.FC<MenuOptions_ParentProps> = ({ pathn
                 </li>
               )}
 
-              {hasPermission(userPermissions, 'sidebar_submenu_administrador_gestionroles') && (
+              {hasActionPermission(userPermissions, 'admin.roles', 'lectura') && (
                 <li
                   onClick={() => handleSelectSection('/gestion-roles')}
                   id='SubMenu_Option'
@@ -119,7 +119,7 @@ const SubMenuOptions_Administrador: React.FC<MenuOptions_ParentProps> = ({ pathn
                 </li>
               )}
 
-              {hasPermission(userPermissions, 'sidebar_submenu_administrador_gestiondepartamentos') && (
+              {hasActionPermission(userPermissions, 'admin.departamentos', 'lectura') && (
                 <li
                   onClick={() => handleSelectSection('/gestion-departamentos')}
                   id='SubMenu_Option'
@@ -129,7 +129,7 @@ const SubMenuOptions_Administrador: React.FC<MenuOptions_ParentProps> = ({ pathn
                 </li>
               )}
 
-              {hasPermission(userPermissions, 'sidebar_submenu_administrador_gestionubicaciones') && (
+              {hasActionPermission(userPermissions, 'admin.ubicaciones', 'lectura') && (
                 <li
                   onClick={() => handleSelectSection('/gestion-ubicaciones')}
                   id='SubMenu_Option'

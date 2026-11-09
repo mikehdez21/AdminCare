@@ -21,7 +21,7 @@ Modal.setAppElement('#root');
  * Detalle de solo lectura de los permisos de un rol.
  *
  * Reusa la misma tabla del alta/edición en modo `readOnly`, para que el
- * catálogo nuevo y los permisos legacy se vean con el mismo criterio.
+ * catálogo y los permisos fuera del catálogo se vean con el mismo criterio.
  */
 const ShowPermisosRole: React.FC<showPermisosRoleProps> = ({ isOpen, onClose, rolToShow, permisos }) => {
   const idsDelRol = (rolToShow?.permissions ?? []).map((permiso) => Number(permiso.id));
