@@ -69,7 +69,7 @@ Almacén:
 - Sin migraciones.
 - Sin cambios de permisos.
 - Sin Helpdesk.
-- La app debe quedar usable después del push.
+- La app debe quedar usable antes del push manual del usuario.
 
 ## 4. Criterios de aceptación
 

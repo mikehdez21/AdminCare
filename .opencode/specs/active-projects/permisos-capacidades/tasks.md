@@ -34,9 +34,11 @@
 ## Entrega
 
 - [ ] Commit: `feat(permisos): add capability catalog and role UI`
-- [ ] Push a `main`.
+- [ ] **Sin push.** El commit queda local.
+- [ ] Usuario revisa el commit.
+- [ ] Usuario hace push manualmente.
 - [ ] Render build OK.
-- [ ] Usuario revisa.
+- [ ] Usuario revisa la app.
 - [ ] Usuario responde OK.
 
 **No iniciar Spec 2 sin OK.**

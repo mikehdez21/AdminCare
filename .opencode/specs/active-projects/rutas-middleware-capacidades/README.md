@@ -33,8 +33,9 @@ Requiere Spec 1 desplegada y validada:
 ## Entrega
 
 - Commit: `feat(routes): protect endpoints by capability`
-- Push a `main`.
-- Render build.
+- **Sin push.** El commit queda local.
+- El usuario revisa y hace el push manualmente.
+- Render build después del push del usuario.
 - Revisión manual.
 - No avanzar a Spec 3 sin OK.
 

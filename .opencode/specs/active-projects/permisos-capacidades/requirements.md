@@ -73,7 +73,7 @@ Adoptar el catálogo de permisos del main para los módulos existentes, sin camb
 - Sin cambios en producción.
 - Compatible con SQLite y PostgreSQL.
 - Sin dependencias nuevas.
-- La app debe quedar usable después del push.
+- La app debe quedar usable antes del push manual del usuario.
 
 ## 4. Casos borde
 

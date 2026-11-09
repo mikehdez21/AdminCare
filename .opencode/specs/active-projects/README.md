@@ -9,11 +9,12 @@ Orden acordado:
 
 Cada spec se implementa y se entrega por separado:
 
-- Un commit + push a `main` por fase/hito.
-- Render construye después del push.
+- Un **commit local** por fase/hito. El agente **no hace push**.
+- El usuario revisa el commit y hace el push manualmente.
+- Render construye después del push del usuario.
 - El usuario revisa la aplicación manualmente.
 - No se avanza al siguiente spec hasta recibir OK explícito.
-- Si el build falla, se corrige en la misma fase.
+- Si el build falla, se corrige en la misma fase y se hace un nuevo commit local.
 
 ## Specs
 
@@ -33,7 +34,7 @@ Por eso:
 - **Spec 1** crea el catálogo nuevo y lo siembra **junto con** los permisos legacy.
 - **Spec 2** cambia rutas y menús a las capacidades nuevas, y retira los legacy.
 
-La app queda usable después de cada push.
+La app queda usable después de cada fase, antes del push manual del usuario.
 
 ## Commits previstos
 
@@ -50,9 +51,10 @@ La app queda usable después de cada push.
 
 ## Reglas de entrega
 
-- Push directo a `main`.
-- Un commit por hito.
+- El agente **solo hace commit local**; nunca push.
+- El usuario revisa el commit y hace el push manualmente.
+- El usuario decide cuándo desplegar a Render.
 - No avanzar sin OK del usuario.
 - No ejecutar `php.exe` ni servidores locales por parte de agentes.
 - El usuario ejecuta `migrate:fresh --seed` cuando aplique.
-- Cada push a Render regenera la SQLite demo; los datos manuales se pierden.
+- Cada push manual del usuario a Render regenera la SQLite demo; los datos manuales se pierden.

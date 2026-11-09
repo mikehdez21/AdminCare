@@ -57,7 +57,7 @@ Proteger los endpoints existentes con las capacidades nuevas y alinear los menú
 
 ## 3. Requisitos no funcionales
 
-- La app debe quedar usable después del push.
+- La app debe quedar usable antes del push manual del usuario.
 - Un usuario sin permiso recibe 403, no 500.
 - Un usuario con permiso legacy ya no depende de él.
 - No se agregan dependencias.

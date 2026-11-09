@@ -33,8 +33,9 @@ Requiere Spec 2 desplegada y validada.
 ## Entrega
 
 - Commit: `feat(tables): add sorting filtering and server pagination`
-- Push a `main`.
-- Render build.
+- **Sin push.** El commit queda local.
+- El usuario revisa y hace el push manualmente.
+- Render build después del push del usuario.
 - Revisión manual.
 - No avanzar a Spec 4 sin OK.
 

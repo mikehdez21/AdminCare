@@ -21,8 +21,9 @@ Portar el módulo Helpdesk del main al fork demo, con esquema SQLite/PostgreSQL,
 
 Cada sub-fase:
 
-- Commit + push a `main`.
-- Render build.
+- Commit local. **El agente no hace push.**
+- El usuario revisa el commit y hace el push manualmente.
+- Render build después del push del usuario.
 - Revisión manual.
 - OK del usuario antes de continuar.
 

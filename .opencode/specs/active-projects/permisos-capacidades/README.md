@@ -47,8 +47,9 @@ El cambio de rutas y menús se hace en la Spec 2.
 ## Entrega
 
 - Commit: `feat(permisos): add capability catalog and role UI`
-- Push a `main`.
-- Render build.
+- **Sin push.** El commit queda local.
+- El usuario revisa y hace el push manualmente.
+- Render build después del push del usuario.
 - Revisión manual del usuario.
 - No avanzar a Spec 2 sin OK.
 
