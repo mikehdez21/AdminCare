@@ -42,9 +42,25 @@ class DemoHelpdeskSeeder extends Seeder
 
     private function yaSembrado(): bool
     {
-        return DB::table(SchemaTable::helpdesk('tableMA_Tickets'))
-            ->where('folio_ticket', 'TK-2026-0001')
-            ->exists();
+        $tabla = SchemaTable::helpdesk('tableMA_Tickets');
+
+        $sembrados = DB::table($tabla)
+            ->where('folio_ticket', 'like', 'TK-2026-%')
+            ->count();
+
+        if ($sembrados >= 12) {
+            return true;
+        }
+
+        // Una corrida anterior pudo quedar a medias. Se limpian solo los folios
+        // demo para poder reintentar el seeder sin duplicarlos.
+        if ($sembrados > 0) {
+            DB::table($tabla)
+                ->where('folio_ticket', 'like', 'TK-2026-%')
+                ->delete();
+        }
+
+        return false;
     }
 
     /**
@@ -324,8 +340,8 @@ class DemoHelpdeskSeeder extends Seeder
                 'primera_respuesta' => '2026-10-30 10:45:00',
                 'etiquetas' => ['Urgente'],
                 'avances' => [
-                    ['texto' => 'Se reinició el servicio de búsqueda y se validó la conexión con la base de datos.', 'interno' => false, 'fecha' => '2026-10-30 11:00:00', 'autor' => 'tecnico'],
-                    ['texto' => 'Se revisó el log y no hay errores de índice; se solicita prueba con otro usuario.', 'interno' => true, 'fecha' => '2026-10-30 11:20:00', 'autor' => 'tecnico'],
+                    ['texto' => 'Se reinició el servicio de búsqueda y se validó la conexión con la base de datos.', 'interno' => false, 'fecha' => '2026-10-30 11:00:00', 'autor' => 'tec'],
+                    ['texto' => 'Se revisó el log y no hay errores de índice; se solicita prueba con otro usuario.', 'interno' => true, 'fecha' => '2026-10-30 11:20:00', 'autor' => 'tec'],
                 ],
             ],
             [
@@ -357,7 +373,7 @@ class DemoHelpdeskSeeder extends Seeder
                 'primera_respuesta' => '2026-10-20 15:00:00',
                 'pendiente_at' => '2026-10-21 09:00:00',
                 'avances' => [
-                    ['texto' => 'Se solicita al área confirmar si la impresora tiene papel y tóner antes de agendar la visita.', 'interno' => true, 'fecha' => '2026-10-21 09:00:00', 'autor' => 'tecnico'],
+                    ['texto' => 'Se solicita al área confirmar si la impresora tiene papel y tóner antes de agendar la visita.', 'interno' => true, 'fecha' => '2026-10-21 09:00:00', 'autor' => 'tec'],
                 ],
             ],
             [
@@ -374,8 +390,8 @@ class DemoHelpdeskSeeder extends Seeder
                 'resolucion' => '2026-09-16 12:00:00',
                 'etiquetas' => ['Garantía'],
                 'avances' => [
-                    ['texto' => 'Se identificó que el rango de fechas incluía un mes sin cierre contable.', 'interno' => false, 'fecha' => '2026-09-15 09:40:00', 'autor' => 'tecnico'],
-                    ['texto' => 'Se ajustó la consulta y el reporte quedó disponible para el usuario.', 'interno' => false, 'fecha' => '2026-09-16 11:30:00', 'autor' => 'tecnico'],
+                    ['texto' => 'Se identificó que el rango de fechas incluía un mes sin cierre contable.', 'interno' => false, 'fecha' => '2026-09-15 09:40:00', 'autor' => 'tec'],
+                    ['texto' => 'Se ajustó la consulta y el reporte quedó disponible para el usuario.', 'interno' => false, 'fecha' => '2026-09-16 11:30:00', 'autor' => 'tec'],
                 ],
             ],
             [
@@ -431,8 +447,8 @@ class DemoHelpdeskSeeder extends Seeder
                 'ticket_reapertura' => true,
                 'etiquetas' => ['Urgente'],
                 'avances' => [
-                    ['texto' => 'Se reinició el servicio y se validó el guardado de notas en ambiente de prueba.', 'interno' => false, 'fecha' => '2026-09-01 11:45:00', 'autor' => 'tecnico'],
-                    ['texto' => 'El usuario reporta que el error volvió a aparecer al cambiar de paciente.', 'interno' => false, 'fecha' => '2026-09-10 09:30:00', 'autor' => 'tecnico'],
+                    ['texto' => 'Se reinició el servicio y se validó el guardado de notas en ambiente de prueba.', 'interno' => false, 'fecha' => '2026-09-01 11:45:00', 'autor' => 'tec'],
+                    ['texto' => 'El usuario reporta que el error volvió a aparecer al cambiar de paciente.', 'interno' => false, 'fecha' => '2026-09-10 09:30:00', 'autor' => 'tec'],
                 ],
                 'historial' => [
                     ['tipo' => 'creacion', 'actor' => 'sol', 'anterior' => null, 'nuevo' => 'Abierto', 'descripcion' => 'Ticket creado.', 'fecha' => '2026-09-01 11:00:00'],
@@ -462,8 +478,8 @@ class DemoHelpdeskSeeder extends Seeder
                 'error_proveedor' => true,
                 'etiquetas' => ['Externo'],
                 'avances' => [
-                    ['texto' => 'Se reportó el bloqueo al proveedor y se validó el estado de la caja.', 'interno' => false, 'fecha' => '2026-10-05 17:45:00', 'autor' => 'tecnico'],
-                    ['texto' => 'El proveedor liberó el corte y se confirmó la operación de caja.', 'interno' => false, 'fecha' => '2026-10-06 08:50:00', 'autor' => 'tecnico'],
+                    ['texto' => 'Se reportó el bloqueo al proveedor y se validó el estado de la caja.', 'interno' => false, 'fecha' => '2026-10-05 17:45:00', 'autor' => 'tec'],
+                    ['texto' => 'El proveedor liberó el corte y se confirmó la operación de caja.', 'interno' => false, 'fecha' => '2026-10-06 08:50:00', 'autor' => 'tec'],
                 ],
                 'encuesta' => ['calificacion' => 3, 'comentario' => 'El proveedor resolvió, pero el tiempo de espera fue largo.', 'fecha' => '2026-10-06 09:30:00'],
             ],
@@ -568,7 +584,7 @@ class DemoHelpdeskSeeder extends Seeder
             'created_at' => $creado,
             'updated_at' => isset($data['updated_at'])
                 ? Carbon::parse($data['updated_at'])
-                : Carbon::parse($data['cierre'] ?? $data['resolucion'] ?? $data['fecha_reapertura'] ?? $data['primera_respuesta'] ?? $data['asignado_at'] ?? $data['fecha']),
+                : Carbon::parse($data['cierre'] ?? $data['resolucion'] ?? $data['fecha_reapertura'] ?? $data['pendiente_at'] ?? $data['primera_respuesta'] ?? $data['asignado_at'] ?? $data['fecha']),
         ], 'id_ticket');
 
         if ($responsable !== null) {
