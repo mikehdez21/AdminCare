@@ -11,6 +11,7 @@
             color: #383838d5;
             flex: 1;
             justify-content: space-between;
+            align-items: center;
 
             h1 {
                 font-size: 25px;
@@ -42,32 +43,7 @@
 
                 padding: 10px;
             }
-
-            button {
-                display: flex;
-                gap: 5px;
-                background-color: #da29fd;
-                color: #ffffff;
-                font-weight: 800;
-                font-size: 15px;
-                align-items: center;
-                justify-content: center;
-                width: 250px;
-                border-radius: 8px;
-                padding: 5px;
-                cursor: pointer;
-
-                .iconAdd {
-                    font-size: 20px;
-                }
             }
-
-            .buttonAdd:hover {
-                background-color: #df67f7 !important;
-                color: #000000;
-
-            }
-        }
 
 
     }
@@ -97,13 +73,14 @@
 
     }
 
-    .list_entitiesDiv {
+    .list_entitiesDiv_usuarios {
         display: flex;
         background-color: #ffffff;
         border-radius: 10px;
         margin: 10px 15px;
         padding: 10px 10px;
         margin-bottom: 10px;
+        overflow-x: auto;
 
         table {
             text-align: left;
@@ -127,8 +104,8 @@
                 }
 
                 /* Fijar primera columna (ID) */
-                #th_UserID,
-                #td_UserID {
+                #usuarios_th_UserID,
+                #usuarios_td_UserID {
                     position: sticky;
                     left: 0;
                     text-align: center;
@@ -137,8 +114,8 @@
                 }
 
                 /* Fijar segunda columna (NOMBRE) */
-                #th_NombreUsuario,
-                #td_NombreUsuario {
+                #usuarios_th_NombreUsuario,
+                #usuarios_td_NombreUsuario {
                     padding: 20px 10px;
                     position: sticky;
                     background: #ffffff;
@@ -147,13 +124,13 @@
                     box-shadow: 1px 0 0 #ccc;
                 }
 
-                #th_EmailUsuario,
-                #td_EmailUsuario {
+                #usuarios_th_EmailUsuario,
+                #usuarios_td_EmailUsuario {
                     text-align: center;
                 }
 
-                #th_EstatusActivo,
-                #td_EstatusActivo {
+                #usuarios_th_EstatusActivo,
+                #usuarios_td_EstatusActivo {
                     text-align: center;
                 }
 
@@ -167,11 +144,11 @@
                     font-weight: 500;
                 }
 
-                #th_UserRol,
-                #td_UserRol {
+                #usuarios_th_UserRol,
+                #usuarios_td_UserRol {
                     text-align: center;
 
-                    #rolesIcon {
+                    #usuarios_rolesIcon {
                         display: flex;
                         width: 20px;
                         height: 20px;
@@ -187,22 +164,22 @@
 
 
 
-                #th_Departamento,
-                #td_Departamento {
+                #usuarios_th_Departamento,
+                #usuarios_td_Departamento {
                     text-align: center;
                 }
 
-                #th_FechaCreacion,
-                #td_FechaCreacion,
-                #th_FechaModificacion,
-                #td_FechaModificacion {
+                #usuarios_th_FechaCreacion,
+                #usuarios_td_FechaCreacion,
+                #usuarios_th_FechaModificacion,
+                #usuarios_td_FechaModificacion {
                     text-align: center;
                 }
 
 
                 /* Fijar última columna (ACCIONES) */
-                #th_Acciones,
-                #td_Acciones {
+                #usuarios_th_Acciones,
+                #usuarios_td_Acciones {
                     border-width: 1px;
                     border-color: #d8d5d5d5;
                     background-color: #ffffff;

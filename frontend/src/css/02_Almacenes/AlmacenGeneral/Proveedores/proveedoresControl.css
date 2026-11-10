@@ -10,6 +10,7 @@
             color: #383838d5;
             flex: 1;
             justify-content: space-between;
+            align-items: center;
 
             h1 {
                 font-size: 25px;
@@ -41,31 +42,6 @@
 
                 padding: 10px;
             }
-
-            button {
-                display: flex;
-                gap: 5px;
-                background-color: #da29fd;
-                color: #ffffff;
-                font-weight: 800;
-                font-size: 15px;
-                align-items: center;
-                justify-content: center;
-                width: 250px;
-                border-radius: 8px;
-                padding: 5px;
-                cursor: pointer;
-
-                .iconAdd {
-                    font-size: 20px;
-                }
-            }
-
-            .buttonAdd:hover {
-                background-color: #df67f7 !important;
-                color: #000000;
-
-            }
         }
 
 
@@ -92,18 +68,18 @@
 
     }
 
-    .list_entitiesDiv {
-        display: flex;
-        max-height: 70%;
+    .list_entitiesDiv_proveedores {
+        display: block;
+        overflow-x: auto;
         background-color: #ffffff;
         border-radius: 10px;
         margin: 10px 15px;
-        padding: 10px 0px;
-        overflow-x: auto;
+        margin-bottom: 10px;
 
         table {
             text-align: left;
-            width: 100%;
+            width: max-content;
+            min-width: 100%;
 
             /*Heads Table*/
             tr {
@@ -123,37 +99,38 @@
                     padding: 10px 35px;
                 }
 
-                #th_ID,
-                #td_ID {
+                /* Fijar primera columna (ID) */
+                #proveedores_th_ID,
+                #proveedores_td_ID {
+                    box-sizing: border-box;
+                    width: 80px;
+                    min-width: 80px;
+                    max-width: 80px;
                     padding: 0px 5px;
                     position: sticky;
                     left: 0;
                     text-align: center;
-                    z-index: 1;
+                    z-index: 2;
                     background: white;
+                    overflow: hidden;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
                 }
 
-                #th_Proveedor_Empresa,
-                #td_Proveedor_Empresa {
+                /* Fijar segunda columna (Empresa/Proveedor) */
+                #proveedores_th_Proveedor_Empresa,
+                #proveedores_td_Proveedor_Empresa {
                     padding: 0px 40px;
                     position: sticky;
+                    left: 80px;
+                    z-index: 2;
                     background: #ffffff;
-                    left: 0;
                     box-shadow: 2px 0 0 #ccc;
-
-                    p {
-                        margin: 0;
-                        padding: 0;
-                        font-size: 14px;
-                        max-width: 200px;
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                        white-space: nowrap;
-                    }
+                    white-space: nowrap;
                 }
 
-                #th_RazonSocial,
-                #td_RazonSocial {
+                #proveedores_th_RazonSocial,
+                #proveedores_td_RazonSocial {
                     text-align: center;
 
                     p {
@@ -167,28 +144,28 @@
                     }
                 }
 
-                #th_EmailProveedor,
-                #td_EmailProveedor {
+                #proveedores_th_EmailProveedor,
+                #proveedores_td_EmailProveedor {
                     text-align: center;
                 }
 
-                #th_Proveedor_SitioWeb,
-                #td_Proveedor_SitioWeb {
+                #proveedores_th_Proveedor_SitioWeb,
+                #proveedores_td_Proveedor_SitioWeb {
                     text-align: center;
                 }
 
-                #th_tipoMoneda,
-                #td_tipoMoneda {
+                #proveedores_th_tipoMoneda,
+                #proveedores_td_tipoMoneda {
                     text-align: center;
                 }
 
-                #th_Proveedor_RFC,
-                #td_Proveedor_RFC {
+                #proveedores_th_Proveedor_RFC,
+                #proveedores_td_Proveedor_RFC {
                     text-align: center;
                 }
 
-                #th_EstatusActivo,
-                #td_EstatusActivo {
+                #proveedores_th_EstatusActivo,
+                #proveedores_td_EstatusActivo {
                     text-align: center;
                 }
 
@@ -202,45 +179,45 @@
                     font-weight: 500;
                 }
 
-                #th_tipoProveedor,
-                #td_tipoProveedor {
+                #proveedores_th_tipoProveedor,
+                #proveedores_td_tipoProveedor {
                     text-align: center;
                 }
 
-                #th_formaPago,
-                #td_formaPago {
+                #proveedores_th_formaPago,
+                #proveedores_td_formaPago {
                     white-space: nowrap;
                     text-align: center;
                 }
 
-                #th_tipoRegimen,
-                #td_tipoRegimen {
+                #proveedores_th_tipoRegimen,
+                #proveedores_td_tipoRegimen {
                     text-align: center;
                 }
 
-                #th_tipoDescuento,
-                #td_tipoDescuento {
+                #proveedores_th_tipoDescuento,
+                #proveedores_td_tipoDescuento {
                     white-space: nowrap;
                     text-align: center;
                 }
 
-                #th_tipoFacturacion,
-                #td_tipoFacturacion {
+                #proveedores_th_tipoFacturacion,
+                #proveedores_td_tipoFacturacion {
                     text-align: center;
                 }
 
-                #th_FechaCreacion,
-                #td_FechaCreacion {
+                #proveedores_th_FechaCreacion,
+                #proveedores_td_FechaCreacion {
                     text-align: center;
                 }
 
-                #th_FechaModificacion,
-                #td_FechaModificacion {
+                #proveedores_th_FechaModificacion,
+                #proveedores_td_FechaModificacion {
                     text-align: center;
                 }
 
-                #th_Acciones,
-                #td_Acciones {
+                #proveedores_th_Acciones,
+                #proveedores_td_Acciones {
                     border-width: 1px;
                     border-color: #d8d5d5d5;
                     background-color: #ffffff;
@@ -248,6 +225,7 @@
                     text-align: center;
                     position: sticky;
                     right: 0;
+                    z-index: 3;
                     box-shadow: -1px 0 0 #ccc;
 
                     .divActions {

@@ -68,13 +68,14 @@
         }
 
         .buttons_Div {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
             margin: 0px;
             padding: 0px;
 
+            .buttonAddAF,
             .checkAF,
-            .resumenAF,
-            .buttonAdd {
+            .resumenAF {
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -103,7 +104,6 @@
 
             }
 
-            .buttonAdd:hover,
             .checkAF:hover,
             .resumenAF:hover {
                 background-color: #df67f7 !important;
@@ -135,17 +135,18 @@
 
     }
 
-    .list_entitiesDiv {
-        display: flex;
+    .list_entitiesDiv_activosFijos {
+        display: block;
+        overflow-x: auto;
         background-color: #ffffff;
         border-radius: 10px;
         margin: 0px 15px;
         padding: 0px 0px;
-        overflow-x: auto;
 
         table {
             text-align: left;
-            width: 100%;
+            width: max-content;
+            min-width: 100%;
 
             /*Heads Table*/
             tr {
@@ -165,34 +166,45 @@
                     padding: 5px 35px;
                 }
 
-                #th_ID,
-                #td_ID {
+                /* Fijar primera columna (ID) */
+                #activosFijos_th_ID,
+                #activosFijos_td_ID {
+                    box-sizing: border-box;
+                    width: 80px;
+                    min-width: 80px;
+                    max-width: 80px;
                     padding: 0px 5px;
                     position: sticky;
                     left: 0;
                     text-align: center;
                     z-index: 2;
                     background: white;
+
+                    .divIDAF {
+                        width: 35px;
+                        overflow: hidden;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
+                    }
                 }
 
-                #th_CodigoUnico,
-                #td_CodigoUnico {
+                /* Fijar segunda columna (Codigo unico) */
+                #activosFijos_th_CodigoUnico,
+                #activosFijos_td_CodigoUnico {
+                    position: sticky;
+                    left: 80px;
+                    z-index: 2;
+                    background: #ffffff;
+                    box-shadow: 2px 0 0 #ccc;
                     text-align: center;
                     padding: 0px 10px;
-                    position: sticky;
-                    background: #ffffff;
-                    left: 25px;
-                    z-index: 2;
+                    white-space: nowrap;
                 }
 
-                #th_CodigoLote,
-                #td_CodigoLote {
+                #activosFijos_th_CodigoLote,
+                #activosFijos_td_CodigoLote {
                     text-align: center;
                     padding: 0px 10px;
-                    position: sticky;
-                    background: #ffffff;
-                    left: 90px;
-                    z-index: 2;
 
                     .CodigoLote {
                         width: 150px;
@@ -201,14 +213,9 @@
                     }
                 }
 
-                #th_NombreAF,
-                #td_NombreAF {
+                #activosFijos_th_NombreAF,
+                #activosFijos_td_NombreAF {
                     text-align: start;
-                    position: sticky;
-                    background: #ffffff;
-                    box-shadow: 2px 0 0 #ccc;
-                    left: 100px;
-                    z-index: 2;
 
                     .NombreAF {
                         width: 250px;
@@ -219,8 +226,8 @@
 
 
 
-                #th_Descripcion,
-                #td_Descripcion {
+                #activosFijos_th_Descripcion,
+                #activosFijos_td_Descripcion {
                     text-align: center;
 
                     .divDescripcionAF {
@@ -231,8 +238,8 @@
                     }
                 }
 
-                #th_Modelo,
-                #td_Modelo {
+                #activosFijos_th_Modelo,
+                #activosFijos_td_Modelo {
                     text-align: center;
 
                     .divModeloAF {
@@ -242,14 +249,14 @@
                     }
                 }
 
-                #th_Marca,
-                #td_Marca {
+                #activosFijos_th_Marca,
+                #activosFijos_td_Marca {
                     text-align: center;
                 }
 
 
-                #th_NumeroSerie,
-                #td_NumeroSerie {
+                #activosFijos_th_NumeroSerie,
+                #activosFijos_td_NumeroSerie {
                     text-align: center;
 
                     .divNumeroSerieAF {
@@ -259,26 +266,26 @@
                     }
                 }
 
-                #th_CostoUnitario,
-                #td_CostoUnitario {
+                #activosFijos_th_CostoUnitario,
+                #activosFijos_td_CostoUnitario {
                     text-align: center;
                     white-space: nowrap;
                 }
 
 
-                #th_AFPropio,
-                #td_AFPropio {
+                #activosFijos_th_AFPropio,
+                #activosFijos_td_AFPropio {
                     text-align: center;
                 }
 
 
-                #th_AFMenor,
-                #td_AFMenor {
+                #activosFijos_th_AFMenor,
+                #activosFijos_td_AFMenor {
                     text-align: center;
                 }
 
-                #th_EstadoAF,
-                #td_EstadoAF {
+                #activosFijos_th_EstadoAF,
+                #activosFijos_td_EstadoAF {
                     text-align: center;
                     white-space: nowrap;
 
@@ -325,8 +332,8 @@
 
 
 
-                #th_ClasificacionAF,
-                #td_ClasificacionAF {
+                #activosFijos_th_ClasificacionAF,
+                #activosFijos_td_ClasificacionAF {
                     text-align: center;
 
                     .divClasificacionAF {
@@ -349,13 +356,13 @@
                     }
                 }
 
-                #th_Ubicacion,
-                #td_Ubicacion {
+                #activosFijos_th_Ubicacion,
+                #activosFijos_td_Ubicacion {
                     text-align: center;
                 }
 
-                #th_Responsable,
-                #td_Responsable {
+                #activosFijos_th_Responsable,
+                #activosFijos_td_Responsable {
                     text-align: center;
 
                     .divResponsableAF {
@@ -366,18 +373,18 @@
                     }
                 }
 
-                #th_Departamento,
-                #td_Departamento {
+                #activosFijos_th_Departamento,
+                #activosFijos_td_Departamento {
                     text-align: center;
                 }
 
-                #th_FechaRegistro,
-                #td_FechaRegistro {
+                #activosFijos_th_FechaRegistro,
+                #activosFijos_td_FechaRegistro {
                     text-align: center;
                 }
 
-                #th_DepreciacionAplicada,
-                #td_DepreciacionAplicada {
+                #activosFijos_th_DepreciacionAplicada,
+                #activosFijos_td_DepreciacionAplicada {
                     text-align: center;
 
                     .badge {
@@ -410,8 +417,8 @@
 
                 }
 
-                #th_Observaciones,
-                #td_Observaciones {
+                #activosFijos_th_Observaciones,
+                #activosFijos_td_Observaciones {
                     text-align: start;
 
                     .divObservacionesAF {
@@ -422,20 +429,20 @@
                     }
                 }
 
-                #th_FechaCreacion,
-                #td_FechaCreacion {
+                #activosFijos_th_FechaCreacion,
+                #activosFijos_td_FechaCreacion {
                     text-align: center;
                 }
 
-                #th_FechaModificacion,
-                #td_FechaModificacion {
+                #activosFijos_th_FechaModificacion,
+                #activosFijos_td_FechaModificacion {
                     text-align: center;
                     padding: 10px 35px;
 
                 }
 
-                #th_Acciones,
-                #td_Acciones {
+                #activosFijos_th_Acciones,
+                #activosFijos_td_Acciones {
                     border-width: 1px;
                     border-color: #d8d5d5d5;
                     background-color: #ffffff;
@@ -443,6 +450,7 @@
                     text-align: center;
                     position: sticky;
                     right: 0;
+                    z-index: 3;
                     box-shadow: -1px 0 0 #ccc;
 
                     .divActions {

@@ -12,6 +12,8 @@
             color: #383838d5;
             flex: 1;
             justify-content: space-between;
+            align-items: center;
+
 
             h1 {
                 font-size: 25px;
@@ -43,32 +45,7 @@
 
                 padding: 10px;
             }
-
-            button {
-                display: flex;
-                gap: 5px;
-                background-color: #da29fd;
-                color: #ffffff;
-                font-weight: 800;
-                font-size: 15px;
-                align-items: center;
-                justify-content: center;
-                width: 250px;
-                border-radius: 8px;
-                padding: 5px;
-                cursor: pointer;
-
-                .iconAdd {
-                    font-size: 20px;
-                }
             }
-
-            .buttonAdd:hover {
-                background-color: #df67f7 !important;
-                color: #000000;
-
-            }
-        }
 
 
     }
@@ -98,7 +75,7 @@
 
     }
 
-    .list_entitiesDiv {
+    .list_entitiesDiv_departamentos {
         display: flex;
         max-height: 70%;
         background-color: #ffffff;
@@ -129,8 +106,8 @@
                 }
 
                 /* Fijar primera columna (ID) */
-                #th_DepartamentoID,
-                #td_DepartamentoID {
+                #departamentos_th_DepartamentoID,
+                #departamentos_td_DepartamentoID {
                     position: sticky;
                     left: 0;
                     text-align: center;
@@ -139,8 +116,8 @@
                 }
 
                 /* Fijar segunda columna (NOMBRE) */
-                #th_NombreDepartamento,
-                #td_NombreDepartamento {
+                #departamentos_th_NombreDepartamento,
+                #departamentos_td_NombreDepartamento {
                     padding: 20px 10px;
                     position: sticky;
                     background: #ffffff;
@@ -150,18 +127,18 @@
                 }
 
 
-                #th_TipoDepartamento,
-                #td_TipoDepartamento {
+                #departamentos_th_TipoDepartamento,
+                #departamentos_td_TipoDepartamento {
                     text-align: center;
                 }
 
-                #th_Atiende,
-                #td_Atiende {
+                #departamentos_th_Atiende,
+                #departamentos_td_Atiende {
                     text-align: center;
                 }
 
-                #th_EstatusActivo,
-                #td_EstatusActivo {
+                #departamentos_th_EstatusActivo,
+                #departamentos_td_EstatusActivo {
                     text-align: center;
                 }
 
@@ -177,22 +154,22 @@
 
 
 
-                #th_FechaCreacion,
-                #td_FechaCreacion {
+                #departamentos_th_FechaCreacion,
+                #departamentos_td_FechaCreacion {
                     text-align: center;
 
                 }
 
-                #th_FechaModificacion,
-                #td_FechaModificacion {
+                #departamentos_th_FechaModificacion,
+                #departamentos_td_FechaModificacion {
                     text-align: center;
                 }
 
 
 
                 /* Fijar última columna (ACCIONES) */
-                #th_Acciones,
-                #td_Acciones {
+                #departamentos_th_Acciones,
+                #departamentos_td_Acciones {
                     border-width: 1px;
                     border-color: #d8d5d5d5;
                     background-color: #ffffff;

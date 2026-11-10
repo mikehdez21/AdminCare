@@ -12,6 +12,8 @@
             color: #383838d5;
             flex: 1;
             justify-content: space-between;
+            align-items: center;
+
 
             h1 {
                 font-size: 25px;
@@ -43,32 +45,7 @@
 
                 padding: 10px;
             }
-
-            button {
-                display: flex;
-                gap: 5px;
-                background-color: #da29fd;
-                color: #ffffff;
-                font-weight: 800;
-                font-size: 15px;
-                align-items: center;
-                justify-content: center;
-                width: 250px;
-                border-radius: 8px;
-                padding: 5px;
-                cursor: pointer;
-
-                .iconAdd {
-                    font-size: 20px;
-                }
             }
-
-            .buttonAdd:hover {
-                background-color: #df67f7 !important;
-                color: #000000;
-
-            }
-        }
 
 
     }
@@ -98,13 +75,14 @@
 
     }
 
-    .list_entitiesDiv {
+    .list_entitiesDiv_roles {
         display: flex;
         background-color: #ffffff;
         border-radius: 10px;
         margin: 10px 15px;
         padding: 10px 10px;
         margin-bottom: 10px;
+        overflow-x: auto;
 
         table {
             text-align: left;
@@ -130,8 +108,8 @@
                 }
 
                 /* Fijar primera columna (ID) */
-                #th_RolID,
-                #td_RolID {
+                #roles_th_RolID,
+                #roles_td_RolID {
                     position: sticky;
                     left: 0;
                     text-align: center;
@@ -140,8 +118,8 @@
                 }
 
                 /* Fijar segunda columna (NOMBRE) */
-                #th_NombreRol,
-                #td_NombreRol {
+                #roles_th_NombreRol,
+                #roles_td_NombreRol {
                     padding: 20px 10px;
                     position: sticky;
                     background: #ffffff;
@@ -150,39 +128,46 @@
                     box-shadow: 1px 0 0 #ccc;
                 }
 
-                #th_PermisosRol,
-                #td_PermisosRol {
+                #roles_th_PermisosRol,
+                #roles_td_PermisosRol {
                     text-align: center;
                 }
 
-                #td_PermisosRol {
+                .button_viewPermisos {
+                    background: none;
+                    border: none;
+                    padding: 0;
                     color: #007bff;
                     cursor: pointer;
+                    font-family: inherit;
+                    font-size: inherit;
                     font-weight: 600;
+                    line-height: inherit;
 
                     &:hover {
                         color: #00ccff;
+                        text-decoration: underline;
                     }
                 }
 
 
 
 
-                #th_FechaCreacion,
-                #td_FechaCreacion {
+                #roles_th_FechaCreacion,
+                #roles_td_FechaCreacion {
                     text-align: center;
 
                 }
 
-                #th_FechaModificacion,
-                #td_FechaModificacion {
+                #roles_th_FechaModificacion,
+                #roles_td_FechaModificacion {
                     text-align: center;
                 }
 
 
                 /* Fijar última columna (ACCIONES) */
-                #th_Acciones,
-                #td_Acciones {
+                #roles_th_Acciones,
+                #roles_td_Acciones {
                     border-width: 1px;
                     border-color: #d8d5d5d5;
                     background-color: #ffffff;
@@ -235,5 +220,8 @@
 
         }
     }
+
+
+
 
 }

@@ -12,6 +12,9 @@
             color: #383838d5;
             flex: 1;
             justify-content: space-between;
+            align-items: center;
+
+
 
             h1 {
                 font-size: 25px;
@@ -43,32 +46,7 @@
 
                 padding: 10px;
             }
-
-            button {
-                display: flex;
-                gap: 5px;
-                background-color: #da29fd;
-                color: #ffffff;
-                font-weight: 800;
-                font-size: 15px;
-                align-items: center;
-                justify-content: center;
-                width: 250px;
-                border-radius: 8px;
-                padding: 5px;
-                cursor: pointer;
-
-                .iconAdd {
-                    font-size: 20px;
-                }
             }
-
-            .buttonAdd:hover {
-                background-color: #df67f7 !important;
-                color: #000000;
-
-            }
-        }
 
 
     }
@@ -98,7 +76,7 @@
 
     }
 
-    .list_entitiesDiv {
+    .list_entitiesDiv_empleados {
         display: flex;
         background-color: #ffffff;
         border-radius: 10px;
@@ -129,8 +107,8 @@
                 }
 
                 /* Fijar primera columna (ID) */
-                #th_EmpleadoID,
-                #td_EmpleadoID {
+                #empleados_th_EmpleadoID,
+                #empleados_td_EmpleadoID {
                     position: sticky;
                     left: 0;
                     text-align: center;
@@ -139,8 +117,8 @@
                 }
 
 
-                #th_NombreEmpleado,
-                #td_NombreEmpleado {
+                #empleados_th_NombreEmpleado,
+                #empleados_td_NombreEmpleado {
                     position: sticky;
                     background: #ffffff;
                     left: 50px;
@@ -156,33 +134,38 @@
 
                 }
 
-                #th_EmailEmpleado,
-                #td_EmailEmpleado {
+                #empleados_th_EmailEmpleado,
+                #empleados_td_EmailEmpleado {
                     text-align: center;
                 }
 
-                #th_TelefonoEmpleado,
-                #td_TelefonoEmpleado {
+                #empleados_th_TelefonoEmpleado,
+                #empleados_td_TelefonoEmpleado {
                     text-align: center;
                 }
 
-                #th_Genero,
-                #td_Genero {
-                    text-align: center;
-                }
-
-
-                #th_FechaNacimiento,
-                #td_FechaNacimiento {
+                #empleados_th_Genero,
+                #empleados_td_Genero {
                     text-align: center;
                 }
 
 
-                #th_EstatusActivo,
-                #td_EstatusActivo {
+                #empleados_th_FechaNacimiento,
+                #empleados_td_FechaNacimiento {
+                    text-align: center;
+                }
+
+
+                #empleados_th_EstatusActivo,
+                #empleados_td_EstatusActivo {
                     text-align: center;
 
 
+                }
+
+                #empleados_th_JefaturaEmpleado,
+                #empleados_td_JefaturaEmpleado {
+                    text-align: center;
                 }
 
                 .status-activo {
@@ -198,44 +181,27 @@
 
                 }
 
-                #th_FechaAlta,
-                #td_FechaAlta {
+                #empleados_th_FechaAlta,
+                #empleados_td_FechaAlta {
                     text-align: center;
                 }
 
-                #th_FechaBaja,
-                #td_FechaBaja {
+                #empleados_th_FechaBaja,
+                #empleados_td_FechaBaja {
                     text-align: center;
                 }
 
-                #th_Departamento,
-                #td_Departamento {
+                #empleados_th_Departamento,
+                #empleados_td_Departamento {
                     text-align: center;
                 }
 
-                #th_Firma,
-                #td_Firma {
 
+                #empleados_th_Foto,
+                #empleados_td_Foto {
                     text-align: center;
 
-                    #firmaIcon {
-                        width: 25px;
-                        height: 25px;
-                        cursor: pointer;
-                        align-items: center;
-                    }
-
-                    :hover {
-                        color: #00ccff;
-                    }
-                }
-
-
-                #th_Foto,
-                #td_Foto {
-                    text-align: center;
-
-                    #imageIcon {
+                    #empleados_imageIcon {
                         width: 25px;
                         height: 25px;
                         cursor: pointer;
@@ -248,18 +214,18 @@
 
                 }
 
-                #th_FechaCreacion,
-                #td_FechaCreacion,
-                #th_FechaModificacion,
-                #td_FechaModificacion {
+                #empleados_th_FechaCreacion,
+                #empleados_td_FechaCreacion,
+                #empleados_th_FechaModificacion,
+                #empleados_td_FechaModificacion {
                     text-align: center;
 
                 }
 
 
                 /* Fijar última columna (ACCIONES) */
-                #th_Acciones,
-                #td_Acciones {
+                #empleados_th_Acciones,
+                #empleados_td_Acciones {
                     border-width: 1px;
                     border-color: #d8d5d5d5;
                     background-color: #ffffff;

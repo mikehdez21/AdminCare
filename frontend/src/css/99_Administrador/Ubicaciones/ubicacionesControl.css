@@ -12,6 +12,7 @@
             color: #383838d5;
             flex: 1;
             justify-content: space-between;
+            align-items: center;
 
             h1 {
                 font-size: 25px;
@@ -43,32 +44,7 @@
 
                 padding: 10px;
             }
-
-            button {
-                display: flex;
-                gap: 5px;
-                background-color: #da29fd;
-                color: #ffffff;
-                font-weight: 800;
-                font-size: 15px;
-                align-items: center;
-                justify-content: center;
-                width: 250px;
-                border-radius: 8px;
-                padding: 5px;
-                cursor: pointer;
-
-                .iconAdd {
-                    font-size: 20px;
-                }
             }
-
-            .buttonAdd:hover {
-                background-color: #df67f7 !important;
-                color: #000000;
-
-            }
-        }
 
 
     }
@@ -98,7 +74,7 @@
 
     }
 
-    .list_entitiesDiv {
+    .list_entitiesDiv_ubicaciones {
         display: flex;
         max-height: 70%;
         background-color: #ffffff;
@@ -129,8 +105,8 @@
                 }
 
                 /* Fijar primera columna (ID) */
-                #th_UbicacionID,
-                #td_UbicacionID {
+                #ubicaciones_th_UbicacionID,
+                #ubicaciones_td_UbicacionID {
                     position: sticky;
                     left: 0;
                     text-align: center;
@@ -139,8 +115,8 @@
                 }
 
                 /* Fijar segunda columna (NOMBRE) */
-                #th_NombreUbicacion,
-                #td_NombreUbicacion {
+                #ubicaciones_th_NombreUbicacion,
+                #ubicaciones_td_NombreUbicacion {
                     padding: 20px 10px;
                     position: sticky;
                     background: #ffffff;
@@ -150,14 +126,14 @@
                 }
 
 
-                #th_DescripcionUbicacion,
-                #td_DescripcionUbicacion {
+                #ubicaciones_th_DescripcionUbicacion,
+                #ubicaciones_td_DescripcionUbicacion {
                     text-align: center;
                 }
 
 
-                #th_EstatusActivo,
-                #td_EstatusActivo {
+                #ubicaciones_th_EstatusActivo,
+                #ubicaciones_td_EstatusActivo {
                     text-align: center;
                 }
 
@@ -173,22 +149,22 @@
 
 
 
-                #th_FechaCreacion,
-                #td_FechaCreacion {
+                #ubicaciones_th_FechaCreacion,
+                #ubicaciones_td_FechaCreacion {
                     text-align: center;
 
                 }
 
-                #th_FechaModificacion,
-                #td_FechaModificacion {
+                #ubicaciones_th_FechaModificacion,
+                #ubicaciones_td_FechaModificacion {
                     text-align: center;
                 }
 
 
 
                 /* Fijar última columna (ACCIONES) */
-                #th_Acciones,
-                #td_Acciones {
+                #ubicaciones_th_Acciones,
+                #ubicaciones_td_Acciones {
                     border-width: 1px;
                     border-color: #d8d5d5d5;
                     background-color: #ffffff;

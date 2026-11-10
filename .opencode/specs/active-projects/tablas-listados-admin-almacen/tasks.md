@@ -25,6 +25,7 @@
 - [x] Portar `useOrdenFiltroCliente.ts`.
 - [x] Actualizar `usePaginacionRtk.ts` y `usePaginacionServidor.ts`.
 - [x] Portar `utils/tabla.ts`, tipos y CSS.
+- [x] Portar los CSS por módulo del main para alinear `list_entitiesDiv_<modulo>` e IDs `#<modulo>_th_*`/`#<modulo>_td_*`.
 - [x] Actualizar los 9 controles.
 - [x] Actualizar `ListActivoFijo.tsx` para pasar orden/filtros a la tabla.
 - [x] Añadir `getDepartamentosActivos` y `getEmpleadosActivos`.
