@@ -2,6 +2,14 @@ import { ActivoEntityResponse } from './AlmacenGeneralTypes/activosFijosTypes';
 
 export type AccionPermiso = 'lectura' | 'escritura' | 'eliminar';
 
+export type AlcanceValor = 'propio' | 'departamento' | 'global';
+
+export interface AlcanceCatalogo {
+  recurso: string;
+  etiqueta: string;
+  valores: AlcanceValor[];
+}
+
 // Roles
 export interface Roles {
   id?: number;
@@ -15,6 +23,8 @@ export interface Roles {
     role_id: number;
   };
   permissions?: Permission[]; // Array de PERMISOS asociados al rol | Revisar role_has_permissions en BD
+  /** Overrides de alcance por recurso; ausente o '' = derivado. */
+  alcances?: Record<string, AlcanceValor | ''>;
 }
 
 export interface Permission {
@@ -84,13 +94,24 @@ export interface User {
   estatus_activo: boolean;
   fecha_baja: string | null;
   usuario_compartido: boolean;
+  atiende_helpdesk?: boolean;
   created_at?: string;
   updated_at?: string | null;
 
   roles: Roles[]; // Array de ROLES asociados al usuario | Revisar model_has_roles en BD
 
   id_empleado?: number | null;
+  empleado?: {
+    id_empleado?: number;
+    nombre_empleado: string;
+    apellido_paterno: string | null;
+    apellido_materno: string | null;
+  } | null;
   id_departamento?: number;
+  departamentos_atiende?: {
+    id_departamento: number;
+    nombre_departamento: string;
+  }[];
 }
 
 // Ubicaciones

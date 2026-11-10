@@ -17,6 +17,7 @@ return [
         'almacen' => 'Almacén',
         'contabilidad' => 'Contabilidad',
         'admin' => 'Administrador',
+        'helpdesk' => 'Helpdesk',
         'catalogos' => 'Catálogos',
     ],
 
@@ -36,6 +37,24 @@ return [
         'eliminar' => [
             'etiqueta' => 'Eliminar',
             'descripcion' => 'Borra, desactiva o cancela registros. Incluye escritura y lectura.',
+        ],
+    ],
+
+    /**
+     * Recursos que admiten alcance configurable por rol.
+     *
+     * `global` nunca se deriva: si un rol debe ver todas las áreas, necesita
+     * una fila en `tableInter_rolesAlcances`. El alcance solo recorta registros;
+     * no sustituye al permiso de lectura.
+     */
+    'alcances' => [
+        'helpdesk.tickets' => [
+            'etiqueta' => 'Mesa de Ayuda',
+            'valores' => ['propio', 'departamento', 'global'],
+        ],
+        'helpdesk.reportes' => [
+            'etiqueta' => 'Dashboard',
+            'valores' => ['propio', 'departamento', 'global'],
         ],
     ],
 
@@ -107,6 +126,38 @@ return [
             'etiqueta' => 'Ubicaciones',
             'descripcion' => 'Ubicaciones físicas del hospital.',
             'acciones' => ['lectura', 'escritura', 'eliminar'],
+        ],
+
+        /* Helpdesk. */
+        'helpdesk.tickets' => [
+            'dominio' => 'helpdesk',
+            'etiqueta' => 'Mesa de Ayuda',
+            'descripcion' => 'Tickets de la mesa de ayuda. El alcance decide si se ven los del departamento o todos.',
+            'acciones' => ['lectura', 'escritura'],
+        ],
+        'helpdesk.mis_tickets' => [
+            'dominio' => 'helpdesk',
+            'etiqueta' => 'Mis Tickets',
+            'descripcion' => 'Tickets propios: abrir, reabrir y calificar el cierre.',
+            'acciones' => ['lectura', 'escritura'],
+        ],
+        'helpdesk.reportes' => [
+            'dominio' => 'helpdesk',
+            'etiqueta' => 'Dashboard',
+            'descripcion' => 'Métricas del Helpdesk. El alcance decide si son del departamento o de todas las áreas.',
+            'acciones' => ['lectura'],
+        ],
+        'helpdesk.configuracion' => [
+            'dominio' => 'helpdesk',
+            'etiqueta' => 'Configuración',
+            'descripcion' => 'Catálogos del Helpdesk: categorías, subcategorías, títulos, prioridades, SLA, etiquetas, estatus y errores de proveedor.',
+            'acciones' => ['lectura', 'escritura'],
+        ],
+        'helpdesk.internas' => [
+            'dominio' => 'helpdesk',
+            'etiqueta' => 'Actividades Internas',
+            'descripcion' => 'Notas internas, subcategorías internas y gestión de tickets que no se atienden por departamento.',
+            'acciones' => ['lectura', 'escritura'],
         ],
 
         /* Catálogos compartidos: lectura para formularios de otros módulos. */

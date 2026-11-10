@@ -137,7 +137,8 @@
                             text-align: left;
                         }
 
-                        /* El nombre abre el modal que explica el permiso. */
+                        /* El nombre abre el modal que explica el permiso: se subraya al
+                           pasar el ratón. Solo el texto es pulsable, no la celda entera. */
                         .nombrePermiso_Roles {
                             padding: 0;
                             border: none;
@@ -163,6 +164,8 @@
                             opacity: 0.5;
                         }
 
+                        /* Detalle del rol: las mismas casillas del alta, apagadas y sin el
+                           puntero de mano. */
                         .checkboxPermisoSoloLectura_Roles {
                             cursor: default;
                         }
@@ -224,3 +227,162 @@
 
 
     }
+/* Alcance por rol */
+.ReactModal__Content.modalAlcanceRol {
+    width: min(560px, 94vw);
+    max-height: 90vh;
+    margin: auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 16px;
+    overflow: auto !important;
+}
+
+.mainDiv_modalAlcance {
+    text-align: left;
+
+    h2 {
+        margin: 0 0 8px;
+        text-align: center;
+    }
+
+    .notaAlcance_Roles {
+        font-size: 12px;
+        font-weight: normal;
+        color: #666;
+        margin: 0 0 12px;
+        text-align: left;
+    }
+}
+
+.leyendaAlcance_Roles {
+    list-style: none;
+    margin: 0 0 14px;
+    padding: 10px 12px;
+    border: 1px solid #e3e3e3;
+    border-radius: 6px;
+    background: #fafafa;
+    font-size: 12px;
+    color: #555;
+
+    li {
+        margin: 4px 0;
+    }
+
+    strong {
+        color: #333;
+    }
+}
+
+.alcancesModal_Roles {
+    display: grid;
+    gap: 12px;
+    margin: 10px 0 18px;
+    label {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 13px;
+        font-weight: bold;
+        text-align: left;
+    }
+
+    select {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background-color: #ffffff;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .ReactModal__Content.modalAlcanceRol {
+        width: 94vw;
+        padding: 14px;
+    }
+}
+
+.alcancesResumen_Roles {
+    text-align: left;
+    margin: 10px 0 15px;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #fafafa;
+
+    h3 {
+        font-size: 14px;
+        margin: 0 0 6px;
+    }
+
+    ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    li {
+        font-size: 13px;
+        margin: 2px 0;
+    }
+
+    .notaAlcance_Roles {
+        font-size: 12px;
+        color: #666;
+        margin: 6px 0 0;
+    }
+}
+
+/* Enlace para abrir el modal de alcance, a la derecha del título */
+.headerModalRol {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 36px;
+    margin-bottom: 8px;
+}
+
+.headerModalRol h2 {
+    margin: 0;
+    text-align: center;
+}
+
+.button_ajustarAlcance {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #007bff;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: right;
+    opacity: 0.7;
+    transition: opacity 0.15s ease, color 0.15s ease;
+
+    &:hover {
+        color: #00ccff;
+        opacity: 1;
+        text-decoration: underline;
+    }
+}
+
+.headerModalRol .button_ajustarAlcance {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+@media (max-width: 480px) {
+    .headerModalRol {
+        min-height: 44px;
+    }
+
+    .headerModalRol .button_ajustarAlcance {
+        font-size: 12px;
+    }
+}

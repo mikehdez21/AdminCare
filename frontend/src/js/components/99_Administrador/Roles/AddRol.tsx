@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import Modal from 'react-modal';
-import { Permission } from '@/@types/mainTypes';
+import { AlcanceCatalogo, AlcanceValor, Permission } from '@/@types/mainTypes';
 import { useAddRolMutation, type RolesPayload } from '@/store/api/rolesApi';
 import Swal from 'sweetalert2';
 import ModalButtons from '@/components/00_Utils/ModalButtons';
 import TablaPermisosRol from './TablaPermisosRol';
+import ModalAlcanceRol from './ModalAlcanceRol';
 
 import '@styles/99_Administrador/Roles/modalRoles.css';
 
@@ -12,15 +13,18 @@ interface AddRolesProps {
   isOpen: boolean;
   onClose: () => void;
   permisos: Permission[];
+  alcancesCatalogo: AlcanceCatalogo[];
 }
 
 Modal.setAppElement('#root');
 
-const AddRolesControl: React.FC<AddRolesProps> = ({ isOpen, onClose, permisos }) => {
+const AddRolesControl: React.FC<AddRolesProps> = ({ isOpen, onClose, permisos, alcancesCatalogo }) => {
   const [addRol] = useAddRolMutation();
 
   const [nombreRol, setNombreRol] = useState<string>('');
   const [selectedPermisos, setSelectedPermisos] = useState<number[]>([]);
+  const [alcances, setAlcances] = useState<Record<string, AlcanceValor | ''>>({});
+  const [isModalAlcanceOpen, setIsModalAlcanceOpen] = useState(false);
 
   const handleTogglePermiso = (permisoId: number) => {
     setSelectedPermisos((prev) =>
@@ -30,6 +34,10 @@ const AddRolesControl: React.FC<AddRolesProps> = ({ isOpen, onClose, permisos })
     );
   };
 
+  const handleAlcance = (recurso: string, valor: AlcanceValor | '') => {
+    setAlcances((prev) => ({ ...prev, [recurso]: valor }));
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
@@ -37,6 +45,7 @@ const AddRolesControl: React.FC<AddRolesProps> = ({ isOpen, onClose, permisos })
         name: nombreRol,
         guard_name: 'web',
         permissions: selectedPermisos,
+        alcances,
       };
 
       if (selectedPermisos.length === 0) {
@@ -55,6 +64,8 @@ const AddRolesControl: React.FC<AddRolesProps> = ({ isOpen, onClose, permisos })
       if (resultAction.success) {
         setNombreRol('');
         setSelectedPermisos([]);
+        setAlcances({});
+        setIsModalAlcanceOpen(false);
 
         Swal.fire({
           icon: 'success',
@@ -64,9 +75,18 @@ const AddRolesControl: React.FC<AddRolesProps> = ({ isOpen, onClose, permisos })
         });
 
         onClose();
-      } else {
-        console.log('Error al agregar el rol: ', resultAction.message);
+
+        return;
       }
+
+      // Antes el fallo solo iba a la consola y el modal se quedaba abierto sin
+      // decir nada.
+      Swal.fire({
+        icon: 'error',
+        title: 'No se pudo añadir el rol',
+        text: resultAction.message || 'Hubo un problema al añadir el rol. Por favor, inténtalo de nuevo.',
+        confirmButtonText: 'OK',
+      });
     } catch (error) {
       console.error('Error al agregar el Rol: ', error);
 
@@ -92,7 +112,18 @@ const AddRolesControl: React.FC<AddRolesProps> = ({ isOpen, onClose, permisos })
     >
 
       <div className="mainDiv_modalRoles" >
-        <h2>Añadir Rol</h2>
+        <div className='headerModalRol'>
+          <h2>Añadir Rol</h2>
+          {alcancesCatalogo.length > 0 && (
+            <button
+              type='button'
+              className='button_ajustarAlcance'
+              onClick={() => setIsModalAlcanceOpen(true)}
+            >
+              Ajustar Alcance
+            </button>
+          )}
+        </div>
 
 
         <form onSubmit={handleSubmit} className="formRoles">
@@ -142,7 +173,13 @@ const AddRolesControl: React.FC<AddRolesProps> = ({ isOpen, onClose, permisos })
 
         </form>
 
-
+        <ModalAlcanceRol
+          isOpen={isModalAlcanceOpen}
+          onClose={() => setIsModalAlcanceOpen(false)}
+          catalogo={alcancesCatalogo}
+          valores={alcances}
+          onChange={handleAlcance}
+        />
 
       </div>
 

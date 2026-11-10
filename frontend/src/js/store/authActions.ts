@@ -16,6 +16,7 @@ export interface AuthPayloadResponse {
   userData: User | null;
   userRol: string;
   userRolPermissions: string[];
+  userAlcances: Record<string, string>;
   userDepartamento: string;
   message: string;
 }
@@ -23,6 +24,7 @@ export interface AuthPayloadResponse {
 interface RefreshPermissionsResponse {
   success: boolean;
   permissions: string[];
+  alcances: Record<string, string>;
   message: string;
 }
 
@@ -51,6 +53,7 @@ export const login = createAsyncThunk<AuthPayloadResponse, LoginCredentials>(
         userData: response.data.user as User,
         userRol: response.data.rol as string,
         userRolPermissions: response.data.permissions as string[],
+        userAlcances: (response.data.alcances ?? {}) as Record<string, string>,
         userDepartamento: response.data.departamento as string,
         message: response.data.message,
       };
@@ -92,6 +95,7 @@ export const login = createAsyncThunk<AuthPayloadResponse, LoginCredentials>(
           userData: null,
           userRol: '',
           userRolPermissions: [],
+          userAlcances: {},
           userDepartamento: '',
           message,
         };
@@ -101,6 +105,7 @@ export const login = createAsyncThunk<AuthPayloadResponse, LoginCredentials>(
           userData: null,
           userRol: '',
           userRolPermissions: [],
+          userAlcances: {},
           userDepartamento: '',
           message: 'Error de conexión',
         };
@@ -111,6 +116,7 @@ export const login = createAsyncThunk<AuthPayloadResponse, LoginCredentials>(
         userData: null,
         userRol: '',
         userRolPermissions: [],
+        userAlcances: {},
         userDepartamento: '',
         message: 'Error desconocido',
       };
@@ -129,6 +135,7 @@ export const refreshAuthPermissions = createAsyncThunk<RefreshPermissionsRespons
       return {
         success: response.data.success,
         permissions: response.data.permissions as string[],
+        alcances: (response.data.alcances ?? {}) as Record<string, string>,
         message: response.data.message,
       };
     } catch (error) {
@@ -136,6 +143,7 @@ export const refreshAuthPermissions = createAsyncThunk<RefreshPermissionsRespons
         return {
           success: false,
           permissions: [],
+          alcances: {},
           message: getBackendErrorMessage(error.response?.data, 'Error al refrescar permisos'),
         };
       }
@@ -143,6 +151,7 @@ export const refreshAuthPermissions = createAsyncThunk<RefreshPermissionsRespons
       return {
         success: false,
         permissions: [],
+        alcances: {},
         message: 'Error desconocido al refrescar permisos',
       };
     }
@@ -222,6 +231,7 @@ export const checkAuthSession = createAsyncThunk<AuthPayloadResponse, void>(
           userData: response.data.user as User,
           userRol: response.data.rol as string,
           userRolPermissions: response.data.permissions as string[],
+          userAlcances: (response.data.alcances ?? {}) as Record<string, string>,
           userDepartamento: response.data.departamento as string,
           message: response.data.message,
         };
@@ -231,6 +241,7 @@ export const checkAuthSession = createAsyncThunk<AuthPayloadResponse, void>(
         userData: null,
         userRol: '',
         userRolPermissions: [],
+        userAlcances: {},
         userDepartamento: '',
         message: getBackendErrorMessage(response.data, 'No autenticado'),
       };
@@ -244,6 +255,7 @@ export const checkAuthSession = createAsyncThunk<AuthPayloadResponse, void>(
             userData: null,
             userRol: '',
             userRolPermissions: [],
+            userAlcances: {},
             userDepartamento: '',
             message: rawMessage || 'Sesión no válida',
           };
@@ -253,6 +265,7 @@ export const checkAuthSession = createAsyncThunk<AuthPayloadResponse, void>(
           userData: null,
           userRol: '',
           userRolPermissions: [],
+          userAlcances: {},
           userDepartamento: '',
           message: rawMessage || 'Error al verificar sesión',
         };
@@ -262,6 +275,7 @@ export const checkAuthSession = createAsyncThunk<AuthPayloadResponse, void>(
         userData: null,
         userRol: '',
         userRolPermissions: [],
+        userAlcances: {},
         userDepartamento: '',
         message: 'Error de conexión',
       };

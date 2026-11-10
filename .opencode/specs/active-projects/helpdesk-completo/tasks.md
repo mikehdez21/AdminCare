@@ -4,19 +4,19 @@
 
 ### Tareas
 
-- [ ] Crear `app/Support/SchemaTable.php`.
-- [ ] Crear `app/Models/Concerns/UsesHelpdeskTable.php`.
-- [ ] Crear migraciones `SQLITE/046`–`062`.
-- [ ] Crear migraciones `SQLITE/069` y `070`.
-- [ ] Crear columnas `atiende_helpdesk` en departamentos y usuarios.
-- [ ] Crear los 16 modelos de `app/Models/Helpdesk/`.
-- [ ] Actualizar `User` y `Departamento`.
-- [ ] Agregar `helpdesk.*` a `config/permisos.php`.
-- [ ] Crear `AlcanceService`.
-- [ ] Actualizar `AuthController` con `alcances` y `departamentos_atiende`.
-- [ ] Actualizar seeders de permisos/alcances.
-- [ ] Actualizar UI de roles con alcances.
-- [ ] `git diff --check`.
+- [x] Crear `app/Support/SchemaTable.php`.
+- [x] Crear `app/Models/Concerns/UsesHelpdeskTable.php`.
+- [x] Crear migraciones `SQLITE/046`–`062`.
+- [x] Crear migraciones `SQLITE/069` y `070`.
+- [x] Crear columnas `atiende_helpdesk` en departamentos y usuarios.
+- [x] Crear los 16 modelos de `app/Models/Helpdesk/`.
+- [x] Actualizar `User` y `Departamento`.
+- [x] Agregar `helpdesk.*` a `config/permisos.php`.
+- [x] Crear `AlcanceService`.
+- [x] Actualizar `AuthController` con `alcances` y `departamentos_atiende`.
+- [x] Actualizar seeders de permisos/alcances.
+- [x] Actualizar UI de roles con alcances.
+- [x] `git diff --check`.
 
 ### Verificación
 
@@ -26,9 +26,9 @@
 - [ ] Login devuelve `alcances`.
 - [ ] Roles UI muestra alcances.
 - [ ] App sigue funcionando.
-- [ ] `pnpm exec tsc --noEmit`.
-- [ ] `pnpm run lint`.
-- [ ] `pnpm run build`.
+- [x] `pnpm exec tsc --noEmit`.
+- [x] `pnpm run lint` sobre archivos modificados.
+- [x] `pnpm run build`.
 
 ### Entrega
 

@@ -1,7 +1,8 @@
 import React from 'react';
 import Modal from 'react-modal';
 
-import { Permission, Roles } from '@/@types/mainTypes';
+import { AlcanceCatalogo, Permission, Roles } from '@/@types/mainTypes';
+import { etiquetaAlcance } from '@/utils/alcances';
 import ModalButtons from '@/components/00_Utils/ModalButtons';
 import TablaPermisosRol from './TablaPermisosRol';
 
@@ -13,6 +14,7 @@ interface showPermisosRoleProps {
   rolToShow: Roles | null;
   /** Catálogo completo, con las etiquetas de `config/permisos.php`. */
   permisos: Permission[];
+  alcancesCatalogo: AlcanceCatalogo[];
 }
 
 Modal.setAppElement('#root');
@@ -20,10 +22,12 @@ Modal.setAppElement('#root');
 /**
  * Detalle de solo lectura de los permisos de un rol.
  *
- * Reusa la misma tabla del alta/edición en modo `readOnly`, para que el
- * catálogo y los permisos fuera del catálogo se vean con el mismo criterio.
+ * Reusa `TablaPermisosRol` (la misma del alta y la edición) en modo `readOnly`: las casillas
+ * se ven igual, apagadas, y sin buscador. Antes tenía su propia tabla y su propio CSS, en
+ * `showSubModals.css`, que nadie importaba desde aquí —el modal salía sin estilos salvo que se
+ * hubiera pasado antes por Usuarios, que sí importa ese archivo—.
  */
-const ShowPermisosRole: React.FC<showPermisosRoleProps> = ({ isOpen, onClose, rolToShow, permisos }) => {
+const ShowPermisosRole: React.FC<showPermisosRoleProps> = ({ isOpen, onClose, rolToShow, permisos, alcancesCatalogo }) => {
   const idsDelRol = (rolToShow?.permissions ?? []).map((permiso) => Number(permiso.id));
   const ids = new Set(idsDelRol);
   const permisosDelRol = permisos.filter((permiso) => permiso.id != null && ids.has(Number(permiso.id)));
@@ -38,6 +42,25 @@ const ShowPermisosRole: React.FC<showPermisosRoleProps> = ({ isOpen, onClose, ro
 
       <div className="mainDiv_modalRoles">
         <h2>Permisos del Rol: <br /> {rolToShow?.name}</h2>
+
+        {alcancesCatalogo.length > 0 && (
+          <section className='alcancesResumen_Roles'>
+            <h3>Alcance</h3>
+            <ul>
+              {alcancesCatalogo.map(({ recurso, etiqueta }) => (
+                <li key={recurso}>
+                  <strong>{etiqueta}:</strong>{' '}
+                  {rolToShow?.name === 'Admin'
+                    ? 'Global (fijo)'
+                    : etiquetaAlcance(rolToShow?.alcances?.[recurso])}
+                </li>
+              ))}
+            </ul>
+            <p className='notaAlcance_Roles'>
+              El alcance solo recorta los registros; no da acceso. El rol necesita los permisos del recurso.
+            </p>
+          </section>
+        )}
 
         <div className='formRoles'>
 

@@ -9,6 +9,7 @@ export interface AuthState {
   error: string | undefined;
   user?: User | null;
   permissions: string[];
+  alcances: Record<string, string>;
   rol: string | null;
   departamento: string | null;
 }
@@ -20,6 +21,7 @@ const initialState: AuthState = {
   error: undefined,
   user: null,
   permissions: [],
+  alcances: {},
   rol: null,
   departamento: null,
 };
@@ -52,6 +54,7 @@ const authSlice = createSlice({
           state.isAuthenticated = true;
           state.user = action.payload.userData;
           state.permissions = action.payload.userRolPermissions;
+          state.alcances = action.payload.userAlcances;
           state.rol = action.payload.userRol;
           state.departamento = action.payload.userDepartamento;
           state.error = undefined;
@@ -71,6 +74,7 @@ const authSlice = createSlice({
           state.isAuthenticated = false;
           state.user = null;
           state.permissions = [];
+          state.alcances = {};
           state.rol = null;
           state.departamento = null;
           state.checking = false;
@@ -94,6 +98,7 @@ const authSlice = createSlice({
           state.isAuthenticated = true;
           state.user = action.payload.userData;
           state.permissions = action.payload.userRolPermissions;
+          state.alcances = action.payload.userAlcances;
           state.rol = action.payload.userRol;
           state.departamento = action.payload.userDepartamento;
           state.error = undefined;
@@ -101,6 +106,7 @@ const authSlice = createSlice({
           state.isAuthenticated = false;
           state.user = null;
           state.permissions = [];
+          state.alcances = {};
           state.rol = null;
           state.departamento = null;
           state.error = action.payload.message;
@@ -110,6 +116,7 @@ const authSlice = createSlice({
       .addCase(refreshAuthPermissions.fulfilled, (state, action) => {
         if (action.payload.success) {
           state.permissions = action.payload.permissions || [];
+          state.alcances = action.payload.alcances || {};
           state.error = undefined;
         } else {
           state.error = action.payload.message;

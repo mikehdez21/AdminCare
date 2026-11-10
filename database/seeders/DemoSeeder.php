@@ -56,6 +56,7 @@ class DemoSeeder extends Seeder
         $role = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
         $this->call(table_PermissionsSeeder::class);
         $role->syncPermissions(Permission::all());
+        $this->call(table_AlcancesSeeder::class);
 
         $user = User::create([
             'nombre_usuario' => 'DEMOADMIN',

@@ -2,13 +2,14 @@ import { createApi } from '@reduxjs/toolkit/query/react';
 import { axiosBaseQuery } from './baseQuery';
 import { tagLista } from './tags';
 import { formatDateHorasToFrontend } from '@/utils/dateFormat';
-import type { Roles } from '@/@types/mainTypes';
+import type { AlcanceCatalogo, AlcanceValor, Roles } from '@/@types/mainTypes';
 import type { PaginacionMeta, PaginacionParams } from '@/@types/paginacionTypes';
 
 export interface RolesPayload {
   name: string;
   guard_name: string;
   permissions: number[];
+  alcances?: Record<string, AlcanceValor | ''>;
 }
 
 export interface RolesPaginadoResponse {
@@ -36,6 +37,15 @@ export const rolesApi = createApi({
         }));
         return { items: formateados, meta: response.meta };
       },
+      providesTags: [tagLista('Rol')],
+    }),
+    getAlcancesCatalogo: builder.query<AlcanceCatalogo[], void>({
+      query: () => ({
+        url: '/api/admin/roles/alcances/catalogo',
+        method: 'GET',
+      }),
+      transformResponse: (response: { success?: boolean; data?: AlcanceCatalogo[] }) =>
+        response.success === false ? [] : (response.data ?? []),
       providesTags: [tagLista('Rol')],
     }),
     addRol: builder.mutation<{ success: boolean; message: string }, RolesPayload>({
@@ -66,6 +76,7 @@ export const rolesApi = createApi({
 
 export const {
   useGetRolesQuery,
+  useGetAlcancesCatalogoQuery,
   useAddRolMutation,
   useEditRolMutation,
   useDeleteRolMutation,

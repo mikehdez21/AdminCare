@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import Modal from 'react-modal';
 import { AppDispatch } from '@/store/store';
 import { useDispatch } from 'react-redux';
-import { Permission, Roles } from '@/@types/mainTypes';
+import { AlcanceCatalogo, AlcanceValor, Permission, Roles } from '@/@types/mainTypes';
 import { useEditRolMutation } from '@/store/api/rolesApi';
 import { refreshAuthPermissions } from '@/store/authActions';
 import Swal from 'sweetalert2';
 import ModalButtons from '@/components/00_Utils/ModalButtons';
 import TablaPermisosRol from './TablaPermisosRol';
+import ModalAlcanceRol from './ModalAlcanceRol';
 
 import '@styles/99_Administrador/Roles/modalRoles.css';
 
@@ -16,17 +17,20 @@ interface EditUserProps {
   onClose: () => void;
   rolesToEdit: Roles | null;
   permisos: Permission[];
+  alcancesCatalogo: AlcanceCatalogo[];
 }
 
 Modal.setAppElement('#root');
 
-const EditRol: React.FC<EditUserProps> = ({ isOpen, onClose, rolesToEdit, permisos }) => {
+const EditRol: React.FC<EditUserProps> = ({ isOpen, onClose, rolesToEdit, permisos, alcancesCatalogo }) => {
 
   const dispatch = useDispatch<AppDispatch>();
   const [editRol] = useEditRolMutation();
 
   const [nombreRol, setNombreRol] = useState<string>('');
   const [selectedPermisos, setSelectedPermisos] = useState<number[]>([]);
+  const [alcances, setAlcances] = useState<Record<string, AlcanceValor | ''>>({});
+  const [isModalAlcanceOpen, setIsModalAlcanceOpen] = useState(false);
 
   useEffect(() => {
     if (rolesToEdit) {
@@ -34,11 +38,22 @@ const EditRol: React.FC<EditUserProps> = ({ isOpen, onClose, rolesToEdit, permis
       setSelectedPermisos((rolesToEdit.permissions || [])
         .map((permiso) => Number(permiso.id))
         .filter((permisoId) => Number.isFinite(permisoId)));
+
+      const iniciales: Record<string, AlcanceValor | ''> = { ...(rolesToEdit.alcances ?? {}) };
+
+      if (rolesToEdit.name === 'Admin') {
+        alcancesCatalogo.forEach(({ recurso }) => {
+          iniciales[recurso] = 'global';
+        });
+      }
+
+      setAlcances(iniciales);
     } else {
       setNombreRol('');
       setSelectedPermisos([]);
+      setAlcances({});
     }
-  }, [rolesToEdit]);
+  }, [rolesToEdit, alcancesCatalogo]);
 
   const handleTogglePermiso = (permisoId: number) => {
     setSelectedPermisos((prev) =>
@@ -46,6 +61,10 @@ const EditRol: React.FC<EditUserProps> = ({ isOpen, onClose, rolesToEdit, permis
         ? prev.filter((id) => id !== permisoId)
         : [...prev, permisoId]
     );
+  };
+
+  const handleAlcance = (recurso: string, valor: AlcanceValor | '') => {
+    setAlcances((prev) => ({ ...prev, [recurso]: valor }));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -60,7 +79,8 @@ const EditRol: React.FC<EditUserProps> = ({ isOpen, onClose, rolesToEdit, permis
         id: rolesToEdit.id,
         name: nombreRol,
         guard_name: rolesToEdit.guard_name,
-        permissions: selectedPermisos as unknown as Permission[]
+        permissions: selectedPermisos as unknown as Permission[],
+        alcances,
       };
 
       console.log('dataRol_Enviada: ', rolesEditado);
@@ -69,6 +89,7 @@ const EditRol: React.FC<EditUserProps> = ({ isOpen, onClose, rolesToEdit, permis
 
       if (resultAction.success) {
         setNombreRol('');
+        setIsModalAlcanceOpen(false);
 
         // Refrescar permisos del usuario autenticado para reflejar sidebar/UI en tiempo real
         await dispatch(refreshAuthPermissions());
@@ -81,14 +102,16 @@ const EditRol: React.FC<EditUserProps> = ({ isOpen, onClose, rolesToEdit, permis
         });
 
         onClose();
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: resultAction.message || 'Hubo un problema al editar el rol.',
-          confirmButtonText: 'OK',
-        });
+
+        return;
       }
+
+      Swal.fire({
+        icon: 'error',
+        title: 'No se pudo editar el rol',
+        text: resultAction.message || 'Hubo un problema al editar el rol.',
+        confirmButtonText: 'OK',
+      });
     } catch (error) {
       console.error('Error al editar el rol:', error);
 
@@ -116,7 +139,18 @@ const EditRol: React.FC<EditUserProps> = ({ isOpen, onClose, rolesToEdit, permis
       shouldCloseOnOverlayClick={false}
     >
       <div className="mainDiv_modalRoles" >
-        <h2>Editar Rol</h2>
+        <div className='headerModalRol'>
+          <h2>Editar Rol</h2>
+          {alcancesCatalogo.length > 0 && (
+            <button
+              type='button'
+              className='button_ajustarAlcance'
+              onClick={() => setIsModalAlcanceOpen(true)}
+            >
+              Ajustar Alcance
+            </button>
+          )}
+        </div>
 
         <form onSubmit={handleSubmit} className="formRoles">
           <section className='dataInputs_Roles'>
@@ -131,6 +165,7 @@ const EditRol: React.FC<EditUserProps> = ({ isOpen, onClose, rolesToEdit, permis
                   name='nombreRol'
                   onChange={(e) => setNombreRol(e.target.value)}
                   placeholder='Nombre del rol'
+                  disabled={rolesToEdit?.name === 'Admin'}
                   required
                 />
               </label>
@@ -161,6 +196,15 @@ const EditRol: React.FC<EditUserProps> = ({ isOpen, onClose, rolesToEdit, permis
           />
 
         </form>
+
+        <ModalAlcanceRol
+          isOpen={isModalAlcanceOpen}
+          onClose={() => setIsModalAlcanceOpen(false)}
+          catalogo={alcancesCatalogo}
+          valores={alcances}
+          onChange={handleAlcance}
+          disabled={rolesToEdit?.name === 'Admin'}
+        />
 
       </div>
     </Modal>

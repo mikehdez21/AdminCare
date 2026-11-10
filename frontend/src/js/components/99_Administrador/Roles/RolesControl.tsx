@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 
 // Roles
 import { Roles } from '@/@types/mainTypes';
-import { useGetRolesQuery } from '@/store/api/rolesApi';
+import { useGetAlcancesCatalogoQuery, useGetRolesQuery } from '@/store/api/rolesApi';
 import { useGetPermisosQuery } from '@/store/api/permisosApi';
 
 // Componentes
@@ -55,6 +55,8 @@ const Main_RolesControl: React.FC = () => {
 
   const { data: permisosData } = useGetPermisosQuery();
   const permisos = permisosData ?? [];
+
+  const { data: alcancesCatalogo = [] } = useGetAlcancesCatalogoQuery();
 
   const hayFiltrosActivos = Object.keys(filtros).length > 0;
   const hayBusqueda = busqueda.trim() !== '';
@@ -139,6 +141,7 @@ const Main_RolesControl: React.FC = () => {
   };
   const closeModalAddRoles = () => {
     setModalAddRolesOpen(false);
+    // Recargar la tabla paginada tras crear un rol.
     refetch();
   };
 
@@ -150,6 +153,7 @@ const Main_RolesControl: React.FC = () => {
   const closeModalEditRoles = () => {
     setModalEditRolesOpen(false);
     setRolesToEdit_Delete(null);
+    // Recargar la tabla paginada tras editar un rol.
     refetch();
   };
 
@@ -161,6 +165,7 @@ const Main_RolesControl: React.FC = () => {
   const closeAlertDeleteRoles = () => {
     setModalDeleteRolesOpen(false);
     setRolesToEdit_Delete(null);
+    // Recargar la tabla paginada tras eliminar un rol.
     refetch();
   };
 
@@ -173,6 +178,7 @@ const Main_RolesControl: React.FC = () => {
     setModalViewPermisosOpen(false);
   };
 
+  // Crear nuevos roles
   const handleNuevoRol = () => {
     openModalAddRoles();
   };
@@ -199,6 +205,7 @@ const Main_RolesControl: React.FC = () => {
             type="text"
             placeholder="Buscar por nombre o ID"
             value={busqueda}
+
             name='busqueda'
             onChange={handleSearch}
           />
@@ -217,6 +224,7 @@ const Main_RolesControl: React.FC = () => {
         </div>
       ) : (
         <>
+          {/* Paginación */}
           <Paginacion
             paginaActual={paginaActual}
             numeroTotalPaginas={numeroTotalPaginas}
@@ -237,6 +245,7 @@ const Main_RolesControl: React.FC = () => {
             mensajeVacio={<p>No hay coincidencias con los filtros seleccionados.</p>}
           />
 
+          {/* Paginación */}
           <Paginacion
             paginaActual={paginaActual}
             numeroTotalPaginas={numeroTotalPaginas}
@@ -247,12 +256,13 @@ const Main_RolesControl: React.FC = () => {
         </>
       )}
 
+
       {isModalAddRolesOpen && (
-        <AddRolesControl isOpen={isModalAddRolesOpen} onClose={closeModalAddRoles} permisos={permisos} />
+        <AddRolesControl isOpen={isModalAddRolesOpen} onClose={closeModalAddRoles} permisos={permisos} alcancesCatalogo={alcancesCatalogo} />
       )}
 
       {isModalEditRolesOpen && rolesToEdit_Delete && (
-        <EditRol isOpen={isModalEditRolesOpen} onClose={closeModalEditRoles} rolesToEdit={rolesToEdit_Delete} permisos={permisos} />
+        <EditRol isOpen={isModalEditRolesOpen} onClose={closeModalEditRoles} rolesToEdit={rolesToEdit_Delete} permisos={permisos} alcancesCatalogo={alcancesCatalogo} />
       )}
 
       {isModalDeleteRolesOpen && rolesToEdit_Delete && (
@@ -260,8 +270,11 @@ const Main_RolesControl: React.FC = () => {
       )}
 
       {isModalViewPermisosOpen && rolesToEdit_Delete && (
-        <ShowPermisosRole isOpen={isModalViewPermisosOpen} onClose={closeModalViewPermisos} rolToShow={rolesToEdit_Delete} permisos={permisos} />
+        <ShowPermisosRole isOpen={isModalViewPermisosOpen} onClose={closeModalViewPermisos} rolToShow={rolesToEdit_Delete} permisos={permisos} alcancesCatalogo={alcancesCatalogo} />
       )}
+
+
+
 
     </div>
   );

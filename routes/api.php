@@ -247,6 +247,7 @@ use App\Support\Permisos;
         $permRolesEliminar = Permisos::middleware('admin.roles', 'eliminar');
 
         Route::middleware(PermissionMiddleware::class.':'.$permRolesLectura)->group(function () {
+            Route::get('admin/roles/alcances/catalogo', [RolesAdminController::class, 'catalogoAlcances']);
             Route::apiResource('admin/roles', RolesAdminController::class)->only(['index', 'show']);
             Route::apiResource('admin/permisos', PermissionsAdminController::class)->only(['index', 'show']);
         });

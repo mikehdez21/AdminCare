@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\Permisos\AlcanceService;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -12,6 +13,9 @@ use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
+    public function __construct(private readonly AlcanceService $alcance)
+    {
+    }
     //  CHECK
     public function check()
     {
@@ -75,7 +79,8 @@ class AuthController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Permisos obtenidos correctamente.',
-                'permissions' => $scopes
+                'permissions' => $scopes,
+                'alcances' => $this->alcance->alcancesDeRoles($user),
             ], 200);
         } catch (\Illuminate\Database\QueryException $e) {
             report($e);
@@ -161,7 +166,11 @@ class AuthController extends Controller
                 session(['user_id' => $user->id_usuario]);
                 $response['message'] = 'Login exitoso!';
                 $response['success'] = true;
-                // La migración vigente no contiene la columna ultimo_acceso.
+
+                User::whereKey($user->getKey())->update([
+                    'ultimo_acceso' => now(),
+                    'updated_at' => now(),
+                ]);
             } else {
                 $response['message'] = 'Credenciales inválidas!';
             }
@@ -281,10 +290,23 @@ class AuthController extends Controller
             ->unique()
             ->values();
 
+        $user->loadMissing('empleado:id_empleado,nombre_empleado,apellido_paterno,apellido_materno');
+
+        $departamentosAtiende = $this->alcance->departamentosQueAtiende($user)
+            ->map(fn ($departamento) => [
+                'id_departamento' => (int) $departamento->id_departamento,
+                'nombre_departamento' => $departamento->nombre_departamento,
+            ])
+            ->values()
+            ->all();
+
+        $user->setAttribute('departamentos_atiende', $departamentosAtiende);
+
         return [
             'user' => $user,
             'rol' => $roleName,
             'permissions' => $scopes,
+            'alcances' => $this->alcance->alcancesDeRoles($user),
             'departamento' => $departamento,
         ];
     }

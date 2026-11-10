@@ -20,12 +20,14 @@ class Departamento extends Model
         'nombre_departamento',
         'descripcion',
         'atiende_pacientes',
+        'atiende_helpdesk',
         'estatus_activo',
     ];
 
     // Conversiones de tipos de campos
     protected $casts = [
         'atiende_pacientes' => 'boolean', // Convierte el campo 'atiende_pacientes' a booleano
+        'atiende_helpdesk' => 'boolean',
         'estatus_activo' => 'boolean', // Convierte el campo 'estatus_activo' a booleano
     ];
 

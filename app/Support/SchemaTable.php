@@ -26,4 +26,18 @@ final class SchemaTable
             ? '"almacengeneral"."'.$tabla.'"'
             : '"'.$tabla.'"';
     }
+
+    public static function helpdesk(string $tabla): string
+    {
+        return DB::connection()->getDriverName() === 'pgsql'
+            ? 'helpdesk.'.$tabla
+            : $tabla;
+    }
+
+    public static function helpdeskQuoted(string $tabla): string
+    {
+        return DB::connection()->getDriverName() === 'pgsql'
+            ? '"helpdesk"."'.$tabla.'"'
+            : '"'.$tabla.'"';
+    }
 }
