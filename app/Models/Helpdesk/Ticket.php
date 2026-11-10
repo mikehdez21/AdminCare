@@ -9,6 +9,7 @@ use App\Models\Empleado;
 use App\Models\Ubicacion;
 use App\Models\User;
 use App\Observers\TicketObserver;
+use App\Support\SchemaTable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -182,7 +183,7 @@ class Ticket extends Model
     {
         return $this->belongsToMany(
             Etiqueta::class,
-            'helpdesk.tableInter_ticketsEtiquetas',
+            SchemaTable::helpdesk('tableInter_ticketsEtiquetas'),
             'id_ticket',
             'id_etiqueta',
             'id_ticket',

@@ -3,6 +3,7 @@
 namespace App\Models\Helpdesk;
 
 use App\Models\Concerns\UsesHelpdeskTable;
+use App\Support\SchemaTable;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -27,7 +28,7 @@ class Etiqueta extends Model
     {
         return $this->belongsToMany(
             Ticket::class,
-            'helpdesk.tableInter_ticketsEtiquetas',
+            SchemaTable::helpdesk('tableInter_ticketsEtiquetas'),
             'id_etiqueta',
             'id_ticket',
             'id_etiqueta',
