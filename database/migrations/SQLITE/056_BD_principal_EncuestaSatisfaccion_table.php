@@ -42,8 +42,15 @@ return new class extends Migration
             $table->unique('id_ticket', 'uk_encuesta_ticket');
         });
 
-        // Restricción CHECK: la calificación debe estar entre 1 y 5
-        DB::statement('ALTER TABLE helpdesk."tableMA_EncuestaSatisfaccion" ADD CONSTRAINT chk_encuesta_calificacion CHECK (calificacion BETWEEN 1 AND 5)');
+        // Restricción CHECK: la calificación debe estar entre 1 y 5.
+        // SQLite no soporta ADD CONSTRAINT en ALTER TABLE; la regla se valida
+        // en la capa de aplicación para la demo.
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            DB::statement(
+                'ALTER TABLE '.SchemaTable::helpdeskQuoted('tableMA_EncuestaSatisfaccion')
+                .' ADD CONSTRAINT chk_encuesta_calificacion CHECK (calificacion BETWEEN 1 AND 5)'
+            );
+        }
     }
 
     /**
