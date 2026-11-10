@@ -35,7 +35,7 @@ class DemoHelpdeskSeeder extends Seeder
 
         $this->enlazarCategorias($departamentos);
 
-        $proveedorDemo = $this->sembrarProveedorDemo($departamentos['Sistemas']);
+        $proveedorDemo = $this->sembrarProveedorDemo($departamentos['Sistemas']->id_departamento);
 
         $this->sembrarTickets($usuarios, $empleados, $proveedorDemo);
     }
