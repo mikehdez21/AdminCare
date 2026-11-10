@@ -69,6 +69,40 @@ body {
     height: 0;
     display: none;
 }
+
+/* Botón "Nuevo"/"Nueva" compartido por las listas y catálogos. Antes cada
+   pantalla traía el suyo; el de Helpdesk Configuración no tenía ninguno. */
+.buttonAdd {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 5px 20px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #da29fd 0%, #764ba2 100%);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background-color 0.18s ease, color 0.18s ease;
+
+    .iconAdd {
+        font-size: 20px;
+    }
+
+    &:hover:not(:disabled) {
+        background-color: #df67f7 !important;
+        color: #000000;
+    }
+
+    &:disabled {
+        background-color: #adb5bd;
+        color: #ffffff;
+        cursor: not-allowed;
+    }
+}
+
 .demo-unavailable {
   max-width: 42rem;
   margin: 7rem auto 2rem;

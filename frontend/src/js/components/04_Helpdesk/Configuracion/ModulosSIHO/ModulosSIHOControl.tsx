@@ -22,7 +22,7 @@ const COLUMNAS: Columna<HelpdeskModuloSIHO>[] = [
 ];
 
 /**
- * Módulos de SIHO, para el desplegable de "Módulo" de un error de proveedor.
+ * Módulos de Sistemas, para el desplegable de "Módulo" de un error de proveedor.
  *
  * Es un catálogo plano: los módulos son del sistema, no de cada proveedor. Nace
  * vacío, así que la lista hay que capturarla.
@@ -50,7 +50,7 @@ const ModulosSIHOControl: React.FC = () => {
         vacias='registrados'
         textoBoton='Nuevo módulo'
         placeholder='Buscar por nombre o ID'
-        nota='Los módulos son de SIHO, no de cada proveedor.'
+        nota='Los módulos son del sistema, no de cada proveedor.'
         error={error}
         filas={modulos}
         clave={(m) => m.id_modulo_siho as number}

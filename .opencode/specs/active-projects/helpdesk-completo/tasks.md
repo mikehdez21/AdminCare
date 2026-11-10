@@ -100,6 +100,16 @@
 - [x] `pnpm run lint`.
 - [x] `pnpm run build`.
 
+### Correcciones posteriores a 4C
+
+- [x] CSS del submenú Helpdesk en el sidebar (`#SubMenu_Helpdesk`).
+- [x] Aviso de correo alineado con `div_SectionSelected`.
+- [x] `.buttonAdd` global en `app.css`.
+- [x] Quitar proveedores de error demo (`Reliv`, `Vayver`, `Eden`, `HSS`).
+- [x] Quitar sistemas de proveedor demo (`SIHO`, `ECE`, `Surfing`).
+- [x] Renombrar “Módulos de SIHO” a “Módulos de Sistemas”.
+- [x] Limpieza de datos existentes con migración `071`.
+
 ### Verificación
 
 - [ ] Menú Helpdesk.

@@ -4,7 +4,6 @@ use App\Support\SchemaTable;
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -15,12 +14,12 @@ use Illuminate\Support\Facades\Schema;
  * - `tableMA_ProveedoresError`: catálogo de proveedores. `requiere_sistema` es el
  *   switch que decide si al capturar el error se piden sistema, no. de ticket,
  *   módulo y personal SAC. `id_departamento` dice qué área lo administra.
- * - `tableMA_SistemasProveedor`: los sistemas de un proveedor. Hoy solo Reliv los
- *   usa (SIHO / ECE / Surfing).
- * - `tableMA_ModulosSIHO`: catálogo de módulos de SIHO, para el desplegable.
+ * - `tableMA_SistemasProveedor`: los sistemas de un proveedor. Cada proveedor
+ *   puede tener los suyos; la demo arranca sin registros.
+ * - `tableMA_ModulosSIHO`: catálogo de módulos del sistema, para el desplegable.
  * - `tableMA_ErroresProveedor`: el error de un ticket. Una fila por ticket (1:1).
- *   `id_soluciona_error` apunta al mismo catálogo de proveedores, por eso HSS vive
- *   ahí: quien reporta y quien resuelve salen de la misma lista.
+ *   `id_soluciona_error` apunta al mismo catálogo de proveedores: quien reporta
+ *   y quien resuelve salen de la misma lista.
  *
  * La bandera que enciende la sección en el detalle sigue en `Tickets.error_proveedor`;
  * los demás campos dejaron de ser columnas del ticket.
@@ -88,7 +87,7 @@ return new class extends Migration
             $table->unsignedBigInteger('id_ticket');
 
             // Quién causó el error y quién lo resuelve. Ambos salen del mismo
-            // catálogo: HSS es un proveedor más (es quien suele resolver).
+            // catálogo.
             $table->unsignedBigInteger('id_proveedor_error');
             $table->unsignedBigInteger('id_soluciona_error')->nullable();
 
@@ -112,31 +111,7 @@ return new class extends Migration
             $table->index('id_soluciona_error', 'idx_error_soluciona');
         });
 
-        // --- Seed de los catálogos ---
-
-        $departamentoId = fn (string $nombre): ?int => ($id = DB::table('tableDepartamentos')
-            ->where('nombre_departamento', $nombre)
-            ->value('id_departamento')) === null ? null : (int) $id;
-
-        $timestamp = now();
-
-        DB::table(SchemaTable::helpdesk('tableMA_ProveedoresError'))->insert([
-            ['nombre_proveedor_error' => 'Reliv', 'id_departamento' => $departamentoId('Sistemas'), 'requiere_sistema' => true, 'estatus_activo' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
-            ['nombre_proveedor_error' => 'Vayver', 'id_departamento' => $departamentoId('Sistemas'), 'requiere_sistema' => false, 'estatus_activo' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
-            ['nombre_proveedor_error' => 'Eden', 'id_departamento' => $departamentoId('Sistemas'), 'requiere_sistema' => false, 'estatus_activo' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
-            // Quien resuelve sale de esta misma lista: HSS es el proveedor interno.
-            ['nombre_proveedor_error' => 'HSS', 'id_departamento' => $departamentoId('Sistemas'), 'requiere_sistema' => false, 'estatus_activo' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
-        ]);
-
-        $reliv = (int) DB::table(SchemaTable::helpdesk('tableMA_ProveedoresError'))->where('nombre_proveedor_error', 'Reliv')->value('id_proveedor_error');
-
-        DB::table(SchemaTable::helpdesk('tableMA_SistemasProveedor'))->insert([
-            ['id_proveedor_error' => $reliv, 'nombre_sistema_proveedor' => 'SIHO', 'estatus_activo' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
-            ['id_proveedor_error' => $reliv, 'nombre_sistema_proveedor' => 'ECE', 'estatus_activo' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
-            ['id_proveedor_error' => $reliv, 'nombre_sistema_proveedor' => 'Surfing', 'estatus_activo' => true, 'created_at' => $timestamp, 'updated_at' => $timestamp],
-        ]);
-
-        // Los módulos de SIHO se capturan desde Configuración: no hay lista previa.
+        // Los catálogos se capturan desde Configuración: la demo arranca vacía.
     }
 
     /**

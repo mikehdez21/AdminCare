@@ -5,6 +5,9 @@ import { useLocation } from 'react-router-dom';
 import { getAppName } from '../../../utils/getAppName';
 import { getSectionForPath } from '@/router/sections';
 
+// Componentes
+import DemoMailNotice from '@/components/00_Utils/DemoMailNotice';
+
 // Interface
 import { User } from '@/@types/mainTypes';
 
@@ -16,6 +19,7 @@ const MainContent: React.FC<MainContentProps> = ({ currentUser }) => {
 
   const location = useLocation();
   const SectionComponent = getSectionForPath(location.pathname);
+  const esHelpdesk = location.pathname.startsWith('/helpdesk');
 
   // /app es deliberadamente un área vacía: no hay resumen ni módulo por defecto.
   if (!SectionComponent) {
@@ -24,7 +28,9 @@ const MainContent: React.FC<MainContentProps> = ({ currentUser }) => {
 
   return (
     <div className='div_MainContent'>
-<div className='div_infoHeader'>
+      {esHelpdesk && <DemoMailNotice />}
+
+      <div className='div_infoHeader'>
         <p>| {getAppName()} - {currentUser ? currentUser.nombre_usuario : 'Usuario no identificado'} |</p>
       </div>
 

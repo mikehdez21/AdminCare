@@ -64,7 +64,7 @@ const OPCIONES: { clave: Seccion; titulo: string; descripcion: string; icono: Re
   },
   {
     clave: 'modulos',
-    titulo: 'Módulos de SIHO',
+    titulo: 'Módulos de Sistemas',
     descripcion: 'Módulos del sistema, para el desplegable de un error de proveedor',
     icono: <MdOutlineWidgets className='iconFiltro' />,
   },

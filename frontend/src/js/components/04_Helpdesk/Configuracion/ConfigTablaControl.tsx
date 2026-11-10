@@ -130,7 +130,7 @@ const ConfigTablaControl = <T,>({
 
           <input type='text' placeholder={placeholder} value={busqueda} onChange={cambiarBusqueda} />
 
-          <button className='buttonAdd' onClick={onNuevo}>
+          <button type='button' className='buttonAdd' onClick={onNuevo}>
             <IoAddCircleOutline className='iconAdd' /> {textoBoton}
           </button>
         </div>
