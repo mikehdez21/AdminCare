@@ -279,6 +279,8 @@ class DemoSeeder extends Seeder
             ['marker' => 'admincare-demo-v1', 'updated_at' => now()],
         );
 
+        $this->call(DemoHelpdeskSeeder::class);
+
         // QR se excluye: DEMO_MODE bloquea su persistencia y generación.
         // Se excluyen tablas técnicas (migrations, jobs, sessions, cache y tokens);
         // permisos y roles sí se cargan porque son necesarios para autorizar la demo.

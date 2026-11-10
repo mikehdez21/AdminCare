@@ -94,7 +94,7 @@ const LogoutModal: React.FC<LogoutModalProps> = ({ currentUser, isOpen, onClose 
       <div className="modal_Content">
 
         <div className='modal_Header'>
-          <h1>Hospital San Serafín</h1>
+          <h1>AdminCare</h1>
         </div>
 
 

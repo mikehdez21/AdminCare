@@ -74,6 +74,19 @@ El repositorio incluye la configuración necesaria para un servicio web Docker:
 
 Para desplegar, crea un servicio en Render conectado al repositorio y aplica `render.yaml` como Blueprint. No es necesario ejecutar manualmente los scripts de release o arranque.
 
+## Usuarios demo
+
+La demo se regenera con `php artisan migrate:fresh --seed`. El seeder deja estos usuarios:
+
+| Usuario | Contraseña | Rol | Uso |
+| --- | --- | --- | --- |
+| `DEMOADMIN` | `demoadmin` | Admin | Administración completa y alcance global de Helpdesk |
+| `DEMOALMACEN` | `demoalmacen` | Almacen | Módulo de almacén |
+| `DEMOTEC` | `demotec` | TecnicoHelpdesk | Mesa de ayuda de Sistemas |
+| `DEMOSOL` | `demosol` | UsuarioBase | Abrir tickets y consultar los propios |
+
+Helpdesk incluye 12 tickets de ejemplo (`TK-2026-0001` a `TK-2026-0012`) con avances, etiquetas, encuesta, una reapertura y un error de proveedor genérico. Las notificaciones por correo están deshabilitadas; los datos no salen de la demo.
+
 ## Límites de la demo
 
 - Usa datos sintéticos y no debe tratarse como almacenamiento de producción.

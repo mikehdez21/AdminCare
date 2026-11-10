@@ -16,7 +16,7 @@
   @yield('contenido')
 
   <div style="font-size: 12px; color: #6a0dad; font-weight: bold; border-top: 1px solid #e0d0f0; padding-top: 10px;">
-    Hospital San Serafín<br>
+    AdminCare<br>
     Departamento de Sistemas
   </div>
 

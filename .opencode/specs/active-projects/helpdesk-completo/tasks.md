@@ -140,15 +140,15 @@
 
 ### Tareas
 
-- [ ] Actualizar `DemoSeeder` con departamentos de soporte.
-- [ ] Crear usuarios `DEMOTEC` y `DEMOSOL`.
-- [ ] Crear roles y alcances.
-- [ ] Enlazar categorías con departamentos.
-- [ ] Crear `DemoTicketsSeeder`.
-- [ ] Crear ~12 tickets variados.
-- [ ] Agregar avances, etiquetas, encuesta, error de proveedor y reapertura.
-- [ ] Actualizar README con credenciales y límites.
-- [ ] `git diff --check`.
+- [x] Actualizar `DemoSeeder` con departamentos de soporte.
+- [x] Crear usuarios `DEMOTEC` y `DEMOSOL`.
+- [x] Crear roles y alcances.
+- [x] Enlazar categorías con departamentos.
+- [x] Crear `DemoHelpdeskSeeder`.
+- [x] Crear 12 tickets variados.
+- [x] Agregar avances, etiquetas, encuesta, error de proveedor y reapertura.
+- [x] Actualizar README con credenciales y límites.
+- [x] `git diff --check`.
 
 ### Verificación
 
@@ -162,8 +162,8 @@
 
 ### Entrega
 
-- [ ] Commit: `feat(demo): seed helpdesk sample data`
-- [ ] **Sin push.** El commit queda local.
+- [x] Commit: `feat(demo): seed helpdesk sample data`
+- [x] **Sin push.** El commit queda local.
 - [ ] Usuario revisa el commit.
 - [ ] Usuario hace push manualmente.
 - [ ] Render build OK.
