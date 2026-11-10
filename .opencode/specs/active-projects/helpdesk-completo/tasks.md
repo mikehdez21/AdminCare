@@ -48,16 +48,16 @@
 
 ### Tareas
 
-- [ ] Portar controladores de `app/Http/Controllers/Helpdesk/`.
-- [ ] Portar servicios de `app/Services/Helpdesk/`.
-- [ ] Portar `NotificaUsuarios`, `TicketObserver` y notificaciones.
-- [ ] Portar vistas de correo.
-- [ ] Agregar rutas Helpdesk a `routes/api.php`.
-- [ ] Adaptar folio portable.
-- [ ] Adaptar dashboard `TO_CHAR`.
-- [ ] Adaptar `DB::table('helpdesk...')`.
-- [ ] Configurar `config/demo.php` y short-circuit de correo.
-- [ ] `git diff --check`.
+- [x] Portar controladores de `app/Http/Controllers/Helpdesk/`.
+- [x] Portar servicios de `app/Services/Helpdesk/`.
+- [x] Portar `NotificaUsuarios`, `TicketObserver` y notificaciones.
+- [x] Portar vistas de correo.
+- [x] Agregar rutas Helpdesk a `routes/api.php`.
+- [x] Adaptar folio portable.
+- [x] Adaptar dashboard `TO_CHAR`.
+- [x] Adaptar `DB::table('helpdesk...')`.
+- [x] Configurar `config/demo.php` y short-circuit de correo.
+- [x] `git diff --check`.
 
 ### Verificación
 

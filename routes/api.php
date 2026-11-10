@@ -20,6 +20,23 @@ use App\Http\Controllers\AdminControllers\DepartamentosController as Departament
 use App\Http\Controllers\AdminControllers\EmpleadoController as EmpleadoAdminController;
 use App\Http\Controllers\AdminControllers\UbicacionController;
 
+// Helpdesk
+use App\Http\Controllers\Helpdesk\TicketController;
+use App\Http\Controllers\Helpdesk\EmpleadoController as EmpleadoHelpdeskController;
+use App\Http\Controllers\Helpdesk\AvanceController;
+use App\Http\Controllers\Helpdesk\EncuestaController;
+use App\Http\Controllers\Helpdesk\CategoriaController;
+use App\Http\Controllers\Helpdesk\SubcategoriaController;
+use App\Http\Controllers\Helpdesk\TituloController;
+use App\Http\Controllers\Helpdesk\PrioridadController;
+use App\Http\Controllers\Helpdesk\SLANivelController;
+use App\Http\Controllers\Helpdesk\EstatusController;
+use App\Http\Controllers\Helpdesk\EtiquetaController;
+use App\Http\Controllers\Helpdesk\ModuloSIHOController;
+use App\Http\Controllers\Helpdesk\ProveedorErrorController;
+use App\Http\Controllers\Helpdesk\SistemaProveedorController;
+use App\Http\Controllers\Helpdesk\HelpdeskDashboardController;
+
 // AlmacenGeneral_Controllers
 use App\Http\Controllers\AlmacenGeneral\ProveedorController;
 use App\Http\Controllers\AlmacenGeneral\FacturaController;
@@ -328,4 +345,66 @@ use App\Support\Permisos;
         Route::middleware(PermissionMiddleware::class.':'.$permUbicacionesEliminar)->group(function () {
             Route::apiResource('/admin/ubicaciones', UbicacionController::class)->only(['destroy']);
         });
+
+        // ============================================================
+        // HELPDESK
+        // ============================================================
+        $permHelpdeskTicketsLectura = Permisos::middleware('helpdesk.tickets', 'lectura');
+        $permHelpdeskTicketsEscritura = Permisos::middleware('helpdesk.tickets', 'escritura');
+        $permHelpdeskMisTicketsLectura = Permisos::middleware('helpdesk.mis_tickets', 'lectura').'|'.$permHelpdeskTicketsLectura;
+        $permHelpdeskMisTicketsEscritura = Permisos::middleware('helpdesk.mis_tickets', 'escritura');
+        $permHelpdeskConfigEscritura = Permisos::middleware('helpdesk.configuracion', 'escritura');
+        $permHelpdeskReportesLectura = Permisos::middleware('helpdesk.reportes', 'lectura');
+
+        Route::middleware(PermissionMiddleware::class.':'.$permHelpdeskMisTicketsLectura)->group(function () {
+            Route::get('helpdesk/categorias', [CategoriaController::class, 'index']);
+            Route::get('helpdesk/categorias/{id}', [CategoriaController::class, 'show']);
+            Route::get('helpdesk/categorias/{id}/titulos', [TituloController::class, 'porCategoria']);
+            Route::get('helpdesk/subcategorias', [SubcategoriaController::class, 'index']);
+            Route::get('helpdesk/titulos', [TituloController::class, 'index']);
+            Route::get('helpdesk/prioridades', [PrioridadController::class, 'index']);
+            Route::get('helpdesk/estatus', [EstatusController::class, 'index']);
+            Route::get('helpdesk/etiquetas', [EtiquetaController::class, 'index']);
+            Route::get('helpdesk/empleados', [EmpleadoHelpdeskController::class, 'index']);
+
+            Route::apiResource('helpdesk/proveedores-error', ProveedorErrorController::class)->only(['index']);
+            Route::apiResource('helpdesk/sistemas-proveedor', SistemaProveedorController::class)->only(['index']);
+            Route::apiResource('helpdesk/modulos-siho', ModuloSIHOController::class)->only(['index']);
+
+            Route::get('helpdesk/tickets', [TicketController::class, 'index']);
+            Route::get('helpdesk/tickets/{id}', [TicketController::class, 'show']);
+            Route::get('helpdesk/tickets/{id}/avances', [AvanceController::class, 'index']);
+        });
+
+        Route::middleware(PermissionMiddleware::class.':'.$permHelpdeskTicketsEscritura)->group(function () {
+            Route::put('helpdesk/tickets/{id}', [TicketController::class, 'update']);
+            Route::put('helpdesk/tickets/{id}/cambiar-estado', [TicketController::class, 'cambiarEstado']);
+            Route::put('helpdesk/tickets/{id}/tecnicos', [TicketController::class, 'establecerTecnicos']);
+            Route::put('helpdesk/tickets/{id}/error-proveedor', [TicketController::class, 'marcarErrorProveedor']);
+            Route::put('helpdesk/tickets/{id}/cerrar', [TicketController::class, 'cerrar']);
+
+            Route::post('helpdesk/tickets/{id}/avances', [AvanceController::class, 'store']);
+            Route::delete('helpdesk/avances/{id}', [AvanceController::class, 'destroy']);
+        });
+
+        Route::middleware(PermissionMiddleware::class.':'.$permHelpdeskMisTicketsEscritura)->group(function () {
+            Route::post('helpdesk/tickets', [TicketController::class, 'store']);
+            Route::put('helpdesk/tickets/{id}/reabrir', [TicketController::class, 'reabrir']);
+            Route::post('helpdesk/tickets/{id}/encuesta', [EncuestaController::class, 'store']);
+        });
+
+        Route::middleware(PermissionMiddleware::class.':'.$permHelpdeskConfigEscritura)->group(function () {
+            Route::apiResource('helpdesk/categorias', CategoriaController::class)->only(['store', 'update', 'destroy']);
+            Route::apiResource('helpdesk/subcategorias', SubcategoriaController::class)->only(['store', 'update', 'destroy']);
+            Route::apiResource('helpdesk/titulos', TituloController::class)->only(['store', 'update', 'destroy']);
+            Route::apiResource('helpdesk/prioridades', PrioridadController::class)->only(['store', 'update', 'destroy']);
+            Route::apiResource('helpdesk/slas', SLANivelController::class)->only(['index', 'store', 'update', 'destroy']);
+            Route::apiResource('helpdesk/etiquetas', EtiquetaController::class)->only(['store', 'update', 'destroy']);
+            Route::apiResource('helpdesk/estatus', EstatusController::class)->only(['store', 'update', 'destroy']);
+            Route::apiResource('helpdesk/proveedores-error', ProveedorErrorController::class)->only(['store', 'update', 'destroy']);
+            Route::apiResource('helpdesk/sistemas-proveedor', SistemaProveedorController::class)->only(['store', 'update', 'destroy']);
+            Route::apiResource('helpdesk/modulos-siho', ModuloSIHOController::class)->only(['store', 'update', 'destroy']);
+        });
+
+        Route::middleware(PermissionMiddleware::class.':'.$permHelpdeskReportesLectura)->get('helpdesk/dashboard', [HelpdeskDashboardController::class, 'index']);
     });
