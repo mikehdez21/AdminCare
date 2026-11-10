@@ -62,6 +62,7 @@ export interface Departamentos {
   nombre_departamento: string;
   descripcion: string;
   atiende_pacientes: boolean;
+  atiende_helpdesk?: boolean;
   estatus_activo: boolean;
   created_at?: string;
   updated_at?: string | null;

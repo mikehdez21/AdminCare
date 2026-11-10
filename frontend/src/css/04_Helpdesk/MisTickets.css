@@ -1,0 +1,211 @@
+.mainDiv_HelpdeskTickets {
+	width: 100%;
+	max-width: 1100px;
+	margin: 10px auto;
+	padding: 15px;
+	border: 1px solid #e2e2e2;
+	border-radius: 10px;
+	background-color: #ffffff;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+	color: #383838d5;
+
+	.searchAdd_ButtonDiv {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 10px;
+
+		.text_Div {
+			h1 {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				font-size: 25px;
+				margin: 5px 0;
+
+				.iconHelpdesk {
+					font-size: 30px;
+				}
+			}
+
+			p {
+				margin: 0;
+				font-size: 14px;
+				color: #6b6b6b83;
+			}
+		}
+
+		.buttons_Div {
+			display: flex;
+			align-items: center;
+			gap: 15px;
+			flex-wrap: wrap;
+
+			input {
+				width: 280px;
+				padding: 10px;
+				border-radius: 8px;
+				border: 2px solid #e0e0e0;
+				font-size: 14px;
+				outline: none;
+
+				&:focus {
+					border-color: #00a651;
+				}
+			}
+
+			.selectList {
+				padding: 8px;
+				border-radius: 8px;
+				border: 2px solid #e0e0e0;
+				text-align: center;
+			}
+
+			.buttonNuevoTicket {
+				display: flex;
+				align-items: center;
+				gap: 5px;
+				padding: 10px 20px;
+				border: none;
+				border-radius: 8px;
+				background-color: #00a651;
+				color: #ffffff;
+				font-weight: 700;
+				font-size: 15px;
+				cursor: pointer;
+
+				&:hover {
+					background-color: #008a44;
+				}
+			}
+		}
+	}
+
+	.filtrosDiv {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+		margin-top: 15px;
+
+		select {
+			padding: 8px;
+			border-radius: 8px;
+			border: 2px solid #e0e0e0;
+			font-size: 13px;
+			color: #383838d5;
+		}
+
+		.filtrosFechaRow {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			gap: 10px;
+			flex-basis: 100%;
+		}
+
+		.filtroFecha {
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			padding: 0 8px 0 10px;
+			border: 2px solid #e0e0e0;
+			border-radius: 8px;
+			background-color: #ffffff;
+
+			span {
+				font-size: 12px;
+				font-weight: 600;
+				color: #6b6b6b;
+				white-space: nowrap;
+			}
+
+			input {
+				padding: 8px 0;
+				border: none;
+				outline: none;
+				background-color: transparent;
+				font-size: 13px;
+				color: #383838d5;
+			}
+		}
+
+		.buttonLimpiar {
+			padding: 8px 15px;
+			border: none;
+			border-radius: 8px;
+			background-color: #6b6b6b;
+			color: #ffffff;
+			font-weight: 600;
+			cursor: pointer;
+
+			&:hover {
+				background-color: #4f4f4f;
+			}
+		}
+	}
+
+	.formError {
+		padding: 10px;
+		border-radius: 8px;
+		background-color: rgba(224, 36, 36, 0.08);
+		color: #e02424;
+		font-size: 14px;
+		text-align: center;
+	}
+
+	.noEntities {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 15px;
+		padding: 40px;
+		color: #6b6b6b;
+	}
+
+	.list_entitiesDiv_helpdeskTickets {
+		overflow-x: auto;
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+
+			th,
+			td {
+				padding: 10px;
+				border-width: 1px;
+				border-color: #d8d5d5d5;
+				border-bottom-style: solid;
+				text-align: center;
+				font-size: 14px;
+			}
+
+			th {
+				background-color: #ffffff;
+				font-weight: 700;
+			}
+
+
+
+			tbody tr {
+				cursor: pointer;
+
+				&:hover {
+					background-color: #f0f8ff;
+				}
+			}
+
+			.badge {
+				display: inline-block;
+				padding: 4px 8px;
+				border-radius: 8px;
+				color: #ffffff;
+				font-size: 11px;
+				font-weight: 600;
+				min-width: 70px;
+				text-align: center;
+				white-space: nowrap;
+			}
+		}
+	}
+}

@@ -1,0 +1,15 @@
+.mainDiv_EtiquetasControlHelpdesk {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+}
+
+.etiquetaMuestra {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    vertical-align: middle;
+}

@@ -28,6 +28,7 @@ class DepartamentosController extends Controller
                         'nombre_departamento',
                         'descripcion',
                         'atiende_pacientes',
+                        'atiende_helpdesk',
                         'estatus_activo',
                         'created_at',
                         'updated_at',

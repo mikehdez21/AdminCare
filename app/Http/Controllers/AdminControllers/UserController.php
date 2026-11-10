@@ -35,6 +35,7 @@ class UserController extends Controller
                         'tableUsuarios.password',
                         'tableUsuarios.estatus_activo',
                         'tableUsuarios.usuario_compartido',
+                        'tableUsuarios.atiende_helpdesk',
                         'tableUsuarios.fecha_baja',
                         'tableUsuarios.id_empleado',
                         'tableUsuarios.id_departamento',
@@ -121,6 +122,7 @@ class UserController extends Controller
                 'estatus_activo' => 'required|boolean',
                 'fecha_baja' => 'nullable|date',
                 'usuario_compartido' => 'required|boolean',
+                'atiende_helpdesk' => 'sometimes|boolean',
 
                 'roles' => 'required|array', // Ahora es un arreglo
                 'roles.*' => 'string|exists:roles,name', // Cada rol en el arreglo debe existir en la tabla roles
@@ -139,6 +141,7 @@ class UserController extends Controller
                 'estatus_activo' => $request->estatus_activo,
                 'fecha_baja' => $request->fecha_baja,
                 'usuario_compartido' => $request->usuario_compartido,
+                'atiende_helpdesk' => (bool) ($request->atiende_helpdesk ?? false),
                 'id_empleado' => $request->id_empleado,
                 'id_departamento' => $request->id_departamento,
 
@@ -175,6 +178,7 @@ class UserController extends Controller
                 'estatus_activo' => 'required|boolean',
                 'fecha_baja' => 'nullable|date',
                 'usuario_compartido' => 'required|boolean',
+                'atiende_helpdesk' => 'sometimes|boolean',
                 'roles' => 'required|array', // Validación como arreglo
                 'id_empleado' => 'required',
                 'id_departamento' => 'required',
@@ -191,6 +195,7 @@ class UserController extends Controller
                 'estatus_activo' => $validatedData['estatus_activo'],
                 'fecha_baja' => $validatedData['fecha_baja'] ?? null,
                 'usuario_compartido' => $validatedData['usuario_compartido'],
+                'atiende_helpdesk' => (bool) ($validatedData['atiende_helpdesk'] ?? false),
                 'id_empleado' => $validatedData['id_empleado'],
                 'id_departamento' => $validatedData['id_departamento'],
 

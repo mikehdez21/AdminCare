@@ -1,0 +1,27 @@
+.mainDiv_EstatusControl {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+}
+
+.estatusMuestra {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    vertical-align: middle;
+}
+
+/* Mismos dos valores que `.status-activo` / `.status-inactivo` del resto de la
+   app, para que la columna se lea igual que en el resto de Catálogos. */
+.esFinalSi {
+    color: #08c433;
+    font-weight: 500;
+}
+
+.esFinalNo {
+    color: #e70c22;
+    font-weight: 500;
+}

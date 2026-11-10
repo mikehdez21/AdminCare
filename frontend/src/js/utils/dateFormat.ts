@@ -14,6 +14,27 @@ export const formatDateHorasToFrontend = (dateString: string | Date | number | n
   }
 };
 
+/**
+ * Fecha legible en hora de México, `DD/MM/YYYY HH:mm`.
+ *
+ * El backend devuelve UTC con microsegundos. Se usa `Intl` para no cambiar la
+ * zona horaria de `formatDateHorasToFrontend`.
+ */
+export const formatFechaMexico = (dateString: string | Date | number | null | undefined): string => {
+  if (!dateString) return '';
+  const fecha = new Date(dateString);
+  if (Number.isNaN(fecha.getTime())) return '';
+  return new Intl.DateTimeFormat('es-MX', {
+    timeZone: 'America/Mexico_City',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).format(fecha);
+};
+
 export const formatOnlyHorasToFrontend = (dateString: string | Date | number | null): string | null => {
   if (!dateString) return null;
   try {

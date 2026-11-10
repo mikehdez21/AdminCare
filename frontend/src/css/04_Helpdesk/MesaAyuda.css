@@ -1,0 +1,451 @@
+.mainDiv_HelpdeskAdmin {
+	width: 100%;
+	max-width: 1300px;
+	margin: 10px auto;
+	padding: 15px;
+	border: 1px solid #e2e2e2;
+	border-radius: 10px;
+	background-color: #ffffff;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+	color: #383838d5;
+
+	.searchAdd_ButtonDiv {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 10px;
+
+		.text_Div {
+			.titleConVolver {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+
+				.returnButton {
+					display: flex;
+					justify-content: flex-start;
+
+					button {
+						display: flex;
+						gap: 5px;
+						align-items: center;
+						justify-content: center;
+						padding: 5px 10px;
+						border: none;
+						border-radius: 8px;
+						background-color: #da29fd;
+						color: #fff;
+						font-weight: 800;
+						font-size: 15px;
+						cursor: pointer;
+
+						&:hover {
+							background-color: #df67f7 !important;
+							color: #000;
+						}
+					}
+				}
+			}
+
+			h1 {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				font-size: 25px;
+				margin: 5px 0;
+
+				.iconHelpdesk {
+					font-size: 30px;
+				}
+			}
+
+			p {
+				margin: 0;
+				font-size: 14px;
+				color: #6b6b6b83;
+			}
+		}
+
+		.buttons_Div {
+			display: flex;
+			align-items: center;
+			gap: 15px;
+			flex-wrap: wrap;
+
+			input {
+				width: 260px;
+				padding: 10px;
+				border-radius: 8px;
+				border: 2px solid #e0e0e0;
+				font-size: 14px;
+				outline: none;
+
+				&:focus {
+					border-color: #00a651;
+				}
+			}
+
+			.selectList {
+				padding: 8px;
+				border-radius: 8px;
+				border: 2px solid #e0e0e0;
+				text-align: center;
+			}
+
+			.buttonNuevoTicket {
+				display: flex;
+				align-items: center;
+				gap: 5px;
+				padding: 10px 20px;
+				border: none;
+				border-radius: 8px;
+				background-color: #00a651;
+				color: #ffffff;
+				font-weight: 700;
+				font-size: 15px;
+				cursor: pointer;
+
+				&:hover {
+					background-color: #008a44;
+				}
+			}
+		}
+	}
+
+	/* Tarjetas de resumen */
+	.dashboardCards {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 15px;
+		margin-top: 15px;
+
+		.ticketCard {
+			flex: 1 1 150px;
+			display: flex;
+			flex-direction: column;
+			gap: 5px;
+			padding: 15px;
+			border: 1px solid #e2e2e2;
+			border-radius: 10px;
+			background-color: #f9f9f9;
+
+			span {
+				font-size: 13px;
+				color: #6b6b6b;
+			}
+
+			strong {
+				font-size: 26px;
+			}
+		}
+	}
+
+	.filtrosDiv {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+		margin-top: 15px;
+
+		select {
+			padding: 8px;
+			border-radius: 8px;
+			border: 2px solid #e0e0e0;
+			font-size: 13px;
+			color: #383838d5;
+		}
+
+		.filtrosFechaRow {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			gap: 10px;
+			flex-basis: 100%;
+		}
+
+		.filtroFecha {
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			padding: 0 8px 0 10px;
+			border: 2px solid #e0e0e0;
+			border-radius: 8px;
+			background-color: #ffffff;
+
+			span {
+				font-size: 12px;
+				font-weight: 600;
+				color: #6b6b6b;
+				white-space: nowrap;
+			}
+
+			input {
+				padding: 8px 0;
+				border: none;
+				outline: none;
+				background-color: transparent;
+				font-size: 13px;
+				color: #383838d5;
+			}
+		}
+
+		.buttonLimpiar {
+			padding: 8px 15px;
+			border: none;
+			border-radius: 8px;
+			background-color: #6b6b6b;
+			color: #ffffff;
+			font-weight: 600;
+			cursor: pointer;
+
+			&:hover {
+				background-color: #4f4f4f;
+			}
+		}
+	}
+
+	.formError {
+		padding: 10px;
+		border-radius: 8px;
+		background-color: rgba(224, 36, 36, 0.08);
+		color: #e02424;
+		font-size: 14px;
+		text-align: center;
+	}
+
+	.noEntities {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 15px;
+		padding: 40px;
+		color: #6b6b6b;
+	}
+
+	.list_entitiesDiv_helpdeskAdmin {
+		overflow-x: auto;
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+
+			th,
+			td {
+				padding: 10px;
+				border-width: 1px;
+				border-color: #d8d5d5d5;
+				border-bottom-style: solid;
+				text-align: center;
+				font-size: 14px;
+			}
+
+			td.asignado {
+				font-weight: 700;
+			}
+
+			th {
+				background-color: #ffffff;
+				font-weight: 700;
+			}
+
+			/* El folio es el único elemento de la fila que abre el detalle. */
+			.ticketFolioLink {
+				padding: 0;
+				border: none;
+				background: none;
+				color: #007bff;
+				font-size: 14px;
+				font-weight: 600;
+				font-family: inherit;
+				cursor: pointer;
+				text-decoration: underline;
+
+				&:hover {
+					color: #00ccff;
+				}
+			}
+
+			.badge {
+				display: inline-block;
+				padding: 4px 8px;
+				border-radius: 8px;
+				color: #ffffff;
+				font-size: 11px;
+				font-weight: 600;
+				min-width: 70px;
+				text-align: center;
+				white-space: nowrap;
+			}
+
+			.sin-asignar {
+				color: #ff0000;
+				font-weight: 600;
+			}
+
+			.divActions {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				gap: 8px;
+			}
+
+			/* Icono suelto sin fondo, como en el resto de la app: azul para editar
+			   y rojo translúcido para eliminar. */
+			.button_editEntity,
+			.button_deleteEntity {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				padding: 0;
+				border: transparent;
+				background-color: transparent;
+				font-size: 20px;
+				cursor: pointer;
+			}
+
+			.button_editEntity {
+				color: #007bff;
+
+				&:hover {
+					color: #00ccff;
+				}
+			}
+
+			.button_deleteEntity {
+				color: #ff000075;
+
+				&:hover {
+					color: #ff0000;
+				}
+			}
+		}
+	}
+}
+
+/* Modal de asignación / reasignación */
+.modalHelpdeskAdmin {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: rgba(0, 0, 0, 0.5);
+	z-index: 100;
+
+	.mainDiv_modalHelpdeskAdmin {
+		display: flex;
+		flex-direction: column;
+		gap: 15px;
+		width: 420px;
+		max-width: 90vw;
+		padding: 25px;
+		border-radius: 10px;
+		background-color: #ffffff;
+		color: #383838d5;
+
+		h2 {
+			margin: 0;
+			font-size: 20px;
+		}
+
+		.modalTicketFolio {
+			margin: 0;
+			font-size: 14px;
+			color: #6b6b6b;
+		}
+
+		.ticketField {
+			display: flex;
+			flex-direction: column;
+			gap: 5px;
+
+			label {
+				font-size: 14px;
+				font-weight: 600;
+			}
+
+			select {
+				padding: 10px;
+				border-radius: 8px;
+				border: 2px solid #e0e0e0;
+				font-size: 14px;
+				color: #383838d5;
+				outline: none;
+
+				&:focus {
+					border-color: #00a651;
+				}
+			}
+		}
+
+		.errorProveedorSwitch {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			cursor: pointer;
+
+			input {
+				appearance: none;
+				position: relative;
+				width: 44px;
+				height: 24px;
+				border-radius: 999px;
+				background-color: #c9c9c9;
+				cursor: pointer;
+				transition: background-color 0.18s ease;
+
+				&::after {
+					content: '';
+					position: absolute;
+					top: 3px;
+					left: 3px;
+					width: 18px;
+					height: 18px;
+					border-radius: 50%;
+					background-color: #ffffff;
+					transition: transform 0.18s ease;
+				}
+
+				&:checked {
+					background-color: #00a651;
+
+					&::after {
+						transform: translateX(20px);
+					}
+				}
+			}
+
+			span {
+				font-size: 14px;
+				font-weight: 600;
+				color: #383838d5;
+			}
+		}
+
+		/* Modal de técnicos: los cinco selects, con el responsable marcado arriba. */
+		.tecnicosModal {
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+		}
+
+		.ticketField_Responsable {
+			padding: 10px;
+			border-left: 3px solid #da29fd;
+			border-radius: 0 8px 8px 0;
+			background-color: #faf2fd;
+
+			label {
+				color: #a628c4;
+			}
+		}
+	}
+}
+
+/* Fase 1 (prueba): el ticket ya está marcado como error de proveedor. */
+.mainDiv_HelpdeskAdmin .divActions button.activo {
+	color: #da29fd;
+}

@@ -87,17 +87,18 @@
 
 ### Tareas
 
-- [ ] Portar componentes `04_Helpdesk`.
-- [ ] Portar store `helpdesk`.
-- [ ] Portar tipos y CSS.
-- [ ] Registrar reducers.
-- [ ] Agregar rutas `/helpdesk/*`.
-- [ ] Agregar menú Helpdesk.
-- [ ] Agregar `DemoMailNotice`.
-- [ ] Agregar checkboxes `atiende_helpdesk` en Administración.
-- [ ] `pnpm exec tsc --noEmit`.
-- [ ] `pnpm run lint`.
-- [ ] `pnpm run build`.
+- [x] Portar componentes `04_Helpdesk`.
+- [x] Portar store `helpdesk`.
+- [x] Portar tipos y CSS.
+- [x] Registrar reducers.
+- [x] Agregar rutas `/helpdesk/*`.
+- [x] Agregar menú Helpdesk.
+- [x] Agregar `DemoMailNotice`.
+- [x] Agregar checkboxes `atiende_helpdesk` en Administración.
+- [x] `pnpm exec tsc --noEmit`.
+- [x] ESLint directo sobre archivos modificados.
+- [x] `pnpm run lint`.
+- [x] `pnpm run build`.
 
 ### Verificación
 

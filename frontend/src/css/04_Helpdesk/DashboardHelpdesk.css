@@ -1,0 +1,218 @@
+.mainDiv_DashboardHelpdesk {
+	width: 100%;
+	max-width: 1300px;
+	margin: 10px auto;
+	padding: 15px;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	border: 1px solid #e2e2e2;
+	border-radius: 10px;
+	background-color: #ffffff;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+	color: #383838d5;
+
+	.dhHeader {
+		display: flex;
+		align-items: center;
+		gap: 15px;
+		padding-bottom: 15px;
+		border-bottom: 2px solid #e2e2e2;
+
+		h1 {
+			font-size: 25px;
+			margin: 0;
+		}
+
+		.dhCargando {
+			font-size: 14px;
+			color: #6b6b6b;
+		}
+	}
+
+	/* Volver a la selección de mesa, igual que en la mesa de ayuda. */
+	.returnButton {
+		display: flex;
+		justify-content: flex-start;
+
+		button {
+			display: flex;
+			gap: 5px;
+			align-items: center;
+			justify-content: center;
+			padding: 5px 10px;
+			border: none;
+			border-radius: 8px;
+			background-color: #da29fd;
+			color: #fff;
+			font-weight: 800;
+			font-size: 15px;
+			cursor: pointer;
+
+			&:hover {
+				background-color: #df67f7 !important;
+				color: #000;
+			}
+		}
+	}
+
+	/* Alcance en pantalla: la mesa elegida, o todas. */
+	.dhAlcance {
+		padding: 3px 10px;
+		border-radius: 12px;
+		background-color: #faf2fd;
+		color: #a628c4;
+		font-size: 13px;
+		font-weight: 700;
+	}
+
+	/* Aviso corto encima de un gráfico, para decir qué está midiendo. */
+	.dhNota {
+		margin: 0 0 10px;
+		font-size: 13px;
+		color: #6b6b6b;
+	}
+
+	.ticketCards {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 15px;
+
+		.ticketCard {
+			flex: 1 1 170px;
+			display: flex;
+			flex-direction: column;
+			gap: 5px;
+			padding: 15px;
+			border: 1px solid #e2e2e2;
+			border-radius: 10px;
+			background-color: #f9f9f9;
+
+			span {
+				font-size: 13px;
+				color: #6b6b6b;
+			}
+
+			strong {
+				font-size: 26px;
+			}
+		}
+	}
+
+	.formError {
+		padding: 10px;
+		border-radius: 8px;
+		background-color: rgba(224, 36, 36, 0.08);
+		color: #e02424;
+		font-size: 14px;
+		text-align: center;
+	}
+
+	.dhSinDatos {
+		padding: 40px;
+		text-align: center;
+		color: #6b6b6b;
+	}
+
+	/* Los gráficos, en rejilla: mismo patrón de tarjetas que el dashboard de administración,
+	   pero con las clases de esta pantalla. */
+	.dhCharts {
+		display: grid;
+		grid-template-columns: repeat(12, minmax(0, 1fr));
+		gap: 15px;
+	}
+
+	.dhPanel {
+		grid-column: span 4;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		padding: 15px;
+		border: 1px solid #e2e2e2;
+		border-top: 4px solid #cbd5e1;
+		border-radius: 10px;
+		background-color: #fdfdfd;
+		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+		transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+		&:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+		}
+
+		h2 {
+			margin: 0 0 10px;
+			font-size: 16px;
+			padding-bottom: 6px;
+			border-bottom: 1px solid #e2e2e2;
+		}
+	}
+
+	/* Ancho de la tarjeta: los títulos son largos y en media tarjeta se comerían las barras. */
+	.dhPanel--medio {
+		grid-column: span 6;
+	}
+
+	.dhPanel--ancho {
+		grid-column: span 12;
+	}
+
+	/* Acento de cada tarjeta: el mismo tono de su serie. */
+	.dhPanel--estatus {
+		border-top-color: #8b5cf6;
+	}
+
+	.dhPanel--prioridad {
+		border-top-color: #f59e0b;
+	}
+
+	.dhPanel--proveedor {
+		border-top-color: #ef4444;
+	}
+
+	.dhPanel--titulo {
+		border-top-color: #6366f1;
+	}
+
+	.dhPanel--tecnico {
+		border-top-color: #0ea5e9;
+	}
+
+	.dhPanel--departamento {
+		border-top-color: #22c55e;
+	}
+
+	.dhPanel--solicitante {
+		border-top-color: #db2777;
+	}
+
+	/* `maintainAspectRatio: false` exige un contenedor con alto fijo. */
+	.dhChart {
+		height: 240px;
+		margin-top: auto;
+	}
+
+	/* Barras horizontales: diez títulos o nombres necesitan algo más de alto. */
+	.dhChart--alto {
+		height: 280px;
+	}
+}
+
+@media (max-width: 1024px) {
+	.mainDiv_DashboardHelpdesk .dhPanel {
+		grid-column: span 6;
+	}
+
+	.mainDiv_DashboardHelpdesk .dhPanel--medio,
+	.mainDiv_DashboardHelpdesk .dhPanel--ancho {
+		grid-column: span 12;
+	}
+}
+
+@media (max-width: 700px) {
+	.mainDiv_DashboardHelpdesk .dhPanel,
+	.mainDiv_DashboardHelpdesk .dhPanel--medio,
+	.mainDiv_DashboardHelpdesk .dhPanel--ancho {
+		grid-column: span 12;
+	}
+}

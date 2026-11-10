@@ -1,0 +1,95 @@
+/* react-modal aplica `className` a la caja del diálogo, no al overlay. El overlay
+   (fixed, centrado y con fondo) lo declara globalmente app.css en
+   .ReactModal__Overlay; aquí solo queda el contenido y sus descendientes. */
+.modalComponent_HelpdeskConfig {
+    .modalHelpdeskConfig {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: min(480px, 92vw);
+        padding: 20px;
+        border-radius: 10px;
+        background: #fff;
+
+        h2 {
+            margin: 0;
+            font-size: 19px;
+        }
+
+        .notaModal {
+            margin: 0;
+            padding: 8px 10px;
+            border-left: 3px solid #4a4a8f;
+            border-radius: 4px;
+            background: #f4f4fb;
+            font-size: 12px;
+            color: #495057;
+        }
+    }
+
+    .divInputs_HelpdeskConfig {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+
+        label {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input,
+        select,
+        textarea {
+            padding: 8px 10px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 400;
+            color: #212529;
+        }
+
+        /* El color se muestra como muestra + valor: el input nativo no deja
+           escribir el hex, que es lo que se guarda. */
+        input[type='color'] {
+            height: 38px;
+            padding: 3px;
+            cursor: pointer;
+        }
+
+        select:disabled {
+            background: #f1f3f5;
+            color: #6c757d;
+        }
+
+        textarea {
+            min-height: 70px;
+            resize: vertical;
+        }
+    }
+
+.divDelete_HelpdeskConfig {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    p {
+        margin: 0;
+        font-size: 14px;
+    }
+
+    small {
+        font-size: 12px;
+        color: #6c757d;
+    }
+}
+
+    .enviandoNota {
+        margin: 0;
+        font-size: 12px;
+        color: #6c757d;
+    }
+}

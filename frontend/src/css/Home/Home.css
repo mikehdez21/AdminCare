@@ -564,3 +564,13 @@
     animation: fadeInSlide 0.3s ease forwards;
     animation-delay: 0.2s;
 }
+
+.demo-mail-notice {
+    margin: 8px 16px 0;
+    padding: 10px 14px;
+    border-left: 4px solid #e0a458;
+    border-radius: 6px;
+    background-color: #fff8e8;
+    color: #3b2f20;
+    font-size: 14px;
+}

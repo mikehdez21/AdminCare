@@ -10,6 +10,15 @@ import Main_AlmacenGeneral from '@/components/02_Almacenes/AlmacenGeneral/Almace
 import Main_DepreciacionControl from '@/components/03_Contabilidad/DepreciacionAF/DepreciacionControl';
 import Main_ConfigContabilidadControl from '@/components/03_Contabilidad/Configuración/ConfigContabilidadControl';
 
+// Helpdesk
+import HD_AddTicket from '@/components/04_Helpdesk/AddTicket';
+import HD_MisTickets from '@/components/04_Helpdesk/MisTickets';
+import HD_MesaAyuda from '@/components/04_Helpdesk/MesaAyuda';
+import HD_TicketDetalle from '@/components/04_Helpdesk/TicketDetalle';
+import HD_Dashboard from '@/components/04_Helpdesk/DashboardHelpdesk';
+import HD_ConfigHelpdesk from '@/components/04_Helpdesk/Configuracion/ConfigHelpdeskControl';
+import Main_MesasAyuda from '@/components/04_Helpdesk/MesasAyudaControl';
+
 // Administrador
 import Main_UsuariosControl from '@/components/99_Administrador/Usuarios/UsuariosControl';
 import Main_EmpleadosControl from '@/components/99_Administrador/Empleados/EmpleadosControl';
@@ -39,6 +48,13 @@ export const SECTIONS: readonly { path: string; Component: React.ComponentType |
   { path: '/gestion_roles',               Component: Main_RolesControl },
   { path: '/almacen-general',             Component: Main_AlmacenGeneral },
   { path: '/almacen_general',             Component: Main_AlmacenGeneral },
+  { path: '/helpdesk/mis-tickets',        Component: HD_MisTickets },
+  { path: '/helpdesk/ticket',             Component: HD_TicketDetalle },
+  { path: '/helpdesk/admin',              Component: HD_MesaAyuda },
+  { path: '/helpdesk/mesas',              Component: Main_MesasAyuda },
+  { path: '/helpdesk/dashboard',          Component: HD_Dashboard },
+  { path: '/helpdesk/configuracion',      Component: HD_ConfigHelpdesk },
+  { path: '/helpdesk',                    Component: HD_AddTicket },
   { path: '/admin',                       Component: AdminDashboard },
 ] as const;
 

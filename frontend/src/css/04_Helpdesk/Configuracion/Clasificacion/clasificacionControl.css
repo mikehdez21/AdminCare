@@ -1,0 +1,227 @@
+/* ---------------------------------------------------------------------------
+   CLASIFICACIÓN: Categoría → Subcategoría → Título
+   ---------------------------------------------------------------------------
+   Los tres paneles son hermanos de flex. No usan etiquetas `section` ni `header`
+   sueltas: el contenedor de la Configuración los envuelve y cualquier regla por
+   etiqueta le caería encima.
+   --------------------------------------------------------------------------- */
+
+.mainDiv_ClasificacionControl {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Los tres paneles en una sola fila. Dentro de cada panel el contenido baja:
+   encabezado, buscador y lista. */
+.clasificacionCadena {
+    display: flex;
+    flex-direction: row;
+    gap: 14px;
+    /* `stretch` para que los tres midan lo mismo y las listas queden alineadas. */
+    align-items: stretch;
+
+    /* Por debajo de este ancho tres columnas dejan de caber: se apilan. */
+    @media (max-width: 900px) {
+        flex-direction: column;
+    }
+}
+
+.clasificacionPanel {
+    /* `flex-basis: 0` reparte el ancho a partes iguales; `min-width: 0` deja que
+       el panel encoja y el texto se recorte, en vez de empujar al vecino. */
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    /* Los tres en una fila sí compiten por el alto, así que el tope va aquí y la
+       lista hace scroll dentro. Apilados no hace falta tope. */
+    max-height: min(70vh, 34rem);
+    padding: 14px;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    background: #fff;
+
+
+    .clasificacionPanelHeader {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        /* El encabezado no se encoge: así el botón "Nueva" queda siempre en su
+           sitio aunque la lista de al lado crezca. */
+        flex-shrink: 0;
+        margin-bottom: 8px;
+
+        h2 {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0;
+            font-size: 16px;
+        }
+
+        /* Contador de la columna: dice de cuántas filas se está viendo sin
+           obligar a contarlas a ojo. */
+        .clasificacionConteo {
+            padding: 1px 7px;
+            border-radius: 10px;
+            background: #e9ecef;
+            color: #6c757d;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        }
+}
+
+/* Buscador independiente de cada columna, entre el encabezado y la lista. */
+.clasificacionBuscador {
+    flex-shrink: 0;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 8px;
+    padding: 6px 10px;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    font-size: 14px;
+
+    &:focus {
+        border-color: #da29fd;
+        outline: 2px solid rgba(218, 41, 253, 0.2);
+    }
+
+    &:disabled {
+        background: #f1f3f5;
+        color: #adb5bd;
+        cursor: not-allowed;
+    }
+}
+
+/* Modo lista: las filas van apiladas en un contenedor con scroll propio. El tope
+   de alto está en el panel, así que aquí solo hace falta `min-height: 0` para que
+   la lista se encoja dentro de él en vez de estirarlo. */
+.clasificacionLista {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-height: 0;
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.clasificacionFila {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    gap: 8px;
+    border-radius: 6px;
+
+    &:hover {
+        background: #f1f3f5;
+    }
+}
+
+/* La fila seleccionada es la que abre el panel siguiente. */
+.filaSeleccionada {
+    background: #e7f1ff;
+
+    &:hover {
+        background: #d7e8ff;
+    }
+}
+
+/* El nombre es el selector del panel siguiente, no una acción: por eso no lleva
+   borde de botón. En la columna de títulos no hay panel siguiente, así que ahí se
+   renderiza como `span` y no debe insinuar que es pulsable. */
+.clasificacionEnlace {
+    display: flex;
+    flex: 1;
+    /* Sin `min-width: 0` un hijo flex no baja de su ancho intrínseco y el texto
+       largo empuja los botones de acción fuera del panel. */
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 12px 10px;
+    border: none;
+    background: none;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+
+
+    /* Una sola línea con ellipsis. El nombre completo va en el `title`, así que
+       al recortar no se pierde información. */
+    span,
+    small {
+        display: block;
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    span {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    small {
+        font-size: 12px;
+        color: #6c757d;
+    }
+}
+
+.clasificacionEnlaceTitulo {
+    display: flex;
+    flex: 1;
+    /* Sin `min-width: 0` un hijo flex no baja de su ancho intrínseco y el texto
+       largo empuja los botones de acción fuera del panel. */
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 12px 10px;
+    border: none;
+    background: none;
+    color: inherit;
+    text-align: left;
+
+
+    /* Una sola línea con ellipsis. El nombre completo va en el `title`, así que
+       al recortar no se pierde información. */
+    span,
+    small {
+        display: block;
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    span {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    small {
+        font-size: 12px;
+        color: #6c757d;
+    }
+}
+
+/* Lo inactivo no desaparece: se ve tachado para saber que existe y se puede
+   reactivar, en vez de desaparecer del listado sin explicación. */
+.clasificacionInactivo {
+    color: #6c757d;
+    text-decoration: line-through;
+}
+
+/* Subcategoría no pública: es actividad interna del personal que atiende tickets.
+   Va con el prefijo `.clasificacionEnlace` para ganarle al `small` de la fila. */
+.clasificacionEnlace .clasificacionInterna {
+    color: #b26a00;
+    font-weight: 600;
+}

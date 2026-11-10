@@ -18,6 +18,7 @@ import { isSectionActive } from '@/router/sections';
 import SubMenuOptions_Almacen from './SubMenuOptions_Almacen';
 import SubMenuOptions_Administrador from './SubMenuOptions_Administrador';
 import SubMenuOptions_Contabilidad from './SubMenuOptions_Contabilidad';
+import SubMenuOptions_Helpdesk from './SubMenuOptions_Helpdesk';
 
 import '@styles/Home/Home.css';
 
@@ -48,6 +49,16 @@ const Sidebar_OptionsList: React.FC<Sidebar_OptionsListProps> = ({ role, departa
         <li className={isSectionActive(location.pathname, '/admin') ? 'sidebar_SectionSelected' : ''}>
           <div onClick={() => handleSelectSection('/admin')} className="divOption_IconTitle" >
             <RiDashboardLine className='iconOption_Sidebar' /> <span>Admin Dashboard</span>
+          </div>
+        </li>
+      )}
+
+
+      {/* Helpdesk */}
+      {tieneCapacidadEn(userPermissions, 'helpdesk') && (
+        <li>
+          <div className="divOption_IconTitle">
+            <SubMenuOptions_Helpdesk pathname={location.pathname} />
           </div>
         </li>
       )}

@@ -57,54 +57,57 @@ const App: React.FC = () => {
     <Router>
       <Suspense fallback={<RouteLoader />}>
         <DemoNotice />
-          <Routes>
+        <Routes>
 
 
-            {/* Rutas públicas */}
-            <Route path="/" element={<Layout_Public />} >
-              <Route index element={<Navigate to="/login" />} />
-              <Route path='/status' element={<Status />} />
-              <Route path='/login' element={<PageLogin />} />
-              <Route path='/activosfijos/qraf/scan/:codigoQR' element={<ActivoQRPublic />} />
-              <Route path='/activosfijos/qraf/:codigoQR' element={<ActivoQRPublic />} />
-            </Route>
+          {/* Rutas públicas */}
+          <Route path="/" element={<Layout_Public />} >
+            <Route index element={<Navigate to="/login" />} />
+            <Route path='/status' element={<Status />} />
+            <Route path='/login' element={<PageLogin />} />
+            <Route path='/activosfijos/qraf/scan/:codigoQR' element={<ActivoQRPublic />} />
+            <Route path='/activosfijos/qraf/:codigoQR' element={<ActivoQRPublic />} />
+          </Route>
 
 
-            <Route element={<ProtectedRoutes />} >
-              {/* Shell autenticado: Sidebar visible y contenido vacío hasta elegir un módulo. */}
-              <Route path="/app" element={<MainLayout />} />
-              <Route path="/admin" element={<MainLayout />} />
+          <Route element={<ProtectedRoutes />} >
+            {/* Shell autenticado: Sidebar visible y contenido vacío hasta elegir un módulo. */}
+            <Route path="/app" element={<MainLayout />} />
+            <Route path="/admin" element={<MainLayout />} />
 
-              {/* Almacenes */}
-              <Route path="/almacen-general/*" element={<MainLayout />} />
-              <Route path="/almacen-general/printer/*" element={<DemoUnavailable />} />
-              <Route path="/almacen_general/*" element={<MainLayout />} />
+            {/* Almacenes */}
+            <Route path="/almacen-general/*" element={<MainLayout />} />
+            <Route path="/almacen-general/printer/*" element={<DemoUnavailable />} />
+            <Route path="/almacen_general/*" element={<MainLayout />} />
 
-              {/* Contabilidad */}
-              <Route path="/contabilidad/depreciacion-af/*" element={<MainLayout />} />
-              <Route path="/contabilidad/depreciacionaf/*" element={<MainLayout />} />
-              <Route path="/contabilidad/configuracion/*" element={<MainLayout />} />
-              <Route path="/contabilidad/auditoria/*" element={<MainLayout />} />
+            {/* Contabilidad */}
+            <Route path="/contabilidad/depreciacion-af/*" element={<MainLayout />} />
+            <Route path="/contabilidad/depreciacionaf/*" element={<MainLayout />} />
+            <Route path="/contabilidad/configuracion/*" element={<MainLayout />} />
+            <Route path="/contabilidad/auditoria/*" element={<MainLayout />} />
 
-              {/* Administrador */}
-              <Route path="/gestion-usuarios/*" element={<MainLayout />} />
-              <Route path="/gestion_usuarios/*" element={<MainLayout />} />
-              <Route path="/gestion-empleados/*" element={<MainLayout />} />
-              <Route path="/gestion_empleados/*" element={<MainLayout />} />
-              <Route path="/gestion-roles/*" element={<MainLayout />} />
-              <Route path="/gestion_roles/*" element={<MainLayout />} />
-              <Route path="/gestion-departamentos/*" element={<MainLayout />} />
-              <Route path="/gestion_departamentos/*" element={<MainLayout />} />
-              <Route path="/gestion-ubicaciones/*" element={<MainLayout />} />
-              <Route path="/gestion_ubicaciones/*" element={<MainLayout />} />
+            {/* Helpdesk */}
+            <Route path="/helpdesk/*" element={<MainLayout />} />
+
+            {/* Administrador */}
+            <Route path="/gestion-usuarios/*" element={<MainLayout />} />
+            <Route path="/gestion_usuarios/*" element={<MainLayout />} />
+            <Route path="/gestion-empleados/*" element={<MainLayout />} />
+            <Route path="/gestion_empleados/*" element={<MainLayout />} />
+            <Route path="/gestion-roles/*" element={<MainLayout />} />
+            <Route path="/gestion_roles/*" element={<MainLayout />} />
+            <Route path="/gestion-departamentos/*" element={<MainLayout />} />
+            <Route path="/gestion_departamentos/*" element={<MainLayout />} />
+            <Route path="/gestion-ubicaciones/*" element={<MainLayout />} />
+            <Route path="/gestion_ubicaciones/*" element={<MainLayout />} />
 
 
-            </Route>
+          </Route>
 
 
 
-          </Routes>
-        </Suspense>
+        </Routes>
+      </Suspense>
     </Router>
   )
 }
@@ -116,7 +119,7 @@ if (rootElement) {
   const Index = ReactDOM.createRoot(rootElement);
   Index.render(
     <Provider store={store}>
-        <App />
+      <App />
     </Provider>
   );
 }

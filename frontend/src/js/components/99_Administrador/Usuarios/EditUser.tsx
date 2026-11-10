@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import Modal from 'react-modal';
 import { RootState, AppDispatch } from '@/store/store';
 import { useSelector, useDispatch } from 'react-redux';
@@ -11,8 +11,8 @@ import { setListUsuarios } from '@/store/administrador/Users/usersReducer';
 import { User, Roles, Departamentos } from '@/@types/mainTypes';
 import { Empleados } from '@/@types/mainTypes';
 import { useGetRolesQuery } from '@/store/api/rolesApi';
-import { getDepartamentos } from '@/store/administrador/Departamentos/departamentosActions';
-import { getEmpleados } from '@/store/administrador/Empleados/empleadosActions';
+import { getDepartamentosActivos } from '@/store/administrador/Departamentos/departamentosActions';
+import { getEmpleadosActivos } from '@/store/administrador/Empleados/empleadosActions';
 
 import Swal from 'sweetalert2';
 import ModalButtons from '@/components/00_Utils/ModalButtons';
@@ -45,6 +45,7 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, usuarioToEdit }) =
   const [estatusActivo, setEstatusActivo] = useState<boolean>(true);
   const [fechaBaja, setFechaBaja] = useState<string>('');
   const [userCompartido, setUserCompartido] = useState<boolean>(false);
+  const [atiendeHelpdesk, setAtiendeHelpdesk] = useState<boolean>(false);
   const [rolesUsuario, setRolesUsuario] = useState<Roles[]>(usuarioToEdit?.roles || []);
   const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState<number>(0);
   const [departamentoSeleccionado, setDepartamentoSeleccionado] = useState<number>(0);
@@ -53,10 +54,10 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, usuarioToEdit }) =
   // Cargar departamentos y empleados si no están disponibles
   useEffect(() => {
     if (departamentos.length === 0) {
-      dispatch(getDepartamentos());
+      dispatch(getDepartamentosActivos());
     }
     if (empleados.length === 0) {
-      dispatch(getEmpleados());
+      dispatch(getEmpleadosActivos());
     }
   }, [dispatch, departamentos.length, empleados.length]);
 
@@ -86,6 +87,10 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, usuarioToEdit }) =
     setUserCompartido((prevState) => !prevState);
   };
 
+  const handleAtiendeHelpdesk = () => {
+    setAtiendeHelpdesk((prevState) => !prevState);
+  };
+
   const handleAddRol = () => {
     openModalAddRol();
   };
@@ -99,7 +104,9 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, usuarioToEdit }) =
     if (usuarioToEdit) {
       console.log('Información ACTUAL del usuario:', usuarioToEdit); // Log completo del usuario
 
-      setNombreUsuario(usuarioToEdit.nombre_usuario);
+      // El usuario se maneja siempre en mayúsculas; la semilla también se normaliza
+      // para que el campo no dependa de cómo esté guardado.
+      setNombreUsuario(usuarioToEdit.nombre_usuario.toUpperCase());
 
       setEmail(usuarioToEdit.email_usuario || '@');
 
@@ -108,6 +115,7 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, usuarioToEdit }) =
       setFechaBaja(formatDateHorasToInputs(usuarioToEdit.fecha_baja) || '');
 
       setUserCompartido(usuarioToEdit.usuario_compartido || false);
+      setAtiendeHelpdesk(usuarioToEdit.atiende_helpdesk || false);
 
       setRolesUsuario(usuarioToEdit.roles || []);
       setEmpleadoSeleccionado(usuarioToEdit.id_empleado || 0);
@@ -149,8 +157,9 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, usuarioToEdit }) =
         estatus_activo: estatusActivo,
         fecha_baja: fechaBaja ? fechaBaja : null,
         usuario_compartido: userCompartido,
+        atiende_helpdesk: atiendeHelpdesk,
         roles: rolesUsuario,
-        id_empleado: empleadoSeleccionado,
+        id_empleado: empleadoSeleccionado > 0 ? empleadoSeleccionado : null,
         id_departamento: departamentoSeleccionado,
       };
 
@@ -183,14 +192,17 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, usuarioToEdit }) =
         });
 
         onClose(); // Cerrar modal al completar la edición
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: resultAction.message || 'Hubo un problema al editar el usuario.',
-          confirmButtonText: 'OK',
-        });
+
+        return;
       }
+
+      // Se muestra el mensaje del backend: el texto real solo iba a la consola.
+      Swal.fire({
+        icon: 'error',
+        title: 'No se pudo editar el usuario',
+        text: resultAction.message || 'Hubo un problema al editar el usuario.',
+        confirmButtonText: 'OK',
+      });
     } catch (error) {
       console.error('Error al editar el usuario:', error);
 
@@ -224,7 +236,7 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, usuarioToEdit }) =
                   value={nombreUsuario}
                   id="nombreUsuario"
                   name="nombreUsuario"
-                  onChange={(e) => setNombreUsuario(e.target.value)}
+                  onChange={(e) => setNombreUsuario(e.target.value.toUpperCase())}
                   placeholder="JUsuario - Usuario"
                   required
                 />
@@ -328,6 +340,25 @@ const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, usuarioToEdit }) =
                           type="checkbox"
                           onChange={handleUserCompartido}
                           checked={!userCompartido}
+                        />
+                      </label>
+                    </span>
+                  </div>
+                </small>
+
+                <small>
+                  *Atiende Helpdesk:
+                  <div className="checkDiv">
+                    <span>
+                      {' '}
+                      {atiendeHelpdesk ? 'Atiende tickets' : 'No atiende tickets'}
+                      <label>
+                        <input
+                          name="atiendeHelpdesk"
+                          id="atiendeHelpdesk"
+                          type="checkbox"
+                          onChange={handleAtiendeHelpdesk}
+                          checked={atiendeHelpdesk}
                         />
                       </label>
                     </span>

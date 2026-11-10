@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import Modal from 'react-modal';
 import { RootState, AppDispatch } from '@/store/store';
 import { useSelector, useDispatch } from 'react-redux';
@@ -8,8 +8,8 @@ import { setListUsuarios } from '@/store/administrador/Users/usersReducer';
 import { addUser, getUsers } from '@/store/administrador/Users/usersActions';
 
 import { useGetRolesQuery } from '@/store/api/rolesApi';
-import { getDepartamentos } from '@/store/administrador/Departamentos/departamentosActions';
-import { getEmpleados } from '@/store/administrador/Empleados/empleadosActions';
+import { getDepartamentosActivos } from '@/store/administrador/Departamentos/departamentosActions';
+import { getEmpleadosActivos } from '@/store/administrador/Empleados/empleadosActions';
 
 import { User, Roles, Departamentos } from '@/@types/mainTypes';
 import { Empleados } from '@/@types/mainTypes';
@@ -41,17 +41,18 @@ const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
   const [estatusActivo, setEstatusActivo] = useState<boolean>(true);
   const [fechaBaja, setFechaBaja] = useState<string>('');
   const [userCompartido, setUserCompartido] = useState<boolean>(false);
+  const [atiendeHelpdesk, setAtiendeHelpdesk] = useState<boolean>(false);
   const [rolesUsuario, setRolesUsuario] = useState<Roles[]>([]);
   const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState<string>('');
   const [departamentoSeleccionado, setDepartamentoSeleccionado] = useState<string>('');
 
-  // Cargar empleados y departamentos si no están disponibles
+  // Cargar empleados y departamentos si no estÃ¡n disponibles
   useEffect(() => {
     if (departamentos.length === 0) {
-      dispatch(getDepartamentos());
+      dispatch(getDepartamentosActivos());
     }
     if (empleados.length === 0) {
-      dispatch(getEmpleados());
+      dispatch(getEmpleadosActivos());
     }
   }, [dispatch, departamentos.length, empleados.length]);
 
@@ -78,6 +79,10 @@ const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
 
   const handleUserCompartido = () => {
     setUserCompartido((prevState) => !prevState);
+  };
+
+  const handleAtiendeHelpdesk = () => {
+    setAtiendeHelpdesk((prevState) => !prevState);
   };
 
   const handleAddRol = () => {
@@ -112,6 +117,7 @@ const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
         estatus_activo: estatusActivo,
         fecha_baja: getFechaHoraActual(),
         usuario_compartido: userCompartido,
+        atiende_helpdesk: atiendeHelpdesk,
         roles: rolesUsuario,
         id_empleado: Number(empleadoSeleccionado) || null,
         id_departamento: Number(departamentoSeleccionado),
@@ -135,6 +141,7 @@ const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
           setEstatusActivo(true);
           setFechaBaja('');
           setUserCompartido(false);
+          setAtiendeHelpdesk(false);
           setRolesUsuario([]);
           setEmpleadoSeleccionado('');
           setDepartamentoSeleccionado('');
@@ -149,16 +156,30 @@ const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
             confirmButtonText: 'OK',
           });
           onClose(); // Cerrar modal al completar el envío
+
+          return;
         }
-      } else {
+
+        // El usuario sí se creó: avisarlo sin cerrar el modal evita que se reintente
+        // y se duplique, algo que la validación de `unique` ya rechazaría.
         Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Hubo un problema al añadir el usuario. Por favor, inténtalo de nuevo.',
+          icon: 'warning',
+          title: 'Usuario añadido, lista sin actualizar',
+          text: usuariosActualizados.message || 'Cierra y vuelve a abrir la ventana para ver la lista.',
           confirmButtonText: 'OK',
         });
-        console.log('Error al agregar el usuario: ', resultAction.message);
+
+        return;
       }
+
+      // Se muestra el mensaje del backend, no uno genérico: antes el texto real solo
+      // iba a la consola y el usuario veía "inténtalo de nuevo" sin saber por qué.
+      Swal.fire({
+        icon: 'error',
+        title: 'No se pudo añadir el usuario',
+        text: resultAction.message || 'Hubo un problema al añadir el usuario. Por favor, inténtalo de nuevo.',
+        confirmButtonText: 'OK',
+      });
     } catch (error) {
       console.error('Error al agregar el usuario: ', error);
 
@@ -188,7 +209,7 @@ const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
                   value={nombreUsuario}
                   id="nombreUsuario"
                   name="nombreUsuario"
-                  onChange={(e) => setNombreUsuario(e.target.value)}
+                  onChange={(e) => setNombreUsuario(e.target.value.toUpperCase())}
                   placeholder="JUsuario - Usuario"
                   required
                 />
@@ -233,7 +254,7 @@ const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
                   id="passwordUsuario"
                   name="passwordUsuario"
                   onChange={(e) => setPasswordUsuario(e.target.value)}
-                  placeholder="Contraseña de mínimo 8 caracteres"
+                  placeholder="Contraseña de mí­nimo 8 caracteres"
                   required
                 />
               </label>
@@ -307,6 +328,25 @@ const AddUser: React.FC<AddUserProps> = ({ isOpen, onClose }) => {
                         type="checkbox"
                         onChange={handleUserCompartido}
                         checked={!userCompartido}
+                      />
+                    </label>
+                  </span>
+                </div>
+              </small>
+
+              <small>
+                *Atiende Helpdesk:
+                <div className="checkDiv">
+                  <span>
+                    {' '}
+                    {atiendeHelpdesk ? 'Atiende tickets' : 'No atiende tickets'}
+                    <label>
+                      <input
+                        name="atiendeHelpdesk"
+                        id="atiendeHelpdesk"
+                        type="checkbox"
+                        onChange={handleAtiendeHelpdesk}
+                        checked={atiendeHelpdesk}
                       />
                     </label>
                   </span>

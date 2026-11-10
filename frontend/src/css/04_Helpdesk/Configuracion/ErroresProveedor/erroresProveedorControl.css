@@ -1,0 +1,46 @@
+/* Catálogos de errores de proveedor: proveedores, sistemas y módulos.
+   Los tres comparten contenedor y estilo porque usan `ConfigTablaControl`. */
+
+.mainDiv_ErroresProveedorControl {
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+}
+
+/* Columna del switch del catálogo de proveedores: encendido = capturar su error
+   pide sistema, no. de ticket externo, módulo y personal SAC. */
+.switchCatalogo {
+	position: relative;
+	width: 44px;
+	height: 24px;
+	padding: 0;
+	border: none;
+	border-radius: 999px;
+	background-color: #c9c9c9;
+	cursor: pointer;
+	transition: background-color 0.18s ease;
+
+	span {
+		position: absolute;
+		top: 3px;
+		left: 3px;
+		width: 18px;
+		height: 18px;
+		border-radius: 50%;
+		background-color: #ffffff;
+		transition: transform 0.18s ease;
+	}
+
+	&:disabled {
+		cursor: wait;
+		opacity: 0.6;
+	}
+
+	&.switchCatalogo_Encendido {
+		background-color: #00a651;
+
+		span {
+			transform: translateX(20px);
+		}
+	}
+}

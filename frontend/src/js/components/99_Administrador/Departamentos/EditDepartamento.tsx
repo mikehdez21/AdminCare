@@ -3,8 +3,7 @@ import Modal from 'react-modal';
 import { AppDispatch } from '@/store/store';
 import { useDispatch } from 'react-redux';
 import { Departamentos } from '@/@types/mainTypes';
-import { editDepartamento, getDepartamentos } from '@/store/administrador/Departamentos/departamentosActions';
-import { setListDepartamentos } from '@/store/administrador/Departamentos/departamentosReducer';
+import { editDepartamento } from '@/store/administrador/Departamentos/departamentosActions';
 import Swal from 'sweetalert2';
 import ModalButtons from '@/components/00_Utils/ModalButtons';
 
@@ -25,14 +24,16 @@ const EditDepartamento: React.FC<EditDepartamentoProps> = ({ isOpen, onClose, de
 
   const [nombreDepartamento, setNombreDepartamento] = useState<string>('');
   const [descripcionDepartamento, setDescripcionDepartamento] = useState<string>('');
-  const [atiendePacientes, setAtiendePacientes] = useState<boolean>(false); 
-  const [estatusActivo, setEstatusActivo] = useState<boolean>(true); 
- 
+  const [atiendePacientes, setAtiendePacientes] = useState<boolean>(false);
+  const [atiendeHelpdesk, setAtiendeHelpdesk] = useState<boolean>(false);
+  const [estatusActivo, setEstatusActivo] = useState<boolean>(true);
+
   useEffect(() => {
     if (departamentoToEdit) {
       setNombreDepartamento(departamentoToEdit.nombre_departamento);
       setDescripcionDepartamento(departamentoToEdit.descripcion);
       setAtiendePacientes(departamentoToEdit.atiende_pacientes);
+      setAtiendeHelpdesk(departamentoToEdit.atiende_helpdesk ?? false);
       setEstatusActivo(departamentoToEdit.estatus_activo);
     }
   }, [departamentoToEdit]); // Solo se ejecuta cuando departamentoToEdit cambia
@@ -46,35 +47,29 @@ const EditDepartamento: React.FC<EditDepartamentoProps> = ({ isOpen, onClose, de
         nombre_departamento: nombreDepartamento,
         descripcion: descripcionDepartamento,
         atiende_pacientes: atiendePacientes,
+        atiende_helpdesk: atiendeHelpdesk,
         estatus_activo: estatusActivo
-        
-        
+
+
       };
-    
+
       const formData = new FormData();
-      
+
       formData.append('id_departamento', departamentoEditado.id_departamento!.toString());
       formData.append('nombre_departamento', departamentoEditado.nombre_departamento);
       formData.append('descripcion', departamentoEditado.descripcion);
       formData.append('atiende_pacientes', departamentoEditado.atiende_pacientes ? '1' : '0');
+      formData.append('atiende_helpdesk', departamentoEditado.atiende_helpdesk ? '1' : '0');
       formData.append('estatus_activo', departamentoEditado.estatus_activo ? '1' : '0');
 
-  
+
       console.log('dataDepartamento_Enviada: ', departamentoToEdit)
       const resultAction = await dispatch(editDepartamento(departamentoEditado)).unwrap();
       console.log('Respuesta del servidor:', resultAction);
-  
+
       if (resultAction.success) {
-        // Si el departamento fue editado con éxito, recargar la lista de departamentos
-        const departamentosActualizados = await dispatch(getDepartamentos()).unwrap();
-        if (departamentosActualizados.success) {
-          dispatch(setListDepartamentos(departamentosActualizados.departamentos!)); // Actualiza la lista de departamentos en el estado
-          setNombreDepartamento('')
-          setDescripcionDepartamento('')     
-
-          console.log('Departamento editado y lista recargada:', departamentosActualizados.departamentos);
-
-        }
+        setNombreDepartamento('')
+        setDescripcionDepartamento('')
 
         Swal.fire({
           icon: 'success',
@@ -84,14 +79,16 @@ const EditDepartamento: React.FC<EditDepartamentoProps> = ({ isOpen, onClose, de
         });
 
         onClose(); // Cerrar modal al completar la edición
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: resultAction.message || 'Hubo un problema al editar el departamento.',
-          confirmButtonText: 'OK',
-        });
+
+        return;
       }
+
+      Swal.fire({
+        icon: 'error',
+        title: 'No se pudo editar el departamento',
+        text: resultAction.message || 'Hubo un problema al editar el departamento.',
+        confirmButtonText: 'OK',
+      });
     } catch (error) {
       console.error('Error al editar el departamento:', error);
 
@@ -104,7 +101,7 @@ const EditDepartamento: React.FC<EditDepartamentoProps> = ({ isOpen, onClose, de
     }
   };
 
-  
+
 
   return (
     <Modal
@@ -120,26 +117,26 @@ const EditDepartamento: React.FC<EditDepartamentoProps> = ({ isOpen, onClose, de
         <form onSubmit={handleSubmit} className="formDepartamentos">
 
           <div className='dataInputs_Departamentos'>
-                    
+
             <section className='leftDiv_Inputs'>
-        
+
               <label>
                       *Departamento:
-                <input 
-                  type="text" 
-                  value={nombreDepartamento} 
+                <input
+                  type="text"
+                  value={nombreDepartamento}
                   id='nombreDepartamento'
                   name='nombreDepartamento'
-                  onChange={(e) => setNombreDepartamento(e.target.value)} 
+                  onChange={(e) => setNombreDepartamento(e.target.value)}
                   placeholder='Nombre del Departamento'
-                  required 
+                  required
                 />
               </label>
 
               <label>
                   *Descripción
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={descripcionDepartamento}
                   id='descripcionDepartamento'
                   name='descripcionDepartamento'
@@ -155,8 +152,8 @@ const EditDepartamento: React.FC<EditDepartamentoProps> = ({ isOpen, onClose, de
 
               <label>
                   *Atiende Pacientes
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={atiendePacientes}
                   id='atiendePacientes'
                   name='atiendePacientes'
@@ -166,9 +163,21 @@ const EditDepartamento: React.FC<EditDepartamentoProps> = ({ isOpen, onClose, de
               </label>
 
               <label>
+                  *Atiende Helpdesk
+                <input
+                  type="checkbox"
+                  checked={atiendeHelpdesk}
+                  id='atiendeHelpdesk'
+                  name='atiendeHelpdesk'
+                  onChange={(e) => setAtiendeHelpdesk(e.target.checked)}
+                  placeholder='Atiende Helpdesk'
+                />
+              </label>
+
+              <label>
                   *Estatus Activo
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={estatusActivo}
                   id='estatusActivo'
                   name='estatusActivo'
@@ -178,10 +187,10 @@ const EditDepartamento: React.FC<EditDepartamentoProps> = ({ isOpen, onClose, de
               </label>
 
             </section>
-        
+
           </div>
-        
-          <ModalButtons 
+
+          <ModalButtons
             buttons={[
               {
                 text: 'Guardar',

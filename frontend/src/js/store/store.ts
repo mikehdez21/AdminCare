@@ -20,6 +20,12 @@ import fiscalReducer from '@/store/shared/fiscalReducer';
 import clasificacionesReducer from '@/store/almacengeneral/Clasificaciones/clasificacionesReducer';
 import depreciacionReducer from '@/store/almacengeneral/Activos/DepreciacionAF/depreciacionAFReducer';
 
+import ticketsReducer from '@/store/helpdesk/Tickets/ticketsReducer';
+import avancesReducer from '@/store/helpdesk/Tickets/avancesReducer';
+import catalogosReducer from '@/store/helpdesk/Catalogos/catalogosReducer';
+import configuracionReducer from '@/store/helpdesk/Configuracion/configuracionReducer';
+import helpdeskDashboardReducer from '@/store/helpdesk/Dashboard/helpdeskDashboardReducer';
+
 
 const store = configureStore({
   reducer: {
@@ -45,6 +51,13 @@ const store = configureStore({
     clasificacion: clasificacionesReducer,
     facturasaf: facturasReducer,
     proveedor: proveedoresReducer,
+
+    // Helpdesk
+    helpdeskTickets: ticketsReducer,
+    helpdeskAvances: avancesReducer,
+    helpdeskCatalogos: catalogosReducer,
+    helpdeskConfiguracion: configuracionReducer,
+    helpdeskDashboard: helpdeskDashboardReducer,
 
     // Contabilidad
     depreciacionAF: depreciacionReducer,

@@ -1,0 +1,112 @@
+/* Entrada del dashboard: las tarjetas de mesa.
+   Las reglas de `.mesaMenu` / `.divOption` están anidadas dentro de
+   `.mainDiv_MesaAyuda` en `MesasAyudaControl.css`, así que no alcanzan a este
+   contenedor: se replican aquí con el mismo aspecto para que las dos pantallas se
+   lean igual. Si un día se unifican (como se hizo con `.buttonAdd` en `app.css`),
+   esta copia se va. */
+
+.mainDiv_DashboardControl {
+	width: 100%;
+	max-width: 1300px;
+	margin: 10px auto;
+	padding: 15px;
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+	border: 1px solid #e2e2e2;
+	border-radius: 10px;
+	background-color: #ffffff;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+	color: #383838d5;
+
+	.dashboardEncabezado {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		margin: 20px 0;
+
+		h1 {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			margin: 5px 0;
+			font-size: 25px;
+
+			.iconHelpdesk {
+				font-size: 30px;
+			}
+		}
+
+		p {
+			margin: 0;
+			font-size: 14px;
+			color: #6b6b6b83;
+		}
+	}
+
+	.mesaMenu {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 20px;
+		width: 100%;
+		margin: 0 auto;
+		align-items: center;
+		padding: 16px 20px 24px;
+		box-sizing: border-box;
+
+		.divOption {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			gap: 4px;
+			padding: 24px;
+			border: none;
+			border-radius: 10px;
+			background: linear-gradient(135deg, #667eea, #764ba2);
+			color: #fff;
+			text-align: center;
+			cursor: pointer;
+			transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+			.iconFiltro {
+				font-size: 36px;
+				margin-bottom: 6px;
+			}
+
+			h2 {
+				margin: 6px 0;
+				font-size: 18px;
+			}
+
+			p {
+				margin: 0;
+				font-size: 13px;
+				opacity: 0.9;
+			}
+
+			&:hover {
+				transform: translateY(-3px);
+				box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+			}
+		}
+
+		/* La tarjeta de la vista global no es una mesa: se distingue del resto. */
+		.divOption_Todas {
+			background: linear-gradient(135deg, #0ea5e9, #0369a1);
+		}
+	}
+}
+
+@media (max-width: 1100px) {
+	.mainDiv_DashboardControl .mesaMenu {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+@media (max-width: 640px) {
+	.mainDiv_DashboardControl .mesaMenu {
+		grid-template-columns: 1fr;
+	}
+}
